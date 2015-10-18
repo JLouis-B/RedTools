@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>768</width>
+    <height>647</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>The Witcher 3D models converter</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QPushButton" name="button_convert">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>460</y>
+      <width>91</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Convert -&gt;</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox_format">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>490</y>
+      <width>171</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>.obj (Wavefront OBJ)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.dae (Collada)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.ply (Polygon File Format)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.stl (STereoLithography)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.irrmesh (Irrlicht mesh)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.b3d (Blitz3D)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.re (Red Engine)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.x (DirectX)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.3ds (Autodesk 3DS)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.assbin (Assimp binary)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.assxml (Assimp XML)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.stp (Step files)</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_exportedFilename">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>460</y>
+      <width>201</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_exportedFilename">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>460</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Name :</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_ImportedFile">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>490</y>
+      <width>401</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_logs">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>522</y>
+      <width>46</width>
+      <height>13</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Logs :</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="button_fileSelector">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>460</y>
+      <width>401</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select .w2ent file</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="textEdit_log">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>540</y>
+      <width>751</width>
+      <height>81</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>510</y>
+      <width>751</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="button_selectDir">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>0</y>
+      <width>88</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_folder">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>0</y>
+      <width>561</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_baseDir">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Base directory :</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_format">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>490</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Format :</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>768</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMenu">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <addaction name="actionSearch"/>
+    <addaction name="actionShow_linked_files"/>
+    <addaction name="separator"/>
+    <addaction name="actionOptions"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuitter"/>
+   </widget>
+   <widget class="QMenu" name="menuLanguages">
+    <property name="title">
+     <string>Languages</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuDisplay">
+    <property name="title">
+     <string>Display</string>
+    </property>
+    <addaction name="actionWireframe"/>
+    <addaction name="actionRigging"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionWebpage"/>
+   </widget>
+   <widget class="QMenu" name="menu_RE_tools">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="title">
+     <string>Redkit tools</string>
+    </property>
+    <widget class="QMenu" name="menuLOD">
+     <property name="title">
+      <string>LOD</string>
+     </property>
+     <addaction name="actionLOD0"/>
+     <addaction name="actionLOD1"/>
+     <addaction name="actionLOD2"/>
+     <addaction name="separator"/>
+     <addaction name="actionCollision_mesh"/>
+     <addaction name="separator"/>
+     <addaction name="actionClear_current_LOD"/>
+     <addaction name="actionClear_all_LODs"/>
+    </widget>
+    <addaction name="actionSize"/>
+    <addaction name="menuLOD"/>
+   </widget>
+   <widget class="QMenu" name="menuThe_Witcher_3_tools">
+    <property name="title">
+     <string>The Witcher 3 tools</string>
+    </property>
+    <addaction name="actionClean_textures_path"/>
+    <addaction name="actionSet_rig"/>
+   </widget>
+   <addaction name="menuMenu"/>
+   <addaction name="menu_RE_tools"/>
+   <addaction name="menuThe_Witcher_3_tools"/>
+   <addaction name="menuDisplay"/>
+   <addaction name="menuLanguages"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="actionEnglish">
+   <property name="text">
+    <string>English</string>
+   </property>
+  </action>
+  <action name="actionQuitter">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionWireframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wireframe</string>
+   </property>
+  </action>
+  <action name="actionWebpage">
+   <property name="text">
+    <string>Webpage</string>
+   </property>
+  </action>
+  <action name="actionSearch">
+   <property name="text">
+    <string>Search</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionSize">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Size</string>
+   </property>
+  </action>
+  <action name="actionLOD0">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LOD0 (empty)</string>
+   </property>
+  </action>
+  <action name="actionLOD1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LOD1 (empty)</string>
+   </property>
+  </action>
+  <action name="actionLOD2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LOD2 (empty)</string>
+   </property>
+  </action>
+  <action name="actionClear_current_LOD">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Clear current LOD</string>
+   </property>
+  </action>
+  <action name="actionRigging">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Skeleton</string>
+   </property>
+  </action>
+  <action name="actionClear_all_LODs">
+   <property name="text">
+    <string>Clear all LODs</string>
+   </property>
+  </action>
+  <action name="actionCollision_mesh">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Collision mesh (empty)</string>
+   </property>
+  </action>
+  <action name="actionClean_textures_path">
+   <property name="text">
+    <string>Clean textures path</string>
+   </property>
+  </action>
+  <action name="actionShow_linked_files">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Show linked files</string>
+   </property>
+  </action>
+  <action name="actionSet_rig">
+   <property name="text">
+    <string>Set rig</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

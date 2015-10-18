@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<translation>
+	<element>
+		<name>button_fileSelector</name>
+		<text>Sélectionner un modèle 3D</text>
+	</element>
+	<element>
+		<name>button_convertir</name>
+		<text>Convertir -></text>
+	</element>
+	<element>
+		<name>dialogue_file</name>
+		<text>Choississez le fichier</text>
+	</element>
+	<element>
+		<name>dialogue_folder</name>
+		<text>Choississez le dossier du jeu</text>
+	</element>
+	<element>
+		<name>log_writingFile</name>
+		<text>Ecriture du fichier</text>
+	</element>
+	<element>
+		<name>log_readingFile</name>
+		<text>Lecture du fichier</text>
+	</element>
+	<element>
+		<name>log_done</name>
+		<text>fait</text>
+	</element>
+	<element>
+		<name>log_abort</name>
+		<text>Annulé : Le dossier de destination n'existe pas.</text>
+	</element>
+	<element>
+		<name>log_fail</name>
+		<text>Erreur</text>
+	</element>
+	<element>
+		<name>log_warning_empty</name>
+		<text>Attention : Le nom du fichier cible n'a pas été rempli</text>
+	</element>
+	<element>
+		<name>base_directory</name>
+		<text>Repertoire de base</text>
+	</element>
+	<element>
+		<name>label_exported_file_name</name>
+		<text>Nom</text>
+	</element>
+	<element>
+		<name>menu_menu</name>
+		<text>Menu</text>
+	</element>
+	<element>
+		<name>menu_quit</name>
+		<text>Quitter</text>
+	</element>
+	<element>
+		<name>menu_language</name>
+		<text>Langue</text>
+	</element>
+	<element>
+		<name>menu_display</name>
+		<text>Affichage</text>
+	</element>
+	<element>
+		<name>menu_wireframe</name>
+		<text>Fil de fer</text>
+	</element>
+	<element>
+		<name>menu_search</name>
+		<text>Rechercher</text>
+	</element>
+	<element>
+		<name>menu_options</name>
+		<text>Options</text>
+	</element>
+	<element>
+		<name>menu_help</name>
+		<text>Aide</text>
+	</element>
+	<element>
+		<name>menu_webpage</name>
+		<text>Page web</text>
+	</element>
+	<element>
+		<name>search_name</name>
+		<text>Nom</text>
+	</element>
+	<element>
+		<name>search_button</name>
+		<text>Rechercher</text>
+	</element>
+	<element>
+		<name>search_result</name>
+		<text>Resultats</text>
+	</element>
+	<element>
+		<name>search_check_folder</name>
+		<text>Vérifier aussi les noms de dossiers (plus de résultats)</text>
+	</element>
+	<element>
+		<name>search_progress</name>
+		<text>Progression</text>
+	</element>
+	<element>
+		<name>search_load</name>
+		<text>Charger</text>
+	</element>
+	<element>
+		<name>options_view</name>
+		<text>View</text>
+	</element>
+	<element>
+		<name>options_camera</name>
+		<text>Caméra</text>
+	</element>
+	<element>
+		<name>options_camera_movement_speed</name>
+		<text>Vitesse de mouvement</text>
+	</element>
+	<element>
+		<name>options_camera_rot_speed</name>
+		<text>Vitesse de rotation</text>
+	</element>
+	<element>
+		<name>options_background</name>
+		<text>Couleur de fond</text>
+	</element>
+	<element>
+		<name>options_export</name>
+		<text>Export</text>
+	</element>
+	<element>
+		<name>options_export_to_pack0</name>
+		<text>Exporter vers le dossier pack0</text>
+	</element>
+	<element>
+		<name>options_export_to_other</name>
+		<text>Exporter vers un autre dossier</text>
+	</element>
+	<element>
+		<name>options_export_move_textures</name>
+		<text>Déplacer les textures</text>
+	</element>
+	<element>
+		<name>options_export_target</name>
+		<text>Choisissez le dossier d'export</text>
+	</element>
+	<element>
+		<name>options_debug_log</name>
+		<text>Générer le "debug.log"</text>
+	</element>
+	<element>
+		<name>options_debug_log_label</name>
+		<text>En cas de problème pour charger un fichier w2ent/w2mesh, vous pouvez activer cette option pour générer un fichier de log. Ce fichier peut m'aider à corriger votre problème, donc en cas de problème vous pouvez m'envoyer ce fichier (via le foru The witcher si vous etes inscrit ou par mail à jeanlouis.boudrand@hotmail.fr.)</text>
+	</element>
+	<element>
+		<name>options_debug_extFiles</name>
+		<text>Utiliser extFilesList</text>
+	</element>
+	<element>
+		<name>options_debug_extFiles_label</name>
+		<text>Avec certains fichiers w2ent/w2mesh il est possible que des textures ne soit pas correctement assignées. Dans ce cas, si une texture n'est pas utilisé, elle ne sera pas copiée avec l'option "Copier les textures". J'ai donc fait un petit programme qui liste simplement toute les fichiers de dépendanes d'un fichier w2ent/w2mesh pour pouvoir retrouver rapidement les eventuels fichiers manquants.</text>
+	</element>
+	<element>
+		<name>re_tools</name>
+		<text>Outils .RE</text>
+	</element>
+	<element>
+		<name>re_size</name>
+		<text>Dimensions</text>
+	</element>
+	<element>
+		<name>re_lod_empty</name>
+		<text>vide</text>
+	</element>
+	<element>
+		<name>re_lod_clear</name>
+		<text>Supprimer le LOD courant</text>
+	</element>
+	<element>
+		<name>re_lod_clear_all</name>
+		<text>Supprimer tous les LODs</text>
+	</element>
+</translation>

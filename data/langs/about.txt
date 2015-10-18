@@ -1,0 +1,187 @@
+You can easily make and propose your own translations, you just have to create a new XML file in this folder and change this template :
+
+<?xml version="1.0" encoding="UTF-8"?>
+<translation>
+	<element>
+		<name>button_fileSelector</name>
+		<text>Select a 3D model</text>
+	</element>
+	<element>
+		<name>button_convertir</name>
+		<text>Convert -></text>
+	</element>
+	<element>
+		<name>dialogue_file</name>
+		<text>Select the file</text>
+	</element>
+	<element>
+		<name>dialogue_folder</name>
+		<text>Select the folder of the game</text>
+	</element>
+	<element>
+		<name>log_writingFile</name>
+		<text>Writing file</text>
+	</element>
+	<element>
+		<name>log_readingFile</name>
+		<text>Reading file</text>
+	</element>
+	<element>
+		<name>log_done</name>
+		<text>done</text>
+	</element>
+	<element>
+		<name>log_abort</name>
+		<text>Abort : Destination folder doesn't exist</text>
+	</element>
+	<element>
+		<name>log_warning_empty</name>
+		<text>Warning : The name of the exported file is empty</text>
+	</element>
+	<element>
+		<name>base_directory</name>
+		<text>Base directory</text>
+	</element>
+	<element>
+		<name>label_exported_file_name</name>
+		<text>Name</text>
+	</element>
+	<element>
+		<name>menu_menu</name>
+		<text>Menu</text>
+	</element>
+	<element>
+		<name>menu_quit</name>
+		<text>Quit</text>
+	</element>
+	<element>
+		<name>menu_language</name>
+		<text>Language</text>
+	</element>
+	<element>
+		<name>menu_display</name>
+		<text>Display</text>
+	</element>
+	<element>
+		<name>menu_wireframe</name>
+		<text>Wireframe</text>
+	</element>
+	<element>
+		<name>menu_search</name>
+		<text>Search</text>
+	</element>
+	<element>
+		<name>menu_options</name>
+		<text>Options</text>
+	</element>
+	<element>
+		<name>menu_help</name>
+		<text>Help</text>
+	</element>
+	<element>
+		<name>menu_webpage</name>
+		<text>WebPage</text>
+	</element>
+	<element>
+		<name>search_name</name>
+		<text>Name</text>
+	</element>
+	<element>
+		<name>search_load</name>
+		<text>Load</text>
+	</element>
+	<element>
+		<name>search_button</name>
+		<text>Search</text>
+	</element>
+	<element>
+		<name>search_progress</name>
+		<text>Name</text>
+	</element>
+	<element>
+		<name>search_check_folder</name>
+		<text>Check also the folder names (more results)</text>
+	</element>
+	<element>
+		<name>search_result</name>
+		<text>Progress</text>
+	</element>
+	<element>
+		<name>options_view</name>
+		<text>View</text>
+	</element>
+	<element>
+		<name>options_camera</name>
+		<text>Camera</text>
+	</element>
+	<element>
+		<name>options_camera_movement_speed</name>
+		<text>Movement speed</text>
+	</element>
+	<element>
+		<name>options_camera_rot_speed</name>
+		<text>Rotation speed</text>
+	</element>
+	<element>
+		<name>options_background</name>
+		<text>Background color</text>
+	</element>
+	<element>
+		<name>options_export</name>
+		<text>Export</text>
+	</element>
+	<element>
+		<name>options_export_to_pack0</name>
+		<text>Export to the pack0 folder</text>
+	</element>
+	<element>
+		<name>options_export_to_other</name>
+		<text>Export to an other folder</text>
+	</element>
+	<element>
+		<name>options_export_move_textures</name>
+		<text>Move textures</text>
+	</element>
+	<element>
+		<name>options_export_target</name>
+		<text>Select the export folder</text>
+	</element>
+	<element>
+		<name>options_debug_log</name>
+		<text>Enable "debug.log"</text>
+	</element>
+	<element>
+		<name>options_debug_log_label</name>
+		<text>If you have a problem to load a w2ent/w2mesh file, you can enable this option to generate a log file. This file can help me to solve your problem, so in case of problem, you can send me this file (via The witcher forum if you have an account or by mail at jeanlouis.boudrand@hotmail.fr.)</text>
+	</element>
+	<element>
+		<name>options_debug_extFiles</name>
+		<text>Use extFilesList</text>
+	</element>
+	<element>
+		<name>options_debug_extFiles_label</name>
+		<text>In some case, the textures can be assigned incorectly, so in this case if they are not used by the model, they are not copied with the "Move textures" option. I have made a little program that simply display the list of the dependencis file of yor w2ent/w2mesh. You can run it to find the textures not copied by the soft.</text>
+	</element>
+	<element>
+		<name>re_tools</name>
+		<text>.RE tools</text>
+	</element>
+	<element>
+		<name>re_size</name>
+		<text>Size</text>
+	</element>
+	<element>
+		<name>re_lod_empty</name>
+		<text>empty</text>
+	</element>
+	<element>
+		<name>re_lod_clear</name>
+		<text>Clear current LOD</text>
+	</element>
+	<element>
+		<name>re_lod_clear_all</name>
+		<text>Clear all LODs</text>
+	</element>
+</translation>
+
+If you want submit a new translation for the software (or correct the english translation, my english is not very good), you can contact me via The Witcher forum if you have an account or at jeanlouis.boudrand@hotmail.fr, it can be useful for the other people :)

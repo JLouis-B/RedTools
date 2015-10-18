@@ -255,7 +255,7 @@ core::array<core::stringc> ExtFiles::ReadTW3File(io::path filename)
 void ExtFiles::checkW2MI()
 {
     _back = ui->lineEdit->text();
-    read(OptionsData::_pack0 + "/" + ui->listWidget->currentItem()->text());
+    read(Settings::_pack0 + "/" + ui->listWidget->currentItem()->text());
     ui->button_back->setEnabled(true);
 }
 

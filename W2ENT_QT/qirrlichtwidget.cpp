@@ -120,12 +120,13 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
 {
     _inLoading = true;
 
-     _device->getSceneManager()->getParameters()->setAttribute("W2ENT_DEBUG_LOG", OptionsData::_debugLog);
+    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_DEBUG_LOG", Settings::_debugLog);
+    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
 
 
-     const io::path irrFilename = QSTRING_TO_PATH(filename);
-     io::path extension;
-     core::getFileNameExtension(extension, irrFilename);
+    const io::path irrFilename = QSTRING_TO_PATH(filename);
+    io::path extension;
+    core::getFileNameExtension(extension, irrFilename);
 
     // Delete the current mesh
     clearLOD();
@@ -139,7 +140,7 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
     if (!l.works())
         QMessageBox::critical(0, "fail to create the log file", "fail to create the log file");
 
-    l.enable(OptionsData::_debugLog);
+    l.enable(Settings::_debugLog);
     l.addAndPush("change work dir\n");
 
     IAnimatedMesh* mesh = 0;
@@ -280,7 +281,7 @@ void QIrrlichtWidget::init ()
     {
         // on créé une caméra pour visualiser la scène
 
-        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(0, OptionsData::_camRotSpeed, 100, OptionsData::_camSpeed, -1, 50);
+        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(0, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
         _camera->setPosition(vector3df (0,30,-40));
         _camera->setTarget(vector3df (0,0,0));
 
@@ -313,7 +314,7 @@ void QIrrlichtWidget::updateIrrlicht (QIrrlichtWidget *irrWidget)
 
         _device->getTimer ()->tick ();
 
-        SColor color  (255, OptionsData::_r, OptionsData::_g, OptionsData::_b);
+        SColor color  (255, Settings::_r, Settings::_g, Settings::_b);
 
         _device->getVideoDriver ()->beginScene (true, true, color);
         _device->getSceneManager ()->drawAll ();
@@ -445,7 +446,7 @@ void QIrrlichtWidget::mouseReleaseEvent( QMouseEvent* event )
 
 QString QIrrlichtWidget::convertTexture(QString filename, QString destDir)
 {
-    if (!OptionsData::_convertTextures)
+    if (!Settings::_convertTextures)
     {
         //std::cout << filename.toStdString().c_str() << " to " << destDir.toStdString().c_str() << std::endl;
         QFile::copy(filename, destDir);
@@ -475,7 +476,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (!_currentLodData->_node && extension != ".re")
         return;
 
-    if (OptionsData::_moveTexture)
+    if (Settings::_moveTexture)
     {
         // Will be exported in a subfolder
         exportFolder = exportFolder + "/" +  filename + "_export/";
@@ -486,9 +487,9 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (extension != ".re")
     {
         copyTextures(_currentLodData->_node->getMesh(), exportFolder);
-        if(OptionsData::_nm)
+        if(Settings::_nm)
             copyTextures(_currentLodData->_normalMaps, exportFolder);
-        if(OptionsData::_sm)
+        if(Settings::_sm)
             copyTextures(_currentLodData->_specularMaps, exportFolder);
     }
     else
@@ -496,25 +497,25 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         if (_lod0Data._node)
         {
             copyTextures(_lod0Data._node->getMesh(), exportFolder);
-            if(OptionsData::_nm)
+            if(Settings::_nm)
                 copyTextures(_lod0Data._normalMaps, exportFolder);
-            if(OptionsData::_sm)
+            if(Settings::_sm)
                 copyTextures(_lod0Data._specularMaps, exportFolder);
         }
         if (_lod1Data._node)
         {
             copyTextures(_lod1Data._node->getMesh(), exportFolder);
-            if(OptionsData::_nm)
+            if(Settings::_nm)
                 copyTextures(_lod1Data._normalMaps, exportFolder);
-            if(OptionsData::_sm)
+            if(Settings::_sm)
                 copyTextures(_lod1Data._specularMaps, exportFolder);
         }
         if (_lod2Data._node)
         {
             copyTextures(_lod2Data._node->getMesh(), exportFolder);
-            if(OptionsData::_nm)
+            if(Settings::_nm)
                 copyTextures(_lod2Data._normalMaps, exportFolder);
-            if(OptionsData::_sm)
+            if(Settings::_sm)
                 copyTextures(_lod2Data._specularMaps, exportFolder);
         }
     }
@@ -705,8 +706,8 @@ void QIrrlichtWidget::changeOptions()
         }
     }
     irr::scene::ISceneNodeAnimatorCameraMaya* anim = (irr::scene::ISceneNodeAnimatorCameraMaya*)(*it);
-    anim->setMoveSpeed(OptionsData::_camSpeed);
-    anim->setRotateSpeed(OptionsData::_camRotSpeed);
+    anim->setMoveSpeed(Settings::_camSpeed);
+    anim->setRotateSpeed(Settings::_camRotSpeed);
 }
 
 void QIrrlichtWidget::changeLOD(LOD newLOD)
@@ -817,8 +818,8 @@ void QIrrlichtWidget::copyTextures(irr::scene::IMesh* mesh, QString exportFolder
 
             // The extension of the texture
             QString targetExtension;
-            if (OptionsData::_convertTextures)
-                targetExtension = OptionsData::_texFormat;
+            if (Settings::_convertTextures)
+                targetExtension = Settings::_texFormat;
             else
             {
                 io::path extension;
@@ -831,7 +832,7 @@ void QIrrlichtWidget::copyTextures(irr::scene::IMesh* mesh, QString exportFolder
 
             //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
             QString texPath;
-            if (OptionsData::_moveTexture)
+            if (Settings::_moveTexture)
                 texPath = convertTexture(PATH_TO_QSTRING(buf->getMaterial().getTexture(0)->getName().getPath()), fullPath);
             else
             {
@@ -864,15 +865,15 @@ void QIrrlichtWidget::copyTextures(std::set<irr::io::path> paths, QString export
         basePath = basePath.right(indice-1);
 
         QString targetExtension = ".dds";
-        if (OptionsData::_convertTextures)
-          targetExtension = OptionsData::_texFormat;
+        if (Settings::_convertTextures)
+          targetExtension = Settings::_texFormat;
 
 
         QString fullPath = exportFolder + basePath + targetExtension;
 
         //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
         QString texPath;
-        if (OptionsData::_moveTexture)
+        if (Settings::_moveTexture)
             texPath = convertTexture(PATH_TO_QSTRING(*it), fullPath);
         else
         {

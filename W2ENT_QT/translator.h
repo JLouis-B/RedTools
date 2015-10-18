@@ -8,12 +8,14 @@
 #include <QApplication>
 #include <iostream>
 
+#include "settings.h"
+
 class Translator
 {
     static QWidget* _parent;
 public:
     static void setParentWidget(QWidget *parent);
-    static QString findTranslation(QString element, QString langFile);
+    static QString findTranslation(QString element, QString langFile = QString());
 };
 
 #endif // TRANSLATOR_H

@@ -2,77 +2,49 @@
 #include "ui_options.h"
 
 
-double OptionsData::_camRotSpeed = DEFAULT_CAM_ROT_SPEED;
-double OptionsData::_camSpeed = DEFAULT_CAM_SPEED;
-
-int OptionsData::_r = 0;
-int OptionsData::_g = 0;
-int OptionsData::_b = 0;
-
-Export_Mode OptionsData::_mode = Export_Pack0;
-QString OptionsData::_exportDest = "";
-
-bool OptionsData::_moveTexture = true;
-bool OptionsData::_nm = false;
-bool OptionsData::_sm = false;
-
-bool OptionsData::_debugLog = false;
-
-bool OptionsData::_convertTextures = false;
-QString OptionsData::_texFormat = ".jpg";
-
-QString OptionsData::_pack0 = "";
 
 
-QString OptionsData::getExportFolder()
-{
-    if (OptionsData::_mode == Export_Pack0)
-        return OptionsData::_pack0;
-    else
-        return OptionsData::_exportDest;
-}
-
-
-
-Options::Options(QWidget *parent, QString language, QString loadedFile, QIrrlichtWidget* irr) :
-    QDialog(parent), _language(language), _filename(loadedFile),
+Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
+    QDialog(parent), _filename(loadedFile),
     _ui(new Ui::Options), _irr(irr)
 {
     _ui->setupUi(this);
-    _ui->doubleSpinBox_cameraRotSpeed->setValue(OptionsData::_camRotSpeed);
-    _ui->doubleSpinBox_cameraSpeed->setValue(OptionsData::_camSpeed);
+    _ui->doubleSpinBox_cameraRotSpeed->setValue(Settings::_camRotSpeed);
+    _ui->doubleSpinBox_cameraSpeed->setValue(Settings::_camSpeed);
 
-    _ui->checkBox_moveTextures->setChecked(OptionsData::_moveTexture);
-    _ui->checkBox_mtNormalsMap->setChecked(OptionsData::_nm);
-    _ui->checkBox_mtSpecularMap->setChecked(OptionsData::_sm);
+    _ui->checkBox_moveTextures->setChecked(Settings::_moveTexture);
+    _ui->checkBox_mtNormalsMap->setChecked(Settings::_nm);
+    _ui->checkBox_mtSpecularMap->setChecked(Settings::_sm);
 
 
-    _ui->checkBox_convertTextures->setChecked(OptionsData::_convertTextures);
-    if (_ui->comboBox_format->findText(OptionsData::_texFormat) != -1)
-        _ui->comboBox_format->setCurrentIndex(_ui->comboBox_format->findText(OptionsData::_texFormat));
+    _ui->checkBox_convertTextures->setChecked(Settings::_convertTextures);
+    if (_ui->comboBox_format->findText(Settings::_texFormat) != -1)
+        _ui->comboBox_format->setCurrentIndex(_ui->comboBox_format->findText(Settings::_texFormat));
     _ui->comboBox_format->setEnabled(_ui->checkBox_convertTextures->isChecked());
 
-    if(OptionsData::_mode == Export_Custom)
+    if(Settings::_mode == Export_Custom)
         _ui->radioButton_custom->setChecked(true);
     else
         _ui->radioButton_pack0->setChecked(true);
 
-    _ui->lineEdit_dir->setText(OptionsData::_exportDest);
+    _ui->lineEdit_dir->setText(Settings::_exportDest);
 
     setFixedSize(this->size());
 
-    _ui->checkBox_moveTextures->setText(Translator::findTranslation("options_export_move_textures", language));
-    _ui->radioButton_custom->setText(Translator::findTranslation("options_export_to_other", language));
-    _ui->radioButton_pack0->setText(Translator::findTranslation("options_export_to_pack0", language));
-    _ui->label_colorSelector->setText(Translator::findTranslation("options_background", language));
-    _ui->label_movementSpeed->setText(Translator::findTranslation("options_camera_movement_speed", language));
-    _ui->label_rotSpeed->setText(Translator::findTranslation("options_camera_rot_speed", language));
-    _ui->View->setTabText(1, Translator::findTranslation("options_view", language));
-    _ui->View->setTabText(0, Translator::findTranslation("options_export", language));
-    _ui->checkBox_debug->setText(Translator::findTranslation("options_debug_log", language));
-    _ui->label_debugLog->setText(Translator::findTranslation("options_debug_log_label", language));
+    _ui->checkBox_moveTextures->setText(Translator::findTranslation("options_export_move_textures"));
+    _ui->radioButton_custom->setText(Translator::findTranslation("options_export_to_other"));
+    _ui->radioButton_pack0->setText(Translator::findTranslation("options_export_to_pack0"));
+    _ui->label_colorSelector->setText(Translator::findTranslation("options_background"));
+    _ui->label_movementSpeed->setText(Translator::findTranslation("options_camera_movement_speed"));
+    _ui->label_rotSpeed->setText(Translator::findTranslation("options_camera_rot_speed"));
+    _ui->View->setTabText(1, Translator::findTranslation("options_view"));
+    _ui->View->setTabText(0, Translator::findTranslation("options_export"));
+    _ui->checkBox_debug->setText(Translator::findTranslation("options_debug_log"));
+    _ui->label_debugLog->setText(Translator::findTranslation("options_debug_log_label"));
 
-    _ui->checkBox_debug->setChecked(OptionsData::_debugLog);
+    _ui->checkBox_debug->setChecked(Settings::_debugLog);
+
+    _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
 
     changeExport();
 
@@ -92,6 +64,7 @@ Options::Options(QWidget *parent, QString language, QString loadedFile, QIrrlich
 
     QObject::connect(_ui->checkBox_debug, SIGNAL(clicked()), this, SLOT(changeDebug()));
 
+    QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
 
 
 }
@@ -103,34 +76,34 @@ Options::~Options()
 
 void Options::reset()
 {
-    OptionsData::_camRotSpeed = DEFAULT_CAM_ROT_SPEED;
-    OptionsData::_camSpeed = DEFAULT_CAM_SPEED;
+    Settings::_camRotSpeed = DEFAULT_CAM_ROT_SPEED;
+    Settings::_camSpeed = DEFAULT_CAM_SPEED;
 
-    _ui->doubleSpinBox_cameraRotSpeed->setValue(OptionsData::_camRotSpeed);
-    _ui->doubleSpinBox_cameraSpeed->setValue(OptionsData::_camSpeed);
+    _ui->doubleSpinBox_cameraRotSpeed->setValue(Settings::_camRotSpeed);
+    _ui->doubleSpinBox_cameraSpeed->setValue(Settings::_camSpeed);
 
-    OptionsData::_r = 0;
-    OptionsData::_g = 0;
-    OptionsData::_b = 0;
+    Settings::_r = 0;
+    Settings::_g = 0;
+    Settings::_b = 0;
 }
 
 void Options::ok()
 {
-    OptionsData::_camRotSpeed = _ui->doubleSpinBox_cameraRotSpeed->value();
-    OptionsData::_camSpeed = _ui->doubleSpinBox_cameraSpeed->value();
+    Settings::_camRotSpeed = _ui->doubleSpinBox_cameraRotSpeed->value();
+    Settings::_camSpeed = _ui->doubleSpinBox_cameraSpeed->value();
 
-    OptionsData::_moveTexture = _ui->checkBox_moveTextures->isChecked();
-    OptionsData::_nm = _ui->checkBox_mtNormalsMap->isChecked();
-    OptionsData::_sm = _ui->checkBox_mtSpecularMap->isChecked();
+    Settings::_moveTexture = _ui->checkBox_moveTextures->isChecked();
+    Settings::_nm = _ui->checkBox_mtNormalsMap->isChecked();
+    Settings::_sm = _ui->checkBox_mtSpecularMap->isChecked();
 
-    OptionsData::_exportDest = _ui->lineEdit_dir->text();
+    Settings::_exportDest = _ui->lineEdit_dir->text();
     if (_ui->radioButton_custom->isChecked())
-        OptionsData::_mode = Export_Custom;
+        Settings::_mode = Export_Custom;
     else if (_ui->radioButton_pack0->isChecked())
-        OptionsData::_mode = Export_Pack0;
+        Settings::_mode = Export_Pack0;
 
-    OptionsData::_convertTextures = _ui->checkBox_convertTextures->isChecked();
-    OptionsData::_texFormat = _ui->comboBox_format->currentText();
+    Settings::_convertTextures = _ui->checkBox_convertTextures->isChecked();
+    Settings::_texFormat = _ui->comboBox_format->currentText();
 
     accept();
     emit optionsValidation();
@@ -138,14 +111,14 @@ void Options::ok()
 
 void Options::selectColor()
 {
-    QColor col = QColorDialog::getColor ( QColor(OptionsData::_r, OptionsData::_g, OptionsData::_b), this );
+    QColor col = QColorDialog::getColor ( QColor(Settings::_r, Settings::_g, Settings::_b), this );
 
     if(!col.isValid())
         return;
 
-    OptionsData::_r = col.red();
-    OptionsData::_g = col.green();
-    OptionsData::_b = col.blue();
+    Settings::_r = col.red();
+    Settings::_g = col.green();
+    Settings::_b = col.blue();
 }
 
 void Options::changeExport()
@@ -156,15 +129,25 @@ void Options::changeExport()
 
 void Options::changeDebug()
 {
-    OptionsData::_debugLog = _ui->checkBox_debug->isChecked();
+    Settings::_debugLog = _ui->checkBox_debug->isChecked();
 }
 
 void Options::selectDir()
 {
-    QString fichier = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target", _language), _ui->lineEdit_dir->text());
-    if (fichier != "")
+    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_dir->text());
+    if (file != "")
     {
-        _ui->lineEdit_dir->setText(fichier);
-        OptionsData::_exportDest = fichier;
+        _ui->lineEdit_dir->setText(file);
+        Settings::_exportDest = file;
+    }
+}
+
+void Options::selectTW3TexDir()
+{
+    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_dir->text());
+    if (file != "")
+    {
+        _ui->lineEdit_TW3_texFolder->setText(file);
+        Settings::_TW3TexPath = file;
     }
 }

@@ -42,7 +42,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_export">
     <attribute name="title">
@@ -139,7 +139,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Move textures</string>
+      <string>Copy textures</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -207,6 +207,60 @@
      </property>
      <property name="text">
       <string>Convert textures (DDS format by default)</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>TW3 settings</string>
+    </attribute>
+    <widget class="QPushButton" name="pushButton_TW3_selectTexFolder">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>50</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_TW3_texFolder">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>50</y>
+       <width>261</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_TW3_texFolder">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Texture folder :</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_TW3_loadSkel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>110</y>
+       <width>91</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load skeleton</string>
      </property>
     </widget>
    </widget>

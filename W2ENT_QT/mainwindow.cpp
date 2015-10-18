@@ -19,90 +19,9 @@ MainWindow::MainWindow(QWidget *parent) :
     _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "The Witcher 3D models converter 2.3 WIP\n");
 
 
-    OptionsData::_pack0 = _ui->lineEdit_folder->text();
-    _formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
-
-
-    // Load config from XML
-    QDomDocument *dom = new QDomDocument("config");
-    QFile xml_doc("config.xml");
-
-    if(!xml_doc.open(QIODevice::ReadOnly))
-    {
-         QMessageBox::warning(this, "Erreur", "Erreur XML");
-    }
-
-    if (!dom->setContent(&xml_doc))
-    {
-        xml_doc.close();
-        QMessageBox::warning(this, "Erreur", "Erreur XML");
-    }
-    QDomElement dom_element = dom->documentElement();
-    QDomNode node = dom_element.firstChildElement();
-    while (!node.isNull())
-    {
-        if(node.nodeName() == "language")
-            _language = node.toElement().text();
-
-        if(node.nodeName() == "pack0")
-        {
-            _ui->lineEdit_folder->setText(node.toElement().text());
-            OptionsData::_pack0 = node.toElement().text();
-        }
-
-        if(node.nodeName() == "camera")
-        {
-            OptionsData::_camSpeed = node.firstChildElement("speed").text().toDouble();
-            OptionsData::_camRotSpeed = node.firstChildElement("rotation_speed").text().toDouble();
-        }
-
-        if(node.nodeName() == "background_color")
-        {
-            OptionsData::_r = node.firstChildElement("r").text().toInt();
-            OptionsData::_g = node.firstChildElement("g").text().toInt();
-            OptionsData::_b = node.firstChildElement("b").text().toInt();
-        }
-        if(node.nodeName() == "textures_conversion")
-        {
-            OptionsData::_convertTextures = node.firstChildElement("enabled").text().toInt();
-            OptionsData::_texFormat = node.firstChildElement("format").text();
-        }
-
-        if(node.nodeName() == "export")
-        {
-            if (node.firstChildElement("type").text() == "pack0")
-                OptionsData::_mode = Export_Pack0;
-            else if (node.firstChildElement("type").text() == "custom")
-                OptionsData::_mode = Export_Custom;
-
-            OptionsData::_exportDest = node.firstChildElement("dest").text();
-
-            OptionsData::_moveTexture = node.firstChildElement("move_textures").text().toInt();
-            OptionsData::_nm = node.firstChildElement("move_normals_map").text().toInt();
-            OptionsData::_sm = node.firstChildElement("move_specular_map").text().toInt();
-        }
-        if(node.nodeName() == "formats_in")
-        {
-            _formats = node.toElement().text();
-        }
-        if(node.nodeName() == "unit")
-        {
-            QString unit = node.toElement().text();
-            if (unit == "m")
-                ReSize::_unit = Unit_m;
-            else if (unit == "cm")
-                ReSize::_unit = Unit_cm;
-        }
-        if(node.nodeName() == "debug")
-        {
-            OptionsData::_debugLog = node.toElement().text().toInt();
-        }
-
-        node = node.nextSibling();
-    }
-
-    xml_doc.close();
-    delete dom;
+    Settings::_pack0 = _ui->lineEdit_folder->text();
+    Settings::loadFromXML("config.xml");
+    _ui->lineEdit_folder->setText(Settings::_pack0);
 
     _firstSelection = true;
 
@@ -118,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         QAction* menuitem = new QAction(file, _ui->menuLanguages);
         menuitem->setCheckable(true);
-        if ("langs/" + menuitem->text() == _language)
+        if ("langs/" + menuitem->text() == Settings::_language)
             menuitem->setChecked(true);
         _ui->menuLanguages->addAction(menuitem);
     }
@@ -166,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::loadRig()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", OptionsData::_pack0, "The Witcher rig (*.w2rig)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher rig (*.w2rig)");
 
     if (file == "")
         return;
@@ -185,7 +104,7 @@ void MainWindow::loadRig()
 
 void MainWindow::changeBaseDir(QString newPath)
 {
-    OptionsData::_pack0 = newPath;
+    Settings::_pack0 = newPath;
 }
 
 void MainWindow::updateWindowTitle()
@@ -207,9 +126,9 @@ void MainWindow::changeLanguage()
 
     QAction* q = (QAction*)QObject::sender();
     q->setChecked(true);
-    _language = "langs/" + q->text();
+    Settings::_language = "langs/" + q->text();
     translate();
-    emit languageChanged(_language);
+    emit languageChanged();
 }
 
 
@@ -229,140 +148,13 @@ void MainWindow::cleanTexturesPath()
 
 MainWindow::~MainWindow()
 {
-    // Save the config in a xml
-    // Create the DOM
-    QDomDocument dom("config");
-    //QDomElement docElem = dom.documentElement(); // the document element
-    QDomElement config_elem = dom.createElement("config");
-    dom.appendChild(config_elem);
-
-    // language
-    QDomElement lang_elem = dom.createElement("language");
-    config_elem.appendChild(lang_elem);
-
-    QDomText lang_txt = dom.createTextNode(_language);
-    lang_elem.appendChild(lang_txt);
-
-
-    // pack0 folder
-    QDomElement pack0_elem = dom.createElement("pack0");
-    config_elem.appendChild(pack0_elem);
-
-    QDomText pack0_txt = dom.createTextNode(_ui->lineEdit_folder->text());
-    pack0_elem.appendChild(pack0_txt);
-
-
-    // backgroud color
-    QDomElement background_elem = dom.createElement("background_color");
-    config_elem.appendChild(background_elem);
-
-    QDomElement br_elem = dom.createElement("r");
-    background_elem.appendChild(br_elem);
-    br_elem.appendChild(dom.createTextNode(QString::number(OptionsData::_r)));
-
-    QDomElement bg_elem = dom.createElement("g");
-    background_elem.appendChild(bg_elem);
-    bg_elem.appendChild(dom.createTextNode(QString::number(OptionsData::_g)));
-
-    QDomElement bb_elem = dom.createElement("b");
-    background_elem.appendChild(bb_elem);
-    bb_elem.appendChild(dom.createTextNode(QString::number(OptionsData::_b)));
-
-
-    // camera data
-    QDomElement camera_elem = dom.createElement("camera");
-    config_elem.appendChild(camera_elem);
-
-    QDomElement camera_speed_elem = dom.createElement("speed");
-    camera_elem.appendChild(camera_speed_elem);
-    camera_speed_elem.appendChild(dom.createTextNode(QString::number(OptionsData::_camSpeed)));
-
-    QDomElement camera_rotationSpeed_elem = dom.createElement("rotation_speed");
-    camera_elem.appendChild(camera_rotationSpeed_elem);
-    camera_rotationSpeed_elem.appendChild(dom.createTextNode(QString::number(OptionsData::_camRotSpeed)));
-
-
-    QDomElement export_elem = dom.createElement("export");
-    config_elem.appendChild(export_elem);
-
-    QDomElement export_type_elem = dom.createElement("type");
-    export_elem.appendChild(export_type_elem);
-    if (OptionsData::_mode == Export_Custom)
-        export_type_elem.appendChild(dom.createTextNode("custom"));
-    else if (OptionsData::_mode == Export_Pack0)
-        export_type_elem.appendChild(dom.createTextNode("pack0"));
-
-    QDomElement export_dest_elem = dom.createElement("dest");
-    export_elem.appendChild(export_dest_elem);
-    export_dest_elem.appendChild(dom.createTextNode(OptionsData::_exportDest));
-
-    QDomElement export_move_tex_elem = dom.createElement("move_textures");
-    export_elem.appendChild(export_move_tex_elem);
-    export_move_tex_elem.appendChild(dom.createTextNode(QString::number((int)OptionsData::_moveTexture)));
-
-    QDomElement export_move_nm_elem = dom.createElement("move_normals_map");
-    export_elem.appendChild(export_move_nm_elem);
-    export_move_nm_elem.appendChild(dom.createTextNode(QString::number((int)OptionsData::_nm)));
-
-    QDomElement export_move_sm_elem = dom.createElement("move_specular_map");
-    export_elem.appendChild(export_move_sm_elem);
-    export_move_sm_elem.appendChild(dom.createTextNode(QString::number((int)OptionsData::_sm)));
-
-
-    QDomElement formats_elem = dom.createElement("formats_in");
-    config_elem.appendChild(formats_elem);
-    formats_elem.appendChild(dom.createTextNode(_formats));
-
-    QDomElement unit_elem = dom.createElement("unit");
-    QString unit;
-    if (ReSize::_unit == Unit_cm)
-        unit = "cm";
-    else if (ReSize::_unit == Unit_m)
-        unit = "m";
-    config_elem.appendChild(unit_elem);
-    unit_elem.appendChild(dom.createTextNode(unit));
-
-
-
-
-    // textures conversion
-    QDomElement tex_conv_elem = dom.createElement("textures_conversion");
-    config_elem.appendChild(tex_conv_elem);
-
-    QDomElement tex_conv_enabled_elem = dom.createElement("enabled");
-    tex_conv_elem.appendChild(tex_conv_enabled_elem);
-    tex_conv_enabled_elem.appendChild(dom.createTextNode(QString::number(OptionsData::_convertTextures)));
-
-    QDomElement tex_conv_format_elem = dom.createElement("format");
-    tex_conv_elem.appendChild(tex_conv_format_elem);
-    tex_conv_format_elem.appendChild(dom.createTextNode(OptionsData::_texFormat));
-
-
-
-
-    // debug.log
-    QDomElement debug_elem = dom.createElement("debug");
-    config_elem.appendChild(debug_elem);
-    debug_elem.appendChild(dom.createTextNode(QString::number((int)OptionsData::_debugLog)));
-
-
-    // Write the DOM in a XML
-    QString write_doc = dom.toString().toUtf8();
-    //write_doc = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" + write_doc;
-
-    QFile file("config.xml");
-    if(!file.open(QIODevice::WriteOnly))
-    {
-        file.close();
-        QMessageBox::critical(this,"Erreur","Impossible d'écrire dans le document XML");
-        return;
-    }
-    QTextStream stream(&file);
-    stream.setCodec("UTF8");
-    stream << write_doc;
+    Settings::saveToXML("config.xml");
 
     // Delete UI
     delete _ui;
+
+    if (_irrWidget)
+        delete _irrWidget;
 }
 
 
@@ -381,7 +173,7 @@ void MainWindow::selectFile()
     if (_firstSelection)
         param = _ui->lineEdit_folder->text();
 
-    QString file = QFileDialog::getOpenFileName(this, Translator::findTranslation("dialogue_file", _language), param, _formats);
+    QString file = QFileDialog::getOpenFileName(this, Translator::findTranslation("dialogue_file", Settings::_language), param, _formats);
 
     if (file != "")
     {
@@ -393,59 +185,59 @@ void MainWindow::convertir()
 {
     // Warning if no filename specified
     if (_ui->lineEdit_exportedFilename->text() == "")
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_warning_empty", _language) + "\n");
+        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_warning_empty", Settings::_language) + "\n");
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_writingFile", _language) + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_writingFile", Settings::_language) + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
     QCoreApplication::processEvents();
 
     // Check if the destination folder exist
-    QDir dir(OptionsData::getExportFolder());
+    QDir dir(Settings::getExportFolder());
     if (dir.exists())
-        _irrWidget->writeFile(OptionsData::getExportFolder(), _ui->lineEdit_exportedFilename->text(), _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')));
+        _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')));
     else
     {
-        QMessageBox::warning(this, "Error", "The destination folder '" + OptionsData::_exportDest + "' doesn't exist.");
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "\n" + Translator::findTranslation("log_abort", _language) + "\n");
+        QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
+        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "\n" + Translator::findTranslation("log_abort", Settings::_language) + "\n");
         return;
     }
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_done", _language) + "\n");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_done", Settings::_language) + "\n");
 }
 
 void MainWindow::translate()
 {
-    _ui->button_fileSelector->setText(Translator::findTranslation("button_fileSelector", _language));
-    _ui->button_convert->setText(Translator::findTranslation("button_convertir", _language));
-    _ui->label_baseDir->setText(Translator::findTranslation("base_directory", _language) + " :");
-    _ui->menuLanguages->setTitle(Translator::findTranslation("menu_language", _language));
-    _ui->menuMenu->setTitle(Translator::findTranslation("menu_menu", _language));
-    _ui->actionQuitter->setText(Translator::findTranslation("menu_quit", _language));
-    _ui->menuDisplay->setTitle(Translator::findTranslation("menu_display", _language));
-    _ui->actionWireframe->setText(Translator::findTranslation("menu_wireframe", _language));
-    _ui->actionSearch->setText(Translator::findTranslation("menu_search", _language));
-    _ui->actionOptions->setText(Translator::findTranslation("menu_options", _language));
-    _ui->actionWebpage->setText(Translator::findTranslation("menu_webpage", _language));
-    _ui->actionShow_linked_files->setText(Translator::findTranslation("menu_linkedFiles", _language));
-    _ui->menuHelp->setTitle(Translator::findTranslation("menu_help", _language));
-    _ui->label_exportedFilename->setText(Translator::findTranslation("label_exported_file_name", _language) + " :");
-    _ui->actionClear_current_LOD->setText(Translator::findTranslation("re_lod_clear", _language));
-    _ui->actionClear_all_LODs->setText(Translator::findTranslation("re_lod_clear_all", _language));
-    _ui->actionSize->setText(Translator::findTranslation("re_size", _language));
-    _ui->menu_RE_tools->setTitle(Translator::findTranslation("re_tools", _language));
-    _ui->menuThe_Witcher_3_tools->setTitle(Translator::findTranslation("w3_tools", _language));
-    _ui->actionClean_textures_path->setText(Translator::findTranslation("w3_tex_path", _language));
+    _ui->button_fileSelector->setText(Translator::findTranslation("button_fileSelector", Settings::_language));
+    _ui->button_convert->setText(Translator::findTranslation("button_convertir", Settings::_language));
+    _ui->label_baseDir->setText(Translator::findTranslation("base_directory", Settings::_language) + " :");
+    _ui->menuLanguages->setTitle(Translator::findTranslation("menu_language", Settings::_language));
+    _ui->menuMenu->setTitle(Translator::findTranslation("menu_menu", Settings::_language));
+    _ui->actionQuitter->setText(Translator::findTranslation("menu_quit", Settings::_language));
+    _ui->menuDisplay->setTitle(Translator::findTranslation("menu_display", Settings::_language));
+    _ui->actionWireframe->setText(Translator::findTranslation("menu_wireframe", Settings::_language));
+    _ui->actionSearch->setText(Translator::findTranslation("menu_search", Settings::_language));
+    _ui->actionOptions->setText(Translator::findTranslation("menu_options", Settings::_language));
+    _ui->actionWebpage->setText(Translator::findTranslation("menu_webpage", Settings::_language));
+    _ui->actionShow_linked_files->setText(Translator::findTranslation("menu_linkedFiles", Settings::_language));
+    _ui->menuHelp->setTitle(Translator::findTranslation("menu_help", Settings::_language));
+    _ui->label_exportedFilename->setText(Translator::findTranslation("label_exported_file_name", Settings::_language) + " :");
+    _ui->actionClear_current_LOD->setText(Translator::findTranslation("re_lod_clear", Settings::_language));
+    _ui->actionClear_all_LODs->setText(Translator::findTranslation("re_lod_clear_all", Settings::_language));
+    _ui->actionSize->setText(Translator::findTranslation("re_size", Settings::_language));
+    _ui->menu_RE_tools->setTitle(Translator::findTranslation("re_tools", Settings::_language));
+    _ui->menuThe_Witcher_3_tools->setTitle(Translator::findTranslation("w3_tools", Settings::_language));
+    _ui->actionClean_textures_path->setText(Translator::findTranslation("w3_tex_path", Settings::_language));
 
     if (_ui->actionLOD0->text() != "LOD0")
-        _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+        _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
     if (_ui->actionLOD1->text() != "LOD1")
-        _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+        _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
     if (_ui->actionLOD2->text() != "LOD2")
-        _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+        _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
 }
 
 void MainWindow::selectFolder()
 {
-    QString translation = Translator::findTranslation("dialogue_folder", _language);
+    QString translation = Translator::findTranslation("dialogue_folder", Settings::_language);
     QString folder = QFileDialog::getExistingDirectory(this, translation, _ui->lineEdit_folder->text());
     if (folder != "")
     {
@@ -471,17 +263,17 @@ void MainWindow::openWebpage()
 
 void MainWindow::options()
 {
-    Options *w = new Options (this, _language, _irrWidget->getPath(), _irrWidget);
+    Options *w = new Options (this, _irrWidget->getPath(), _irrWidget);
     w->show();
     QObject::connect(w, SIGNAL(optionsValidation()), this, SLOT(changeOptions()));
 }
 
 void MainWindow::search()
 {
-    Search* w = new Search (this, _language);
+    Search* w = new Search (this);
     w->show();
     QObject::connect(w, SIGNAL(loadPressed(QString)), this, SLOT(loadFile(QString)));
-    QObject::connect(this, SIGNAL(languageChanged(QString)), w, SLOT(translate(QString)));
+    QObject::connect(this, SIGNAL(languageChanged()), w, SLOT(translate()));
 }
 
 
@@ -493,7 +285,7 @@ void MainWindow::loadFile(QString path)
         return;
     }
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_readingFile", _language) + " '" + path + "'... ");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_readingFile") + " '" + path + "'... ");
     _ui->lineEdit_ImportedFile->setText(path);
     QCoreApplication::processEvents();
 
@@ -576,16 +368,16 @@ void MainWindow::clearLOD()
     switch(_currentLOD)
     {
         case LOD_0:
-            _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+            _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty") + ")");
         break;
         case LOD_1:
-            _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+            _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty") + ")");
         break;
         case LOD_2:
-            _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+            _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty") + ")");
         break;
         case Collision:
-            _ui->actionLOD2->setText("Collision mesh (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+            _ui->actionLOD2->setText("Collision mesh (" + Translator::findTranslation("re_lod_empty") + ")");
         break;
     }
 
@@ -601,9 +393,9 @@ void MainWindow::clearLOD()
 
 void MainWindow::clearAllLODs()
 {
-    _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
-    _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
-    _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty", _language) + ")");
+    _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty") + ")");
+    _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty") + ")");
+    _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty") + ")");
 
     _irrWidget->clearAllLODs();
 

@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     utils.cpp \
     IrrAssimp/IrrAssimpUtils.cpp \
     CREMeshFileLoader.cpp \
-    CSkeleton.cpp
+    CSkeleton.cpp \
+    settings.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -54,7 +55,8 @@ HEADERS  += mainwindow.h \
     utils.h \
     IrrAssimp/IrrAssimpUtils.h \
     CREMeshFileLoader.h \
-    CSkeleton.h
+    CSkeleton.h \
+    settings.h
 
 FORMS    += mainwindow.ui \
     options.ui \

@@ -15,7 +15,7 @@ class Search : public QDialog
     Q_OBJECT
 
 public:
-    explicit Search(QWidget *parent = 0, QString language = QString());
+    explicit Search(QWidget *parent = 0);
     ~Search();
 
 
@@ -23,7 +23,7 @@ public slots:
     void search();
     void load();
     void enableButton();
-    void translate(QString language);
+    void translate();
 
 private:
     Ui::Search *_ui;

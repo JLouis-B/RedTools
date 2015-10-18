@@ -51,7 +51,6 @@ private:
 
     Ui::MainWindow *_ui;
     QIrrlichtWidget *_irrWidget;
-    QString _language;
     QString _formats;
 
 
@@ -59,7 +58,7 @@ private:
     LOD _currentLOD;
 
 signals:
-    void languageChanged(QString);
+    void languageChanged();
 
 };
 

@@ -11,6 +11,9 @@ void Translator::setParentWidget(QWidget* parent)
 
 QString Translator::findTranslation(QString element, QString langFile)
 {
+    if (langFile == "")
+        langFile = Settings::_language;
+
     QDomDocument *dom = new QDomDocument("translation");
     QFile xml_doc(langFile);
     QString translation = "null";

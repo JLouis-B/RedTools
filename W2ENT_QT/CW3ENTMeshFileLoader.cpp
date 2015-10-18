@@ -1421,19 +1421,19 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
 
 video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
 {
-    video::ITexture* texture = 0;
-
-    //if (core::hasFileExtension(filename.c_str(), "xbm"))
-    //{
-
+    if (core::hasFileExtension(filename.c_str(), "xbm"))
+    {
         core::cutFilenameExtension(filename, filename);
         filename += core::stringc(".dds");
-    //}
-    filename.replace("\\", "#");
-    filename = core::stringc("textures_unpack/") + filename;
 
+        filename.replace("\\", "#");
+    }
+
+    filename = core::stringc(SceneManager->getParameters()->getAttributeAsString("W2ENT_TW3_TEX_PATH") + "/" + filename);
+    //filename = core::stringc("textures_unpack/") + filename;
+
+    video::ITexture* texture = 0;
     texture = SceneManager->getVideoDriver()->getTexture(filename);
-
     return texture;
 }
 

@@ -3,13 +3,13 @@
 
 #include <iostream>
 
-Search::Search(QWidget *parent, QString language) :
+Search::Search(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::Search)
 {
     _ui->setupUi(this);
 
-    translate(language);
+    translate();
 
     QObject::connect(_ui->button_search, SIGNAL(clicked()), this, SLOT(search()));
     QObject::connect(_ui->pushButton, SIGNAL(clicked()), this, SLOT(load()));
@@ -21,8 +21,9 @@ Search::~Search()
     delete _ui;
 }
 
-void Search::translate(QString language)
+void Search::translate()
 {
+    QString language = Settings::_language;
     _ui->label_name->setText(Translator::findTranslation("search_name", language) + " :");
     _ui->label_result->setText(Translator::findTranslation("search_result", language) + " :");
     _ui->label->setText(Translator::findTranslation("search_progress", language) + " :");
@@ -54,10 +55,10 @@ void Search::search()
     }
     keywords.push_back(word);
 
-    _pack0lastSearch = OptionsData::_pack0;
+    _pack0lastSearch = Settings::_pack0;
     QTime time;
     time.start();
-    scanFolder(OptionsData::_pack0, 0, keywords);
+    scanFolder(Settings::_pack0, 0, keywords);
     //timer.stop();
     //std::cout << time.elapsed() << std::endl;
     _ui->button_search->setEnabled(true);
@@ -80,7 +81,7 @@ void Search::scanFolder(QString repName, int level, std::vector<QString> keyword
         if (_ui->checkBox_folder->isChecked())
         {
             target = fileInfo.absolutePath() + fileInfo.fileName();
-            target.remove(0, OptionsData::_pack0.size());
+            target.remove(0, Settings::_pack0.size());
         }
 
         for (unsigned int i = 0; i < keywords.size(); i++)
@@ -91,7 +92,7 @@ void Search::scanFolder(QString repName, int level, std::vector<QString> keyword
             }
         }
         if (ok)
-            _ui->listWidget_results->addItem(new QListWidgetItem("{pack0}" + fileInfo.absoluteFilePath().remove(0, OptionsData::_pack0.size())));
+            _ui->listWidget_results->addItem(new QListWidgetItem("{pack0}" + fileInfo.absoluteFilePath().remove(0, Settings::_pack0.size())));
     }
 
     // search in the subfolders

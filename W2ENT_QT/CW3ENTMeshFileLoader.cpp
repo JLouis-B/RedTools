@@ -866,7 +866,7 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
         else if (property == "bonePositions")
         {
             core::array<core::vector3df> positions = ReadBonesPosition(file);
-            nbBones = positions.size();
+            nbBonesPos = positions.size();
         }
         //else if (property == "collisionInitPositionOffset")
         //    ReadVector3Property(file, &bufferInfos);
@@ -1132,11 +1132,15 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
        file->read(&offsetInd, 1);
        file->seek(offsetInd * 7, true);
         */
+
+
+       // TODO
        char nbRead = -1;
-       while (nbRead != nbBones)
+       while (nbRead != nbBonesPos)
        {
            file->read(&nbRead, 1);
        }
+       file->seek(-1, true);
 
 
        // Name of the bones

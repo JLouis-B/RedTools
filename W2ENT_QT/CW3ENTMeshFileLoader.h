@@ -150,7 +150,7 @@ private:
     // Files table
     core::array<core::stringc> Files;
 
-    u32 nbBones;
+    u32 nbBonesPos;
 
     int getTextureLayerFromTextureType(core::stringc textureType);
     core::stringc searchParent(core::stringc bonename);

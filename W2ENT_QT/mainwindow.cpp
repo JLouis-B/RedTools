@@ -137,7 +137,7 @@ void MainWindow::cleanTexturesPath()
     QDir dir(_ui->lineEdit_folder->text() + "/textures_unpack");
     if (dir.isReadable())
     {
-        CleanTexturesPath* w = new CleanTexturesPath (_ui->lineEdit_folder->text() + "/textures_unpack", this);
+        CleanTexturesPath* w = new CleanTexturesPath (Settings::_TW3TexPath, this);
         w->show();
         w->clean();
         delete w;

@@ -210,7 +210,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab_2">
+   <widget class="QWidget" name="tab_tw3">
     <attribute name="title">
      <string>TW3 settings</string>
     </attribute>
@@ -379,7 +379,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="tab_debug">
     <attribute name="title">
      <string>Debug</string>
     </attribute>

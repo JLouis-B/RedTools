@@ -365,7 +365,11 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         bufferFile->read(&tmp, 2);
 
         // skip skinning data
-        if (meshInfos.vertexType == EMVT_SKINNED)
+        if (meshInfos.vertexType == EMVT_SKINNED && !SceneManager->getParameters()->getAttributeAsBool("W2ENT_LOAD_SKEL"))
+        {
+            bufferFile->seek(meshInfos.numBonesPerVertex * 2, true);
+        }
+        else if (meshInfos.vertexType == EMVT_SKINNED)
         {
             //bufferFile->seek(meshInfos.numBonesPerVertex * 2, true);
 
@@ -1121,7 +1125,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
    std::cout << "All properties readed, @=" << file->getPos() << std::endl;
 
-   if (!isStatic)
+   if (!isStatic && SceneManager->getParameters()->getAttributeAsBool("W2ENT_LOAD_SKEL"))
    {
        // cancel property
        file->seek(-4, true);

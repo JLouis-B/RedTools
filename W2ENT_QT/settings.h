@@ -43,6 +43,7 @@ public:
     static QString _language;
 
     static QString _TW3TexPath;
+    static bool _TW3LoadSkel;
     static QString _formats;
 
     static QString getExportFolder();

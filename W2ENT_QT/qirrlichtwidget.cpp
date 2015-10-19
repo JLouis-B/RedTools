@@ -122,6 +122,7 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
 
     _device->getSceneManager()->getParameters()->setAttribute("W2ENT_DEBUG_LOG", Settings::_debugLog);
     _device->getSceneManager()->getParameters()->setAttribute("W2ENT_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_LOAD_SKEL", Settings::_TW3LoadSkel);
 
 
     const io::path irrFilename = QSTRING_TO_PATH(filename);

@@ -31,6 +31,7 @@ public slots:
     void changeDebug();
     void selectDir();
     void selectTW3TexDir();
+    void changeSkel();
 
 private:
     QString _filename;

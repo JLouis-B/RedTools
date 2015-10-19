@@ -37,14 +37,15 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     _ui->label_colorSelector->setText(Translator::findTranslation("options_background"));
     _ui->label_movementSpeed->setText(Translator::findTranslation("options_camera_movement_speed"));
     _ui->label_rotSpeed->setText(Translator::findTranslation("options_camera_rot_speed"));
-    _ui->View->setTabText(1, Translator::findTranslation("options_view"));
     _ui->View->setTabText(0, Translator::findTranslation("options_export"));
+    _ui->View->setTabText(2, Translator::findTranslation("options_view"));
     _ui->checkBox_debug->setText(Translator::findTranslation("options_debug_log"));
     _ui->label_debugLog->setText(Translator::findTranslation("options_debug_log_label"));
 
     _ui->checkBox_debug->setChecked(Settings::_debugLog);
 
     _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
+    _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkel);
 
     changeExport();
 
@@ -65,6 +66,7 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     QObject::connect(_ui->checkBox_debug, SIGNAL(clicked()), this, SLOT(changeDebug()));
 
     QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
+    QObject::connect(_ui->checkBox_TW3_loadSkel, SIGNAL(clicked()), this, SLOT(changeSkel()));
 
 
 }
@@ -130,6 +132,11 @@ void Options::changeExport()
 void Options::changeDebug()
 {
     Settings::_debugLog = _ui->checkBox_debug->isChecked();
+}
+
+void Options::changeSkel()
+{
+    Settings::_TW3LoadSkel = _ui->checkBox_TW3_loadSkel->isChecked();
 }
 
 void Options::selectDir()

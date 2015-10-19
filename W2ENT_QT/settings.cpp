@@ -25,6 +25,7 @@ QString Settings::_texFormat = ".jpg";
 QString Settings::_pack0 = "";
 
 QString Settings::_TW3TexPath = "";
+bool Settings::_TW3LoadSkel = true;
 
 QString Settings::_formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
 
@@ -115,6 +116,10 @@ void Settings::loadFromXML(QString filename)
         if(node.nodeName() == "TW3_textures")
         {
             Settings::_TW3TexPath = node.toElement().text();
+        }
+        if(node.nodeName() == "TW3_loadSkel")
+        {
+            Settings::_TW3LoadSkel = node.toElement().text().toInt();
         }
 
         node = node.nextSibling();
@@ -245,6 +250,10 @@ void Settings::saveToXML(QString filename)
     QDomElement tw3tex_elem = dom.createElement("TW3_textures");
     config_elem.appendChild(tw3tex_elem);
     tw3tex_elem.appendChild(dom.createTextNode(Settings::_TW3TexPath));
+
+    QDomElement tw3skel_elem = dom.createElement("TW3_loadSkel");
+    config_elem.appendChild(tw3skel_elem);
+    tw3skel_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_TW3LoadSkel)));
 
 
     // Write the DOM in a XML

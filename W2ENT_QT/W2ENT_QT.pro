@@ -22,7 +22,6 @@ SOURCES += main.cpp\
     resize.cpp \
     CREMeshWriter.cpp \
     CW2ENTMeshFileLoader.cpp \
-    CFBXMeshWriter.cpp \
     IrrAssimp/IrrAssimp.cpp \
     IrrAssimp/IrrAssimpExport.cpp \
     IrrAssimp/IrrAssimpImport.cpp \
@@ -44,7 +43,6 @@ HEADERS  += mainwindow.h \
     resize.h \
     CREMeshWriter.h \
     CW2ENTMeshFileLoader.h \
-    CFBXMeshWriter.h \
     IrrAssimp/IrrAssimp.h \
     IrrAssimp/IrrAssimpExport.h \
     IrrAssimp/IrrAssimpImport.h \
@@ -66,12 +64,12 @@ FORMS    += mainwindow.ui \
     extfiles.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis_\Desktop\Libs\irrlicht-code-5103-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis_\Desktop\Libs\irrlicht-code-5103-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5110-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5110-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis_\Desktop\Libs\assimp-master\CB_build\code\libassimp.dll.a
-INCLUDEPATH += "C:\Users\Jean-Louis_\Desktop\Libs\assimp-master\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\CB_build\code\libassimp.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
 
 DISTFILES += \
     app.rc

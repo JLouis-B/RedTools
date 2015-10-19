@@ -29,6 +29,10 @@
 		<text>done</text>
 	</element>
 	<element>
+		<name>log_done_with_error</name>
+		<text>done, with error</text>
+	</element>
+	<element>
 		<name>log_abort</name>
 		<text>Abort : Destination folder doesn't exist</text>
 	</element>
@@ -75,6 +79,10 @@
 	<element>
 		<name>menu_options</name>
 		<text>Options</text>
+	</element>
+	<element>
+		<name>menu_linkedFiles</name>
+		<text>Show linked files</text>
 	</element>
 	<element>
 		<name>menu_help</name>
@@ -157,16 +165,8 @@
 		<text>If you have a problem to load a w2ent/w2mesh file, you can enable this option to generate a log file. This file can help me to solve your problem, so in case of problem, you can send me this file (via The witcher forum if you have an account or by mail at jeanlouis.boudrand@hotmail.fr.)</text>
 	</element>
 	<element>
-		<name>options_debug_extFiles</name>
-		<text>Use extFilesList</text>
-	</element>
-	<element>
-		<name>options_debug_extFiles_label</name>
-		<text>In some case, the textures can be assigned incorectly and in this case it's possible that some textures are not copied with the "Move textures" option. I have made a little program that simply display the list of the dependencis file of your w2ent/w2mesh. You can run it to find easily the textures not copied by the soft.</text>
-	</element>
-	<element>
 		<name>re_tools</name>
-		<text>.RE tools</text>
+		<text>Redkit tools</text>
 	</element>
 	<element>
 		<name>re_size</name>
@@ -183,5 +183,13 @@
 	<element>
 		<name>re_lod_clear_all</name>
 		<text>Clear all LODs</text>
+	</element>
+	<element>
+		<name>w3_tools</name>
+		<text>The Witcher 3 tools</text>
+	</element>
+	<element>
+		<name>w3_tex_path</name>
+		<text>Clean textures path</text>
 	</element>
 </translation>

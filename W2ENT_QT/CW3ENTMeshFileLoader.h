@@ -184,7 +184,8 @@ private:
     // debug log
     Log* log;
 
-
+    io::path GameTexturesPath;
+    io::path GamePath;
 
 };
 

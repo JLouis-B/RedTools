@@ -116,13 +116,21 @@ bool QIrrlichtWidget::fileIsOpenableByIrrlicht(QString filename)
     return true;
 }
 
-bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedbackMessage)
+bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
 {
     _inLoading = true;
 
-    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
-    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_LOAD_SKEL", Settings::_TW3LoadSkel);
+    if (Settings::_pack0[Settings::_pack0.size() - 1] != '/')
+        Settings::_pack0.push_back('/');
+
+    if (Settings::_TW3TexPath[Settings::_TW3TexPath.size() - 1] != '/')
+        Settings::_TW3TexPath.push_back('/');
+
+    _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_pack0.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkel);
+
 
 
     const io::path irrFilename = QSTRING_TO_PATH(filename);
@@ -132,11 +140,6 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
     // Delete the current mesh
     clearLOD();
 
-    // Load the new w2ent/w2mesh
-    irr::io::path bufPath = _device->getSceneManager()->getFileSystem()->getWorkingDirectory();
-
-
-    _device->getSceneManager()->getFileSystem()->changeWorkingDirectoryTo(path.toStdString().c_str());
     Log l(_device->getSceneManager(), "preload.log");
     if (!l.works())
         QMessageBox::critical(0, "fail to create the log file", "fail to create the log file");
@@ -156,8 +159,8 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
         // Witcher feedback
         if (extension == "w2mesh" || extension == "w2ent" || extension == "w2rig")
         {
-            feedbackMessage = _device->getSceneManager()->getParameters()->getAttributeAsString("W2ENT_FEEDBACK");
-            _device->getSceneManager()->getParameters()->setAttribute("W2ENT_FEEDBACK", "");
+            feedbackMessage = _device->getSceneManager()->getParameters()->getAttributeAsString("TW_FEEDBACK");
+            _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
             l.addAndPush("feedback is ");
             l.addAndPush(feedbackMessage.c_str());
         }
@@ -181,7 +184,6 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
-        _device->getSceneManager()->getFileSystem()->changeWorkingDirectoryTo(bufPath);
         _inLoading = false;
         return false;
     }
@@ -205,23 +207,16 @@ bool QIrrlichtWidget::setModel(QString filename, QString path, stringc &feedback
             _currentLodData->_specularMaps.insert(buf->getMaterial().getTexture(2)->getName().getPath());
     }
 
-    _currentLodData->_node = _device->getSceneManager()->addAnimatedMeshSceneNode( mesh );
+    _currentLodData->_node = _device->getSceneManager()->addAnimatedMeshSceneNode(mesh);
+    setMaterialsSettings(_currentLodData->_node);
+
     _currentLodData->_node->setScale(irr::core::vector3df(20, 20, 20));
-    _currentLodData->_node->setMaterialFlag(EMF_LIGHTING, false);
-    _currentLodData->_node->setMaterialType(EMT_SOLID);
-
-
-    _currentLodData->_node->setMaterialTexture(1, NULL);
-    _currentLodData->_node->setMaterialTexture(2, NULL);
-    _currentLodData->_node->setMaterialTexture(3, NULL);
-
     _currentLodData->_node->setRotation(irr::core::vector3df(_currentLodData->_node->getRotation().X, _currentLodData->_node->getRotation().Y - 90, _currentLodData->_node->getRotation().Z));
 
     // for debug only
     // loadedNode->setDebugDataVisible(EDS_BBOX_ALL);
 
     _camera->setTarget(_currentLodData->_node->getPosition());
-    _device->getSceneManager()->getFileSystem()->changeWorkingDirectoryTo(bufPath);
 
     // DEBUG
     /*
@@ -268,7 +263,7 @@ void QIrrlichtWidget::init ()
 
     // enfin, on initialise notre moteur de rendu
     _device = createDeviceEx (params);
-    _device->getSceneManager()->getParameters()->setAttribute("W2ENT_FEEDBACK", "");
+    _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
 
     /* une fois initialisé, on émet le signal onInit, c'est la que nous
      * ajouterons nos modèles et nos textures.

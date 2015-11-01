@@ -54,7 +54,7 @@ class QIrrlichtWidget : public QWidget
         explicit QIrrlichtWidget (QWidget *parent = 0);
         ~QIrrlichtWidget ();
 
-        bool setModel(QString filename, QString path, core::stringc &feedbackMessage);
+        bool setModel(QString filename, core::stringc &feedbackMessage);
 
         void init ();
         void writeFile (QString exportFolder, QString filename, QString extension);

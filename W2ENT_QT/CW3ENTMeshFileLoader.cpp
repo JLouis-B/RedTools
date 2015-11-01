@@ -18,9 +18,7 @@
 #include <iostream>
 
 //#define _DEBUG
-#ifdef _DEBUG
-#define _W2ENTREADER_DEBUG
-#endif
+
 
 
 
@@ -107,17 +105,23 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 {
     // Create and enable the log file if the option is selected on the soft
     log = new Log(SceneManager, "debug.log");
-    log->enable(SceneManager->getParameters()->getAttributeAsBool("W2ENT_DEBUG_LOG"));
+    log->enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
 
 	if (!f)
 		return 0;
+
+    #ifdef _IRR_WCHAR_FILESYSTEM
+        GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
+        GameTexturesPath = GameTexturesPath = SceneManager->getParameters()->getAttributeAsStringW("TW_TW3_TEX_PATH");
+    #else
+        GamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
+        GameTexturesPath = SceneManager->getParameters()->getAttributeAsString("TW_TW3_TEX_PATH");
+    #endif
 
     //Clear up
     Strings.clear();
     Materials.clear();
     Files.clear();
-
-    u32 time = 0; //os::Timer::getRealTime();
 
     log->add("-> ");
     log->add(f->getFileName().c_str());
@@ -140,14 +144,6 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 		AnimatedMesh->drop();
 		AnimatedMesh = 0;
 	}
-    #ifdef _W2ENTREADER_DEBUG
-	time = os::Timer::getRealTime() - time;
-	core::stringc tmpString = "Time to load ";
-	tmpString += "binary W2ENT file: ";
-	tmpString += time;
-	tmpString += "ms";
-	os::Printer::log(tmpString.c_str());
-    #endif
 
     log->addAndPush("LOADING FINISHED\n");
     delete log;
@@ -365,7 +361,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         bufferFile->read(&tmp, 2);
 
         // skip skinning data
-        if (meshInfos.vertexType == EMVT_SKINNED && !SceneManager->getParameters()->getAttributeAsBool("W2ENT_LOAD_SKEL"))
+        if (meshInfos.vertexType == EMVT_SKINNED && !SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
         {
             bufferFile->seek(meshInfos.numBonesPerVertex * 2, true);
         }
@@ -1014,7 +1010,7 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
             file->read(&fileId, 1);
             fileId = 255 - fileId;
             file->seek(3, true);
-            AnimatedMesh = ReadW2MESHFile(Files[fileId]);
+            AnimatedMesh = ReadW2MESHFile(GamePath + Files[fileId]);
         }
         else
             ReadUnknowProperty(file);
@@ -1125,7 +1121,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
    std::cout << "All properties readed, @=" << file->getPos() << std::endl;
 
-   if (!isStatic && SceneManager->getParameters()->getAttributeAsBool("W2ENT_LOAD_SKEL"))
+   if (!isStatic && SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
    {
        // cancel property
        file->seek(-4, true);
@@ -1139,6 +1135,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
 
        // TODO
+       std::cout << "NbBonesPos" << nbBonesPos << std::endl;
        char nbRead = -1;
        while (nbRead != nbBonesPos)
        {
@@ -1151,6 +1148,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
        char nbBones;
        file->read(&nbBones, 1);
        std::cout << "nbBones = " << (int)nbBones << std::endl;
+       std::cout << "m size= " << meshes.size() << std::endl;
 
        for (u32 i = 0; i < nbBones; ++i)
        {
@@ -1320,7 +1318,7 @@ ISkinnedMesh *CW3ENTMeshFileLoader::ReadW2MESHFile(core::stringc filename)
     io::IReadFile* meshFile = FileSystem->createAndOpenFile(filename);
     if (!meshFile)
     {
-        std::cout << "FAIL TO OPEN THE W2MI FILE" << std::endl;
+        std::cout << "FAIL TO OPEN THE W2MESH FILE" << std::endl;
         return 0;
     }
     meshFile->drop();
@@ -1396,7 +1394,7 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
 
             if (core::hasFileExtension(Files[fileId], "w2mi"))
             {
-                mat = ReadW2MIFile(Files[fileId]);
+                mat = ReadW2MIFile(GamePath + Files[fileId]);
                 return mat;
             }
         }
@@ -1418,8 +1416,8 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
     int fileFormatVersion = data[0];
     if (fileFormatVersion == 162)
     {
-        //SceneManager->getParameters()->setAttribute("W2ENT_FEEDBACK", "The Witcher 3 is not supported yet, be patient !");
-        //scene::W2ENT_FEEDBACK = "The Witcher 3 is not supported yet, be patient !";
+        //SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "The Witcher 3 is not supported yet, be patient !");
+        //scene::TW_FEEDBACK = "The Witcher 3 is not supported yet, be patient !";
 
         return W3_load(file);
     }
@@ -1437,7 +1435,7 @@ video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
         filename.replace("\\", "#");
     }
 
-    filename = core::stringc(SceneManager->getParameters()->getAttributeAsString("W2ENT_TW3_TEX_PATH") + "/" + filename);
+    filename = GameTexturesPath + filename;
     //filename = core::stringc("textures_unpack/") + filename;
 
     video::ITexture* texture = 0;

@@ -290,7 +290,7 @@ void MainWindow::loadFile(QString path)
     QCoreApplication::processEvents();
 
     core::stringc feedbackMessage = "";
-    bool success = _irrWidget->setModel(path, _ui->lineEdit_folder->text(), feedbackMessage);
+    bool success = _irrWidget->setModel(path, feedbackMessage);
     if (success)
     {
         _irrWidget->changeWireframe(_ui->actionWireframe->isChecked());

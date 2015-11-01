@@ -99,7 +99,7 @@ private:
     void skeleton(io::IReadFile* file);
     void drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel);
     void CMaterialInstance(io::IReadFile* file, DataInfos infos, int nMats);
-    void TEXTURE(io::IReadFile* file, core::stringc xbm_file, core::array<int> data, core::array<core::stringc> names_11);
+    void TEXTURE(io::IReadFile* file, core::stringc xbm_file, core::array<int> data, core::array<core::stringc> stringsXBM);
     void convertXBMToDDS(core::stringc xbm_file);
     void drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel);
     void vert_format(io::IReadFile* file);
@@ -148,6 +148,8 @@ private:
     core::array <Meshdata> MeshesToLoad;
     // Materials of the meshes
     core::array<Mat> Materials;
+
+    io::path GamePath;
 
     // Bones data
     irr::core::array<core::stringc> bonenames;

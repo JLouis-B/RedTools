@@ -449,11 +449,13 @@ QString QIrrlichtWidget::convertTexture(QString filename, QString destDir)
         return filename;
     }
 
-    //std::cout << "BasePath2="<< basePath.toStdString().c_str() << std::endl;
 
-
-    IImage *image = _device->getVideoDriver()->createImageFromFile(filename.toStdString().c_str());
-    _device->getVideoDriver()->writeImageToFile(image, destDir.toStdString().c_str());
+    IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(filename));
+    if (image)
+    {
+        _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_PATH(destDir));
+        image->drop();
+    }
     return destDir;
 }
 

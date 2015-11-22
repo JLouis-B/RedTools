@@ -42,7 +42,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_export">
     <attribute name="title">
@@ -87,7 +87,7 @@
       <string>...</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_dir">
+    <widget class="QLineEdit" name="lineEdit_exportFolder">
      <property name="geometry">
       <rect>
        <x>16</x>

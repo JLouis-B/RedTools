@@ -27,7 +27,7 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     else
         _ui->radioButton_pack0->setChecked(true);
 
-    _ui->lineEdit_dir->setText(Settings::_exportDest);
+    _ui->lineEdit_exportFolder->setText(Settings::_exportDest);
 
     setFixedSize(this->size());
 
@@ -98,7 +98,7 @@ void Options::ok()
     Settings::_nm = _ui->checkBox_mtNormalsMap->isChecked();
     Settings::_sm = _ui->checkBox_mtSpecularMap->isChecked();
 
-    Settings::_exportDest = _ui->lineEdit_dir->text();
+    Settings::_exportDest = _ui->lineEdit_exportFolder->text();
     if (_ui->radioButton_custom->isChecked())
         Settings::_mode = Export_Custom;
     else if (_ui->radioButton_pack0->isChecked())
@@ -125,7 +125,7 @@ void Options::selectColor()
 
 void Options::changeExport()
 {
-    _ui->lineEdit_dir->setEnabled(_ui->radioButton_custom->isChecked());
+    _ui->lineEdit_exportFolder->setEnabled(_ui->radioButton_custom->isChecked());
     _ui->button_selectDir->setEnabled(_ui->radioButton_custom->isChecked());
 }
 
@@ -139,22 +139,42 @@ void Options::changeSkel()
     Settings::_TW3LoadSkel = _ui->checkBox_TW3_loadSkel->isChecked();
 }
 
+bool isASCII(QString path)
+{
+    for (unsigned int i = 0; i < path.size(); ++i)
+    {
+        if (path[i].unicode() > 127)
+            return false;
+    }
+    return true;
+}
+
 void Options::selectDir()
 {
-    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_dir->text());
+    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_exportFolder->text());
     if (file != "")
     {
-        _ui->lineEdit_dir->setText(file);
-        Settings::_exportDest = file;
+        if (isASCII(file))
+        {
+            _ui->lineEdit_exportFolder->setText(file);
+            Settings::_exportDest = file;
+        }
+        else
+            QMessageBox::critical(this, "Error", "Error : Check that you don't use special characters in your path.");
     }
 }
 
 void Options::selectTW3TexDir()
 {
-    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_dir->text());
+    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_TW3_texFolder->text());
     if (file != "")
     {
-        _ui->lineEdit_TW3_texFolder->setText(file);
-        Settings::_TW3TexPath = file;
+        if (isASCII(file))
+        {
+            _ui->lineEdit_TW3_texFolder->setText(file);
+            Settings::_TW3TexPath = file;
+        }
+        else
+            QMessageBox::critical(this, "Error", "Error : Check that you don't use special characters in your path.");
     }
 }

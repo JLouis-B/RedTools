@@ -743,6 +743,11 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
                     if (textureLayer == 1)  // normal map
                         mat.MaterialType = video::EMT_NORMAL_MAP_SOLID;
                 }
+                else
+                {
+                    SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, have you correctly set your textures directory ?");
+                    log->addAndPush(core::stringc("Error : the file ") + Files[texId] + core::stringc(" can't be opened.\n"));
+                }
             }
         }
 
@@ -1383,12 +1388,9 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
 
     core::array<int> data = readInts(file, 10);
 
-    int fileFormatVersion = data[0];
+    const int fileFormatVersion = data[0];
     if (fileFormatVersion == 162)
     {
-        //SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "The Witcher 3 is not supported yet, be patient !");
-        //scene::TW_FEEDBACK = "The Witcher 3 is not supported yet, be patient !";
-
         return W3_load(file);
     }
     return false;

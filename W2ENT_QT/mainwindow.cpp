@@ -140,7 +140,7 @@ void MainWindow::changeLanguage()
 
 void MainWindow::cleanTexturesPath()
 {
-    QDir dir(_ui->lineEdit_folder->text() + "/textures_unpack");
+    QDir dir(Settings::_TW3TexPath);
     if (dir.isReadable())
     {
         CleanTexturesPath* w = new CleanTexturesPath (Settings::_TW3TexPath, this);
@@ -149,7 +149,7 @@ void MainWindow::cleanTexturesPath()
         delete w;
     }
     else
-        QMessageBox::critical(this, "Error", "'textures_unpack' folder not found in the base directory. Check the tuto for more informations.");
+        QMessageBox::critical(this, "Error", "TW3 textures folder can't be opened. Check the tuto for more informations.");
 }
 
 MainWindow::~MainWindow()

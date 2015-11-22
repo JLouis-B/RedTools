@@ -18,9 +18,7 @@
 #include <iostream>
 
 //#define _DEBUG
-#ifdef _DEBUG
-#define _W2ENTREADER_DEBUG
-#endif
+
 
 namespace irr
 {
@@ -71,10 +69,13 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 		return 0;
 
     log = Log(SceneManager, "debug.log");
-    log.enable(SceneManager->getParameters()->getAttributeAsBool("W2ENT_DEBUG_LOG"));
+    log.enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
 
-
-    u32 time = 0; //os::Timer::getRealTime();
+    #ifdef _IRR_WCHAR_FILESYSTEM
+        GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
+    #else
+        GamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
+    #endif
 
     // log
     log.add("-> ");
@@ -95,16 +96,7 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	{
 		AnimatedMesh->drop();
 		AnimatedMesh = 0;
-	}
-    #ifdef _W2ENTREADER_DEBUG
-	time = os::Timer::getRealTime() - time;
-	core::stringc tmpString = "Time to load ";
-	tmpString += "binary W2ENT file: ";
-	tmpString += time;
-	tmpString += "ms";
-	os::Printer::log(tmpString.c_str());
-    #endif
-
+    }
 
 	//Clear up
     FilesTable.clear();
@@ -729,14 +721,14 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
     // Read all the properties of the mesh
     while(1)
     {
-        core::stringc name1 = Strings[readUnsignedShorts(file, 1)[0]-1];  // Name of the propertie
-        core::stringc name2 = Strings[readUnsignedShorts(file, 1)[0]-1];  // Type of the propertie
+        core::stringc propertyName = Strings[readUnsignedShorts(file, 1)[0]-1];  // Name of the propertie
+        core::stringc propertyType = Strings[readUnsignedShorts(file, 1)[0]-1];  // Type of the propertie
 
         unsigned short name3 = readUnsignedShorts(file, 1)[0];
 
         int seek = readInts(file, 1)[0];
         file->seek(seek - 4, true);
-        if (name1=="importFile")
+        if (propertyName == "importFile")
             break;
     }
 
@@ -1123,6 +1115,8 @@ video::ITexture* CW2ENTMeshFileLoader::getTexture(core::stringc filename)
         core::cutFilenameExtension(ddsfile, filename);
         ddsfile += ".dds";
 
+        //ddsfile = GamePath + ddsfile;
+
         if (FileSystem->existFile(ddsfile))
             texture = SceneManager->getVideoDriver()->getTexture(ddsfile.c_str());
 
@@ -1161,8 +1155,8 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
     tmp.id = nMats;
 
     //std::cout << "Index = " << debugIndex << std::endl;
-    core::stringc name1 = Strings[readUnsignedShorts(file,1)[0]-1];
-    core::stringc name2 = Strings[readUnsignedShorts(file,1)[0]-1];
+    core::stringc propertyName = Strings[readUnsignedShorts(file,1)[0]-1];
+    core::stringc propertyType = Strings[readUnsignedShorts(file,1)[0]-1];
     readUnsignedChars(file, 2);
     readInts(file, 1);
 
@@ -1178,52 +1172,48 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
         back = file->getPos();
         int seek = readInts(file,1)[0];
 
-        unsigned short propertieIndex = readUnsignedShorts(file,1)[0]-1;
-        unsigned short propertieTypeIndex = readUnsignedShorts(file,1)[0]-1;
+        unsigned short propertyIndex = readUnsignedShorts(file,1)[0]-1;
+        unsigned short propertyTypeIndex = readUnsignedShorts(file,1)[0]-1;
 
-        if (propertieIndex == -1)    // if refer to the string -1, nothing to load
+        if (propertyIndex == -1)    // if refer to the string -1, nothing to load
             return;
 
-        name1 = Strings[propertieIndex];
-        name2 = Strings[propertieTypeIndex];
+        propertyName = Strings[propertyIndex];
+        propertyType = Strings[propertyTypeIndex];
 
-        if (name2 =="*ITexture")
+        if (propertyType =="*ITexture")
         {
             int imageID = readUnsignedChars(file,1)[0];
             if (imageID>0)
             {
                 // ImageID is the index of the texture file in the FilesTable
                 //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
-                core::stringc texturePath =  FilesTable[255-imageID];
+                core::stringc texturePath = GamePath + FilesTable[255-imageID];
                 readUnsignedChars(file, 3);
-                // Handle the path
-                if (name1 == "diffusemap" || name1 == "tex_Diffuse" || name1 == "Diffuse" || name1 == "sptTexDiffuse")
+
+                if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")
                 {
                     video::ITexture* tex = getTexture(texturePath);
                     tmp.material.setTexture(0, tex);
-                    // LOAD THE DIFFUSE TEXTURE
                 }
-                else if (name1 == "normalmap" || name1 == "tex_Normal" || name1 == "Normal" || name1 == "sptTexNormal")
+                else if (propertyName == "normalmap" || propertyName == "tex_Normal" || propertyName == "Normal" || propertyName == "sptTexNormal")
                 {
-                    // normal mapped model
                     tmp.material.MaterialType = video::EMT_PARALLAX_MAP_SOLID ;
 
                     // normal map
                     video::ITexture* tex = getTexture(texturePath);
                     tmp.material.setTexture(1, tex);
                 }
-                if (name1 == "specular" || name1 == "tex_Specular" || name1 == "Specular" || name1 == "sptTexSpecular")
+                if (propertyName == "specular" || propertyName == "tex_Specular" || propertyName == "Specular" || propertyName == "sptTexSpecular")
                 {
-                    // LOAD THE SPECULAR TEXTURE
-                    // not handled by irrlicht but we can use it with a custom shader
-
+                    // not handled by irrlicht
                     video::ITexture* tex = getTexture(texturePath);
                     tmp.material.setTexture(2, tex);
                 }
             }
 
         }
-        if (name2 =="Float")
+        if (propertyType =="Float")
         {
             readFloats(file, 1)[0];
         }
@@ -1244,14 +1234,12 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     core::cutFilenameExtension(ddsfile, xbm_file);
     ddsfile += ".dds";
 
-    // Open the DDS file
-    io::IReadFile* file2 = FileSystem->createAndOpenFile(xbm_file.c_str());
-
-    if (!file2)
+    // Open the XBM file
+    io::IReadFile* fileXBM = FileSystem->createAndOpenFile((xbm_file).c_str());
+    if (!fileXBM)
     {
-        SceneManager->getParameters()->setAttribute("W2ENT_FEEDBACK", "Some textures havn't been found, check your 'Base directory'.");
+        SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, check your 'Base directory'.");
         log.addAndPush(core::stringc("Error : the file ") + xbm_file + core::stringc(" can't be opened.\n"));
-
         return;
     }
 
@@ -1263,67 +1251,66 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     - The string list : begin at data[2] and data[3] size
     - The data : begin at data[4] and data[5] size
     */
-    file2->seek(0);
-    int back = file2->getPos();
-    readWord(file2, 4);
-    core::array<int> data = readInts(file2, 10);
+    fileXBM->seek(0);
+    readWord(fileXBM, 4);
+    core::array<int> data = readInts(fileXBM, 10);
 
     //string list
-    core::array<core::stringc> names_11;//Strings = []
-    file2->seek(back+data[2]);
+    fileXBM->seek(data[2]);
+    core::array<core::stringc> stringsXBM;//Strings = []
 
     for (int i = 0; i < data[3]; i++)
-        names_11.push_back(readWord(file2, readUnsignedChars(file2, 1)[0]-128));
+        stringsXBM.push_back(readWord(fileXBM, readUnsignedChars(fileXBM, 1)[0]-128));
 
     log.addAndPush("List ok\n");
 
 
     // data
-    file2->seek(back+data[4]);
+    fileXBM->seek(data[4]);
     for (int i = 0; i < data[5]; i++)
     {
-        // The type of the data (cf names_11)
-        unsigned short var = readUnsignedShorts(file2, 1)[0];
+        // The type of the data (cf stringsXBM)
+        unsigned short var = readUnsignedShorts(fileXBM, 1)[0];
         // Others informations
-        core::array<int> data2 = readInts(file2, 5);
-        int back1 = file2->getPos();
-        core::array<unsigned char> data1 = readUnsignedChars(file2, 2);
-        file2->seek(back+back1);
-        core::stringc mesh_source;
-        if (data2[0]==0)
+        core::array<int> dataInfos = readInts(fileXBM, 5);
+
+        int back1 = fileXBM->getPos();
+        core::array<unsigned char> data1 = readUnsignedChars(fileXBM, 2);
+        fileXBM->seek(back1);
+
+        if (dataInfos[0]==0)
         {
+            unsigned char size;
+            fileXBM->read(&size, 1);
+            size -= 128;
+
             if (data1[1]==1)
-            {
-                mesh_source = readWord(file2, readUnsignedChars(file2, 1)[0]-127);
-                mesh_source.erase(0); //mesh_source = split(1, mesh_source);
-            }
+                fileXBM->seek(1, true);
 
-            else
-                mesh_source = readWord(file2, readUnsignedChars(file2, 1)[0]-128);
+            const core::stringc mesh_source = readWord(fileXBM, size);
         }
-
         else
-            readUnsignedChars(file2, 1); // readUnsignedChars(file2, 1)[0]-128;
+            fileXBM->seek(1, true); // readUnsignedChars(file2, 1)[0]-128;
 
-        int back3 = file2->getPos();
+        int back3 = fileXBM->getPos();
 
         // If the data is a CBitmapTexture, we read the data
-        if (names_11[var-1]=="CBitmapTexture")
-            TEXTURE(file2, ddsfile, data2, names_11);
+        if (stringsXBM[var-1] == "CBitmapTexture")
+            TEXTURE(fileXBM, ddsfile, dataInfos, stringsXBM);
 
-        file2->seek(back3);
+        fileXBM->seek(back3);
     }
-    file2->drop();
+    fileXBM->drop();
 
     log.addAndPush("XBM to DDS OK\n");
 }
 
-void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* file, core::stringc xbm_file, core::array<int> data, core::array<core::stringc> names_11)
+void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenameDDS, core::array<int> data, core::array<core::stringc> stringsXBM)
 {
     // int back = file->getPos();
     log.addAndPush("CBitmapTexture\n");
 
-    file->seek(data[2]);
+    fileXBM->seek(data[2]);
 
     char ddsheader[] = "\x44\x44\x53\x20\x7C\x00\x00\x00\x07\x10\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x00\x00\x00\x05\x00\x00\x00\x44\x58\x54\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x10\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
 
@@ -1335,27 +1322,28 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* file, core::stringc xbm_file, 
     {
         log.addAndPush("Read header data...\n");
 
-        // Name1 is the name of the element
-        core::stringc name1 = names_11[readUnsignedShorts(file, 1)[0]-1];
-        // Name2 is the type of the element
-        core::stringc name2 = names_11[readUnsignedShorts(file, 1)[0]-1];
+        // name of the element
+        core::stringc propertyName = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
+        // type of the element
+        core::stringc propertyType = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
 
-        readUnsignedChars(file, 2);
-        int back2 = file->getPos();
-        int seek = readInts(file, 1)[0];
+        readUnsignedChars(fileXBM, 2);
+        int back2 = fileXBM->getPos();
+
+        int seek = readInts(fileXBM, 1)[0]; // size of the property
         // The dimensions of the textures
-        if (name1 == "width" && name2 == "Uint")
+        if (propertyName == "width" && propertyType == "Uint")
         {
-            width1 = readInts(file, 1)[0];
+            width1 = readInts(fileXBM, 1)[0];
         }
-        else if (name1 == "height" && name2 == "Uint")
+        else if (propertyName == "height" && propertyType == "Uint")
         {
-            height1 = readInts(file, 1)[0];
+            height1 = readInts(fileXBM, 1)[0];
         }
         // Compression format
-        else if (name2 == "ETextureCompression")
+        else if (propertyType == "ETextureCompression")
         {
-            dxt = names_11[readUnsignedShorts(file, 1)[0]-1];
+            dxt = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
 
             if  (dxt == "TCM_DXTNoAlpha")
                 dxt = "\x44\x58\x54\x31";
@@ -1367,65 +1355,59 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* file, core::stringc xbm_file, 
                 dxt = "\x44\x58\x54\x31";
         }
 
-        file->seek(back2+seek);
-        if (name1 == "importFile")
+        fileXBM->seek(back2+seek);
+        if (propertyName == "importFile")
             break;
     }
     log.addAndPush("Read header ok\n");
 
-    readUnsignedChars(file, 27);
+    readUnsignedChars(fileXBM, 27);
 
     // If a compression method has been found
     if (dxt.size() > 0)
     {
         // Create the DDS file
-        io::IWriteFile* newFile = FileSystem->createAndWriteFile(xbm_file.c_str());
+        io::IWriteFile* fileDDS = FileSystem->createAndWriteFile((filenameDDS).c_str());
 
-        if (!newFile)
+        if (!fileDDS)
         {
-            log.addAndPush(core::stringc("Error : the file ") + xbm_file + core::stringc(" can't be created.\n"));
+            log.addAndPush(core::stringc("Error : the file ") + filenameDDS + core::stringc(" can't be created.\n"));
         }
         else
         {
-            log.addAndPush(core::stringc("File ") + xbm_file + core::stringc(" created.\n"));
+            log.addAndPush(core::stringc("File ") + filenameDDS + core::stringc(" created.\n"));
         }
 
         // The static part of the header
-        newFile->write(ddsheader, 128);
+        fileDDS->write(ddsheader, 128);
 
         // And the informations that we have read
-        newFile->seek(0xC);
-        newFile->write(&height1, 4);
-        newFile->seek(0x10);
-        newFile->write(&width1, 4);
-        newFile->seek(0x54);
-        newFile->write(dxt.c_str(), dxt.size());
-        newFile->seek(128);
+        fileDDS->seek(0xC);
+        fileDDS->write(&height1, 4);
+        fileDDS->seek(0x10);
+        fileDDS->write(&width1, 4);
+        fileDDS->seek(0x54);
+        fileDDS->write(dxt.c_str(), dxt.size());
+        fileDDS->seek(128);
 
         // Header is ok
         log.addAndPush("DDS header OK\n");
 
-        // Now we can just cop^y the content of the file
-        int sizeToCopy = file->getSize() - file->getPos(); //  This calcul suppose that there is not an other data after the section 'CBitmapTexture'
+        // copy the content of the file
+        const long sizeToCopy = fileXBM->getSize() - fileXBM->getPos();
 
 
-
-        /*std::string str(sizeToCopy, '-');
-        for (int i = 0; i < sizeToCopy; ++i)
-        {
-            file->read(&str[i], 1);
-        }*/
         char* buffer = new char[sizeToCopy];
-        file->read(buffer, sizeToCopy);
+        fileXBM->read(buffer, sizeToCopy);
 
         log.addAndPush("Read XBM OK\n");
 
-        newFile->write(buffer, sizeToCopy);
+        fileDDS->write(buffer, sizeToCopy);
         delete[] buffer;
 
         log.addAndPush("Write DDS OK\n");
 
-        newFile->drop();
+        fileDDS->drop();
     }
     else
     {
@@ -1438,7 +1420,7 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* file, core::stringc xbm_file, 
                 {
                     pix = readUnsignedChars(file, 4);
 
-                    newFile.setPixelI(m,n,[pix[0],pix[1],pix[2],pix[3]]);
+                    fileDDS.setPixelI(m,n,[pix[0],pix[1],pix[2],pix[3]]);
                 }
         */
     }

@@ -29,6 +29,8 @@ bool Settings::_TW3LoadSkel = true;
 
 QString Settings::_formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
 
+bool Settings::_firstUse = true;
+
 QString Settings::getExportFolder()
 {
     if (Settings::_mode == Export_Pack0)
@@ -120,6 +122,11 @@ void Settings::loadFromXML(QString filename)
         if(node.nodeName() == "TW3_loadSkel")
         {
             Settings::_TW3LoadSkel = node.toElement().text().toInt();
+        }
+
+        if (node.nodeName() == "first_use")
+        {
+            Settings::_firstUse = node.toElement().text().toInt();
         }
 
         node = node.nextSibling();
@@ -254,6 +261,11 @@ void Settings::saveToXML(QString filename)
     QDomElement tw3skel_elem = dom.createElement("TW3_loadSkel");
     config_elem.appendChild(tw3skel_elem);
     tw3skel_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_TW3LoadSkel)));
+
+
+    QDomElement firstuse_elem = dom.createElement("first_use");
+    config_elem.appendChild(firstuse_elem);
+    firstuse_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_firstUse)));
 
 
     // Write the DOM in a XML

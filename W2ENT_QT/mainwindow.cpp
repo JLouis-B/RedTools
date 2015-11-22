@@ -48,6 +48,12 @@ MainWindow::MainWindow(QWidget *parent) :
     // Translate the UI
     translate();
 
+    if (Settings::_firstUse)
+    {
+        QMessageBox::information(this, "first usage", "This is your first usage of the software. The first step to extract The Witcher assets is to configure the software by giving the path to the game folder, the textures, checking the export options...<br/> You can find all the informations about this on the <a href=\"http://jlouisb.users.sourceforge.net/\">website</a> of the software, and it's highly recommended to read them before to start to use the software.");
+        Settings::_firstUse = false;
+    }
+
     // Events
     QObject::connect(_ui->actionWireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
     QObject::connect(_ui->actionRigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));

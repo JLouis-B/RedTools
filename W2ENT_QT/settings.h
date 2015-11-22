@@ -46,6 +46,8 @@ public:
     static bool _TW3LoadSkel;
     static QString _formats;
 
+    static bool _firstUse;
+
     static QString getExportFolder();
 
     static void loadFromXML(QString filename);

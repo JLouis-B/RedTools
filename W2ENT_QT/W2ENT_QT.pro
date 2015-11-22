@@ -54,7 +54,8 @@ HEADERS  += mainwindow.h \
     IrrAssimp/IrrAssimpUtils.h \
     CREMeshFileLoader.h \
     CSkeleton.h \
-    settings.h
+    settings.h \
+    halffloat.h
 
 FORMS    += mainwindow.ui \
     options.ui \

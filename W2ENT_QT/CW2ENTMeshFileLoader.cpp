@@ -109,6 +109,11 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 }
 
 
+void printVector(core::vector3df vect)
+{
+    std::cout << "Vector : " << vect.X << ", " << vect.Y << ", " << vect.Z << std::endl;
+}
+
 
 void CW2ENTMeshFileLoader::make_vertex_group(Submesh_data dataSubMesh, core::array<core::array<unsigned char> > weighting)
 {
@@ -171,82 +176,26 @@ void CW2ENTMeshFileLoader::make_vertex_group(Submesh_data dataSubMesh, core::arr
 
 void CW2ENTMeshFileLoader::skeleton(io::IReadFile* file)
 {
-    check_armature(file);                   // std::cout << "check_armature" <<std::endl;
-    make_bone(file);                        // std::cout << "make_bone" <<std::endl;
-    make_bone_parent(file);                 // std::cout << "make_bone_parent" <<std::endl;
-    make_bone_position(file);               // std::cout << "make_bone_position" <<std::endl;
-    make_localMatrix_from_global(file);     // std::cout << "make_localMatrix_from_global" <<std::endl;
+    make_bone();                            // std::cout << "make_bone" <<std::endl;
+    make_bone_parent();                     // std::cout << "make_bone_parent" <<std::endl;
+    make_bone_position();                   // std::cout << "make_bone_position" <<std::endl;
+    make_localMatrix_from_global();         // std::cout << "make_localMatrix_from_global" <<std::endl;
 }
 
-void CW2ENTMeshFileLoader::check_armature(io::IReadFile* file)
+void CW2ENTMeshFileLoader::make_bone()
 {
-    /*
-    global armobj,newarm
-    armobj=None
-    newarm=None
-    scn = Scene.GetCurrent()
-    scene = bpy.data.scenes.active
-    for object in scene.objects:
-        if object.getType()=='Armature':
-            if object.name == 'armature':
-                scene.objects.unlink(object)
-  // This first part of the function remove armature from scene
-
-    for object in bpy.data.objects:
-        if object.name == 'armature':
-            armobj = Blender.Object.Get('armature')
-            newarm = armobj.getData()
-            newarm.makeEditable()
-            for bone in newarm.bones.values():
-                pass#del newarm.bones[bone.name]
-            newarm.update()
-    // Remove bones...
-
-
-    // Create a new armature
-    if armobj==None:
-        armobj = Blender.Object.New('Armature','armature')
-    if newarm==None:
-        newarm = Armature.New('armature')
-        armobj.link(newarm)
-    scn.link(armobj)
-    newarm.drawType = Armature.STICK
-    armobj.drawMode = Blender.Object.DrawModes.XRAY
-    for object in scene.objects:
-        if 'mesh' in object.name and object.getType()=='Mesh':
-                armobj.makeParentDeform([object],1,0)
-
-                Look like a scene cleaning
-    */
-    // This part of the code is specific to the scene management of Blender, in our case there is nothing to do, cool :)
-
-}
-
-void CW2ENTMeshFileLoader::make_bone(io::IReadFile* file)
-{
-    /*
-    newarm.makeEditable()
-    for bone_id in range(len(bones_data)):
-        bonedata = bones_data[bone_id]
-        bonename = bonedata[1]
-        eb = Armature.Editbone()
-        newarm.bones[bonename] = eb
-    newarm.update()
-    */
-    for (unsigned int i = 0; i < bones_data.size(); ++i)
+    for (u32 i = 0; i < bones_data.size(); ++i)
     {
         ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
         joint->Name = bones_data[i].name;
 
         log.addAndPush(joint->Name + "\n");
     }
-
 }
 
-void CW2ENTMeshFileLoader::make_bone_parent(io::IReadFile* file)
+void CW2ENTMeshFileLoader::make_bone_parent()
 {
-
-    for (int i = 0; i < bones_data.size(); ++i)
+    for (u32 i = 0; i < bones_data.size(); ++i)
     {
         bone_data data = bones_data[i];
         core::stringc parentName = "pelvis";
@@ -301,35 +250,29 @@ void CW2ENTMeshFileLoader::addVectorToLog(irr::core::vector3df vec)
 
 void CW2ENTMeshFileLoader::addMatrixToLog(irr::core::matrix4 mat)
 {
-   core::stringc logContent = "Matrix4 : \n";
-   for (int i = 0; i < 4; ++i)
-   {
-       logContent += mat[i + 0];
-       logContent += "  ";
-       logContent += mat[i + 1];
-       logContent += "  ";
-       logContent += mat[i + 2];
-       logContent += "  ";
-       logContent += mat[i + 3];
-       logContent += "\n";
-   }
-   logContent += "\n";
-   log.addAndPush(logContent);
+    core::stringc logContent = "Matrix4 : \n";
+    for (u32 i = 0; i < 16; ++i)
+    {
+        logContent += mat[i];
+        if (i % 4 == 3)
+            logContent += "\n";
+        else
+            logContent += "  ";
+    }
+    logContent += "\n";
+    log.addAndPush(logContent);
 
-   addVectorToLog(mat.getTranslation());
-   addVectorToLog(mat.getRotationDegrees());
+    addVectorToLog(mat.getTranslation());
+    addVectorToLog(mat.getRotationDegrees());
 
+    logContent = "End matrix4\n\n";
 
-   logContent = "End matrix4\n";
-   logContent += "\n";
-
-   log.addAndPush(logContent);
+    log.addAndPush(logContent);
 }
 
-void CW2ENTMeshFileLoader::make_bone_position(io::IReadFile* file)
+void CW2ENTMeshFileLoader::make_bone_position()
 {
-
-    for (int i = 0; i < bones_data.size(); ++i)
+    for (u32 i = 0; i < bones_data.size(); ++i)
     {
         bone_data data = bones_data[i];
         core::stringc boneName = data.name;
@@ -337,14 +280,14 @@ void CW2ENTMeshFileLoader::make_bone_position(io::IReadFile* file)
 
         ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(boneName.c_str())];
 
-        // Parent bone is necessary to compute the local matrix from global
-        core::stringc parentName = searchParent(boneName);
-        ISkinnedMesh::SJoint* jointParent = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(parentName.c_str())];
-
         irr::core::vector3df position = matr.getTranslation();
         irr::core::matrix4 invRot;
         matr.getInverse(invRot);
         invRot.rotateVect(position);
+
+        core::matrix4 axisMatrix;
+        axisMatrix.setInverseRotationDegrees(core::vector3df(90, 0,  180));
+        axisMatrix.rotateVect(position);
 
         core::vector3df rotation = invRot.getRotationDegrees();
         rotation = core::vector3df(0, 0, 0);
@@ -391,15 +334,9 @@ void CW2ENTMeshFileLoader::make_bone_position(io::IReadFile* file)
             core::matrix4 rotationMatrix;
             rotationMatrix.setRotationDegrees(rotation);
 
-            core::matrix4 axisMatrix;
-            axisMatrix.setInverseRotationDegrees(core::vector3df(-90, 0,  180));
+            //printVector(axisMatrix.getRotationDegrees());
 
-            joint->GlobalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
-            // The local matrix will be computed in make_localMatrix_from_global
-            joint->LocalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
-
-            joint->GlobalMatrix = axisMatrix * scaleMatrix * rotationMatrix *positionMatrix;
-            joint->LocalMatrix = axisMatrix * scaleMatrix * rotationMatrix *positionMatrix;
+            joint->GlobalMatrix = scaleMatrix * rotationMatrix * positionMatrix;
         }
     }
     /*
@@ -423,8 +360,8 @@ void CW2ENTMeshFileLoader::make_bone_position(io::IReadFile* file)
 
 void CW2ENTMeshFileLoader::computeLocal(ISkinnedMesh::SJoint* joint)
 {
-    // Parent bone is necessary to compute the local matrix from global
-    core::stringc parentName = searchParent(joint->Name.c_str());
+    // Get parent
+    const core::stringc parentName = searchParent(joint->Name.c_str());
     ISkinnedMesh::SJoint* jointParent = 0;
     if (AnimatedMesh->getJointNumber(parentName.c_str()) != -1)
     {
@@ -433,21 +370,19 @@ void CW2ENTMeshFileLoader::computeLocal(ISkinnedMesh::SJoint* joint)
 
     if (jointParent)
     {
-        if (jointParent->LocalMatrix == jointParent->GlobalMatrix)
-            computeLocal(jointParent);
-
         irr::core::matrix4 globalParent = jointParent->GlobalMatrix;
         irr::core::matrix4 invGlobalParent;
         globalParent.getInverse(invGlobalParent);
 
         joint->LocalMatrix = invGlobalParent * joint->GlobalMatrix;
     }
-    // -----------------------------------------------------------------
+    else
+        joint->LocalMatrix = joint->GlobalMatrix;
 }
 
-void CW2ENTMeshFileLoader::make_localMatrix_from_global(io::IReadFile* file)
+void CW2ENTMeshFileLoader::make_localMatrix_from_global()
 {
-    for (int i = 0; i < bones_data.size(); ++i)
+    for (u32 i = 0; i < bones_data.size(); ++i)
     {
         bone_data data = bones_data[i];
         core::stringc boneName = data.name;
@@ -474,21 +409,20 @@ void CW2ENTMeshFileLoader::make_localMatrix_from_global(io::IReadFile* file)
         irr::core::matrix4 invRot;
         localMatrix.getInverse(invRot);
 
-        irr::core::matrix4 rot;
         irr::core::vector3df rotatedVect = joint->LocalMatrix.getTranslation();
-        localMatrix.inverseRotateVect(rotatedVect);
-        irr::core::matrix4 trMat = localMatrix * rot;
 
         irr::core::matrix4 translationMat;
         translationMat.setTranslation(rotatedVect);
         irr::core::matrix4 rotationMat;
         rotationMat.setRotationDegrees(joint->LocalMatrix.getRotationDegrees());
+        //joint->LocalMatrix.getInverse(rotationMat);
+        //printVector(invRot.getRotationDegrees());
 
-        joint->LocalMatrix = translationMat * rotationMat;
+        //joint->LocalMatrix = rotationMat * translationMat;
 
         joint->Animatedposition = rotatedVect;
         joint->Animatedscale = joint->LocalMatrix.getScale();
-        joint->Animatedrotation = joint->LocalMatrix.getRotationDegrees();
+        joint->Animatedrotation = core::vector3df(0, 0, 0);
     }
 }
 

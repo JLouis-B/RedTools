@@ -109,10 +109,10 @@ private:
 	core::stringc searchParent(core::stringc bonename);
 
 	void check_armature(io::IReadFile* file);
-    void make_bone(io::IReadFile* file);
-    void make_bone_parent(io::IReadFile* file);
-    void make_bone_position(io::IReadFile* file);
-    void make_localMatrix_from_global(io::IReadFile* file);
+    void make_bone();
+    void make_bone_parent();
+    void make_bone_position();
+    void make_localMatrix_from_global();
     void computeLocal(scene::ISkinnedMesh::SJoint* joint);
 
     void addVectorToLog(irr::core::vector3df vec);

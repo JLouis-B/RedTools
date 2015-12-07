@@ -156,7 +156,7 @@ private:
     irr::core::array<bone_data> bones_data;
 
     //DEBUG
-    Log log;
+    Log* log;
 
 
 };

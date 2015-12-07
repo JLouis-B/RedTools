@@ -20,6 +20,7 @@ public:
     void addAndPush(core::stringc addition);
 
     void enable(bool enabled);
+    bool isEnabled();
     bool works();
 
 private:

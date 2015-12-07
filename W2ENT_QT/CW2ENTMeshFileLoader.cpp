@@ -68,8 +68,8 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	if (!f)
 		return 0;
 
-    log = Log(SceneManager, "debug.log");
-    log.enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
+    log = new Log(SceneManager, "debug.log");
+    log->enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
@@ -78,11 +78,11 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
     #endif
 
     // log
-    log.add("-> ");
-    log.add(f->getFileName().c_str());
-    log.add("\n");
-    log.add("Start loading\n");
-    log.push();
+    log->add("-> ");
+    log->add(f->getFileName().c_str());
+    log->add("\n");
+    log->add("Start loading\n");
+    log->push();
 
 
     AnimatedMesh = SceneManager->createSkinnedMesh();
@@ -105,6 +105,8 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
     MeshesToLoad.clear();
     NbSubMesh = 0;
 
+
+    delete log;
 	return AnimatedMesh;
 }
 
@@ -189,7 +191,7 @@ void CW2ENTMeshFileLoader::make_bone()
         ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
         joint->Name = bones_data[i].name;
 
-        log.addAndPush(joint->Name + "\n");
+        log->addAndPush(joint->Name + "\n");
     }
 }
 
@@ -245,7 +247,7 @@ void CW2ENTMeshFileLoader::addVectorToLog(irr::core::vector3df vec)
     logContent += vec.Z;
     logContent += "\n";
 
-    log.addAndPush(logContent);
+    log->addAndPush(logContent);
 }
 
 void CW2ENTMeshFileLoader::addMatrixToLog(irr::core::matrix4 mat)
@@ -260,14 +262,14 @@ void CW2ENTMeshFileLoader::addMatrixToLog(irr::core::matrix4 mat)
             logContent += "  ";
     }
     logContent += "\n";
-    log.addAndPush(logContent);
+    log->addAndPush(logContent);
 
     addVectorToLog(mat.getTranslation());
     addVectorToLog(mat.getRotationDegrees());
 
     logContent = "End matrix4\n\n";
 
-    log.addAndPush(logContent);
+    log->addAndPush(logContent);
 }
 
 void CW2ENTMeshFileLoader::make_bone_position()
@@ -297,7 +299,7 @@ void CW2ENTMeshFileLoader::make_bone_position()
         if (joint)
         {
 
-            if (SceneManager->getParameters()->getAttributeAsBool("W2ENT_DEBUG_LOG"))
+            if (log->isEnabled())
             {
                 core::stringc logContent = "Joint ";
                 logContent += joint->Name;
@@ -323,7 +325,7 @@ void CW2ENTMeshFileLoader::make_bone_position()
                 logContent += scale.Z;
                 logContent += "\n\n";
 
-                log.addAndPush(logContent);
+                log->addAndPush(logContent);
             }
 
             //Build GlobalMatrix:
@@ -442,7 +444,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
     {                                  // In the file, all the strings will be referenced by the index of the string on this table
         Strings.push_back(readWord(file, readUnsignedChars(file, 1)[0] -128)); // -128 = unsigned to signed (I suppose...)
     }
-    log.addAndPush("Table 1 OK\n");
+    log->addAndPush("Table 1 OK\n");
 
     // This list is the list of all the externals files used by the file
     file->seek(back + header[6]);    
@@ -464,7 +466,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
 
         FilesTable.push_back(filename);
     }
-    log.addAndPush("Table 2 OK\n");
+    log->addAndPush("Table 2 OK\n");
 
     //std::cout << std::endl << "Liste 3 (de taille " << data[9] << ") : " << std::endl;
 
@@ -536,18 +538,18 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
 
         if (dataType == "CMaterialInstance")
         {
-            log.addAndPush("\nCMaterialInstance\n");
+            log->addAndPush("\nCMaterialInstance\n");
 
             CMaterialInstance(file, infos, nMat);
             MeshesToLoad[MeshesToLoad.size()-1].nMat.push_back(nMat);
             nMat++;
 
-            log.addAndPush("CMaterialInstance OK\n");
+            log->addAndPush("CMaterialInstance OK\n");
         }
         else if (dataType == "CMesh")
         {
             //std::cout << "CMesh" << std::endl;            
-            log.addAndPush("\nCMesh\n");
+            log->addAndPush("\nCMesh\n");
 
             // Just get the filename from the filepath
             int index = mesh_source.findLast('\\');
@@ -564,7 +566,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
 
             nModel++;
 
-            log.addAndPush("CMesh OK\n");
+            log->addAndPush("CMesh OK\n");
         }
         else if (dataType == "CSkeleton")
         {
@@ -581,7 +583,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
         }
         file->seek(back2);
     }
-    log.addAndPush("Textures and mesh data OK\n");
+    log->addAndPush("Textures and mesh data OK\n");
 
     // When we have loaded all the materials and all the 'mesh headers', we load the meshes
     for (unsigned int i = 0; i < MeshesToLoad.size(); i++)
@@ -590,7 +592,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
         CMesh(file, MeshesToLoad[i]);
     }
 
-    log.addAndPush("All is loaded\n");
+    log->addAndPush("All is loaded\n");
 	return true;
 }
 
@@ -691,7 +693,7 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
     }
     else // If the mesh isn't static
     {
-        log.addAndPush("LooP\n");
+        log->addAndPush("LooP\n");
 
         bonenames.clear();
         bones_data.clear();
@@ -717,7 +719,7 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
             }
             else
             {
-                log.addAndPush("error_with_bones OK\n");
+                log->addAndPush("error_with_bones OK\n");
 
                 name = "bone-";
                 name += i;
@@ -828,13 +830,13 @@ void CW2ENTMeshFileLoader::static_meshes(io::IReadFile* file, core::array<int> m
 
 void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats,int nModel)
 {
-    log.addAndPush("Drawmesh_static\n");
+    log->addAndPush("Drawmesh_static\n");
 
     int back = file->getPos();
 
     for(unsigned int n = 0; n <NbSubMesh; n++)
     {
-        log.addAndPush("submesh\n");
+        log->addAndPush("submesh\n");
 
         core::array<core::array<float > >vertexes;
         core::array<unsigned short > faceslist;
@@ -929,13 +931,13 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
         }
     }
 
-    log.addAndPush("Drawmesh_static OK\n");
+    log->addAndPush("Drawmesh_static OK\n");
 }
 
 
 void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel)
 {
-    log.addAndPush("Drawmesh\n");
+    log->addAndPush("Drawmesh\n");
 
     int back = file->getPos();
 
@@ -1036,7 +1038,7 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
         }
     }
 
-    log.addAndPush("Drawmesh OK\n");
+    log->addAndPush("Drawmesh OK\n");
 }
 
 video::ITexture* CW2ENTMeshFileLoader::getTexture(core::stringc filename)
@@ -1078,7 +1080,7 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
     int back = file->getPos();
     file->seek(infos.adress);
 
-    log.addAndPush("Read material...\n");
+    log->addAndPush("Read material...\n");
 
     Mat tmp;
     tmp.material.MaterialType = video::EMT_SOLID ;
@@ -1099,7 +1101,7 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
 
     int nMatElement = readInts(file,1)[0];
 
-    log.addAndPush(core::stringc("nMatElement = ") + core::stringc(nMatElement) + core::stringc("\n"));
+    log->addAndPush(core::stringc("nMatElement = ") + core::stringc(nMatElement) + core::stringc("\n"));
 
     for (int n = 0; n < nMatElement; n++)
     {
@@ -1161,7 +1163,7 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
 
 void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
 {
-    log.addAndPush("XBM to DDS\n");
+    log->addAndPush("XBM to DDS\n");
 
     // Make the name of the DDS file
     io::path ddsfile;
@@ -1173,11 +1175,11 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     if (!fileXBM)
     {
         SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, check your 'Base directory'.");
-        log.addAndPush(core::stringc("Error : the file ") + xbm_file + core::stringc(" can't be opened.\n"));
+        log->addAndPush(core::stringc("Error : the file ") + xbm_file + core::stringc(" can't be opened.\n"));
         return;
     }
 
-    log.addAndPush("XBM file opened\n");
+    log->addAndPush("XBM file opened\n");
 
 
     /* This format works like the w2ent format
@@ -1196,7 +1198,7 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     for (int i = 0; i < data[3]; i++)
         stringsXBM.push_back(readWord(fileXBM, readUnsignedChars(fileXBM, 1)[0]-128));
 
-    log.addAndPush("List ok\n");
+    log->addAndPush("List ok\n");
 
 
     // data
@@ -1236,13 +1238,13 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     }
     fileXBM->drop();
 
-    log.addAndPush("XBM to DDS OK\n");
+    log->addAndPush("XBM to DDS OK\n");
 }
 
 void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenameDDS, core::array<int> data, core::array<core::stringc> stringsXBM)
 {
     // int back = file->getPos();
-    log.addAndPush("CBitmapTexture\n");
+    log->addAndPush("CBitmapTexture\n");
 
     fileXBM->seek(data[2]);
 
@@ -1254,7 +1256,7 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
     // Read the header infos
     while(1)
     {
-        log.addAndPush("Read header data...\n");
+        log->addAndPush("Read header data...\n");
 
         // name of the element
         core::stringc propertyName = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
@@ -1293,7 +1295,7 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
         if (propertyName == "importFile")
             break;
     }
-    log.addAndPush("Read header ok\n");
+    log->addAndPush("Read header ok\n");
 
     readUnsignedChars(fileXBM, 27);
 
@@ -1305,11 +1307,11 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
 
         if (!fileDDS)
         {
-            log.addAndPush(core::stringc("Error : the file ") + filenameDDS + core::stringc(" can't be created.\n"));
+            log->addAndPush(core::stringc("Error : the file ") + filenameDDS + core::stringc(" can't be created.\n"));
         }
         else
         {
-            log.addAndPush(core::stringc("File ") + filenameDDS + core::stringc(" created.\n"));
+            log->addAndPush(core::stringc("File ") + filenameDDS + core::stringc(" created.\n"));
         }
 
         // The static part of the header
@@ -1325,7 +1327,7 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
         fileDDS->seek(128);
 
         // Header is ok
-        log.addAndPush("DDS header OK\n");
+        log->addAndPush("DDS header OK\n");
 
         // copy the content of the file
         const long sizeToCopy = fileXBM->getSize() - fileXBM->getPos();
@@ -1334,12 +1336,12 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
         char* buffer = new char[sizeToCopy];
         fileXBM->read(buffer, sizeToCopy);
 
-        log.addAndPush("Read XBM OK\n");
+        log->addAndPush("Read XBM OK\n");
 
         fileDDS->write(buffer, sizeToCopy);
         delete[] buffer;
 
-        log.addAndPush("Write DDS OK\n");
+        log->addAndPush("Write DDS OK\n");
 
         fileDDS->drop();
     }

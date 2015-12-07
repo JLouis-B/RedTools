@@ -86,6 +86,11 @@ void Log::enable(bool enabled)
     Enabled = enabled;
 }
 
+bool Log::isEnabled()
+{
+    return Enabled;
+}
+
 bool Log::works()
 {
 #ifdef USE_FLUSH_PATCH

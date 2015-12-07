@@ -77,10 +77,6 @@ void computeLocal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* 
 
     if (jointParent)
     {
-        //
-        //if (jointParent->LocalMatrix == jointParent->GlobalMatrix)
-            computeLocal(mesh, jointParent);
-
         irr::core::matrix4 globalParent = jointParent->GlobalMatrix;
         irr::core::matrix4 invGlobalParent;
         globalParent.getInverse(invGlobalParent);
@@ -89,7 +85,6 @@ void computeLocal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* 
     }
     else
         joint->LocalMatrix = joint->GlobalMatrix;
-    // -----------------------------------------------------------------
 }
 
 
@@ -109,7 +104,6 @@ scene::ISkinnedMesh::SJoint* getJointByName(scene::ISkinnedMesh* mesh, core::str
 
 bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
 {
-    std::cout << "enter here" << std::endl;
     // is it the good skeleton ?
     //if (!checkIfPerfectlyCorresponding(mesh))
     //    return false;
@@ -121,18 +115,14 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
         joint->Children.clear();
     }
 
+    // Set the hierarchy
     for (u32 i = 0; i < nbBones; ++i)
     {
         core::stringc bone = names[i];
 
         scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, bone);
         if (!joint)
-        {
-            //joint = mesh->addJoint();
-            //joint->Name = bone;
             continue;
-        }
-
 
         short parent = parentId[i];
         if (parent == -1)   // root
@@ -143,8 +133,9 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
             parentJoint->Children.push_back(joint);
 
     }
-std::cout << "enter here" << std::endl;
-/*
+
+    // Set matrix from CSkeleton
+    /*
     for (u32 i = 0; i < nbBones; ++i)
     {
         core::stringc bone = names[i];
@@ -178,11 +169,9 @@ std::cout << "enter here" << std::endl;
             rotationMatrix.setRotationDegrees(rotation);
 
             joint->GlobalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
-            // The local matrix will be computed in make_localMatrix_from_global
-            joint->LocalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
         }
     }*/
-std::cout << "enter here" << std::endl;
+
     // Local matrix need to be re-computed
     for (u32 i = 0; i < mesh->getJointCount(); ++i)
     {
@@ -194,7 +183,6 @@ std::cout << "enter here" << std::endl;
         joint->Animatedscale = joint->LocalMatrix.getScale();
     }
 
-    std::cout << "line 197" << std::endl;
     return true;
 }
 

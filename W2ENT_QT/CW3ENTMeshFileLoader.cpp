@@ -30,7 +30,7 @@ namespace scene
 
 //! Constructor
 CW3ENTMeshFileLoader::CW3ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs)
+: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0)
 {
 	#ifdef _DEBUG
     setDebugName("CW3ENTMeshFileLoader");

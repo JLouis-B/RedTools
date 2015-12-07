@@ -102,17 +102,17 @@ core::array<core::stringc> ExtFiles::read(io::path filename)
     switch (fileType)
     {
         case WFT_NOT_WITCHER:
-            return files;
             break;
 
         case WFT_WITCHER_2:
-            return ReadTW2File(filename);
+            files = ReadTW2File(filename);
             break;
 
         case WFT_WITCHER_3:
-            return ReadTW3File(filename);
+            files = ReadTW3File(filename);
             break;
     }
+    return files;
 }
 
 // Wicther 2 --------------------------------------
@@ -138,9 +138,9 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
 {
     irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
 
+    core::array<core::stringc> files;
     if (!file)
     {
-        core::array<core::stringc> files;
         return files;
     }
 
@@ -150,7 +150,6 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
     file->read(&data, 40);
 
     core::array<core::stringc> Types;
-    core::array<core::stringc> files;
 
     file->seek(data[2]);
     for (int i = 0; i < data[3]; i++)
@@ -163,7 +162,7 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
     }
 
 
-    for (unsigned int n = 0; n < Types.size(); n++)
+    for (u32 typeIndex = 0; typeIndex < Types.size(); typeIndex++)
     {
         //Externals files
         file->seek(data[6]);
@@ -181,16 +180,16 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
             core::stringc filename, file_type;
             filename = readWord(file, size);
 
-            int index;
-            file->read(&index, 4);
-            index -= 1;
+            int file_typeIndex;
+            file->read(&file_typeIndex, 4);
+            file_typeIndex -= 1;
             // Type of the file (Cmesh, CmaterielInstance...)
-            // file_type = Types[index];
+            // file_type = Types[file_typeIndex];
 
-            if (index == n)
+            if ((u32)file_typeIndex == typeIndex)
             {
                 //cout << Types[index] << " : " << filename << endl;
-                core::stringc file = Types[index] + " : " + filename;
+                core::stringc file = Types[file_typeIndex] + " : " + filename;
                 files.push_back(file);
             }
             //cout << filename << endl;
@@ -221,15 +220,13 @@ bool isAFile(core::stringc string)
 
 core::array<core::stringc> ExtFiles::ReadTW3File(io::path filename)
 {
-    irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
+    core::array<core::stringc> files;
 
+    irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        core::array<core::stringc> files;
         return files;
     }
-
-    core::array<core::stringc> Strings;
 
     file->seek(12);
 
@@ -243,12 +240,12 @@ core::array<core::stringc> ExtFiles::ReadTW3File(io::path filename)
     {
         core::stringc str = readStringUntilNull(file);
         if (isAFile(str))
-            Strings.push_back(str);
+            files.push_back(str);
         //std::cout << str.c_str() << std::endl;
     }
 
     file->drop();
-    return Strings;
+    return files;
 }
 
 // W2MI stuff ----------------

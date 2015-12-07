@@ -31,13 +31,12 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
     node->setMaterialTexture(1, NULL);
     node->setMaterialTexture(2, NULL);
     node->setMaterialTexture(3, NULL);
+
+
 }
 
 bool QIrrlichtWidget::loadRig(core::stringc filename, core::stringc &feedbackMessage)
 {
-    CSkeleton s;
-
-
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
@@ -140,29 +139,31 @@ bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
     // Delete the current mesh
     clearLOD();
 
+    /*
     Log l(_device->getSceneManager(), "preload.log");
     if (!l.works())
         QMessageBox::critical(0, "fail to create the log file", "fail to create the log file");
 
     l.enable(Settings::_debugLog);
     l.addAndPush("change work dir\n");
+    */
 
     IAnimatedMesh* mesh = 0;
     IrrAssimp assimp(_device->getSceneManager());
-    l.addAndPush("irrassimp loaded\n");
+    //l.addAndPush("irrassimp loaded\n");
     if (isLoadableByIrrlicht(irrFilename))
     {
-        l.addAndPush("irr loader\n");
+        //l.addAndPush("irr loader\n");
         mesh = _device->getSceneManager()->getMesh(irrFilename);
-        l.addAndPush("getMesh\n");
+        //l.addAndPush("getMesh\n");
 
         // Witcher feedback
         if (extension == "w2mesh" || extension == "w2ent" || extension == "w2rig")
         {
             feedbackMessage = _device->getSceneManager()->getParameters()->getAttributeAsString("TW_FEEDBACK");
             _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
-            l.addAndPush("feedback is ");
-            l.addAndPush(feedbackMessage.c_str());
+            //l.addAndPush("feedback is ");
+            //l.addAndPush(feedbackMessage.c_str());
         }
         else if (!mesh)
         {

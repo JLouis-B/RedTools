@@ -1026,10 +1026,17 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
             unsigned char data[sizeToNext];
             file->read(&data[0], sizeToNext);
 
+
             io::IReadFile* entityFile = SceneManager->getFileSystem()->createMemoryReadFile(data, sizeToNext, "tmpMemFile.w2ent_MEMORY", true);
             if (!entityFile)
                 std::cout << "fail" << std::endl;
-            SceneManager->getMesh(entityFile);
+            //SceneManager->getMesh(entityFile);
+            CW3ENTMeshFileLoader w3Loader(SceneManager, FileSystem);
+            IAnimatedMesh* m = w3Loader.createMesh(entityFile);
+            if (m)
+                m->drop();
+
+            entityFile->drop();
         }
 
         ReadUnknowProperty(file);
@@ -1296,8 +1303,16 @@ ISkinnedMesh *CW3ENTMeshFileLoader::ReadW2MESHFile(core::stringc filename)
         std::cout << "FAIL TO OPEN THE W2MESH FILE" << std::endl;
         return 0;
     }
+
+    CW3ENTMeshFileLoader w3Loader(SceneManager, FileSystem);
+    IAnimatedMesh* mesh = 0;
+    mesh = w3Loader.createMesh(meshFile);
+    if (mesh == 0)
+        std::cout << "Fail to load MatMesh" << std::endl;
+
     meshFile->drop();
-    return (ISkinnedMesh*)SceneManager->getMesh(filename);
+    return (ISkinnedMesh*)mesh;
+    //return (ISkinnedMesh*)SceneManager->getMesh(filename);
 }
 
 video::SMaterial CW3ENTMeshFileLoader::ReadW2MIFile(core::stringc filename)

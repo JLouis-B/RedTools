@@ -13,6 +13,8 @@
 
 #include "CSkeleton.h"
 
+#include "meshcombiner.h"
+
 #include "log.h"
 
 
@@ -186,6 +188,8 @@ private:
 
     io::path GameTexturesPath;
     io::path GamePath;
+
+    core::array<scene::ISkinnedMesh*> Meshes;
 
 };
 

@@ -92,6 +92,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     Strings.clear();
     Materials.clear();
     Files.clear();
+    Meshes.clear();
 
     log->add("-> ");
     log->add(f->getFileName().c_str());
@@ -117,6 +118,13 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     log->addAndPush("LOADING FINISHED\n");
     delete log;
+
+
+    for (u32 i = 0; i < Meshes.size(); ++i)
+    {
+        combineMeshes(AnimatedMesh, Meshes[i]);
+        Meshes[i]->drop();
+    }
 
 	return AnimatedMesh;
 }
@@ -985,7 +993,9 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
             file->read(&fileId, 1);
             fileId = 255 - fileId;
             file->seek(3, true);
-            AnimatedMesh = ReadW2MESHFile(GamePath + Files[fileId]);
+            scene::ISkinnedMesh* mesh = ReadW2MESHFile(GamePath + Files[fileId]);
+            Meshes.push_back(mesh);
+            //AnimatedMesh = ReadW2MESHFile(GamePath + Files[fileId]);
         }
         else
             ReadUnknowProperty(file);

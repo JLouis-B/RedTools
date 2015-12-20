@@ -183,6 +183,8 @@ private:
 
     void computeLocal(ISkinnedMesh::SJoint* joint);
 
+    bool checkBones(io::IReadFile* file, char nbBones);
+
     // debug log
     Log* log;
 

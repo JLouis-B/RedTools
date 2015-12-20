@@ -1059,6 +1059,37 @@ void CW3ENTMeshFileLoader::W3_CEntity(io::IReadFile* file, W3_DataInfos infos)
     std::cout << "W3_CEntity, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
 }
 
+bool CW3ENTMeshFileLoader::checkBones(io::IReadFile* file, char nbBones)
+{
+    const long back = file->getPos();
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        unsigned short jointName;
+        file->read(&jointName, 2);
+        if (jointName == 0 || jointName >= Strings.size())
+        {
+            file->seek(back);
+            return false;
+        }
+
+    }
+    file->seek(back);
+    return true;
+}
+
+char readBonesNumber(io::IReadFile* file)
+{
+    char nbBones;
+    file->read(&nbBones, 1);
+
+    char o;
+    file->read(&o, 1);
+    if (o != 1)
+        file->seek(-1, true);
+
+    return nbBones;
+}
+
 void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 {
     SBufferInfos bufferInfos = createSBufferInfo();
@@ -1106,14 +1137,9 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
             ReadUnknowProperty(file);
    }
 
-
-
-
-
-
    std::cout << "All properties readed, @=" << file->getPos() << std::endl;
 
-   if (!isStatic && SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
+   if (!isStatic && nbBonesPos > 0 && SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
    {
        // cancel property
        file->seek(-4, true);
@@ -1128,17 +1154,31 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
        // TODO
        std::cout << "NbBonesPos" << nbBonesPos << std::endl;
-       char nbRead = -1;
-       while (nbRead != nbBonesPos)
+       long pos;
+       unsigned char nbRead;
+       do
        {
-           file->read(&nbRead, 1);
-       }
-       file->seek(-1, true);
+           pos = file->getPos();
+           nbRead = readBonesNumber(file);
+
+           if (nbRead == nbBonesPos)
+           {
+               if (!checkBones(file, nbRead))
+               {
+                   nbRead = -1;
+               }
+           }
+
+           if (file->getPos() >= file->getSize())
+               return;
+       }   while (nbRead != nbBonesPos);
+
+       file->seek(pos);
 
 
        // Name of the bones
-       char nbBones;
-       file->read(&nbBones, 1);
+       char nbBones = readBonesNumber(file);
+
        std::cout << "nbBones = " << (int)nbBones << std::endl;
        std::cout << "m size= " << meshes.size() << std::endl;
 
@@ -1157,7 +1197,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
        }
 
        // The matrix of the bones
-       file->seek(1, true); // Again the number of bones
+        readBonesNumber(file);
        for (u32 i = 0; i < nbBones; ++i)
        {
            ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
@@ -1204,23 +1244,23 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
        }
 
        // 1 float per bone ???
-       file->seek(1, true); // Again the number of bones
-       for (u32 i = 0; i < nbBones; ++i)
-       {
-           float value;
-           file->read(&value, 4);   // ??
-           std::cout << "value = " << value << std::endl;
-       }
+        readBonesNumber(file);
+        for (u32 i = 0; i < nbBones; ++i)
+        {
+            float value;
+            file->read(&value, 4);   // ??
+            std::cout << "value = " << value << std::endl;
+        }
 
        // 1 int par bone. parent ID ? no
-       file->seek(1, true); // Again the number of bones
-       for (u32 i = 0; i < nbBones; ++i)
-       {
+        readBonesNumber(file);
+        for (u32 i = 0; i < nbBones; ++i)
+        {
             u32 parent;
             file->read(&parent, 4);
             //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
-       }
-       std::cout << "end" << std::endl;
+        }
+        std::cout << "end" << std::endl;
 
 
        // Hierarchy of the skeleton

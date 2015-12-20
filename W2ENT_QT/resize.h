@@ -35,6 +35,8 @@ public slots:
     void changeUnit();
     void cancel();
 
+    void destroyWindow();
+
 
 
 private:

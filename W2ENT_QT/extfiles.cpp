@@ -15,11 +15,18 @@ ExtFiles::ExtFiles(QIrrlichtWidget* irrlicht, QWidget *parent) :
     QObject::connect(ui->button_back, SIGNAL(clicked(bool)), this, SLOT(back()));
     QObject::connect(ui->button_checkW2MI, SIGNAL(clicked(bool)), this, SLOT(checkW2MI()));
     QObject::connect(ui->listWidget, SIGNAL(currentTextChanged(QString)), this, SLOT(changeSelection(QString)));
+
+    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 }
 
 ExtFiles::~ExtFiles()
 {
     delete ui;
+}
+
+void ExtFiles::destroyWindow()
+{
+    delete this;
 }
 
 

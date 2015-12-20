@@ -68,12 +68,17 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
     QObject::connect(_ui->checkBox_TW3_loadSkel, SIGNAL(clicked()), this, SLOT(changeSkel()));
 
-
+    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 }
 
 Options::~Options()
 {
     delete _ui;
+}
+
+void Options::destroyWindow()
+{
+    delete this;
 }
 
 void Options::reset()
@@ -141,7 +146,7 @@ void Options::changeSkel()
 
 bool isASCII(QString path)
 {
-    for (unsigned int i = 0; i < path.size(); ++i)
+    for (int i = 0; i < path.size(); ++i)
     {
         if (path[i].unicode() > 127)
             return false;

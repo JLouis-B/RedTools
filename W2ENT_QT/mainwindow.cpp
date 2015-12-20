@@ -434,6 +434,6 @@ void MainWindow::checkConvertButton()
 void MainWindow::extFiles()
 {
     ExtFiles* ext = new ExtFiles(_irrWidget, this);
-    ext->show();
     ext->read(_ui->lineEdit_ImportedFile->text());
+    ext->show();
 }

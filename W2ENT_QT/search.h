@@ -24,6 +24,7 @@ public slots:
     void load();
     void enableButton();
     void translate();
+    void destroyWindow();
 
 private:
     Ui::Search *_ui;

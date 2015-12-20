@@ -35,6 +35,8 @@ ReSize::ReSize(QWidget *parent) :
     QObject::connect(ui->combo_unit, SIGNAL(currentTextChanged(QString)), this, SLOT(changeUnit()));
     QObject::connect(this, SIGNAL(rejected()), this, SLOT(cancel()));
 
+    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
+
     _SaveUnit = _unit;
     _SaveOriginalDimensions = _originalDimensions;
     _SaveDimensions = _dimensions;
@@ -43,6 +45,11 @@ ReSize::ReSize(QWidget *parent) :
 ReSize::~ReSize()
 {
     delete ui;
+}
+
+void ReSize::destroyWindow()
+{
+    delete this;
 }
 
 void ReSize::cancel()

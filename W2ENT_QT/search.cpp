@@ -14,11 +14,18 @@ Search::Search(QWidget *parent) :
     QObject::connect(_ui->button_search, SIGNAL(clicked()), this, SLOT(search()));
     QObject::connect(_ui->pushButton, SIGNAL(clicked()), this, SLOT(load()));
     QObject::connect(_ui->listWidget_results, SIGNAL(currentRowChanged(int)), this, SLOT(enableButton()));
+
+    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 }
 
 Search::~Search()
 {
     delete _ui;
+}
+
+void Search::destroyWindow()
+{
+    delete this;
 }
 
 void Search::translate()

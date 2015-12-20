@@ -35,6 +35,7 @@ public:
 public slots :
     void close();
     void selectFile();
+    void destroyWindow();
 
     // w2mi stuff
     void checkW2MI();

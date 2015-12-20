@@ -11,10 +11,10 @@ void combineMeshes(scene::ISkinnedMesh* source, scene::ISkinnedMesh* addition)
     for (u32 i = 0; i < addition->getJointCount(); ++i)
     {
         const scene::ISkinnedMesh::SJoint* jointToCopy = addition->getAllJoints()[i];
-        if (source->getJointNumber(jointToCopy->Name.c_str()) != -1)
+        if (source->getJointNumber(jointToCopy->Name.c_str()) == -1)
         {
             scene::ISkinnedMesh::SJoint* joint = source->addJoint();
-            (*joint) = *(jointToCopy);
+            (*joint) = (*jointToCopy);
         }
     }
 }

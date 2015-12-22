@@ -16,12 +16,15 @@
 #include "halffloat.h"
 
 #include <sstream>
-#include <iostream>
 
 //#define _DEBUG
 
 
-
+template <typename T> core::stringc toStr(const T& t) {
+   std::ostringstream os;
+   os << t;
+   return core::stringc(os.str().c_str());
+}
 
 namespace irr
 {
@@ -76,6 +79,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     // Create and enable the log file if the option is selected on the soft
     log = new Log(SceneManager, "debug.log");
     log->enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
+    log->setConsoleOutput(true);
 
 	if (!f)
 		return 0;
@@ -96,7 +100,12 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     log->add("-> ");
     log->add(f->getFileName().c_str());
-    log->add("\n");
+    log->add("\n-> Load Sekeleton is ");
+    if (SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
+        log->add("enabled\n");
+    else
+        log->add("disabled\n");
+
     log->add("Start loading\n");
     log->push();
 
@@ -235,7 +244,7 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
         W3_DataInfos infos;
         unsigned short dataType = readUnsignedShorts(file, 1)[0];
         core::stringc dataTypeName = Strings[dataType];
-        std::cout << "dataTypeName=" << dataTypeName.c_str() << std::endl;
+        log->addAndPush(core::stringc("dataTypeName=") + dataTypeName + "\n");
 
         file->seek(6, true);
 
@@ -354,6 +363,9 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
             {
                 unsigned char boneId = skinningData[j];
                 unsigned char weight = skinningData[j + meshInfos.numBonesPerVertex];
+
+                if (boneId >= AnimatedMesh->getJointCount()) // If bone don't exist
+                    continue;
 
                 if (weight != 0)
                 {
@@ -1039,7 +1051,7 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
 
             io::IReadFile* entityFile = SceneManager->getFileSystem()->createMemoryReadFile(data, sizeToNext, "tmpMemFile.w2ent_MEMORY", true);
             if (!entityFile)
-                std::cout << "fail" << std::endl;
+                log->addAndPush("fail\n");
             //SceneManager->getMesh(entityFile);
             CW3ENTMeshFileLoader w3Loader(SceneManager, FileSystem);
             IAnimatedMesh* m = w3Loader.createMesh(entityFile);
@@ -1062,7 +1074,7 @@ void CW3ENTMeshFileLoader::W3_CEntity(io::IReadFile* file, W3_DataInfos infos)
 bool CW3ENTMeshFileLoader::checkBones(io::IReadFile* file, char nbBones)
 {
     const long back = file->getPos();
-    for (u32 i = 0; i < nbBones; ++i)
+    for (char i = 0; i < nbBones; ++i)
     {
         unsigned short jointName;
         file->read(&jointName, 2);
@@ -1141,157 +1153,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
    if (!isStatic && nbBonesPos > 0 && SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
    {
-       // cancel property
-       file->seek(-4, true);
-
-       /*
-       file->seek(2, true);
-       char offsetInd;
-       file->read(&offsetInd, 1);
-       file->seek(offsetInd * 7, true);
-        */
-
-
-       // TODO
-       std::cout << "NbBonesPos" << nbBonesPos << std::endl;
-       long pos;
-       unsigned char nbRead;
-       do
-       {
-           pos = file->getPos();
-           nbRead = readBonesNumber(file);
-
-           if (nbRead == nbBonesPos)
-           {
-               if (!checkBones(file, nbRead))
-               {
-                   nbRead = -1;
-               }
-           }
-
-           if (file->getPos() >= file->getSize())
-               return;
-       }   while (nbRead != nbBonesPos);
-
-       file->seek(pos);
-
-
-       // Name of the bones
-       char nbBones = readBonesNumber(file);
-
-       std::cout << "nbBones = " << (int)nbBones << std::endl;
-       std::cout << "m size= " << meshes.size() << std::endl;
-
-       for (u32 i = 0; i < nbBones; ++i)
-       {
-           unsigned short jointName;
-           file->read(&jointName, 2);
-           std::cout << "string id = " << jointName << std::endl;
-
-           scene::ISkinnedMesh::SJoint* joint = 0;
-           //if (!AnimatedMesh->getJointCount())
-                joint = AnimatedMesh->addJoint();
-           //else
-           //     joint = AnimatedMesh->addJoint(AnimatedMesh->getAllJoints()[0]);
-           joint->Name = Strings[jointName];
-       }
-
-       // The matrix of the bones
-        readBonesNumber(file);
-       for (u32 i = 0; i < nbBones; ++i)
-       {
-           ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
-           core::matrix4 matrix;
-
-           // the matrix
-           for (u32 j = 0; j < 16; ++j)
-           {
-               float value;
-               file->read(&value, 4);
-
-               matrix[j] = value;
-           }
-
-
-
-           core::matrix4 matr = matrix;
-
-
-           irr::core::vector3df position = matr.getTranslation();
-           irr::core::matrix4 invRot;
-           matr.getInverse(invRot);
-           invRot.rotateVect(position);
-
-           core::vector3df rotation = invRot.getRotationDegrees();
-           rotation = core::vector3df(0, 0, 0);
-           position = - position;
-           irr::core::vector3df scale = matr.getScale();
-
-           if (joint)
-           {
-               //Build GlobalMatrix:
-               core::matrix4 positionMatrix;
-               positionMatrix.setTranslation( position );
-               core::matrix4 scaleMatrix;
-               scaleMatrix.setScale( scale );
-               core::matrix4 rotationMatrix;
-               rotationMatrix.setRotationDegrees(rotation);
-
-               joint->GlobalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
-               // The local matrix will be computed in make_localMatrix_from_global
-               joint->LocalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
-           }
-       }
-
-       // 1 float per bone ???
-        readBonesNumber(file);
-        for (u32 i = 0; i < nbBones; ++i)
-        {
-            float value;
-            file->read(&value, 4);   // ??
-            std::cout << "value = " << value << std::endl;
-        }
-
-       // 1 int par bone. parent ID ? no
-        readBonesNumber(file);
-        for (u32 i = 0; i < nbBones; ++i)
-        {
-            u32 parent;
-            file->read(&parent, 4);
-            //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
-        }
-        std::cout << "end" << std::endl;
-
-
-       // Hierarchy of the skeleton
-       // Yet, will simply use the pre-defined hierarchy in TW2 import. TODO : find where the hierarchy is stored
-       // Use w2rig files instead
-       /*
-       for (u32 i = 0; i < AnimatedMesh->getJointCount(); ++i)
-       {
-
-           ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
-           core::stringc jointParentName = searchParent(joint->Name);
-           ISkinnedMesh::SJoint* jointParent = getJointByName(AnimatedMesh, jointParentName);
-           if (jointParent)
-           {
-               jointParent->Children.push_back(joint);
-           }
-       }*/
-
-       // Not necessary if no hierarchie
-       /*
-       for (u32 i = 0; i < AnimatedMesh->getJointCount(); ++i)
-       {
-           ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
-           computeLocal(joint);
-
-           joint->Animatedposition = joint->LocalMatrix.getTranslation();
-           joint->Animatedrotation = joint->LocalMatrix.getRotationDegrees();
-           joint->Animatedscale = joint->LocalMatrix.getScale();
-       }
-       */
-
+        ReadBones(file);
    }
 
    for (u32 i = 0; i < meshes.size(); ++i)
@@ -1318,39 +1180,144 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
 }
 
-
-void CW3ENTMeshFileLoader::computeLocal(ISkinnedMesh::SJoint* joint)
+void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
 {
-    // Parent bone is necessary to compute the local matrix from global
-    core::stringc parentName = searchParent(joint->Name.c_str());
-    ISkinnedMesh::SJoint* jointParent = 0;
-    if (AnimatedMesh->getJointNumber(parentName.c_str()) != -1)
+    log->addAndPush("Load bones\n");
+
+    // cancel property
+    file->seek(-4, true);
+
+    /*
+    file->seek(2, true);
+    char offsetInd;
+    file->read(&offsetInd, 1);
+    file->seek(offsetInd * 7, true);
+    */
+
+
+    // TODO
+    //log->addAndPush("NbBonesPos = ");
+    log->addAndPush(core::stringc("NbBonesPos = ") + toStr(nbBonesPos) + "\n");
+    long pos;
+    unsigned char nbRead;
+    do
     {
-        jointParent = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(parentName.c_str())];
+        pos = file->getPos();
+        nbRead = readBonesNumber(file);
+
+        if (nbRead == nbBonesPos)
+        {
+            if (!checkBones(file, nbRead))
+            {
+                nbRead = -1;
+            }
+        }
+
+        if (file->getPos() >= file->getSize())
+            return;
+    }   while (nbRead != nbBonesPos);
+
+    file->seek(pos);
+
+
+    // Name of the bones
+    char nbBones = readBonesNumber(file);
+
+    //log->addAndPush("nbBones = " + (int)nbBones);
+    //std::cout << "m size= " << meshes.size() << std::endl;
+
+    for (char i = 0; i < nbBones; ++i)
+    {
+        unsigned short jointName;
+        file->read(&jointName, 2);
+        log->addAndPush(core::stringc("string id = ") + toStr(jointName) + "\n");
+
+        scene::ISkinnedMesh::SJoint* joint = 0;
+        //if (!AnimatedMesh->getJointCount())
+             joint = AnimatedMesh->addJoint();
+        //else
+        //     joint = AnimatedMesh->addJoint(AnimatedMesh->getAllJoints()[0]);
+        joint->Name = Strings[jointName];
     }
 
-    if (jointParent)
+    // The matrix of the bones
+    readBonesNumber(file);
+    for (char i = 0; i < nbBones; ++i)
     {
-        if (jointParent->LocalMatrix == jointParent->GlobalMatrix)
-            computeLocal(jointParent);
+        ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
+        core::matrix4 matrix;
 
-        irr::core::matrix4 globalParent = jointParent->GlobalMatrix;
-        irr::core::matrix4 invGlobalParent;
-        globalParent.getInverse(invGlobalParent);
+        // the matrix
+        for (u32 j = 0; j < 16; ++j)
+        {
+            float value;
+            file->read(&value, 4);
 
-        joint->LocalMatrix = invGlobalParent * joint->GlobalMatrix;
+            matrix[j] = value;
+        }
+
+
+
+        core::matrix4 matr = matrix;
+
+
+        irr::core::vector3df position = matr.getTranslation();
+        irr::core::matrix4 invRot;
+        matr.getInverse(invRot);
+        invRot.rotateVect(position);
+
+        core::vector3df rotation = invRot.getRotationDegrees();
+        rotation = core::vector3df(0, 0, 0);
+        position = - position;
+        irr::core::vector3df scale = matr.getScale();
+
+        if (joint)
+        {
+            //Build GlobalMatrix:
+            core::matrix4 positionMatrix;
+            positionMatrix.setTranslation( position );
+            core::matrix4 scaleMatrix;
+            scaleMatrix.setScale( scale );
+            core::matrix4 rotationMatrix;
+            rotationMatrix.setRotationDegrees(rotation);
+
+            joint->GlobalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
+            joint->LocalMatrix = joint->GlobalMatrix;
+
+
+            joint->Animatedposition = joint->LocalMatrix.getTranslation();
+            joint->Animatedrotation = joint->LocalMatrix.getRotationDegrees();
+            joint->Animatedscale = joint->LocalMatrix.getScale();
+        }
     }
-    // -----------------------------------------------------------------
+
+    // 1 float per bone ???
+     readBonesNumber(file);
+     for (char i = 0; i < nbBones; ++i)
+     {
+         float value;
+         file->read(&value, 4);   // ??
+         log->addAndPush(core::stringc("value = ") + toStr(value) + "\n");
+     }
+
+     // 1 int par bone. parent ID ? no
+     readBonesNumber(file);
+     for (char i = 0; i < nbBones; ++i)
+     {
+         u32 parent;
+         file->read(&parent, 4);
+         //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
+     }
+     log->addAndPush("Bones loaded\n");
 }
 
 
-
-ISkinnedMesh *CW3ENTMeshFileLoader::ReadW2MESHFile(core::stringc filename)
+ISkinnedMesh* CW3ENTMeshFileLoader::ReadW2MESHFile(core::stringc filename)
 {
     io::IReadFile* meshFile = FileSystem->createAndOpenFile(filename);
     if (!meshFile)
     {
-        std::cout << "FAIL TO OPEN THE W2MESH FILE" << std::endl;
+        log->addAndPush("FAIL TO OPEN THE W2MESH FILE\n");
         return 0;
     }
 
@@ -1358,7 +1325,7 @@ ISkinnedMesh *CW3ENTMeshFileLoader::ReadW2MESHFile(core::stringc filename)
     IAnimatedMesh* mesh = 0;
     mesh = w3Loader.createMesh(meshFile);
     if (mesh == 0)
-        std::cout << "Fail to load MatMesh" << std::endl;
+        log->addAndPush("Fail to load MatMesh\n");
 
     meshFile->drop();
     return (ISkinnedMesh*)mesh;
@@ -1370,7 +1337,7 @@ video::SMaterial CW3ENTMeshFileLoader::ReadW2MIFile(core::stringc filename)
     io::IReadFile* matFile = FileSystem->createAndOpenFile(filename);
     if (!matFile)
     {
-        std::cout << "FAIL TO OPEN THE W2MI FILE" << std::endl;
+        log->addAndPush("FAIL TO OPEN THE W2MI FILE\n");
         return video::SMaterial();
         //break;
     }
@@ -1379,7 +1346,7 @@ video::SMaterial CW3ENTMeshFileLoader::ReadW2MIFile(core::stringc filename)
     IAnimatedMesh* matMesh = 0;
     matMesh = w2miLoader.createMesh(matFile);
     if (matMesh == 0)
-        std::cout << "Fail to load MatMesh" << std::endl;
+        log->addAndPush("Fail to load MatMesh\n");
     else
         matMesh->drop();
 
@@ -1567,305 +1534,6 @@ int CW3ENTMeshFileLoader::getTextureLayerFromTextureType(core::stringc textureTy
     else
         return -1;
 }
-
-
-//this part of scripts thanks bm1 from xentax
-core::stringc CW3ENTMeshFileLoader::searchParent(core::stringc bonename)
-{
-        irr::core::stringc parentname = "torso";
-        if (bonename == "pelvis")
-            return "";
-        if (bonename == "torso2")
-            return "torso";
-        if (bonename == "torso")
-            return "pelvis";
-        if (bonename == "neck")
-             return "torso2";
-        if (bonename == "head")
-             return "neck";
-
-        if (bonename == "l_thigh")
-            return "pelvis";
-        if (bonename == "l_shin")
-             return "l_thigh";
-        if (bonename == "l_foot")
-             return "l_shin";
-        if (bonename == "l_toe")
-             return "l_foot";
-
-        if (bonename == "l_legRoll")
-            return "torso";
-        if (bonename == "l_legRoll2")
-             return "l_thigh";
-        if (bonename == "l_kneeRoll")
-             return "l_shin";
-
-
-        if (bonename == "l_shoulder")
-            return "torso2";
-        if (bonename == "l_shoulderRoll")
-             return "l_shoulder";
-        if (bonename == "l_bicep")
-             return "l_shoulder";
-        if (bonename == "l_bicep2")
-             return "l_bicep";
-
-        if (bonename == "l_elbowRoll")
-             return "l_bicep";
-        if (bonename == "l_forearmRoll1")
-             return "l_bicep";
-        if (bonename == "l_forearmRoll2")
-             return "l_forearmRoll1";
-        if (bonename == "l_forearm") // addition
-             return "l_elbowRoll";
-        if (bonename == "l_handRoll")
-             return "l_hand";
-        if (bonename == "l_hand")
-             return "l_forearmRoll2";
-
-        if (bonename == "l_thumb1")
-             return "l_hand";
-        if (bonename == "l_index1")
-             return "l_hand";
-        if (bonename == "l_middle1")
-             return "l_hand";
-        if (bonename == "l_ring1")
-             return "l_hand";
-        if (bonename == "l_pinky1")
-             return "l_hand";
-
-        if (bonename == "l_thumb2")
-             return "l_thumb1";
-        if (bonename == "l_index2")
-             return "l_index1";
-        if (bonename == "l_middle2")
-             return "l_middle1";
-        if (bonename == "l_ring2")
-             return "l_ring1";
-        if (bonename == "l_pinky2")
-             return "l_pinky1";
-
-        if (bonename == "l_thumb3")
-             return "l_thumb2";
-        if (bonename == "l_index3")
-             return "l_index2";
-        if (bonename == "l_middle3")
-             return "l_middle2";
-        if (bonename == "l_ring3")
-             return "l_ring2";
-        if (bonename == "l_pinky3")
-             return "l_pinky2";
-
-
-        if (bonename == "l_thumb4")
-             return "l_thumb3";
-        if (bonename == "l_index4")
-             return "l_index3";
-        if (bonename == "l_middle4")
-             return "l_middle3";
-        if (bonename == "l_ring4")
-             return "l_ring3";
-        if (bonename == "l_pinky4")
-             return "l_pinky3";
-
-        if (bonename == "r_thigh")
-            return "pelvis";
-        if (bonename == "r_shin")
-             return "r_thigh";
-        if (bonename == "r_foot")
-             return "r_shin";
-        if (bonename == "r_toe")
-             return "r_foot";
-
-        if (bonename == "r_legRoll")
-            return "torso";
-        if (bonename == "r_legRoll2")
-             return "r_thigh";
-        if (bonename == "r_kneeRoll")
-             return "r_shin";
-
-
-        if (bonename == "r_shoulder")
-            return "torso2";
-        if (bonename == "r_shoulderRoll")
-             return "r_shoulder";
-        if (bonename == "r_bicep")
-             return "r_shoulder";
-        if (bonename == "r_bicep2")
-             return "r_bicep";
-
-        if (bonename == "r_elbowRoll")
-             return "r_bicep";
-        if (bonename == "r_forearmRoll1")
-             return "r_bicep";
-        if (bonename == "r_forearm")
-             return "r_elbowRoll";
-        if (bonename == "r_forearmRoll2")
-             //return "r_forearm";         //# r_forearmRoll1 missing !
-             return "r_forearmRoll1";
-        if (bonename == "r_handRoll")
-             return "r_hand";
-        if (bonename == "r_hand")
-             return "r_forearmRoll2";
-
-        if (bonename == "r_thumb1")
-             return "r_hand";
-        if (bonename == "r_index1")
-             return "r_hand";
-        if (bonename == "r_middle1")
-             return "r_hand";
-        if (bonename == "r_ring1")
-             return "r_hand";
-        if (bonename == "r_pinky1")
-             return "r_hand";
-
-        if (bonename == "r_thumb2")
-             return "r_thumb1";
-        if (bonename == "r_index2")
-             return "r_index1";
-        if (bonename == "r_middle2")
-             return "r_middle1";
-        if (bonename == "r_ring2")
-             return "r_ring1";
-        if (bonename == "r_pinky2")
-             return "r_pinky1";
-
-        if (bonename == "r_thumb3")
-             return "r_thumb2";
-        if (bonename == "r_index3")
-             return "r_index2";
-        if (bonename == "r_middle3")
-             return "r_middle2";
-        if (bonename == "r_ring3")
-             return "r_ring2";
-        if (bonename == "r_pinky3")
-             return "r_pinky2";
-
-        if (bonename == "r_thumb4")
-             return "r_thumb3";
-        if (bonename == "r_index4")
-             return "r_index3";
-        if (bonename == "r_middle4")
-             return "r_middle3";
-        if (bonename == "r_ring4")
-             return "r_ring3";
-        if (bonename == "r_pinky4")
-             return "r_pinky3";
-
-        if (bonename == "Hair_R_01")
-             return "head";
-        if (bonename == "Hair_R_02")
-             return "Hair_R_01";
-        if (bonename == "Hair_R_03")
-             return "Hair_R_02";
-
-        if (bonename == "Hair_L_01")
-             return "head";
-        if (bonename == "Hair_L_02")
-             return "Hair_L_01";
-        if (bonename == "Hair_L_03")
-             return "Hair_L_02";
-
-
-        if (bonename == "jaw")
-             return "head_face";
-        if (bonename == "head_face")
-             return "head";
-
-        if (bonename == "lowwer_lip")
-             return "jaw";
-        if (bonename == "lowwer_right_lip")
-             return "jaw";
-        if (bonename == "lowwer_left_lip")
-             return "jaw";
-        if (bonename == "right_mouth3")
-             return "jaw";
-        if (bonename == "left_mouth3")
-             return "jaw";
-        if (bonename == "tongue")
-             return "jaw";
-
-        if (bonename == "right_corner_lip")
-             return "head_face";
-        if (bonename == "left_corner_lip")
-             return "head_face";
-
-        if (bonename == "lowwer_right_eyelid")
-             return "head_face";
-        if (bonename == "upper_right_eyelid")
-             return "head_face";
-        if (bonename == "right_eye")
-             return "head_face";
-
-        if (bonename == "lowwer_left_eyelid")
-             return "head_face";
-        if (bonename == "upper_left_eyelid")
-             return "head_face";
-        if (bonename == "left_eye")
-             return "head_face";
-
-        if (bonename == "right_chick3")
-             return "head_face";
-        if (bonename == "right_chick2")
-             return "head_face";
-        if (bonename == "left_chick3")
-             return "head_face";
-        if (bonename == "left_chick2")
-             return "head_face";
-        if (bonename == "left_chick1")
-             return "head_face";
-        if (bonename == "right_chick1")
-             return "head_face";
-
-        if (bonename == "eyebrow_left")
-             return "head_face";
-        if (bonename == "eyebrow_right")
-             return "head_face";
-        if (bonename == "eyebrow2_left")
-             return "head_face";
-        if (bonename == "eyebrow2_right")
-             return "head_face";
-        if (bonename == "left_mouth1")
-             return "head_face";
-        if (bonename == "right_mouth1")
-             return "head_face";
-        if (bonename == "right_nose")
-             return "head_face";
-        if (bonename == "left_nose")
-             return "head_face";
-
-
-        if (bonename == "right_mouth2")
-             return "head_face";
-        if (bonename == "left_mouth2")
-             return "head_face";
-        if (bonename == "upper_left_lip")
-             return "head_face";
-        if (bonename == "upper_lip")
-             return "head_face";
-        if (bonename == "upper_right_lip")
-             return "head_face";
-
-
-
-
-
-
-
-        if (bonename == "tail2")
-             return "tail1";
-        if (bonename == "tail3")
-             return "tail2";
-        if (bonename == "tail4")
-             return "tail3";
-        if (bonename == "tail5")
-             return "tail4";
-
-
-        return parentname;
-
-}
-
 
 
 } // end namespace scene

@@ -131,6 +131,8 @@ private:
     // load a mesh buffer from the buffer file
     void W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos);
 
+    void ReadBones(io::IReadFile* file);
+
 
     // Main function
 	bool load(io::IReadFile* file);

@@ -110,7 +110,7 @@ void MainWindow::loadRig()
     else
         QMessageBox::critical(this, "Error", feedback.c_str());
 
-    updateWindowTitle();
+    //updateWindowTitle();
 }
 
 

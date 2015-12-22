@@ -15,7 +15,6 @@
 #include "IWriteFile.h"
 
 #include <sstream>
-#include <iostream>
 
 //#define _DEBUG
 

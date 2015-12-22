@@ -1,10 +1,10 @@
 #include "log.h"
 
-
-
 Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename) : Smgr(smgr), Filename(filename)
 {
     Enabled = true;
+    ConsoleOutput = false;
+
 
 #ifdef USE_FLUSH_PATCH
     LogFile = 0;
@@ -12,6 +12,12 @@ Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename) : Smgr(smgr), 
         LogFile = Smgr->getFileSystem()->createAndWriteFile(Filename, false);
 #else
     Content = "";
+
+    io::IWriteFile* logFile = 0;
+    if (Smgr)
+        logFile = Smgr->getFileSystem()->createAndWriteFile(Filename, false);
+    if (logFile)
+        logFile->drop();
 #endif
 
 }
@@ -35,6 +41,9 @@ void Log::add(core::stringc addition)
 #else
     Content += addition;
 #endif
+
+    if (ConsoleOutput)
+        std::cout << addition.c_str();
 }
 
 void Log::push()
@@ -50,10 +59,11 @@ void Log::push()
 #else
     irr::io::IWriteFile* file = 0;
     if (Smgr)
-        file = Smgr->getFileSystem()->createAndWriteFile(Filename);
+        file = Smgr->getFileSystem()->createAndWriteFile(Filename, true);
     if (file)
     {
         file->write(Content.c_str(), Content.size());
+        Content = "";
         file->drop();
     }
 #endif
@@ -65,20 +75,7 @@ void Log::addAndPush(core::stringc addition)
         return;
 
     add(addition);
-
-#ifdef USE_FLUSH_PATCH
     push();
-#else
-    irr::io::IWriteFile* file = 0;
-    if (Smgr)
-        file = Smgr->getFileSystem()->createAndWriteFile(Filename, true);
-    if (file)
-    {
-        file->write(addition.c_str(), addition.size());
-        file->drop();
-    }
-#endif
-
 }
 
 void Log::enable(bool enabled)
@@ -98,4 +95,9 @@ bool Log::works()
 #else
     return true;
 #endif
+}
+
+void Log::setConsoleOutput(bool enabled)
+{
+    ConsoleOutput = enabled;
 }

@@ -45,6 +45,7 @@ public slots :
     void extFiles();
     void changeBaseDir(QString newPath);
     void loadRig();
+    void addMesh();
 
 private:
     void updateWindowTitle();

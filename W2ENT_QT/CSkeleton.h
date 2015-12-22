@@ -19,9 +19,6 @@ public:
 
     bool applyToModel(scene::ISkinnedMesh* mesh);
     bool checkIfPerfectlyCorresponding(scene::ISkinnedMesh* mesh);
-
-
-    scene::ISkinnedMesh* copySkinnedMesh(scene::ISceneManager* Smgr, scene::ISkinnedMesh* meshToCopy);
 };
 
 #endif // CSKELETON_H

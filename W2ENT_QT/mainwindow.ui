@@ -302,6 +302,7 @@
     </property>
     <addaction name="actionClean_textures_path"/>
     <addaction name="actionSet_rig"/>
+    <addaction name="actionAdd_mesh"/>
    </widget>
    <addaction name="menuMenu"/>
    <addaction name="menu_RE_tools"/>
@@ -429,6 +430,11 @@
   <action name="actionSet_rig">
    <property name="text">
     <string>Set rig</string>
+   </property>
+  </action>
+  <action name="actionAdd_mesh">
+   <property name="text">
+    <string>Add mesh(es)</string>
    </property>
   </action>
  </widget>

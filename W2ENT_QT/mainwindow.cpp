@@ -88,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
 
     QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(loadRig()));
+    QObject::connect(_ui->actionAdd_mesh, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
@@ -95,9 +96,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+void MainWindow::addMesh()
+{
+    QStringList files = QFileDialog::getOpenFileNames(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 2 3D models (*.w2ent , *.w2mesh)");
+
+    for (int i = 0; i < files.size(); ++i)
+    {
+        const QString file = files.at(i);
+
+        core::stringc feedback;
+
+        if (_irrWidget->isEmpty(_currentLOD))
+            _irrWidget->setModel(file.toStdString().c_str(), feedback);
+        else
+            _irrWidget->addMesh(file.toStdString().c_str(), feedback);
+    }
+
+    updateWindowTitle();
+}
+
 void MainWindow::loadRig()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher rig (*.w2rig)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 3 rig (*.w2rig)");
 
     if (file == "")
         return;
@@ -110,7 +130,7 @@ void MainWindow::loadRig()
     else
         QMessageBox::critical(this, "Error", feedback.c_str());
 
-    //updateWindowTitle();
+    updateWindowTitle();
 }
 
 
@@ -122,9 +142,14 @@ void MainWindow::changeBaseDir(QString newPath)
 void MainWindow::updateWindowTitle()
 {
     QString title = "The Witcher 3D models converter";
+
+    QString filename = _irrWidget->getFilename();
+    if (filename == "")
+        filename = "3D Model";
+
     if (!_irrWidget->isEmpty(_currentLOD))
     {
-        title += " - " + _irrWidget->getFilename() + " - " + QString::number(_irrWidget->getPolysCount()) + " polys - " + QString::number(_irrWidget->getJointsCount()) + " joints";
+        title += " - " + filename + " - " + QString::number(_irrWidget->getPolysCount()) + " polys - " + QString::number(_irrWidget->getJointsCount()) + " joints";
     }
 
     this->setWindowTitle(title);

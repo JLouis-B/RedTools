@@ -46,13 +46,14 @@ bool QIrrlichtWidget::loadRig(core::stringc filename, core::stringc &feedbackMes
 
     scene::CW3ENTMeshFileLoader loader(_device->getSceneManager(), _device->getFileSystem());
     scene::IAnimatedMesh* mesh = loader.createMesh(file);
+    file->drop();
 
     if (mesh)
         mesh->drop();
 
     CSkeleton skeleton = loader.Skeleton;
 
-    scene::ISkinnedMesh* newMesh = skeleton.copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
 
     bool sucess = skeleton.applyToModel(newMesh);
     if (sucess)
@@ -115,10 +116,54 @@ bool QIrrlichtWidget::fileIsOpenableByIrrlicht(QString filename)
     return true;
 }
 
-bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
+void QIrrlichtWidget::loadMeshPostProcess()
 {
-    _inLoading = true;
 
+    scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
+
+
+    ReSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
+    ReSize::_dimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
+
+    if (ReSize::_unit == Unit_m)
+    {
+        ReSize::_originalDimensions /= 100.0f;
+        ReSize::_dimensions /= 100.0f;
+    }
+
+
+    // Save the path of normals/specular maps
+    for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
+    {
+        IMeshBuffer* buf = mesh->getMeshBuffer(i);
+        if(buf->getMaterial().getTexture(1))
+            _currentLodData->_normalMaps.insert(buf->getMaterial().getTexture(1)->getName().getPath());
+        if(buf->getMaterial().getTexture(2))
+            _currentLodData->_specularMaps.insert(buf->getMaterial().getTexture(2)->getName().getPath());
+    }
+
+    setMaterialsSettings(_currentLodData->_node);
+
+
+    // DEBUG
+    /*
+    std::cout << "Dimensions : x=" << mesh->getBoundingBox().MaxEdge.X - mesh->getBoundingBox().MinEdge.X
+              << ", y=" << mesh->getBoundingBox().MaxEdge.Y - mesh->getBoundingBox().MinEdge.Y
+              << ", z=" << mesh->getBoundingBox().MaxEdge.Z - mesh->getBoundingBox().MinEdge.Z << std::endl;
+    */
+
+    // Is it a skinned mesh ?
+    if(mesh->getMeshType() == scene::EAMT_SKINNED) //if (dynamic_cast<ISkinnedMesh*>(mesh))
+    {
+        _currentLodData->_skinned = true;
+    }
+    else
+        _currentLodData->_skinned = false;
+
+}
+
+IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMessage)
+{
     if (Settings::_pack0[Settings::_pack0.size() - 1] != '/')
         Settings::_pack0.push_back('/');
 
@@ -135,18 +180,6 @@ bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
     const io::path irrFilename = QSTRING_TO_PATH(filename);
     io::path extension;
     core::getFileNameExtension(extension, irrFilename);
-
-    // Delete the current mesh
-    clearLOD();
-
-    /*
-    Log l(_device->getSceneManager(), "preload.log");
-    if (!l.works())
-        QMessageBox::critical(0, "fail to create the log file", "fail to create the log file");
-
-    l.enable(Settings::_debugLog);
-    l.addAndPush("change work dir\n");
-    */
 
     IAnimatedMesh* mesh = 0;
     IrrAssimp assimp(_device->getSceneManager());
@@ -182,6 +215,15 @@ bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
         feedbackMessage = "\nError : No mesh loader found for this file. Are you sure that this file has an extension loadable by the software ? Check the website for more information.";
     }
 
+    return mesh;
+}
+
+bool QIrrlichtWidget::addMesh(QString filename, stringc &feedbackMessage)
+{
+    _inLoading = true;
+
+    IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
+
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
@@ -189,28 +231,38 @@ bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
         return false;
     }
 
-    ReSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
-    ReSize::_dimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
+    combineMeshes(newMesh, (scene::ISkinnedMesh*)mesh);
+    newMesh->finalize();
+    _currentLodData->_node->setMesh(newMesh);
 
-    if (ReSize::_unit == Unit_m)
-    {
-        ReSize::_originalDimensions /= 100.0f;
-        ReSize::_dimensions /= 100.0f;
-    }
+    loadMeshPostProcess();
 
-    // Save the path of normals/specular maps
-    for (unsigned int i = 0; i < mesh->getMeshBufferCount(); ++i)
+    // No error and no feedback message specified, we will simply say 'done'
+    if (feedbackMessage == "")
+        feedbackMessage = "done";
+
+    _inLoading = false;
+    return true;
+}
+
+bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
+{
+    _inLoading = true;
+
+    // Delete the current mesh
+    clearLOD();
+
+    IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
+
+    // Leave here if there was a problem during the loading
+    if (!mesh)
     {
-        IMeshBuffer* buf = mesh->getMeshBuffer(i);
-        if(buf->getMaterial().getTexture(1))
-            _currentLodData->_normalMaps.insert(buf->getMaterial().getTexture(1)->getName().getPath());
-        if(buf->getMaterial().getTexture(2))
-            _currentLodData->_specularMaps.insert(buf->getMaterial().getTexture(2)->getName().getPath());
+        _inLoading = false;
+        return false;
     }
 
     _currentLodData->_node = _device->getSceneManager()->addAnimatedMeshSceneNode(mesh);
-    setMaterialsSettings(_currentLodData->_node);
-
     _currentLodData->_node->setScale(irr::core::vector3df(20, 20, 20));
     _currentLodData->_node->setRotation(irr::core::vector3df(_currentLodData->_node->getRotation().X, _currentLodData->_node->getRotation().Y - 90, _currentLodData->_node->getRotation().Z));
 
@@ -218,21 +270,7 @@ bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
     // loadedNode->setDebugDataVisible(EDS_BBOX_ALL);
 
     _camera->setTarget(_currentLodData->_node->getPosition());
-
-    // DEBUG
-    /*
-    std::cout << "Dimensions : x=" << mesh->getBoundingBox().MaxEdge.X - mesh->getBoundingBox().MinEdge.X
-              << ", y=" << mesh->getBoundingBox().MaxEdge.Y - mesh->getBoundingBox().MinEdge.Y
-              << ", z=" << mesh->getBoundingBox().MaxEdge.Z - mesh->getBoundingBox().MinEdge.Z << std::endl;
-    */
-
-    // Is it a skinned mesh ?
-    if(mesh->getMeshType() == scene::EAMT_SKINNED) //if (dynamic_cast<ISkinnedMesh*>(mesh))
-    {
-        _currentLodData->_skinned = true;
-    }
-    else
-        _currentLodData->_skinned = false;
+    loadMeshPostProcess();
 
     // No error and no feedback message specified, we will simply say 'done'
     if (feedbackMessage == "")

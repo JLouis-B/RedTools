@@ -114,6 +114,12 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
 	if (load(f))
 	{
+        for (u32 i = 0; i < Meshes.size(); ++i)
+        {
+            combineMeshes(AnimatedMesh, Meshes[i]);
+            Meshes[i]->drop();
+        }
+
 		AnimatedMesh->finalize();
 		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         //SceneManager->getMeshManipulator()->flipSurfaces(AnimatedMesh);
@@ -127,13 +133,6 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     log->addAndPush("LOADING FINISHED\n");
     delete log;
-
-
-    for (u32 i = 0; i < Meshes.size(); ++i)
-    {
-        combineMeshes(AnimatedMesh, Meshes[i]);
-        Meshes[i]->drop();
-    }
 
 	return AnimatedMesh;
 }

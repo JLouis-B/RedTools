@@ -11,6 +11,7 @@
 #include "resize.h"
 #include "options.h"
 #include "utils.h"
+#include "meshcombiner.h"
 
 #include "log.h"
 
@@ -55,6 +56,7 @@ class QIrrlichtWidget : public QWidget
         ~QIrrlichtWidget ();
 
         bool setModel(QString filename, core::stringc &feedbackMessage);
+        bool addMesh(QString filename, core::stringc &feedbackMessage);
 
         void init ();
         void writeFile (QString exportFolder, QString filename, QString extension);
@@ -119,6 +121,8 @@ class QIrrlichtWidget : public QWidget
         bool _inLoading;
 
         bool isLoadableByIrrlicht(io::path filename);
+        void loadMeshPostProcess();
+        scene::IAnimatedMesh* loadMesh(QString filename, core::stringc &feedbackMessage);
 
 };
 

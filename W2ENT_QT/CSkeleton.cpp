@@ -48,28 +48,6 @@ scene::ISkinnedMesh::SJoint* getRealParent(const scene::ISkinnedMesh* mesh, scen
 }
 
 
-scene::ISkinnedMesh* CSkeleton::copySkinnedMesh(scene::ISceneManager* Smgr, scene::ISkinnedMesh* meshToCopy)
-{
-    scene::ISkinnedMesh* newMesh = Smgr->createSkinnedMesh();
-
-    for (u32 i = 0; i < meshToCopy->getMeshBufferCount(); ++i)
-    {
-        scene::SSkinMeshBuffer* buffer = newMesh->addMeshBuffer();
-        (*buffer) = (*(scene::SSkinMeshBuffer*)meshToCopy->getMeshBuffer(i));
-    }
-
-    for (u32 i = 0; i < meshToCopy->getJointCount(); ++i)
-    {
-        scene::ISkinnedMesh::SJoint* joint = newMesh->addJoint();
-        (*joint) = *(meshToCopy->getAllJoints()[i]);
-    }
-
-
-    //newMesh->setDirty();
-    //newMesh->finalize();
-    return newMesh;
-}
-
 void computeLocal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
 {
     // Parent bone is necessary to compute the local matrix from global

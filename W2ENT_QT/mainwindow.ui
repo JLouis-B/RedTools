@@ -253,6 +253,8 @@
     <addaction name="separator"/>
     <addaction name="actionOptions"/>
     <addaction name="separator"/>
+    <addaction name="actionAdd_mesh_2"/>
+    <addaction name="separator"/>
     <addaction name="actionQuitter"/>
    </widget>
    <widget class="QMenu" name="menuLanguages">
@@ -302,7 +304,6 @@
     </property>
     <addaction name="actionClean_textures_path"/>
     <addaction name="actionSet_rig"/>
-    <addaction name="actionAdd_mesh"/>
    </widget>
    <addaction name="menuMenu"/>
    <addaction name="menu_RE_tools"/>
@@ -433,6 +434,11 @@
    </property>
   </action>
   <action name="actionAdd_mesh">
+   <property name="text">
+    <string>Add mesh(es)</string>
+   </property>
+  </action>
+  <action name="actionAdd_mesh_2">
    <property name="text">
     <string>Add mesh(es)</string>
    </property>

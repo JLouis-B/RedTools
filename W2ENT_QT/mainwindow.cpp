@@ -88,7 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
 
     QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(loadRig()));
-    QObject::connect(_ui->actionAdd_mesh, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
+    QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
@@ -98,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::addMesh()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 2 3D models (*.w2ent , *.w2mesh)");
+    QStringList files = QFileDialog::getOpenFileNames(this, "Select the meshes to load", Settings::_pack0, Settings::_formats);
 
     for (int i = 0; i < files.size(); ++i)
     {
@@ -113,6 +113,31 @@ void MainWindow::addMesh()
             _irrWidget->addMesh(file.toStdString().c_str(), feedbackMessage);
 
         _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedbackMessage.c_str() + "\n");
+    }
+
+    if (!_irrWidget->isEmpty(_currentLOD))
+    {
+        _irrWidget->changeWireframe(_ui->actionWireframe->isChecked());
+        _irrWidget->changeRigging(_ui->actionRigging->isChecked());
+
+        _ui->button_convert->setEnabled(true);
+        _ui->actionSize->setEnabled(true);
+
+        switch(_currentLOD)
+        {
+            case LOD_0:
+                _ui->actionLOD0->setText("LOD0");
+            break;
+            case LOD_1:
+                _ui->actionLOD1->setText("LOD1");
+            break;
+            case LOD_2:
+                _ui->actionLOD2->setText("LOD2");
+            break;
+            case Collision:
+                _ui->actionCollision_mesh->setText("Collision mesh");
+            break;
+        }
     }
 
     updateWindowTitle();
@@ -213,7 +238,7 @@ void MainWindow::selectFile()
     if (_firstSelection)
         param = _ui->lineEdit_folder->text();
 
-    QString file = QFileDialog::getOpenFileName(this, Translator::findTranslation("dialogue_file", Settings::_language), param, _formats);
+    QString file = QFileDialog::getOpenFileName(this, Translator::findTranslation("dialogue_file", Settings::_language), param, Settings::_formats);
 
     if (file != "")
     {
@@ -258,7 +283,7 @@ void MainWindow::translate()
     _ui->actionOptions->setText(Translator::findTranslation("menu_options", Settings::_language));
     _ui->actionWebpage->setText(Translator::findTranslation("menu_webpage", Settings::_language));
     _ui->actionSet_rig->setText(Translator::findTranslation("menu_setRig", Settings::_language));
-    _ui->actionAdd_mesh->setText(Translator::findTranslation("menu_addMesh", Settings::_language));
+    _ui->actionAdd_mesh_2->setText(Translator::findTranslation("menu_addMesh", Settings::_language));
     _ui->actionShow_linked_files->setText(Translator::findTranslation("menu_linkedFiles", Settings::_language));
     _ui->menuHelp->setTitle(Translator::findTranslation("menu_help", Settings::_language));
     _ui->label_exportedFilename->setText(Translator::findTranslation("label_exported_file_name", Settings::_language) + " :");

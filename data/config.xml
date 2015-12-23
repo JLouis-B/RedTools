@@ -1,6 +1,6 @@
 <!DOCTYPE config>
 <config>
- <language>langs/français.xml</language>
+ <language>langs/english.xml</language>
  <pack0></pack0>
  <background_color>
   <r>0</r>
@@ -12,7 +12,7 @@
   <rotation_speed>-500</rotation_speed>
  </camera>
  <export>
-  <type>custom</type>
+  <type>pack0</type>
   <dest></dest>
   <move_textures>1</move_textures>
   <move_normals_map>1</move_normals_map>
@@ -25,4 +25,7 @@
   <format>.jpg</format>
  </textures_conversion>
  <debug>0</debug>
+ <TW3_textures></TW3_textures>
+ <TW3_loadSkel>0</TW3_loadSkel>
+ <first_use>0</first_use>
 </config>

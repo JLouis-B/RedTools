@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Logs
     _ui->textEdit_log->setReadOnly (true);
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "The Witcher 3D models converter 2.3 WIP\n");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "The Witcher 3D models converter 2.3\n");
 
 
     Settings::_pack0 = _ui->lineEdit_folder->text();
@@ -103,13 +103,16 @@ void MainWindow::addMesh()
     for (int i = 0; i < files.size(); ++i)
     {
         const QString file = files.at(i);
+        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_readingFile") + " '" + file + "'... ");
 
-        core::stringc feedback;
+        core::stringc feedbackMessage;
 
         if (_irrWidget->isEmpty(_currentLOD))
-            _irrWidget->setModel(file.toStdString().c_str(), feedback);
+            _irrWidget->setModel(file.toStdString().c_str(), feedbackMessage);
         else
-            _irrWidget->addMesh(file.toStdString().c_str(), feedback);
+            _irrWidget->addMesh(file.toStdString().c_str(), feedbackMessage);
+
+        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedbackMessage.c_str() + "\n");
     }
 
     updateWindowTitle();
@@ -117,7 +120,7 @@ void MainWindow::addMesh()
 
 void MainWindow::loadRig()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 3 rig (*.w2rig)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 3 rig (*.w2rig , *.w3fac)");
 
     if (file == "")
         return;
@@ -254,6 +257,8 @@ void MainWindow::translate()
     _ui->actionSearch->setText(Translator::findTranslation("menu_search", Settings::_language));
     _ui->actionOptions->setText(Translator::findTranslation("menu_options", Settings::_language));
     _ui->actionWebpage->setText(Translator::findTranslation("menu_webpage", Settings::_language));
+    _ui->actionSet_rig->setText(Translator::findTranslation("menu_setRig", Settings::_language));
+    _ui->actionAdd_mesh->setText(Translator::findTranslation("menu_addMesh", Settings::_language));
     _ui->actionShow_linked_files->setText(Translator::findTranslation("menu_linkedFiles", Settings::_language));
     _ui->menuHelp->setTitle(Translator::findTranslation("menu_help", Settings::_language));
     _ui->label_exportedFilename->setText(Translator::findTranslation("label_exported_file_name", Settings::_language) + " :");

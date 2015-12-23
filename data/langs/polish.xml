@@ -25,20 +25,8 @@
 		<text>Zapisz Plik</text>
 	</element>
 	<element>
-		<name>log_done</name>
-		<text>Zakonczono</text>
-	</element>
-	<element>
-		<name>log_done_with_error</name>
-		<text>Zakonczono, z błędem</text>
-	</element>
-	<element>
 		<name>log_abort</name>
 		<text>Przerwano : Ścieżka do folderu nie istnieje</text>
-	</element>
-	<element>
-		<name>log_fail</name>
-		<text>Błąd</text>
 	</element>
 	<element>
 		<name>log_warning_empty</name>
@@ -91,6 +79,14 @@
 	<element>
 		<name>menu_webpage</name>
 		<text>Strona www</text>
+	</element>
+	<element>
+		<name>menu_setRig</name>
+		<text>Set rig</text>
+	</element>
+	<element>
+		<name>menu_addMesh</name>
+		<text>Add mesh(es)</text>
 	</element>
 	<element>
 		<name>search_name</name>

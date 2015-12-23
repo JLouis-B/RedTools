@@ -13,7 +13,7 @@ int Settings::_b = 0;
 Export_Mode Settings::_mode = Export_Pack0;
 QString Settings::_exportDest = "";
 
-bool Settings::_moveTexture = true;
+bool Settings::_copyTexture = true;
 bool Settings::_nm = false;
 bool Settings::_sm = false;
 
@@ -95,7 +95,7 @@ void Settings::loadFromXML(QString filename)
 
             Settings::_exportDest = node.firstChildElement("dest").text();
 
-            Settings::_moveTexture = node.firstChildElement("move_textures").text().toInt();
+            Settings::_copyTexture = node.firstChildElement("move_textures").text().toInt();
             Settings::_nm = node.firstChildElement("move_normals_map").text().toInt();
             Settings::_sm = node.firstChildElement("move_specular_map").text().toInt();
         }
@@ -207,7 +207,7 @@ void Settings::saveToXML(QString filename)
 
     QDomElement export_move_tex_elem = dom.createElement("move_textures");
     export_elem.appendChild(export_move_tex_elem);
-    export_move_tex_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_moveTexture)));
+    export_move_tex_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_copyTexture)));
 
     QDomElement export_move_nm_elem = dom.createElement("move_normals_map");
     export_elem.appendChild(export_move_nm_elem);

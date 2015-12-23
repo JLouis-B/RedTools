@@ -98,17 +98,23 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
     {
         core::stringc bone = names[i];
 
+
         scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, bone);
         if (!joint)
             continue;
 
-        short parent = parentId[i];
-        if (parent == -1)   // root
-            continue;
+        scene::ISkinnedMesh::SJoint* parentJoint = 0;
+        short parent =  i;
+        while (!parentJoint && parent != -1)
+        {
+            parent = parentId[parent];
+            if (parent == -1)   // root
+                break;
 
-        scene::ISkinnedMesh::SJoint* parentJoint = getJointByName(mesh, names[parent]);
-        if (parentJoint)
-            parentJoint->Children.push_back(joint);
+            parentJoint = getJointByName(mesh, names[parent]);
+            if (parentJoint)
+                parentJoint->Children.push_back(joint);
+        }
 
     }
 

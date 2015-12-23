@@ -25,20 +25,8 @@
 		<text>Reading file</text>
 	</element>
 	<element>
-		<name>log_done</name>
-		<text>done</text>
-	</element>
-	<element>
-		<name>log_done_with_error</name>
-		<text>done, with error</text>
-	</element>
-	<element>
 		<name>log_abort</name>
 		<text>Abort : Destination folder doesn't exist</text>
-	</element>
-	<element>
-		<name>log_fail</name>
-		<text>Error</text>
 	</element>
 	<element>
 		<name>log_warning_empty</name>
@@ -83,6 +71,14 @@
 	<element>
 		<name>menu_linkedFiles</name>
 		<text>Show linked files</text>
+	</element>
+	<element>
+		<name>menu_setRig</name>
+		<text>Set rig</text>
+	</element>
+	<element>
+		<name>menu_addMesh</name>
+		<text>Add mesh(es)</text>
 	</element>
 	<element>
 		<name>menu_help</name>

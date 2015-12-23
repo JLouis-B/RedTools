@@ -32,6 +32,8 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
     node->setMaterialTexture(2, NULL);
     node->setMaterialTexture(3, NULL);
 
+    node->setMaterialFlag(EMF_BACK_FACE_CULLING, false);
+
 
 }
 
@@ -175,8 +177,6 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkel);
 
-
-
     const io::path irrFilename = QSTRING_TO_PATH(filename);
     io::path extension;
     core::getFileNameExtension(extension, irrFilename);
@@ -191,7 +191,7 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
         //l.addAndPush("getMesh\n");
 
         // Witcher feedback
-        if (extension == "w2mesh" || extension == "w2ent" || extension == "w2rig")
+        if (extension == ".w2mesh" || extension == ".w2ent" || extension == ".w2rig")
         {
             feedbackMessage = _device->getSceneManager()->getParameters()->getAttributeAsString("TW_FEEDBACK");
             _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
@@ -513,7 +513,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (!_currentLodData->_node && extension != ".re")
         return;
 
-    if (Settings::_moveTexture)
+    if (Settings::_copyTexture)
     {
         // Will be exported in a subfolder
         exportFolder = exportFolder + "/" +  filename + "_export/";
@@ -869,7 +869,7 @@ void QIrrlichtWidget::copyTextures(irr::scene::IMesh* mesh, QString exportFolder
 
             //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
             QString texPath;
-            if (Settings::_moveTexture)
+            if (Settings::_copyTexture)
                 texPath = convertTexture(PATH_TO_QSTRING(buf->getMaterial().getTexture(0)->getName().getPath()), fullPath);
             else
             {
@@ -910,7 +910,7 @@ void QIrrlichtWidget::copyTextures(std::set<irr::io::path> paths, QString export
 
         //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
         QString texPath;
-        if (Settings::_moveTexture)
+        if (Settings::_copyTexture)
             texPath = convertTexture(PATH_TO_QSTRING(*it), fullPath);
         else
         {

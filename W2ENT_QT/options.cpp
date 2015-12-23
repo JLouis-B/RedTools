@@ -12,7 +12,7 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     _ui->doubleSpinBox_cameraRotSpeed->setValue(Settings::_camRotSpeed);
     _ui->doubleSpinBox_cameraSpeed->setValue(Settings::_camSpeed);
 
-    _ui->checkBox_moveTextures->setChecked(Settings::_moveTexture);
+    _ui->checkBox_moveTextures->setChecked(Settings::_copyTexture);
     _ui->checkBox_mtNormalsMap->setChecked(Settings::_nm);
     _ui->checkBox_mtSpecularMap->setChecked(Settings::_sm);
 
@@ -99,7 +99,7 @@ void Options::ok()
     Settings::_camRotSpeed = _ui->doubleSpinBox_cameraRotSpeed->value();
     Settings::_camSpeed = _ui->doubleSpinBox_cameraSpeed->value();
 
-    Settings::_moveTexture = _ui->checkBox_moveTextures->isChecked();
+    Settings::_copyTexture = _ui->checkBox_moveTextures->isChecked();
     Settings::_nm = _ui->checkBox_mtNormalsMap->isChecked();
     Settings::_sm = _ui->checkBox_mtSpecularMap->isChecked();
 

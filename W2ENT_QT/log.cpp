@@ -93,7 +93,15 @@ bool Log::works()
 #ifdef USE_FLUSH_PATCH
     return LogFile != 0;
 #else
-    return true;
+    irr::io::IWriteFile* file = 0;
+    if (Smgr)
+        file = Smgr->getFileSystem()->createAndWriteFile(Filename, true);
+    if (file)
+    {
+        file->drop();
+        return true;
+    }
+    return false;
 #endif
 }
 

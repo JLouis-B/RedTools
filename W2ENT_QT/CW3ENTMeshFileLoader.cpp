@@ -79,7 +79,14 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     // Create and enable the log file if the option is selected on the soft
     log = new Log(SceneManager, "debug.log");
     log->enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
-    log->setConsoleOutput(true);
+    //log->setConsoleOutput(true);
+    Feedback = "";
+
+    if (!log->works())
+    {
+        Feedback += "\nError : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)\n";
+        return 0;
+    }
 
 	if (!f)
 		return 0;
@@ -121,6 +128,10 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
         }
 
 		AnimatedMesh->finalize();
+        Feedback += "done";
+
+        SceneManager->getParameters()->setAttribute("TW_FEEDBACK", Feedback.c_str());
+
 		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         //SceneManager->getMeshManipulator()->flipSurfaces(AnimatedMesh);
 
@@ -142,13 +153,12 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 core::stringc CW3ENTMeshFileLoader::readStringUntilNull(io::IReadFile* file)
 {
     core::stringc returnedString;
-    char c = 'a';
+    char c;
     while (1) {
        file->read(&c, 1);
-       if (c != 0x00)
-           returnedString.append(c);
-       else
+       if (c == 0x00)
            break;
+       returnedString.append(c);
     }
 
     return returnedString;
@@ -284,6 +294,10 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
         if (dataTypeName == "CSkeleton")
         {
             W3_CSkeleton(file, infos);
+        }
+        if (dataTypeName == "CMimicFace")
+        {
+            W3_CMimicFace(file, infos);
         }
         file->seek(back);
     }
@@ -764,7 +778,7 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
                 }
                 else
                 {
-                    SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, have you correctly set your textures directory ?");
+                    Feedback += "Some textures havn't been found, have you correctly set your textures directory ?\n";
                     log->addAndPush(core::stringc("Error : the file ") + Files[texId] + core::stringc(" can't be opened.\n"));
                 }
             }
@@ -875,10 +889,39 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
     return bufferInfos;
 }
 
+
+CSkeleton CW3ENTMeshFileLoader::W3_CMimicFace(io::IReadFile* file, W3_DataInfos infos)
+{
+    file->seek(infos.adress + 1);
+    //std::cout << "W3_CMimicFace, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    log->addAndPush("W3_CMimicFace\n");
+
+    CSkeleton skeleton;
+
+    while (1)
+    {
+        unsigned short propertyID, propertyTypeID;
+        file->read(&propertyID, 2);
+        file->read(&propertyTypeID, 2);
+
+        if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
+            break;
+
+        core::stringc property = Strings[propertyID];
+        core::stringc propertyType = Strings[propertyTypeID];
+
+        //std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
+        ReadUnknowProperty(file);
+    }
+    log->addAndPush("W3_CMimicFace end\n");
+    return skeleton;
+}
+
 CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos infos)
 {
     file->seek(infos.adress + 1);
-    std::cout << "W3_CSkeleton, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    //std::cout << "W3_CSkeleton, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    log->addAndPush("W3_CSkeleton\n");
 
     CSkeleton skeleton;
 
@@ -933,13 +976,13 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
             int sizeToNext, nbBones;
             file->read(&sizeToNext, 4);
 
-            std::cout << "end supposed to be at " << file->getPos() + sizeToNext - 4 << std::endl;
+            //std::cout << "end supposed to be at " << file->getPos() + sizeToNext - 4 << std::endl;
             file->read(&nbBones, 4);
             for (int i = 0; i < nbBones; ++i)
             {
                 short parentId;
                 file->read(&parentId, 2);
-                std::cout << "parent ID=" << parentId << std::endl;
+                //std::cout << "parent ID=" << parentId << std::endl;
 
                 skeleton.parentId.push_back(parentId);
             }
@@ -953,7 +996,7 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
     file->seek(-2, true);
     std::cout << file->getPos() << std::endl;
 
-    std::cout << "read the matrix" << std::endl;
+    //std::cout << "read the matrix" << std::endl;
     for (u32 i = 0; i < skeleton.nbBones; ++i)
     {
         core::matrix4 mat(core::matrix4::EM4CONST_IDENTITY);
@@ -966,22 +1009,24 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
             float value;
             file->read(&value, 4);
             //mat[m] = value;
-            std::cout << value << std::endl;
+            //std::cout << value << std::endl;
             m++;
         }
         skeleton.matrix.push_back(mat);
     }
 
-std::cout << "end read the matrix" << std::endl;
+    //std::cout << "end read the matrix" << std::endl;
     Skeleton = skeleton;
 
+    log->addAndPush("W3_CSkeleton end\n");
     return skeleton;
 }
 
 void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos infos)
 {
     file->seek(infos.adress + 1);
-    std::cout << "W3_CMeshComponent, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    //std::cout << "W3_CMeshComponent, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    log->addAndPush("W3_CMeshComponent\n");
 
     while (1)
     {
@@ -995,7 +1040,7 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
         core::stringc property = Strings[propertyID];
         core::stringc propertyType = Strings[propertyTypeID];
 
-        std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
 
         if (property == "mesh")
         {
@@ -1012,12 +1057,14 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
             ReadUnknowProperty(file);
     }
 
+    log->addAndPush("W3_CMeshComponent end\n");
 }
 
 void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos infos)
 {
     file->seek(infos.adress + 1);
-    std::cout << "W3_CEntityTemplate, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    log->addAndPush("W3_CEntityTemplate\n");
+    //std::cout << "W3_CEntityTemplate, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
 
 
     while (1)
@@ -1032,7 +1079,7 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
         core::stringc property = Strings[propertyID];
         core::stringc propertyType = Strings[propertyTypeID];
 
-        std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
 
         if (property == "flatCompiledData")
         {
@@ -1042,7 +1089,7 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
             sizeToNext -= 4;
 
 
-            std::cout << file->getPos() << std::endl;
+            //std::cout << file->getPos() << std::endl;
 
             unsigned char data[sizeToNext];
             file->read(&data[0], sizeToNext);
@@ -1062,12 +1109,13 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
 
         ReadUnknowProperty(file);
     }
+    log->addAndPush("W3_CEntityTemplate end\n");
 }
 
 void CW3ENTMeshFileLoader::W3_CEntity(io::IReadFile* file, W3_DataInfos infos)
 {
     file->seek(infos.adress + 1);
-    std::cout << "W3_CEntity, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
+    //std::cout << "W3_CEntity, @infos.adress=" << infos.adress << ", end @" << infos.adress + infos.size << std::endl;
 }
 
 bool CW3ENTMeshFileLoader::checkBones(io::IReadFile* file, char nbBones)
@@ -1103,6 +1151,8 @@ char readBonesNumber(io::IReadFile* file)
 
 void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 {
+    log->addAndPush("W3_CMesh\n");
+
     SBufferInfos bufferInfos = createSBufferInfo();
     core::array<SMeshInfos> meshes;
 
@@ -1148,7 +1198,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
             ReadUnknowProperty(file);
    }
 
-   std::cout << "All properties readed, @=" << file->getPos() << std::endl;
+   log->addAndPush(core::stringc("All properties readed, @=") + toStr(file->getPos()) + "\n");
 
    if (!isStatic && nbBonesPos > 0 && SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
    {
@@ -1176,7 +1226,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
         }
         log->addAndPush("OK\n");
    }
-
+    log->addAndPush("W3_CMesh end\n");
 }
 
 void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)

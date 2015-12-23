@@ -211,9 +211,11 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
 core::stringc readStringUntilNull(io::IReadFile* file)
 {
     core::stringc returnedString;
-    char c = 'a';
-    while (c != 0x00) {
+    char c;
+    while (1) {
        file->read(&c, 1);
+       if (c == 0x00)
+           break;
        returnedString.append(c);
     }
 

@@ -127,6 +127,7 @@ private:
     void W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos infos);   // Not handled yet
     void W3_CEntity(io::IReadFile* file, W3_DataInfos infos);           // Not handled yet
     CSkeleton W3_CSkeleton(io::IReadFile* file, W3_DataInfos infos);
+    CSkeleton W3_CMimicFace(io::IReadFile* file, W3_DataInfos infos);
 
     // load a mesh buffer from the buffer file
     void W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos);
@@ -194,6 +195,8 @@ private:
     io::path GamePath;
 
     core::array<scene::ISkinnedMesh*> Meshes;
+
+    core::stringc Feedback;
 
 };
 

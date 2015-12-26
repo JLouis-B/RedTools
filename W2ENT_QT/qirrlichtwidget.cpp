@@ -37,7 +37,7 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
 
 }
 
-bool QIrrlichtWidget::loadRig(core::stringc filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMessage)
 {
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
@@ -108,7 +108,7 @@ QIrrlichtWidget::~QIrrlichtWidget ()
 
 bool QIrrlichtWidget::fileIsOpenableByIrrlicht(QString filename)
 {
-    io::path irrFilename = QSTRING_TO_PATH(filename.toStdString().c_str());
+    const io::path irrFilename = QSTRING_TO_PATH(filename);
 
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(irrFilename);
     if (!file)
@@ -504,14 +504,22 @@ void scaleSkeleton(scene::ISkinnedMesh* mesh, double factor)
     for (u32 i = 0; i < nbJoints; ++i)
     {
         ISkinnedMesh::SJoint* joint = mesh->getAllJoints()[i];
-        //joint->Animatedposition *= factor;
+        joint->Animatedposition *= factor;
     }
 }
 
-void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString extension)
+void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString extension, core::stringc &feedbackMessage)
 {
     if (!_currentLodData->_node && extension != ".re")
         return;
+
+    const io::path exportPath = QSTRING_TO_PATH(exportFolder + "/" + filename + extension);
+    IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportPath);
+    if (!file)
+    {
+        feedbackMessage = "fail. Can't create the exported file";
+        return;
+    }
 
     if (Settings::_copyTexture)
     {
@@ -558,7 +566,6 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     }
 
     //std::cout << filename.toStdString().c_str() << std::endl;
-    IWriteFile* file = _device->getFileSystem()->createAndWriteFile(QSTRING_TO_PATH(exportFolder + "/" + filename + extension));
 
     IMesh* mesh = 0;
     if (_currentLodData->_node)
@@ -593,10 +600,9 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), dim/orDim);
     }
 
-
     if ((extension == ".obj" || extension == ".stl" || extension == ".ply" || extension == ".dae" || extension == ".irrmesh" || extension == ".b3d") && mesh)
     {
-        irr::scene::EMESH_WRITER_TYPE type;
+        irr::scene::EMESH_WRITER_TYPE type = EMWT_OBJ;
         if (extension == ".irrmesh")
             type = irr::scene::EMWT_IRR_MESH;
         else if (extension == ".dae")
@@ -649,12 +655,10 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
 
         std::cout << "nb output=" << assimp.getExportFormats().size() << std::endl;
 
-        io::path path = file->getFileName();
-
         file->drop();
         file = 0;
 
-        assimp.exportMesh(mesh, extensionFlag, path);
+        assimp.exportMesh(mesh, extensionFlag, exportPath);
     }
 
 
@@ -689,6 +693,8 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
 
     if (file)
         file->drop();
+
+    feedbackMessage = "done";
 }
 
 
@@ -879,7 +885,7 @@ void QIrrlichtWidget::copyTextures(irr::scene::IMesh* mesh, QString exportFolder
                 texPath = convertTexture(PATH_TO_QSTRING(buf->getMaterial().getTexture(0)->getName().getPath()), basePath + targetExtension);
             }
 
-            video::ITexture* tex = _device->getSceneManager()->getVideoDriver()->getTexture(texPath.toStdString().c_str());
+            video::ITexture* tex = _device->getSceneManager()->getVideoDriver()->getTexture(QSTRING_TO_PATH(texPath));
             buf->getMaterial().setTexture(0, tex);
         }
     }

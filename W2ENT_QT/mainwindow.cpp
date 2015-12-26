@@ -103,14 +103,20 @@ void MainWindow::addMesh()
     for (int i = 0; i < files.size(); ++i)
     {
         const QString file = files.at(i);
+        if (!_irrWidget->fileIsOpenableByIrrlicht(file))
+        {
+            QMessageBox::critical(this, "Error", "Error : The file " + file + " can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+            continue;
+        }
+
         _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_readingFile") + " '" + file + "'... ");
 
         core::stringc feedbackMessage;
 
         if (_irrWidget->isEmpty(_currentLOD))
-            _irrWidget->setModel(file.toStdString().c_str(), feedbackMessage);
+            _irrWidget->setModel(file, feedbackMessage);
         else
-            _irrWidget->addMesh(file.toStdString().c_str(), feedbackMessage);
+            _irrWidget->addMesh(file, feedbackMessage);
 
         _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedbackMessage.c_str() + "\n");
     }
@@ -151,7 +157,7 @@ void MainWindow::loadRig()
         return;
 
     core::stringc feedback;
-    bool sucess = _irrWidget->loadRig(file.toStdString().c_str(), feedback);
+    bool sucess = _irrWidget->loadRig(QSTRING_TO_PATH(file), feedback);
 
     if (sucess)
         QMessageBox::information(this, "Sucess", feedback.c_str());
@@ -255,10 +261,12 @@ void MainWindow::convertir()
     _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_writingFile", Settings::_language) + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
     QCoreApplication::processEvents();
 
+    core::stringc feedback = "";
+
     // Check if the destination folder exist
     QDir dir(Settings::getExportFolder());
     if (dir.exists())
-        _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')));
+        _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')), feedback);
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
@@ -266,7 +274,7 @@ void MainWindow::convertir()
         return;
     }
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_done", Settings::_language) + "\n");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedback.c_str() + "\n");
 }
 
 void MainWindow::translate()

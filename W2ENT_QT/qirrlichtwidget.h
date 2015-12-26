@@ -59,7 +59,7 @@ class QIrrlichtWidget : public QWidget
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
         void init ();
-        void writeFile (QString exportFolder, QString filename, QString extension);
+        void writeFile (QString exportFolder, QString filename, QString extension, core::stringc &feedbackMessage);
         void changeWireframe(bool state);
         void changeRigging(bool state);
 
@@ -81,7 +81,7 @@ class QIrrlichtWidget : public QWidget
 
         QString convertTexture(QString filename, QString destDir);
 
-        bool loadRig(core::stringc filename, core::stringc &feedbackMessage);
+        bool loadRig(const io::path filename, core::stringc &feedbackMessage);
         bool fileIsOpenableByIrrlicht(QString filename);
 
 

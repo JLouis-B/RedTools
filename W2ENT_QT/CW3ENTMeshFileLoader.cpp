@@ -323,6 +323,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     if (!bufferFile)
     {
         //std::cout << "Fail to open buffer file" << std::endl;
+        Feedback += "\nThe .buffer file associated to the mesh hasn't been found.\nHave you extracted the necessary bundle ?\n";
         log->addAndPush(" fail to open .buffer file ");
         return;
     }
@@ -1480,19 +1481,50 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
 
 video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
 {
+    io::path baseFilename;
     if (core::hasFileExtension(filename.c_str(), "xbm"))
     {
-        core::cutFilenameExtension(filename, filename);
-        filename += core::stringc(".dds");
-
-        filename.replace("\\", "#");
+        core::cutFilenameExtension(baseFilename, filename);
     }
-
-    filename = GameTexturesPath + filename;
-    //filename = core::stringc("textures_unpack/") + filename;
+    else
+        return SceneManager->getVideoDriver()->getTexture(filename);
 
     video::ITexture* texture = 0;
-    texture = SceneManager->getVideoDriver()->getTexture(filename);
+
+    // Check for textures extracted with the LUA tools
+    if (FileSystem->existFile(filename))
+
+    filename = baseFilename + core::stringc(".dds");
+    filename.replace("\\", "#");
+    filename = GameTexturesPath + filename;
+
+    if (FileSystem->existFile(filename))
+        texture = SceneManager->getVideoDriver()->getTexture(filename);
+
+    if (texture)
+        return texture;
+
+    // Else, if extracted with wcc_lite, we check all the possible filename
+    core::array<io::path> possibleExtensions;
+    possibleExtensions.push_back(".dds");
+    possibleExtensions.push_back(".bmp");
+    possibleExtensions.push_back(".jpg");
+    possibleExtensions.push_back(".jpeg");
+    possibleExtensions.push_back(".tga");
+    possibleExtensions.push_back(".png");
+
+    for (u32 i = 0; i < possibleExtensions.size(); ++i)
+    {
+        filename = GamePath + baseFilename + possibleExtensions[i];
+
+        if (FileSystem->existFile(filename))
+            texture = SceneManager->getVideoDriver()->getTexture(filename);
+
+        if (texture)
+            return texture;
+    }
+
+
     return texture;
 }
 

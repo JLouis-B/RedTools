@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Logs
     _ui->textEdit_log->setReadOnly (true);
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "The Witcher 3D models converter 2.3\n");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "The Witcher 3D models converter 2.3.1\n");
 
 
     Settings::_pack0 = _ui->lineEdit_folder->text();

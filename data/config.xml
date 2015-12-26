@@ -27,5 +27,5 @@
  <debug>0</debug>
  <TW3_textures></TW3_textures>
  <TW3_loadSkel>0</TW3_loadSkel>
- <first_use>0</first_use>
+ <first_use>1</first_use>
 </config>

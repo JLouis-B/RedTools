@@ -1515,7 +1515,7 @@ video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
 
     for (u32 i = 0; i < possibleExtensions.size(); ++i)
     {
-        filename = GamePath + baseFilename + possibleExtensions[i];
+        filename = GameTexturesPath + baseFilename + possibleExtensions[i];
 
         if (FileSystem->existFile(filename))
             texture = SceneManager->getVideoDriver()->getTexture(filename);

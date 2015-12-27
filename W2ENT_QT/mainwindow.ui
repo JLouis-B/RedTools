@@ -417,7 +417,7 @@
   </action>
   <action name="actionClean_textures_path">
    <property name="text">
-    <string>Clean textures path</string>
+    <string>LUA utils : Clean textures path</string>
    </property>
   </action>
   <action name="actionShow_linked_files">

@@ -186,6 +186,6 @@
 	</element>
 	<element>
 		<name>w3_tex_path</name>
-		<text>Corriger les paths des textures</text>
+		<text>LUA utils : Corriger les paths des textures</text>
 	</element>
 </translation>

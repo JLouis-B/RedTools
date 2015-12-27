@@ -186,6 +186,6 @@
 	</element>
 	<element>
 		<name>w3_tex_path</name>
-		<text>Clean textures path</text>
+		<text>LUA utils : Clean textures path</text>
 	</element>
 </translation>

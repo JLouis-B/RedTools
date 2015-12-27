@@ -653,7 +653,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         else if (extension == ".stp")
             extensionFlag = "stp";
 
-        std::cout << "nb output=" << assimp.getExportFormats().size() << std::endl;
+        //std::cout << "nb output=" << assimp.getExportFormats().size() << std::endl;
 
         file->drop();
         file = 0;

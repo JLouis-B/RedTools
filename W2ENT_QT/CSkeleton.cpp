@@ -68,9 +68,9 @@ void computeLocal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* 
 
 scene::ISkinnedMesh::SJoint* getJointByName(scene::ISkinnedMesh* mesh, core::stringc name)
 {
-    std::cout << "count= " << mesh->getJointCount() << std::endl;
-    for (u32 i = 0; i < mesh->getJointCount(); ++i)
-        std::cout << mesh->getAllJoints()[i]->Name.c_str() << std::endl;
+    //std::cout << "count= " << mesh->getJointCount() << std::endl;
+    //for (u32 i = 0; i < mesh->getJointCount(); ++i)
+    //    std::cout << mesh->getAllJoints()[i]->Name.c_str() << std::endl;
 
     s32 jointID = mesh->getJointNumber(name.c_str());
     if (jointID == -1)
@@ -175,7 +175,7 @@ bool CSkeleton::checkIfPerfectlyCorresponding(scene::ISkinnedMesh* mesh)
     for (u32 i = 0; i < nbBones; ++i)
     {
         core::stringc bone = names[i];
-        std::cout << bone.c_str() << std::endl;
+        //std::cout << bone.c_str() << std::endl;
 
         scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, bone);
         if (!joint)

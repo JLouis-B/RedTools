@@ -6,8 +6,10 @@
 #include "options.h"
 #include "resize.h"
 #include "cleantexturespath.h"
+#include "tw1bifextractorui.h"
 #include <iostream>
 #include <QDesktopServices>
+#include <QtConcurrent>
 
 namespace Ui {
 class MainWindow;
@@ -46,6 +48,7 @@ public slots :
     void changeBaseDir(QString newPath);
     void loadRig();
     void addMesh();
+    void bifExtractor();
 
 private:
     void updateWindowTitle();

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui xml concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -34,7 +34,9 @@ SOURCES += main.cpp\
     CREMeshFileLoader.cpp \
     CSkeleton.cpp \
     settings.cpp \
-    meshcombiner.cpp
+    meshcombiner.cpp \
+    tw1bifextractor.cpp \
+    tw1bifextractorui.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -57,22 +59,25 @@ HEADERS  += mainwindow.h \
     CSkeleton.h \
     settings.h \
     halffloat.h \
-    meshcombiner.h
+    meshcombiner.h \
+    tw1bifextractor.h \
+    tw1bifextractorui.h
 
 FORMS    += mainwindow.ui \
     options.ui \
     search.ui \
     resize.ui \
     cleantexturespath.ui \
-    extfiles.ui
+    extfiles.ui \
+    tw1bifextractorui.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis_\Desktop\Libs\irrlicht-code-5103-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis_\Desktop\Libs\irrlicht-code-5103-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5226-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5226-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis_\Desktop\Libs\assimp-master\CB_build\code\libassimp.dll.a
-INCLUDEPATH += "C:\Users\Jean-Louis_\Desktop\Libs\assimp-master\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\Assimp\CB-BUILD\code\libassimp.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\Assimp\include" \
 
 DISTFILES += \
     app.rc

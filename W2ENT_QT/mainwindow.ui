@@ -305,9 +305,16 @@
     <addaction name="actionClean_textures_path"/>
     <addaction name="actionSet_rig"/>
    </widget>
+   <widget class="QMenu" name="menuTheWitcher_1_tools">
+    <property name="title">
+     <string>TheWitcher 1 tools</string>
+    </property>
+    <addaction name="actionBIF_extractor"/>
+   </widget>
    <addaction name="menuMenu"/>
    <addaction name="menu_RE_tools"/>
    <addaction name="menuThe_Witcher_3_tools"/>
+   <addaction name="menuTheWitcher_1_tools"/>
    <addaction name="menuDisplay"/>
    <addaction name="menuLanguages"/>
    <addaction name="menuHelp"/>
@@ -441,6 +448,11 @@
   <action name="actionAdd_mesh_2">
    <property name="text">
     <string>Add mesh(es)</string>
+   </property>
+  </action>
+  <action name="actionBIF_extractor">
+   <property name="text">
+    <string>BIF extractor</string>
    </property>
   </action>
  </widget>

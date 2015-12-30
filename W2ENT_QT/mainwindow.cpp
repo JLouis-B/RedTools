@@ -89,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(loadRig()));
     QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
+    QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
@@ -302,6 +303,7 @@ void MainWindow::translate()
     _ui->menuThe_Witcher_3_tools->setTitle(Translator::findTranslation("w3_tools", Settings::_language));
     _ui->actionClean_textures_path->setText(Translator::findTranslation("w3_tex_path", Settings::_language));
 
+
     if (_ui->actionLOD0->text() != "LOD0")
         _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
     if (_ui->actionLOD1->text() != "LOD1")
@@ -500,3 +502,10 @@ void MainWindow::extFiles()
     ext->read(_ui->lineEdit_ImportedFile->text());
     ext->show();
 }
+
+void MainWindow::bifExtractor()
+{
+    tw1bifextractorUI* bif = new tw1bifextractorUI(this);
+    bif->show();
+}
+

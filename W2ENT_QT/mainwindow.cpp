@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // The parent widget if the translator has to popup an error message box
     Translator::setParentWidget(this);
+    Translator::loadCurrentLanguage();
 
     // Translate the UI
     translate();
@@ -199,6 +200,7 @@ void MainWindow::changeLanguage()
     QAction* q = (QAction*)QObject::sender();
     q->setChecked(true);
     Settings::_language = "langs/" + q->text();
+    Translator::loadCurrentLanguage();
     translate();
     emit languageChanged();
 }
@@ -245,7 +247,7 @@ void MainWindow::selectFile()
     if (_firstSelection)
         param = _ui->lineEdit_folder->text();
 
-    QString file = QFileDialog::getOpenFileName(this, Translator::findTranslation("dialogue_file", Settings::_language), param, Settings::_formats);
+    QString file = QFileDialog::getOpenFileName(this, Translator::findTranslation("dialogue_file"), param, Settings::_formats);
 
     if (file != "")
     {
@@ -257,9 +259,9 @@ void MainWindow::convertir()
 {
     // Warning if no filename specified
     if (_ui->lineEdit_exportedFilename->text() == "")
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_warning_empty", Settings::_language) + "\n");
+        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_warning_empty") + "\n");
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_writingFile", Settings::_language) + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::findTranslation("log_writingFile") + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
     QCoreApplication::processEvents();
 
     core::stringc feedback = "";
@@ -271,7 +273,7 @@ void MainWindow::convertir()
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "\n" + Translator::findTranslation("log_abort", Settings::_language) + "\n");
+        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "\n" + Translator::findTranslation("log_abort") + "\n");
         return;
     }
 
@@ -280,41 +282,41 @@ void MainWindow::convertir()
 
 void MainWindow::translate()
 {
-    _ui->button_fileSelector->setText(Translator::findTranslation("button_fileSelector", Settings::_language));
-    _ui->button_convert->setText(Translator::findTranslation("button_convertir", Settings::_language));
-    _ui->label_baseDir->setText(Translator::findTranslation("base_directory", Settings::_language) + " :");
-    _ui->menuLanguages->setTitle(Translator::findTranslation("menu_language", Settings::_language));
-    _ui->menuMenu->setTitle(Translator::findTranslation("menu_menu", Settings::_language));
-    _ui->actionQuitter->setText(Translator::findTranslation("menu_quit", Settings::_language));
-    _ui->menuDisplay->setTitle(Translator::findTranslation("menu_display", Settings::_language));
-    _ui->actionWireframe->setText(Translator::findTranslation("menu_wireframe", Settings::_language));
-    _ui->actionSearch->setText(Translator::findTranslation("menu_search", Settings::_language));
-    _ui->actionOptions->setText(Translator::findTranslation("menu_options", Settings::_language));
-    _ui->actionWebpage->setText(Translator::findTranslation("menu_webpage", Settings::_language));
-    _ui->actionSet_rig->setText(Translator::findTranslation("menu_setRig", Settings::_language));
-    _ui->actionAdd_mesh_2->setText(Translator::findTranslation("menu_addMesh", Settings::_language));
-    _ui->actionShow_linked_files->setText(Translator::findTranslation("menu_linkedFiles", Settings::_language));
-    _ui->menuHelp->setTitle(Translator::findTranslation("menu_help", Settings::_language));
-    _ui->label_exportedFilename->setText(Translator::findTranslation("label_exported_file_name", Settings::_language) + " :");
-    _ui->actionClear_current_LOD->setText(Translator::findTranslation("re_lod_clear", Settings::_language));
-    _ui->actionClear_all_LODs->setText(Translator::findTranslation("re_lod_clear_all", Settings::_language));
-    _ui->actionSize->setText(Translator::findTranslation("re_size", Settings::_language));
-    _ui->menu_RE_tools->setTitle(Translator::findTranslation("re_tools", Settings::_language));
-    _ui->menuThe_Witcher_3_tools->setTitle(Translator::findTranslation("w3_tools", Settings::_language));
-    _ui->actionClean_textures_path->setText(Translator::findTranslation("w3_tex_path", Settings::_language));
+    _ui->button_fileSelector->setText(Translator::findTranslation("button_fileSelector"));
+    _ui->button_convert->setText(Translator::findTranslation("button_convertir"));
+    _ui->label_baseDir->setText(Translator::findTranslation("base_directory") + " :");
+    _ui->menuLanguages->setTitle(Translator::findTranslation("menu_language"));
+    _ui->menuMenu->setTitle(Translator::findTranslation("menu_menu"));
+    _ui->actionQuitter->setText(Translator::findTranslation("menu_quit"));
+    _ui->menuDisplay->setTitle(Translator::findTranslation("menu_display"));
+    _ui->actionWireframe->setText(Translator::findTranslation("menu_wireframe"));
+    _ui->actionSearch->setText(Translator::findTranslation("menu_search"));
+    _ui->actionOptions->setText(Translator::findTranslation("menu_options"));
+    _ui->actionWebpage->setText(Translator::findTranslation("menu_webpage"));
+    _ui->actionSet_rig->setText(Translator::findTranslation("menu_setRig"));
+    _ui->actionAdd_mesh_2->setText(Translator::findTranslation("menu_addMesh"));
+    _ui->actionShow_linked_files->setText(Translator::findTranslation("menu_linkedFiles"));
+    _ui->menuHelp->setTitle(Translator::findTranslation("menu_help"));
+    _ui->label_exportedFilename->setText(Translator::findTranslation("label_exported_file_name") + " :");
+    _ui->actionClear_current_LOD->setText(Translator::findTranslation("re_lod_clear"));
+    _ui->actionClear_all_LODs->setText(Translator::findTranslation("re_lod_clear_all"));
+    _ui->actionSize->setText(Translator::findTranslation("re_size"));
+    _ui->menu_RE_tools->setTitle(Translator::findTranslation("re_tools"));
+    _ui->menuThe_Witcher_3_tools->setTitle(Translator::findTranslation("w3_tools"));
+    _ui->actionClean_textures_path->setText(Translator::findTranslation("w3_tex_path"));
 
 
     if (_ui->actionLOD0->text() != "LOD0")
-        _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
+        _ui->actionLOD0->setText("LOD0 (" + Translator::findTranslation("re_lod_empty") + ")");
     if (_ui->actionLOD1->text() != "LOD1")
-        _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
+        _ui->actionLOD1->setText("LOD1 (" + Translator::findTranslation("re_lod_empty") + ")");
     if (_ui->actionLOD2->text() != "LOD2")
-        _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty", Settings::_language) + ")");
+        _ui->actionLOD2->setText("LOD2 (" + Translator::findTranslation("re_lod_empty") + ")");
 }
 
 void MainWindow::selectFolder()
 {
-    QString translation = Translator::findTranslation("dialogue_folder", Settings::_language);
+    QString translation = Translator::findTranslation("dialogue_folder");
     QString folder = QFileDialog::getExistingDirectory(this, translation, _ui->lineEdit_folder->text());
     if (folder != "")
     {

@@ -30,13 +30,12 @@ void Search::destroyWindow()
 
 void Search::translate()
 {
-    QString language = Settings::_language;
-    _ui->label_name->setText(Translator::findTranslation("search_name", language) + " :");
-    _ui->label_result->setText(Translator::findTranslation("search_result", language) + " :");
-    _ui->label->setText(Translator::findTranslation("search_progress", language) + " :");
-    _ui->checkBox_folder->setText(Translator::findTranslation("search_check_folder", language));
-    _ui->button_search->setText(Translator::findTranslation("search_button", language));
-    _ui->pushButton->setText(Translator::findTranslation("search_load", language));
+    _ui->label_name->setText(Translator::findTranslation("search_name") + " :");
+    _ui->label_result->setText(Translator::findTranslation("search_result") + " :");
+    _ui->label->setText(Translator::findTranslation("search_progress") + " :");
+    _ui->checkBox_folder->setText(Translator::findTranslation("search_check_folder"));
+    _ui->button_search->setText(Translator::findTranslation("search_button"));
+    _ui->pushButton->setText(Translator::findTranslation("search_load"));
 }
 
 void Search::search()

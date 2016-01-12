@@ -307,7 +307,7 @@
    </widget>
    <widget class="QMenu" name="menuTheWitcher_1_tools">
     <property name="title">
-     <string>TheWitcher 1 tools</string>
+     <string>The Witcher 1 tools</string>
     </property>
     <addaction name="actionBIF_extractor"/>
    </widget>

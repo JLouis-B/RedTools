@@ -14,6 +14,7 @@ TW1bifExtractor::TW1bifExtractor(QString file, QString folder): _file(file), _fo
     _fileTypes = getResourceTypeMap();
     _nbProgress = 0;
     _lastProgression = 0;
+    _stopped = false;
 }
 
 void TW1bifExtractor::run()
@@ -37,7 +38,6 @@ QString TW1bifExtractor::getExtensionFromResourceType(unsigned short resourceTyp
 
 void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
 {
-
     QFile bifFile(filename);
 
     QFileInfo fileInf(bifFile);
@@ -45,7 +45,10 @@ void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
     const QString bifFolder = baseFilename + "/";
 
     if (!bifFile.open(QIODevice::ReadOnly))
+    {
+        emit error();
         return;
+    }
 
     // magic word "BIFFV1.1"
     bifFile.seek(8);
@@ -118,6 +121,9 @@ void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
             extractBIF(exportFolder, bifFolder + qname, i);
 
         bifFile.seek(back);
+
+        if (_stopped)
+            break;
     }
     _resources.clear();
 
@@ -217,10 +223,17 @@ void TW1bifExtractor::extractBIF(QString exportFolder, QString filename, unsigne
             _lastProgression = progression;
             emit onProgress(progression);
         }
+
+        if (_stopped)
+            break;
     }
     bifFile.close();
 }
 
+void TW1bifExtractor::quitThread()
+{
+    _stopped = true;
+}
 
 
 QMap<unsigned short, QString> TW1bifExtractor::getResourceTypeMap()

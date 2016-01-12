@@ -40,6 +40,7 @@ class TW1bifExtractor : public QObject
 
     QString _file;
     QString _folder;
+    bool _stopped;
 
 
 public:
@@ -49,10 +50,12 @@ public:
 
 public slots :
     void run();
+    void quitThread();
 
 signals:
     void onProgress(int);
     void finished();
+    void error();
 };
 
 #endif // TW1BIFEXTRACTOR_H

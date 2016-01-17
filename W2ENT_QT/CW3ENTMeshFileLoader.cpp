@@ -20,16 +20,64 @@
 //#define _DEBUG
 
 
-template <typename T> core::stringc toStr(const T& t) {
+template <typename T>
+core::stringc toStr(const T& t) {
    std::ostringstream os;
    os << t;
    return core::stringc(os.str().c_str());
+}
+
+template <class T>
+T readData(io::IReadFile* f)
+{
+    T buf;
+    f->read(&buf, sizeof(T));
+    return buf;
+}
+
+template <class T>
+core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
+{
+    core::array<T> values;
+    for (s32 i = 0; i < nbElem; ++i)
+        values.push_back(readData<T>(f));
+
+    return values;
 }
 
 namespace irr
 {
 namespace scene
 {
+
+core::stringc CW3ENTMeshFileLoader::readStringUntilNull(io::IReadFile* file)
+{
+    core::stringc returnedString;
+    char c;
+    while (1) {
+       file->read(&c, 1);
+       if (c == 0x00)
+           break;
+       returnedString.append(c);
+    }
+
+    return returnedString;
+}
+
+core::stringc CW3ENTMeshFileLoader::readString(io::IReadFile* f, s32 nbLetters)
+{
+    core::stringc str;
+
+    char buf;
+    for (s32 i = 0; i < nbLetters; ++i)
+    {
+        f->read(&buf, 1);
+        if (buf != 0)
+            str.append(buf);
+    }
+
+    return str;
+}
 
 //! Constructor
 CW3ENTMeshFileLoader::CW3ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)
@@ -49,14 +97,13 @@ bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
     if (core::hasFileExtension ( filename, "w2ent_MEMORY" ))
         return true;
 
-    irr::io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
+    io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
     if (!file)
         return false;
 
     file->seek(4);
 
-    int version = 0;
-    file->read(&version, 4);
+    s32 version = readData<s32>(file);
 
     if (version >= 162)
     {
@@ -64,14 +111,13 @@ bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
         return core::hasFileExtension ( filename, "w2ent" ) || core::hasFileExtension ( filename, "w2mesh" ) || core::hasFileExtension ( filename, "w2rig" );
     }
 
-
     file->drop();
     return false;
 }
 
 
 //! creates/loads an animated mesh from the file.
-//! \return Pointer to the created mesh. Returns 0 if loading failed.
+//! \return Pos32er to the created mesh. Returns 0 if loading failed.
 //! If you no longer need the mesh, you should call IAnimatedMesh::drop().
 //! See IReferenceCounted::drop() for more information.
 IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
@@ -148,53 +194,6 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	return AnimatedMesh;
 }
 
-
-
-core::stringc CW3ENTMeshFileLoader::readStringUntilNull(io::IReadFile* file)
-{
-    core::stringc returnedString;
-    char c;
-    while (1) {
-       file->read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
-
-    return returnedString;
-}
-
-SMeshInfos CW3ENTMeshFileLoader::createSMeshInfos()
-{
-    SMeshInfos infos;
-
-    infos.firstIndice = 0;
-    infos.firstVertex = 0;
-    infos.numBonesPerVertex = 4;
-
-    infos.vertexType = EMVT_STATIC;
-    infos.numIndices = 0;
-    infos.numVertices = 0;
-
-    infos.materialID = 0;
-
-    return infos;
-}
-
-SBufferInfos CW3ENTMeshFileLoader::createSBufferInfo()
-{
-    SBufferInfos bufferInfos;
-
-    bufferInfos.indicesBufferOffset = 0;
-    bufferInfos.indicesBufferSize = 0;
-    bufferInfos.quantizationOffset = core::vector3df(0, 0, 0);
-    bufferInfos.quantizationScale = core::vector3df(1, 1, 1);
-    bufferInfos.verticesBufferOffset = 0;
-    bufferInfos.verticesBufferSize = 0;
-
-    return bufferInfos;
-}
-
 void checkMaterial(video::SMaterial mat)
 {
     if (mat.getTexture(0))
@@ -207,13 +206,12 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
 {
     file->seek(0);
 
-    readWord(file, 4); // CR2W
+    readString(file, 4); // CR2W
 
-    int fileFormatVersion;
-    file->read(&fileFormatVersion, 4);
-    file->read(&fileFormatVersion, 4);
+    const s32 fileFormatVersion = readData<s32>(file);
+    file->seek(4, true);
 
-    core::array<int> headerData = readInts(file, 38);
+    core::array<s32> headerData = readDataArray<s32>(file, 38);
     log->addAndPush("Read header\n");
 
     /*
@@ -222,8 +220,8 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
         - data[10/11] : adress/size content chunk
     */
 
-    int stringChunkStart = headerData[7];
-    int stringChunkSize = headerData[8];
+    s32 stringChunkStart = headerData[7];
+    s32 stringChunkSize = headerData[8];
     file->seek(stringChunkStart);
     while (file->getPos() - stringChunkStart < stringChunkSize)
     {
@@ -243,15 +241,15 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
     log->addAndPush("Textures list created\n");
 
 
-    int contentChunkStart = headerData[19];
-    int contentChunkSize = headerData[20];
+    s32 contentChunkStart = headerData[19];
+    s32 contentChunkSize = headerData[20];
 
     core::array<W3_DataInfos> meshes;
     file->seek(contentChunkStart);
-    for (int i = 0; i < contentChunkSize; ++i)
+    for (s32 i = 0; i < contentChunkSize; ++i)
     {
         W3_DataInfos infos;
-        unsigned short dataType = readUnsignedShorts(file, 1)[0];
+        u16 dataType = readData<u16>(file);
         core::stringc dataTypeName = Strings[dataType];
         log->addAndPush(core::stringc("dataTypeName=") + dataTypeName + "\n");
 
@@ -263,7 +261,7 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
 
         file->seek(8, true);
 
-        int back = file->getPos();
+        s32 back = file->getPos();
         if (dataTypeName == "CMesh")
         {
             meshes.push_back(infos);
@@ -354,7 +352,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     //std::cout << "POS=" << bufferFile->getPos() << std::endl;
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        unsigned short x, y, z, tmp;
+        u16 x, y, z, tmp;
 
         bufferFile->read(&x, 2);
         bufferFile->read(&y, 2);
@@ -383,11 +381,11 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
                 if (weight != 0)
                 {
-                    ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[boneId];
+                    ISkinnedMesh::SJoint* jos32 = AnimatedMesh->getAllJoints()[boneId];
                     u32 bufferId = AnimatedMesh->getMeshBufferCount() - 1;
                     float fweight = (float)weight / 255.f;
 
-                    ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(joint);
+                    ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(jos32);
                     w->buffer_id = bufferId;
                     w->strength = fweight;
                     w->vertex_id = i;
@@ -407,7 +405,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        unsigned short u, v;
+        u16 u, v;
         bufferFile->read(&u, 2);
         bufferFile->read(&v, 2);
 
@@ -421,7 +419,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     bufferFile->seek(inf->normalsOffset + (meshInfos.firstVertex - (sum - inf->nbVertices)) * 12);
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        unsigned short x, y, z, tmp;
+        u16 x, y, z, tmp;
 
         bufferFile->read(&x, 2);
         bufferFile->read(&y, 2);
@@ -442,7 +440,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     //std::cout << "num indices=" << meshInfos.numIndices << std::endl;
     for (u32 i = 0; i < meshInfos.numIndices; ++i)
     {
-        unsigned short indice;
+        u16 indice;
         bufferFile->read(&indice, 2);
 
         // Indice need to be inversed for the normals
@@ -464,10 +462,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
 u32 CW3ENTMeshFileLoader::ReadUInt32Property(io::IReadFile* file)
 {
-    int sizeToGoToNext;
-    u32 value;
-    file->read(&sizeToGoToNext, 4);
-    file->read(&value, 4);
+    s32 propSize = readData<s32>(file);
+    u32 value = readData<u32>(file);
 
     //std::cout << "Value = " << value << std::endl;
     return value;
@@ -475,11 +471,8 @@ u32 CW3ENTMeshFileLoader::ReadUInt32Property(io::IReadFile* file)
 
 char CW3ENTMeshFileLoader::ReadUInt8Property(io::IReadFile* file)
 {
-    int sizeToGoToNext;
-    file->read(&sizeToGoToNext, 4);
-
-    char value;
-    file->read(&value, 1);
+    s32 propSize = readData<s32>(file);
+    char value = readData<char>(file);
 
     //std::cout << "Value = " << value << std::endl;
     return value;
@@ -487,89 +480,77 @@ char CW3ENTMeshFileLoader::ReadUInt8Property(io::IReadFile* file)
 
 bool CW3ENTMeshFileLoader::ReadBoolProperty(io::IReadFile* file)
 {
-    int sizeToGoToNext;
-    file->read(&sizeToGoToNext, 4);
-
-    char valueChar;
-    file->read(&valueChar, 1);
+    s32 propSize = readData<s32>(file);
+    char valueChar = readData<char>(file);
     bool value = (valueChar == 0) ? false : true;
     return value;
 }
 
 float CW3ENTMeshFileLoader::ReadFloatProperty(io::IReadFile* file)
 {
-    int sizeToGoToNext;
-    file->read(&sizeToGoToNext, 4);
-
-    float value;
-    file->read(&value, 4);
+    s32 propSize = readData<s32>(file);
+    float value = readData<float>(file);
     return value;
 }
 
 core::vector3df CW3ENTMeshFileLoader::ReadVector3Property(io::IReadFile* file)
 {
-    int sizeToGoNext;
-    file->read(&sizeToGoNext, 4);
+    const long back = file->getPos();
+    s32 propSize = readData<s32>(file);
 
-    core::vector3df value;
+    float x, y, z, w;
     file->seek(1, true);
 
     file->seek(4, true);    // 2 index of the Strings table (Name + type -> X, Float)
-    value.X = ReadFloatProperty(file);
+    x = ReadFloatProperty(file);
     file->seek(4, true);
-    value.Y = ReadFloatProperty(file);
+    y = ReadFloatProperty(file);
     file->seek(4, true);
-    value.Z = ReadFloatProperty(file);
+    z = ReadFloatProperty(file);
+    file->seek(4, true);
+    w = ReadFloatProperty(file);
 
-    file->seek(-41, true);
-    file->seek(sizeToGoNext, true);
-
-    return value;
+    file->seek(back + propSize);
+    return core::vector3df(x, y, z);
 }
 
 void CW3ENTMeshFileLoader::ReadUnknowProperty(io::IReadFile* file)
 {
-    int sizeToGoToNext;
-    file->read(&sizeToGoToNext, 4);
-    sizeToGoToNext -= 4;
-    file->seek(sizeToGoToNext, true);
+    s32 propSize = readData<s32>(file);
+    propSize -= 4;
+    file->seek(propSize, true);
 }
 
 void CW3ENTMeshFileLoader::ReadMaterialsProperty(io::IReadFile* file)
 {
-    int back = file->getPos();
+    const long back = file->getPos();
 
-    int sizeToGoNext, nbChunks;
-    file->read(&sizeToGoNext, 4);
+    s32 propSize = readData<s32>(file);
+    s32 nbChunks = readData<s32>(file);
 
-    file->read(&nbChunks, 4);
     //std::cout << "NB material = -> " << nbChunks << std::endl;
 
     //file->seek(1, true);
 
     core::array<video::SMaterial> matMats;
 
-    int nb = 0;
     for (u32 i = 0; i < nbChunks; ++i)
     {
-
-        unsigned char matFileID;
-        file->read(&matFileID, 1);
+        u8 matFileID = readData<u8>(file);
         matFileID = 255 - matFileID;
 
-        if (matFileID > Files.size())
-        {
-            file->seek(-1, true);
-            u32 value;
-            file->read(&value, 4);
-            //std::cout << "val = " << value << std::endl;
-            //Materials.push_back(Materials[value-1]);
-        }
-        else
+        if (matFileID < Files.size()) // Refer to a w2mi file
         {
             //std::cout << "w2mi file = " << Files[matFileID].c_str() << std::endl;
             matMats.push_back(ReadW2MIFile(Files[matFileID]));
             file->seek(3, true);
+        }
+        else
+        {
+            file->seek(-1, true);
+            u32 value = readData<u32>(file);
+            //std::cout << "val = " << value << std::endl;
+            //Materials.push_back(Materials[value-1]);
         }
 
     }
@@ -577,16 +558,13 @@ void CW3ENTMeshFileLoader::ReadMaterialsProperty(io::IReadFile* file)
     {
         Materials.push_front(matMats[matMats.size() - 1 - i]);
     }
-    file->seek(back + sizeToGoNext);
+    file->seek(back + propSize);
 }
 
 EMeshVertexType CW3ENTMeshFileLoader::ReadEMVTProperty(io::IReadFile* file)
 {
-    int sizeToGoToNext;
-    file->read(&sizeToGoToNext, 4);
-
-    unsigned short enumStringId;
-    file->read(&enumStringId, 2);
+    s32 propSize = readData<s32>(file);
+    s32 enumStringId = readData<u16>(file);
 
     EMeshVertexType vertexType = EMVT_STATIC;
 
@@ -602,27 +580,27 @@ EMeshVertexType CW3ENTMeshFileLoader::ReadEMVTProperty(io::IReadFile* file)
 core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::IReadFile* file)
 {
     core::array<SMeshInfos> meshes;
-    SMeshInfos meshInfos = createSMeshInfos();
+    SMeshInfos meshInfos;
 
-    int back = file->getPos();
+    const long back = file->getPos();
 
-    int sizeToGoNext, nbChunks;
-    file->read(&sizeToGoNext, 4);
+    s32 propSize = readData<s32>(file);
+    s32 nbChunks = readData<s32>(file);
 
-    file->read(&nbChunks, 4);
     //std::cout << "NB = -> " << nbChunks << std::endl;
 
     file->seek(1, true);
 
-    int chunkId = 0;
+    s32 chunkId = 0;
 
     while(1)
     {
-        unsigned short propertyID, propertyTypeID;
+        u16 propertyID, propertyTypeID;
         file->read(&propertyID, 2);
         file->read(&propertyTypeID, 2);
 
-        if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
+        // invalid property = next chunk
+        if (propertyID == 0 || propertyTypeID == 0 || propertyID >= Strings.size() || propertyTypeID >= Strings.size())
         {
             meshes.push_back(meshInfos);
             chunkId++;
@@ -631,7 +609,7 @@ core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::I
                 break;
             else
             {
-                SMeshInfos newMeshInfos = createSMeshInfos();
+                SMeshInfos newMeshInfos;
                 newMeshInfos.vertexType = meshInfos.vertexType;
                 newMeshInfos.numBonesPerVertex = meshInfos.numBonesPerVertex;
                 meshInfos = newMeshInfos;
@@ -686,7 +664,7 @@ core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::I
             ReadUnknowProperty(file);
     }
 
-    file->seek(back + sizeToGoNext);
+    file->seek(back + propSize);
 
 
     return meshes;
@@ -694,19 +672,18 @@ core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::I
 
 void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBufferInfos* buffer)
 {
-    int back = file->getPos();
+    const long back = file->getPos();
 
-    int sizeToGoToNext;
-    file->read(&sizeToGoToNext, 4);
+    s32 propSize = readData<s32>(file);
+    s32 nbElements = readData<s32>(file); // array size (= bytes count here)
 
+    //std::cout << "nbElem = " << nbElements << ", @= " << file->getPos() << ", end @=" << back + propSize << std::endl;
 
-    file->seek(5, true);
-
-    char nbBuffers;
-    file->read(&nbBuffers, 1);
+    file->seek(1, true);
+    char nbBuffers = readData<char>(file);
 
     //for (u32 i = 0; i < nbBuffers; ++i)
-    while(file->getPos() - back < sizeToGoToNext)
+    while(file->getPos() - back < propSize)
     {
         SVertexBufferInfos buffInfos;
         file->read(&buffInfos.verticesCoordsOffset, 4);
@@ -724,7 +701,7 @@ void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBuffer
 
         buffer->verticesBuffer.push_back(buffInfos);
     }
-    file->seek(back + sizeToGoToNext);
+    file->seek(back + propSize);
 }
 
 video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file)
@@ -733,8 +710,7 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
     video::SMaterial mat;
     mat.MaterialType = video::EMT_SOLID;
 
-    int nbProperty;
-    file->read(&nbProperty, 4);
+    s32 nbProperty = readData<s32>(file);
     //std::cout << "nb property = " << nbProperty << std::endl;
     //std::cout << "adress = " << file->getPos() << std::endl;
 
@@ -742,12 +718,11 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
     for (u32 i = 0; i < nbProperty; ++i)
     {
         log->addAndPush("property...");
-        const int back = file->getPos();
+        const s32 back = file->getPos();
 
-        int sizeToGoToNext;
-        file->read(&sizeToGoToNext, 4);
+        s32 propSize = readData<s32>(file);
 
-        unsigned short propId, propTypeId;
+        u16 propId, propTypeId;
         file->read(&propId, 2);
         file->read(&propTypeId, 2);
 
@@ -756,12 +731,10 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
 
         //std::cout << "The property is " << Strings[propId].c_str() << " of the type " << Strings[propTypeId].c_str() << std::endl;
 
-        const int textureLayer = getTextureLayerFromTextureType(Strings[propId]);
+        const s32 textureLayer = getTextureLayerFromTextureType(Strings[propId]);
         if (textureLayer != -1)
         {
-
-            unsigned char texId;
-            file->read(&texId, 1);
+            u8 texId = readData<u8>(file);
             texId = 255 - texId;
 
             if (texId < Files.size())
@@ -785,7 +758,7 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
             }
         }
 
-        file->seek(back + sizeToGoToNext);
+        file->seek(back + propSize);
         log->addAndPush("OK\n");
     }
 
@@ -796,12 +769,11 @@ video::SMaterial CW3ENTMeshFileLoader::ReadIMaterialProperty(io::IReadFile* file
 
 core::array<core::vector3df> CW3ENTMeshFileLoader::ReadBonesPosition(io::IReadFile* file)
 {
-    int back = file->getPos();
+    const long back = file->getPos();
 
-    int sizeToGoNext, nbBones;
-    file->read(&sizeToGoNext, 4);
+    s32 propSize = readData<s32>(file);
+    s32 nbBones = readData<s32>(file);
 
-    file->read(&nbBones, 4);
     file->seek(1, true);
 
     core::array<core::vector3df> positions;
@@ -822,33 +794,32 @@ core::array<core::vector3df> CW3ENTMeshFileLoader::ReadBonesPosition(io::IReadFi
         //std::cout << "position = " << x << ", " << y << ", " << z << ", " << w << std::endl;
         file->seek(3, true);
     }
-    file->seek(back + sizeToGoNext);
+    file->seek(back + propSize);
     return positions;
 }
 
 SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* file)
 {
-    SBufferInfos bufferInfos = createSBufferInfo();
+    SBufferInfos bufferInfos;
 
-    int back = file->getPos();
+    s32 back = file->getPos();
 
-    int sizeToGoNext;
-    file->read(&sizeToGoNext, 4);
+    s32 propSize = readData<s32>(file);
 
     file->seek(1, true);
 
     while(1)
     {
-        unsigned short propertyID, propertyTypeID;
+        u16 propertyID, propertyTypeID;
         file->read(&propertyID, 2);
         file->read(&propertyTypeID, 2);
 
-        if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
+        if (propertyID == 0 || propertyTypeID == 0 || propertyID >= Strings.size() || propertyTypeID >= Strings.size())
         {
             break;
         }
 
-        //std::cout << "@" << file->getPos() <<", property = " << Strings[propertyID].c_str() << ", type = " << Strings[propertyTypeID].c_str() << std::endl;
+        std::cout << "@" << file->getPos() <<", property = " << Strings[propertyID].c_str() << ", type = " << Strings[propertyTypeID].c_str() << std::endl;
 
         core::stringc property = Strings[propertyID];
 
@@ -885,7 +856,7 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
             ReadUnknowProperty(file);
     }
 
-    file->seek(back + sizeToGoNext);
+    file->seek(back + propSize);
 
     return bufferInfos;
 }
@@ -901,7 +872,7 @@ CSkeleton CW3ENTMeshFileLoader::W3_CMimicFace(io::IReadFile* file, W3_DataInfos 
 
     while (1)
     {
-        unsigned short propertyID, propertyTypeID;
+        u16 propertyID, propertyTypeID;
         file->read(&propertyID, 2);
         file->read(&propertyTypeID, 2);
 
@@ -928,7 +899,7 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
 
     while (1)
     {
-        unsigned short propertyID, propertyTypeID;
+        u16 propertyID, propertyTypeID;
         file->read(&propertyID, 2);
         file->read(&propertyTypeID, 2);
 
@@ -938,29 +909,28 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
         core::stringc property = Strings[propertyID];
         core::stringc propertyType = Strings[propertyTypeID];
 
-        std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
 
         if (property == "bones")
         {
-            const int back = file->getPos();
+            const s32 back = file->getPos();
 
-            int sizeToNext, nbBones;
-            file->read(&sizeToNext, 4);
-            file->read(&nbBones, 4);
+            s32 propSize = readData<s32>(file);
+            s32 nbBones = readData<s32>(file);
+
             file->seek(1, true);
 
             skeleton.nbBones = nbBones;
 
-            for (int i = 0; i < nbBones; ++i)
+            for (s32 i = 0; i < nbBones; ++i)
             {
                 file->seek(4, true);    // refer to string table : name + StringANSI
-                int size;
-                file->read(&size, 4);
+                s32 size = readData<s32>(file);
                 file->seek(1, true); // a char with word size
 
                 size -= 5; // 5 characters readed
 
-                core::stringc name = readWord(file, size);
+                core::stringc name = readString(file, size);
                 skeleton.names.push_back(name);
 
                 std::cout << "name=" << name.c_str() << std::endl;
@@ -968,21 +938,19 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
                 file->seek(13, true); // nameAsCName + CName + size + CName string ID + 3 0x00 octets
             }
 
-            file->seek(back + sizeToNext);
+            file->seek(back + propSize);
 
 
         }
         else if (property == "parentIndices")
         {
-            int sizeToNext, nbBones;
-            file->read(&sizeToNext, 4);
+            s32 propSize = readData<s32>(file);
+            //std::cout << "end supposed to be at " << file->getPos() + propSize - 4 << std::endl;
+            s32 nbBones = readData<s32>(file);
 
-            //std::cout << "end supposed to be at " << file->getPos() + sizeToNext - 4 << std::endl;
-            file->read(&nbBones, 4);
-            for (int i = 0; i < nbBones; ++i)
+            for (s32 i = 0; i < nbBones; ++i)
             {
-                short parentId;
-                file->read(&parentId, 2);
+                s16 parentId = readData<s16>(file);
                 //std::cout << "parent ID=" << parentId << std::endl;
 
                 skeleton.parentId.push_back(parentId);
@@ -1007,8 +975,7 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
             if (m == 3 || m == 7 || m == 11)
                 m++;
 
-            float value;
-            file->read(&value, 4);
+            float value = readData<float>(file);
             //mat[m] = value;
             //std::cout << value << std::endl;
             m++;
@@ -1031,9 +998,9 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
 
     while (1)
     {
-        core::array<unsigned short> propertyData = readUnsignedShorts(file, 2);
-        unsigned short propertyID = propertyData[0];
-        unsigned short propertyTypeID = propertyData[1];
+        core::array<u16> propertyData = readDataArray<u16>(file, 2);
+        u16 propertyID = propertyData[0];
+        u16 propertyTypeID = propertyData[1];
 
         if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
             break;
@@ -1046,8 +1013,7 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
         if (property == "mesh")
         {
             file->seek(4, true); // size to skip
-            char fileId;
-            file->read(&fileId, 1);
+            s8 fileId = readData<s8>(file);
             fileId = 255 - fileId;
             file->seek(3, true);
             scene::ISkinnedMesh* mesh = ReadW2MESHFile(GamePath + Files[fileId]);
@@ -1070,9 +1036,9 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
 
     while (1)
     {
-        core::array<unsigned short> propertyData = readUnsignedShorts(file, 2);
-        unsigned short propertyID = propertyData[0];
-        unsigned short propertyTypeID = propertyData[1];
+        core::array<u16> propertyData = readDataArray<u16>(file, 2);
+        u16 propertyID = propertyData[0];
+        u16 propertyTypeID = propertyData[1];
 
         if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
             break;
@@ -1084,19 +1050,18 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
 
         if (property == "flatCompiledData")
         {
-            s32 sizeToNext;
             file->seek(4, true);
-            file->read(&sizeToNext, 4);
-            sizeToNext -= 4;
+            s32 propSize = readData<s32>(file);
+            propSize -= 4;
 
 
             //std::cout << file->getPos() << std::endl;
 
-            unsigned char data[sizeToNext];
-            file->read(&data[0], sizeToNext);
+            unsigned char data[propSize];
+            file->read(&data[0], propSize);
 
 
-            io::IReadFile* entityFile = SceneManager->getFileSystem()->createMemoryReadFile(data, sizeToNext, "tmpMemFile.w2ent_MEMORY", true);
+            io::IReadFile* entityFile = SceneManager->getFileSystem()->createMemoryReadFile(data, propSize, "tmpMemFile.w2ent_MEMORY", true);
             if (!entityFile)
                 log->addAndPush("fail\n");
             //SceneManager->getMesh(entityFile);
@@ -1124,9 +1089,8 @@ bool CW3ENTMeshFileLoader::checkBones(io::IReadFile* file, char nbBones)
     const long back = file->getPos();
     for (char i = 0; i < nbBones; ++i)
     {
-        unsigned short jointName;
-        file->read(&jointName, 2);
-        if (jointName == 0 || jointName >= Strings.size())
+        u16 jos32Name = readData<u16>(file);
+        if (jos32Name == 0 || jos32Name >= Strings.size())
         {
             file->seek(back);
             return false;
@@ -1139,11 +1103,9 @@ bool CW3ENTMeshFileLoader::checkBones(io::IReadFile* file, char nbBones)
 
 char readBonesNumber(io::IReadFile* file)
 {
-    char nbBones;
-    file->read(&nbBones, 1);
+    s8 nbBones = readData<s8>(file);
 
-    char o;
-    file->read(&o, 1);
+    s8 o = readData<s8>(file);
     if (o != 1)
         file->seek(-1, true);
 
@@ -1154,7 +1116,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 {
     log->addAndPush("W3_CMesh\n");
 
-    SBufferInfos bufferInfos = createSBufferInfo();
+    SBufferInfos bufferInfos;
     core::array<SMeshInfos> meshes;
 
     bool isStatic = false;
@@ -1163,9 +1125,9 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
     while (1)
     {
-        core::array<unsigned short> propertyData = readUnsignedShorts(file, 2);
-        unsigned short propertyID = propertyData[0];
-        unsigned short propertyTypeID = propertyData[1];
+        core::array<u16> propertyData = readDataArray<u16>(file, 2);
+        u16 propertyID = propertyData[0];
+        u16 propertyTypeID = propertyData[1];
 
         if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
             break;
@@ -1273,20 +1235,19 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
     // Name of the bones
     char nbBones = readBonesNumber(file);
 
-    //log->addAndPush("nbBones = " + (int)nbBones);
+    //log->addAndPush("nbBones = " + (s32)nbBones);
     //std::cout << "m size= " << meshes.size() << std::endl;
 
     for (char i = 0; i < nbBones; ++i)
     {
-        unsigned short jointName;
-        file->read(&jointName, 2);
+        u16 jointName = readData<u16>(file);
         log->addAndPush(core::stringc("string id = ") + toStr(jointName) + "\n");
 
         scene::ISkinnedMesh::SJoint* joint = 0;
-        //if (!AnimatedMesh->getJointCount())
+        //if (!AnimatedMesh->getJos32Count())
              joint = AnimatedMesh->addJoint();
         //else
-        //     joint = AnimatedMesh->addJoint(AnimatedMesh->getAllJoints()[0]);
+        //     jos32 = AnimatedMesh->addJos32(AnimatedMesh->getAllJos32s()[0]);
         joint->Name = Strings[jointName];
     }
 
@@ -1300,9 +1261,7 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
         // the matrix
         for (u32 j = 0; j < 16; ++j)
         {
-            float value;
-            file->read(&value, 4);
-
+            float value = readData<float>(file);
             matrix[j] = value;
         }
 
@@ -1311,15 +1270,15 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
         core::matrix4 matr = matrix;
 
 
-        irr::core::vector3df position = matr.getTranslation();
-        irr::core::matrix4 invRot;
+        core::vector3df position = matr.getTranslation();
+        core::matrix4 invRot;
         matr.getInverse(invRot);
         invRot.rotateVect(position);
 
         core::vector3df rotation = invRot.getRotationDegrees();
         rotation = core::vector3df(0, 0, 0);
         position = - position;
-        irr::core::vector3df scale = matr.getScale();
+        core::vector3df scale = matr.getScale();
 
         if (joint)
         {
@@ -1345,18 +1304,16 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
      readBonesNumber(file);
      for (char i = 0; i < nbBones; ++i)
      {
-         float value;
-         file->read(&value, 4);   // ??
+         float value = readData<float>(file);
          log->addAndPush(core::stringc("value = ") + toStr(value) + "\n");
      }
 
-     // 1 int par bone. parent ID ? no
+     // 1 s32 par bone. parent ID ? no
      readBonesNumber(file);
      for (char i = 0; i < nbBones; ++i)
      {
-         u32 parent;
-         file->read(&parent, 4);
-         //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
+         u32 parent = readData<u32>(file);
+         //std::cout << "= " << jos32s[parent]->Name.c_str() << "->" << jos32s[i]->Name.c_str() << std::endl;
      }
      log->addAndPush("Bones loaded\n");
 }
@@ -1413,14 +1370,14 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
 
     video::SMaterial mat;
 
-    const int endOfChunk = infos.adress + infos.size;
+    const s32 endOfChunk = infos.adress + infos.size;
 
     while (file->getPos() < endOfChunk)
     {
         log->addAndPush("Read property...");
-        core::array<unsigned short> propertyData = readUnsignedShorts(file, 2);
-        unsigned short propertyID = propertyData[0];
-        unsigned short propertyTypeID = propertyData[1];
+        core::array<u16> propertyData = readDataArray<u16>(file, 2);
+        u16 propertyID = propertyData[0];
+        u16 propertyTypeID = propertyData[1];
 
         if (propertyID == 0 || propertyTypeID == 0 || propertyID > Strings.size() || propertyTypeID > Strings.size())
         {
@@ -1439,8 +1396,7 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
         {
             file->seek(4, true);
 
-            unsigned char fileId;
-            file->read(&fileId, 1);
+            u8 fileId = readData<u8>(file);
             fileId = 255 - fileId;
 
             file->seek(3, true);
@@ -1466,11 +1422,11 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
 
 bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
 {
-    readWord(file,4); // CR2W
+    readString(file,4); // CR2W
 
-    core::array<int> data = readInts(file, 10);
+    core::array<s32> data = readDataArray<s32>(file, 10);
 
-    const int fileFormatVersion = data[0];
+    const s32 fileFormatVersion = data[0];
     if (fileFormatVersion == 162)
     {
         return W3_load(file);
@@ -1492,8 +1448,6 @@ video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
     video::ITexture* texture = 0;
 
     // Check for textures extracted with the LUA tools
-    if (FileSystem->existFile(filename))
-
     filename = baseFilename + core::stringc(".dds");
     filename.replace("\\", "#");
     filename = GameTexturesPath + filename;
@@ -1528,85 +1482,7 @@ video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
     return texture;
 }
 
-
-// Read functions
-core::stringc CW3ENTMeshFileLoader::readWord(io::IReadFile* f, int nbLetters)
-{
-    core::stringc str;
-
-    char buf;
-    for (int i = 0; i < nbLetters; ++i)
-    {
-        f->read(&buf, 1);
-        if (buf != 0)
-        {
-            str += buf;
-            if (str.size() > 300)
-               break;
-        }
-    }
-
-    return str;
-}
-
-core::array<int> CW3ENTMeshFileLoader::readInts (io::IReadFile* f, int nbInt)
-{
-    core::array<int> intVect;
-    int buf;
-
-    for (int i = 0; i < nbInt; ++i)
-    {
-        f->read(&buf, 4);
-        intVect.push_back(buf);
-    }
-
-    return intVect;
-}
-
-core::array<unsigned short> CW3ENTMeshFileLoader::readUnsignedShorts (io::IReadFile* f, int nbShorts)
-{
-    core::array<unsigned short> unShortVect;
-    unsigned short buf;
-
-    for (int i = 0; i < nbShorts; ++i)
-    {
-        f->read(&buf, 2);
-        unShortVect.push_back(buf);
-    }
-
-    return unShortVect;
-}
-
-core::array<unsigned char> CW3ENTMeshFileLoader::readUnsignedChars (io::IReadFile* f, int nbChar)
-{
-    core::array<unsigned char> unCharVect;
-    unsigned char buf;
-
-    for (int i = 0; i < nbChar; ++i)
-    {
-        f->read(&buf, 1);
-        unCharVect.push_back(buf);
-    }
-
-    return unCharVect;
-}
-
-core::array<float> CW3ENTMeshFileLoader::readFloats (io::IReadFile* f, int nbFloat)
-{
-    core::array<float> floatVect;
-    float buf;
-
-    for (int i = 0; i < nbFloat; ++i)
-    {
-        f->read(&buf, 4);
-        floatVect.push_back(buf);
-    }
-
-    return floatVect;
-}
-
-
-int CW3ENTMeshFileLoader::getTextureLayerFromTextureType(core::stringc textureType)
+s32 CW3ENTMeshFileLoader::getTextureLayerFromTextureType(core::stringc textureType)
 {
     if (textureType == "Diffuse")
         return 0;

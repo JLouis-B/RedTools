@@ -31,6 +31,10 @@ enum EMeshVertexType
 // Information to load a mesh from the buffer
 struct SMeshInfos
 {
+    SMeshInfos() : numVertices(0), numIndices(0), numBonesPerVertex(4), firstVertex(0), firstIndice(0), vertexType(EMVT_STATIC), materialID(0)
+    {
+    }
+
     u32 numVertices;
     u32 numIndices;
     u32 numBonesPerVertex;
@@ -46,6 +50,10 @@ struct SMeshInfos
 // Informations about the .buffer file
 struct SVertexBufferInfos
 {
+    SVertexBufferInfos() : verticesCoordsOffset(0), uvOffset(0), normalsOffset(0), nbVertices(0)
+    {
+    }
+
     u32 verticesCoordsOffset;
     u32 uvOffset;
     u32 normalsOffset;
@@ -55,6 +63,11 @@ struct SVertexBufferInfos
 
 struct SBufferInfos
 {
+    SBufferInfos() : verticesBufferOffset(0), verticesBufferSize(0), indicesBufferOffset(0), indicesBufferSize(0),
+        quantizationScale(core::vector3df(1, 1, 1)), quantizationOffset(core::vector3df(0, 0, 0)), verticesBuffer(core::array<SVertexBufferInfos>())
+    {
+    }
+
     u32 verticesBufferOffset;
     u32 verticesBufferSize;
 
@@ -142,12 +155,8 @@ private:
 
     // Read functions
     core::stringc readStringUntilNull(io::IReadFile* file);
+    core::stringc readString(io::IReadFile* f, int nbLetter);
 
-    core::stringc readWord(io::IReadFile* f, int nbLetter);
-    core::array<int> readInts (io::IReadFile* f, int nbInt);
-    core::array<unsigned short> readUnsignedShorts (io::IReadFile* f, int nbShorts);
-    core::array<unsigned char> readUnsignedChars (io::IReadFile* f, int nbChar);
-    core::array<float> readFloats (io::IReadFile* f, int nbInt);
 
 
     // Strings table
@@ -159,10 +168,6 @@ private:
 
     int getTextureLayerFromTextureType(core::stringc textureType);
     core::stringc searchParent(core::stringc bonename);
-
-
-    SMeshInfos createSMeshInfos();
-    SBufferInfos createSBufferInfo();
 
     // To read the properties
     SBufferInfos ReadSMeshCookedDataProperty(io::IReadFile* file);

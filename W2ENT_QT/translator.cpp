@@ -1,49 +1,56 @@
 #include "translator.h"
 
-
-
 QWidget* Translator::_parent = 0;
+QMap<QString, QString> Translator::_trad;
 
 void Translator::setParentWidget(QWidget* parent)
 {
     Translator::_parent = parent;
 }
 
-QString Translator::findTranslation(QString element, QString langFile)
+QMap<QString, QString> Translator::loadLanguage(const QString file)
 {
-    if (langFile == "")
-        langFile = Settings::_language;
+    QDomDocument dom("translation");
+    QFile xmlFile(file);
 
-    QDomDocument *dom = new QDomDocument("translation");
-    QFile xml_doc(langFile);
-    QString translation = "null";
-
-    if(!xml_doc.open(QIODevice::ReadOnly))
+    if(!xmlFile.open(QIODevice::ReadOnly))
     {
-         QMessageBox::warning(_parent,"Erreur", "Erreur XML");
+         QMessageBox::warning(_parent, "Error", "XML error : File " + file + " can't be read");
     }
-    if (!dom->setContent(&xml_doc))
+    if (!dom.setContent(&xmlFile))
     {
-        xml_doc.close();
-        QMessageBox::warning(_parent, "Erreur", "Erreur XML");
+        xmlFile.close();
+        QMessageBox::warning(_parent, "Error", "XML error : Can't create the DOM");
     }
-    QDomElement dom_element = dom->documentElement();
-    QDomNode node = dom_element.firstChild();
+    QDomElement domElement = dom.documentElement();
+    QDomNode node = domElement.firstChild();
 
+    QMap<QString, QString> translation;
     while(!node.isNull())
     {
-        if(!dom_element.isNull() && node.nodeName() == "element")
+        if(!domElement.isNull() && node.nodeName() == "element")
         {
-            if (element == node.firstChildElement("name").text())
-            {
-                delete dom;
-                translation = node.firstChildElement("text").text();
-                return translation;
-            }
+            translation.insert(node.firstChildElement("name").text(), node.firstChildElement("text").text());
         }
         node = node.nextSibling();
     }
+    xmlFile.close();
 
-    xml_doc.close();
-    delete dom;
+    return translation;
+}
+
+void Translator::loadCurrentLanguage()
+{
+    const QString file = Settings::_language;
+    _trad = loadLanguage(file);
+}
+
+
+QString Translator::findTranslation(QString element)
+{
+    const QMap<QString, QString>::iterator it = _trad.find(element);
+    if (it == _trad.end())
+        return "null";
+    else
+        return it.value();
 }

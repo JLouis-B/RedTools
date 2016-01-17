@@ -1,6 +1,7 @@
 #ifndef TW1BIFEXTRACTORUI_H
 #define TW1BIFEXTRACTORUI_H
 
+#include "tw1bifextractor.h"
 #include <QDialog>
 #include <QFileDialog>
 #include <QtConcurrent>
@@ -18,7 +19,9 @@ public:
     ~tw1bifextractorUI();
 
 private:
-    Ui::tw1bifextractorUI *ui;
+    Ui::tw1bifextractorUI *_ui;
+    QThread* _thread;
+    TW1bifExtractor* _extractor;
 
 public slots:
     void destroyWindow();
@@ -28,6 +31,9 @@ public slots:
 
     void extractSetProgress(int value);
     void extractEnd();
+    void extractFail();
+
+    void killExtractThread();
 };
 
 #endif // TW1BIFEXTRACTORUI_H

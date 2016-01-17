@@ -13,9 +13,13 @@
 class Translator
 {
     static QWidget* _parent;
+    static QMap<QString, QString> _trad;
+    static QMap<QString, QString> loadLanguage(QString file);
+
 public:
     static void setParentWidget(QWidget *parent);
-    static QString findTranslation(QString element, QString langFile = QString());
+    static QString findTranslation(QString element);
+    static void loadCurrentLanguage();
 };
 
 #endif // TRANSLATOR_H

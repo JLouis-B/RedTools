@@ -23,6 +23,7 @@
 #include "CW3ENTMeshFileLoader.h"
 #include "CREMeshFileLoader.h"
 #include "CREMeshWriter.h"
+#include "CWitcherMDLMeshFileLoader.h"
 
 // Assimp is used to load many file formats. You can disable it with this define
 #define COMPILE_WITH_ASSIMP

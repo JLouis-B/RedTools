@@ -36,7 +36,8 @@ SOURCES += main.cpp\
     settings.cpp \
     meshcombiner.cpp \
     tw1bifextractor.cpp \
-    tw1bifextractorui.cpp
+    tw1bifextractorui.cpp \
+    CWitcherMDLMeshFileLoader.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -61,7 +62,8 @@ HEADERS  += mainwindow.h \
     halffloat.h \
     meshcombiner.h \
     tw1bifextractor.h \
-    tw1bifextractorui.h
+    tw1bifextractorui.h \
+    CWitcherMDLMeshFileLoader.h
 
 FORMS    += mainwindow.ui \
     options.ui \

@@ -322,6 +322,7 @@ void QIrrlichtWidget::init ()
 
         _reWriter = new CREMeshWriter(_device->getSceneManager(), _device->getFileSystem());
 
+        _device->getSceneManager()->addExternalMeshLoader(new CWitcherMDLMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new CREMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new CW2ENTMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new CW3ENTMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));

@@ -17,6 +17,8 @@
 
 #include <sstream>
 
+#include "LoadersUtils.h"
+
 //#define _DEBUG
 
 
@@ -27,57 +29,10 @@ core::stringc toStr(const T& t) {
    return core::stringc(os.str().c_str());
 }
 
-template <class T>
-T readData(io::IReadFile* f)
-{
-    T buf;
-    f->read(&buf, sizeof(T));
-    return buf;
-}
-
-template <class T>
-core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
-{
-    core::array<T> values;
-    for (s32 i = 0; i < nbElem; ++i)
-        values.push_back(readData<T>(f));
-
-    return values;
-}
-
 namespace irr
 {
 namespace scene
 {
-
-core::stringc CW3ENTMeshFileLoader::readStringUntilNull(io::IReadFile* file)
-{
-    core::stringc returnedString;
-    char c;
-    while (1) {
-       file->read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
-
-    return returnedString;
-}
-
-core::stringc CW3ENTMeshFileLoader::readString(io::IReadFile* f, s32 nbLetters)
-{
-    core::stringc str;
-
-    char buf;
-    for (s32 i = 0; i < nbLetters; ++i)
-    {
-        f->read(&buf, 1);
-        if (buf != 0)
-            str.append(buf);
-    }
-
-    return str;
-}
 
 //! Constructor
 CW3ENTMeshFileLoader::CW3ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)

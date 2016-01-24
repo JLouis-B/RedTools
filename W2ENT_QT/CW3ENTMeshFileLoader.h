@@ -153,11 +153,6 @@ private:
 
     video::ITexture* getTexture(io::path filename);
 
-    // Read functions
-    core::stringc readStringUntilNull(io::IReadFile* file);
-    core::stringc readString(io::IReadFile* f, int nbLetter);
-
-
 
     // Strings table
     core::array<core::stringc> Strings;

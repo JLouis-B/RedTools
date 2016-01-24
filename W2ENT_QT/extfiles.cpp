@@ -3,6 +3,8 @@
 
 #include "qirrlichtwidget.h"
 
+#include "LoadersUtils.h"
+
 ExtFiles::ExtFiles(QIrrlichtWidget* irrlicht, QWidget *parent) :
     QDialog(parent), _irrlicht(irrlicht),
     ui(new Ui::ExtFiles)
@@ -208,19 +210,6 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
 }
 
 // Witcher 3 -------------------------
-core::stringc readStringUntilNull(io::IReadFile* file)
-{
-    core::stringc returnedString;
-    char c;
-    while (1) {
-       file->read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
-
-    return returnedString;
-}
 
 bool isAFile(core::stringc string)
 {

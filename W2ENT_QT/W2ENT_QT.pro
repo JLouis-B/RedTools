@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     meshcombiner.cpp \
     tw1bifextractor.cpp \
     tw1bifextractorui.cpp \
-    CWitcherMDLMeshFileLoader.cpp
+    CWitcherMDLMeshFileLoader.cpp \
+    LoadersUtils.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -63,7 +64,8 @@ HEADERS  += mainwindow.h \
     meshcombiner.h \
     tw1bifextractor.h \
     tw1bifextractorui.h \
-    CWitcherMDLMeshFileLoader.h
+    CWitcherMDLMeshFileLoader.h \
+    LoadersUtils.h
 
 FORMS    += mainwindow.ui \
     options.ui \
@@ -74,12 +76,12 @@ FORMS    += mainwindow.ui \
     tw1bifextractorui.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5226-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5226-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5110-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5110-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\Assimp\CB-BUILD\code\libassimp.dll.a
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\Assimp\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\CB_build\code\libassimp.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
 
 DISTFILES += \
     app.rc

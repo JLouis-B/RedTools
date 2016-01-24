@@ -14,6 +14,8 @@
 #include "IReadFile.h"
 #include "IWriteFile.h"
 
+#include "LoadersUtils.h"
+
 #include <sstream>
 
 //#define _DEBUG
@@ -431,25 +433,24 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
 {
     int back = file->getPos();
 
-    readWord(file,4); // CR2W
+    readString(file, 4); // CR2W
 
-    core::array<int> header = readInts(file, 10);
+    core::array<s32> header = readDataArray<s32>(file, 10);
 
     const int fileFormatVersion = header[0];
 
-    // Strings of elements
+    // Strings list
     file->seek(back + header[2]);
-    for (int i = 0; i < header[3]; ++i) // This first list is a list of various strings ("Strings")
-    {                                  // In the file, all the strings will be referenced by the index of the string on this table
-        Strings.push_back(readWord(file, readUnsignedChars(file, 1)[0] -128)); // -128 = unsigned to signed (I suppose...)
-    }
+    for (int i = 0; i < header[3]; ++i)
+        Strings.push_back(readString(file, readData<u8>(file) -128));
+
     log->addAndPush("Table 1 OK\n");
 
     // This list is the list of all the externals files used by the file
     file->seek(back + header[6]);    
     for (int i = 0; i < header[7]; ++i)
     {
-        core::array<unsigned char> format_name = readUnsignedChars(file, 2);
+        core::array<u8> format_name = readDataArray<u8>(file, 2);
         unsigned char size      = format_name[0];
         unsigned char offset    = format_name[1];
 
@@ -458,8 +459,8 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
         if (offset == 1)
             file->seek(1, true);
 
-        core::stringc filename = readWord(file, size);
-        /*int index = */readInts(file, 1)/*[0]-1*/;
+        core::stringc filename = readString(file, size);
+        file->seek(4, true);    //int index = readInts(file, 1)-1;
         // Type of the file (Cmesh, CmaterielInstance...)
         // core::stringc file_type = Strings[index];
 
@@ -495,10 +496,10 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
     for(int i = 0; i < header[5]; ++i) // Now, the list of all the components of the files
     {
         // Read data
-        unsigned short dataTypeId = readUnsignedShorts(file, 1)[0] - 1;    // Data type
+        unsigned short dataTypeId = readData<u16>(file) - 1;    // Data type
         core::stringc dataType = Strings[dataTypeId];
 
-        core::array<int> data2 = readInts(file, 5);             // Data info (adress...)
+        core::array<s32> data2 = readDataArray<s32>(file, 5);             // Data info (adress...)
 
         DataInfos infos;
         infos.size = data2[1];
@@ -508,7 +509,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
 
         if (data2[0] == 0)
         {
-            unsigned char size = readUnsignedChars(file, 1)[0]-128;
+            unsigned char size = readData<u8>(file) - 128;
 
             unsigned char offset;
             file->read(&offset, 1);
@@ -518,11 +519,11 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
             if (offset == 1)
                 file->seek(1, true);
 
-            mesh_source = readWord(file, size);
+            mesh_source = readString(file, size);
         }
         else
         {
-            readUnsignedChars(file, 1); //readUnsignedChars(file, 1)[0]-128;
+            file->seek(1, true);    //readUnsignedChars(file, 1)[0]-128;
         }
 
         if (!find(chunks, dataType))    //check if 'name' is already in 'chuncks'. If this is not the case, name is added in chunk
@@ -620,14 +621,14 @@ void CW2ENTMeshFileLoader::CSkeleton(io::IReadFile* file, DataInfos infos)
         if (propertyId >= Strings.size() || propertyTypeId >= Strings.size() || propertyTypeId == 0 || propertyId == 0)
             break;
 
-        core::stringc property = Strings[propertyId-1];  // Name of the propertie
-        core::stringc propertyType = Strings[propertyTypeId-1];  // Type of the propertie
+        core::stringc property = Strings[propertyId-1];  // Name of the property
+        core::stringc propertyType = Strings[propertyTypeId-1];  // Type of the property
 
         std::cout << "property=" << property.c_str() << ", type=" << propertyType.c_str() << std::endl;
 
-        unsigned short name3 = readUnsignedShorts(file, 1)[0];
+        u16 name3 = readData<u16>(file);
 
-        int seek = readInts(file, 1)[0];
+        s32 seek = readData<s32>(file);
         file->seek(seek - 4, true);
         if (property == "importFile")
             break;
@@ -656,21 +657,28 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
     // Read all the properties of the mesh
     while(1)
     {
-        core::stringc propertyName = Strings[readUnsignedShorts(file, 1)[0]-1];  // Name of the propertie
-        core::stringc propertyType = Strings[readUnsignedShorts(file, 1)[0]-1];  // Type of the propertie
+        unsigned short propertyId, propertyTypeId;
+        file->read(&propertyId, 2);
+        file->read(&propertyTypeId, 2);
 
-        unsigned short name3 = readUnsignedShorts(file, 1)[0];
+        if (propertyId >= Strings.size() || propertyTypeId >= Strings.size() || propertyTypeId == 0 || propertyId == 0)
+            break;
 
-        int seek = readInts(file, 1)[0];
+        core::stringc property = Strings[propertyId-1];  // Name of the property
+        core::stringc propertyType = Strings[propertyTypeId-1];  // Type of the property
+
+        u16 name3 = readData<u16>(file);
+
+        s32 seek = readData<s32>(file);
         file->seek(seek - 4, true);
-        if (propertyName == "importFile")
+        if (property == "importFile")
             break;
     }
 
     // Read the LODS data ?
     vert_format(file);
 
-    int nBones = readUnsignedChars(file, 1)[0];
+    int nbBones = readData<u8>(file);
 
     int back = file->getPos();
 
@@ -681,13 +689,13 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
         rigged = 1;
     */
 
-    unsigned char magicData = readUnsignedChars(file, 1)[0];
+    u8 magicData = readData<u8>(file);
     if (magicData != 1)
         file->seek(-1, true);
 
-    if(nBones == 128) // Why 128 ? because when we readUnsignedChars, we do -128, so here we test nBones = 0 = static
+    if(nbBones == 128) // Why 128 ? because when we readUnsignedChars, we do -128, so here we test nbBones = 0 = static
     {
-        readUnsignedChars(file, 1);
+        file->seek(1, true); //readUnsignedChars(file, 1);
         static_meshes(file, mats,nModel);
     }
     else // If the mesh isn't static
@@ -697,7 +705,7 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
         bonenames.clear();
         bones_data.clear();
 
-        for (int i = 0; i < nBones; i++)
+        for (int i = 0; i < nbBones; i++)
         {
             bone_data tmpData;
             // read matrix
@@ -709,7 +717,7 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
             }
 
             // bone name
-            unsigned short nameId = readUnsignedShorts(file, 1)[0] - 1;
+            u16 nameId = readData<u16>(file) - 1;
 
             core::stringc name = "";
             if (nameId < Strings.size())
@@ -739,13 +747,13 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
                 bones_data.push_back(tmpData);
             }
 
-            readFloats(file, 1); //float data12 = readFloats(file, 1)[0];
+            file->seek(4, true); //float data12 = readFloats(file, 1)[0];
         }
-        nBones = readUnsignedChars(file, 1)[0];
+        nbBones = readData<u8>(file);
         back = file->getPos();
-        if (readInts(file, 1)[0] > 128 || readInts(file, 1)[0] > 128)
+        if (readData<s32>(file) > 128 || readData<s32>(file) > 128)
         {
-            if (nBones != 1)
+            if (nbBones != 1)
                 file->seek(back + 1);
             else
                 file->seek(back);
@@ -753,21 +761,20 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
         else
             file->seek(back);
 
-        for (int i = 0; i < nBones; i++)
-            readInts(file, 1);
+        readDataArray<s32>(file, nbBones);
 
-        int seek = file->getPos() + readInts(file, 1)[0];
+        s32 seek = file->getPos() + readData<s32>(file);
         back = file->getPos();
         file->seek(seek);
-        core::array <int> data = readInts(file, 6);
-        NbSubMesh = readUnsignedChars(file, 1)[0];
+        core::array<s32> data = readDataArray<s32>(file, 6);
+        NbSubMesh = readData<u8>(file);
         SubMeshData.clear();
         for (unsigned int i = 0; i < NbSubMesh; i++)
         {
             Submesh_data s_data;
-            s_data.vertype = readUnsignedChars(file, 1)[0];
-            s_data.dataI = readInts(file, 4);
-            s_data.dataH = readUnsignedShorts(file, readUnsignedChars(file, 1)[0]+2);
+            s_data.vertype = readData<u8>(file);
+            s_data.dataI = readDataArray<s32>(file, 4);
+            s_data.dataH = readDataArray<u16>(file, readData<u8>(file)+2);
             SubMeshData.push_back(s_data);
 
             /*
@@ -802,23 +809,23 @@ void CW2ENTMeshFileLoader::static_meshes(io::IReadFile* file, core::array<int> m
 {
     // We read submesh infos
     int back = file->getPos();
-    int seek = readInts(file, 1)[0];
+    int seek = readData<s32>(file);
     file->seek(back + seek);
 
-    readUnsignedShorts(file, 2);
-    readInts(file, 1);
+    file->seek(4, true); //readUnsignedShorts(file, 2);
+    readData<s32>(file);
 
-    core::array <int> data = readInts(file, 4);
-    NbSubMesh = readUnsignedChars(file, 1)[0];
+    core::array<s32> data = readDataArray<s32>(file, 4);
+    NbSubMesh = readData<u8>(file);
     SubMeshData.clear();
-    int Vert_Type = readUnsignedChars(file, 1)[0];
+    int Vert_Type = readData<u8>(file);
 
     for (unsigned int i = 0; i < NbSubMesh; i++)
     {
         Submesh_data s_data;
         s_data.vertype = Vert_Type;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
-        s_data.dataI = readInts(file, 5);
-        s_data.dataH = readUnsignedShorts(file, 1);
+        s_data.dataI = readDataArray<s32>(file, 5);
+        s_data.dataH = readDataArray<u16>(file, 1);
         SubMeshData.push_back(s_data);
     }
 
@@ -827,7 +834,7 @@ void CW2ENTMeshFileLoader::static_meshes(io::IReadFile* file, core::array<int> m
 }
 
 
-void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats,int nModel)
+void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel)
 {
     log->addAndPush("Drawmesh_static\n");
 
@@ -837,9 +844,9 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
     {
         log->addAndPush("submesh\n");
 
-        core::array<core::array<float > >vertexes;
+        core::array<core::array<f32 > >vertexes;
         core::array<unsigned short > faceslist;
-        core::array<UV> uvcoord;
+        core::array<core::array<f32 > > uvcoord;
         Submesh_data var = SubMeshData[n];
         //std::cout << "var.vertype = " << var.vertype << std::endl;
 
@@ -858,26 +865,19 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
         for (int i = 0; i < VertEnd; i++)
         {
             int back1 = file->getPos();
-            core::array<float> vvv=readFloats(file, 3);
-            file->seek(back1+20);
+            core::array<f32> position = readDataArray<f32>(file, 3);
+            file->seek(8, true);
+            core::array<f32> uv = readDataArray<f32>(file, 2);
 
-            UV tmp;
-            tmp.u = readFloats(file, 1)[0];
-            tmp.v = readFloats(file, 1)[0];
-
-            uvcoord.push_back(tmp);
-            vertexes.push_back(vvv);
+            uvcoord.push_back(uv);
+            vertexes.push_back(position);
             file->seek(back1 + vertsize);
         }
         int FacesStart = var.dataI[1];
         int FacesEnd = var.dataI[3];
 
         file->seek(back+data[0]+FacesStart*2);
-        for (int i = 0; i < FacesEnd; i++)
-        {
-            core::array<unsigned short> var1 = readUnsignedShorts(file, 1);
-            faceslist.push_back(var1[0]);
-        }
+        faceslist = readDataArray<u16>(file, FacesEnd);
 
         if (n<IdLOD[0][0])
         {
@@ -895,9 +895,9 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
                 std::cout << "Vertex = " << vertexes[i][0] << ", " << vertexes[i][1] << ", " << vertexes[i][2] << std::endl;
 
 
-                buf->Vertices_Standard[i].TCoords.X = uvcoord[i].u;
-                buf->Vertices_Standard[i].TCoords.Y = uvcoord[i].v;
-                std::cout << "UV = " << uvcoord[i].u << ", " << uvcoord[i].v << std::endl;
+                buf->Vertices_Standard[i].TCoords.X = uvcoord[i][0];
+                buf->Vertices_Standard[i].TCoords.Y = uvcoord[i][1];
+                std::cout << "UV = " << uvcoord[i][0] << ", " << uvcoord[i][1] << std::endl;
 
 
                 buf->Vertices_Standard[i].Color = irr::video::SColor(255,255,255,255);
@@ -942,9 +942,9 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
 
     for (unsigned int n = 0 ; n <NbSubMesh; n++)
     {
-        core::array<core::array<float > >vertexes;
-        core::array<unsigned short > faceslist;
-        core::array<UV> uvcoord;
+        core::array<core::array<f32 > >vertexes;
+        core::array<u16 > faceslist;
+        core::array<core::array<f32 > > uvcoord;
         core::array<core::array<unsigned char> > weighting;
         // std::cout << "var.vertype = " << SubMeshData[n].vertype << std::endl;
         int vertsize = 0;
@@ -963,29 +963,23 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
         for (int i = 0; i < VertEnd; i++)
         {
             int back1 = file->getPos();
-            core::array<float> vertex=readFloats(file, 3);
-            weighting.push_back(readUnsignedChars(file, 8));
+            core::array<f32> position = readDataArray<f32>(file, 3);
+            weighting.push_back(readDataArray<u8>(file, 8));
+            file->seek(8, true);
+            core::array<f32> uv = readDataArray<f32>(file, 2);
 
-            file->seek(back1+28);
-            UV uv_data;
-            uv_data.u = readFloats(file, 1)[0];
-            uv_data.v = readFloats(file, 1)[0]; //
-            uvcoord.push_back(uv_data);
-            vertexes.push_back(vertex);
+            uvcoord.push_back(uv);
+            vertexes.push_back(position);
             file->seek(back1+vertsize);
         }
 
         int FacesStart = var.dataI[1];
         int FacesEnd = var.dataI[3];
 
-
+        // Faces
         file->seek(back+data[2]+FacesStart*2);
+        faceslist = readDataArray<u16>(file, FacesEnd);
 
-        for (int i = 0; i < FacesEnd; i++)
-        {
-            core::array<unsigned short> var1 = readUnsignedShorts(file, 1);
-            faceslist.push_back(var1[0]);
-        }
 
         if (n<IdLOD[0][0])
         {
@@ -1002,8 +996,8 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
                 buf->Vertices_Standard[i].Pos.Y = vertexes[i][2];
                 buf->Vertices_Standard[i].Pos.Z = vertexes[i][1];
 
-                buf->Vertices_Standard[i].TCoords.X = uvcoord[i].u;
-                buf->Vertices_Standard[i].TCoords.Y = uvcoord[i].v;
+                buf->Vertices_Standard[i].TCoords.X = uvcoord[i][0];
+                buf->Vertices_Standard[i].TCoords.Y = uvcoord[i][1];
 
                 buf->Vertices_Standard[i].Color = irr::video::SColor(255,255,255,255);
             }
@@ -1032,8 +1026,6 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
 
             SceneManager->getMeshManipulator()->recalculateNormals(buf);
             buf->recalculateBoundingBox();
-
-            //Mesh->addMeshBuffer(buf);
         }
     }
 
@@ -1090,25 +1082,27 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
     tmp.id = nMats;
 
     //std::cout << "Index = " << debugIndex << std::endl;
-    core::stringc propertyName = Strings[readUnsignedShorts(file,1)[0]-1];
-    core::stringc propertyType = Strings[readUnsignedShorts(file,1)[0]-1];
-    readUnsignedChars(file, 2);
-    readInts(file, 1);
+    core::stringc propertyName = Strings[readData<u16>(file) - 1];
+    core::stringc propertyType = Strings[readData<u16>(file) - 1];
 
-    FilesTable[255-readUnsignedChars(file,1)[0]];
-    readUnsignedChars(file, 6);
+    file->seek(6, true);
+    //readUnsignedChars(file, 2);
+    //readInts(file, 1);
 
-    int nMatElement = readInts(file,1)[0];
+    FilesTable[255-readData<u8>(file)];
+    file->seek(6, true); //readUnsignedChars(file, 6);
+
+    int nMatElement = readData<s32>(file);
 
     log->addAndPush(core::stringc("nMatElement = ") + core::stringc(nMatElement) + core::stringc("\n"));
 
     for (int n = 0; n < nMatElement; n++)
     {
         back = file->getPos();
-        int seek = readInts(file,1)[0];
+        int seek = readData<s32>(file);
 
-        unsigned short propertyIndex = readUnsignedShorts(file,1)[0]-1;
-        unsigned short propertyTypeIndex = readUnsignedShorts(file,1)[0]-1;
+        unsigned short propertyIndex = readData<u16>(file)-1;
+        unsigned short propertyTypeIndex = readData<u16>(file)-1;
 
         if (propertyIndex == -1)    // if refer to the string -1, nothing to load
             return;
@@ -1118,13 +1112,13 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
 
         if (propertyType =="*ITexture")
         {
-            int imageID = readUnsignedChars(file,1)[0];
+            int imageID = readData<u8>(file);
             if (imageID>0)
             {
                 // ImageID is the index of the texture file in the FilesTable
                 //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
                 core::stringc texturePath = GamePath + FilesTable[255-imageID];
-                readUnsignedChars(file, 3);
+                file->seek(3, true); //readUnsignedChars(file, 3);
 
                 if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")
                 {
@@ -1150,7 +1144,8 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
         }
         if (propertyType =="Float")
         {
-            readFloats(file, 1)[0];
+            file->seek(4, true);
+            //readFloats(file, 1)[0];
         }
         file->seek(back + seek);
     }
@@ -1187,15 +1182,15 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     - The data : begin at data[4] and data[5] size
     */
     fileXBM->seek(0);
-    readWord(fileXBM, 4);
-    core::array<int> data = readInts(fileXBM, 10);
+    readString(fileXBM, 4);
+    core::array<s32> data = readDataArray<s32>(fileXBM, 10);
 
     //string list
     fileXBM->seek(data[2]);
     core::array<core::stringc> stringsXBM;//Strings = []
 
     for (int i = 0; i < data[3]; i++)
-        stringsXBM.push_back(readWord(fileXBM, readUnsignedChars(fileXBM, 1)[0]-128));
+        stringsXBM.push_back(readString(fileXBM, readData<u8>(fileXBM)-128));
 
     log->addAndPush("List ok\n");
 
@@ -1205,12 +1200,12 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
     for (int i = 0; i < data[5]; i++)
     {
         // The type of the data (cf stringsXBM)
-        unsigned short var = readUnsignedShorts(fileXBM, 1)[0];
+        unsigned short var = readData<u16>(fileXBM);
         // Others informations
-        core::array<int> dataInfos = readInts(fileXBM, 5);
+        core::array<s32> dataInfos = readDataArray<s32>(fileXBM, 5);
 
         int back1 = fileXBM->getPos();
-        core::array<unsigned char> data1 = readUnsignedChars(fileXBM, 2);
+        core::array<u8> data1 = readDataArray<u8>(fileXBM, 2);
         fileXBM->seek(back1);
 
         if (dataInfos[0]==0)
@@ -1222,7 +1217,7 @@ void CW2ENTMeshFileLoader::convertXBMToDDS(core::stringc xbm_file)
             if (data1[1]==1)
                 fileXBM->seek(1, true);
 
-            const core::stringc mesh_source = readWord(fileXBM, size);
+            const core::stringc mesh_source = readString(fileXBM, size);
         }
         else
             fileXBM->seek(1, true); // readUnsignedChars(file2, 1)[0]-128;
@@ -1258,27 +1253,27 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
         log->addAndPush("Read header data...\n");
 
         // name of the element
-        core::stringc propertyName = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
+        core::stringc propertyName = stringsXBM[readData<u16>(fileXBM)-1];
         // type of the element
-        core::stringc propertyType = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
+        core::stringc propertyType = stringsXBM[readData<u16>(fileXBM)-1];
 
-        readUnsignedChars(fileXBM, 2);
+        fileXBM->seek(2, true);  //readUnsignedChars(fileXBM, 2);
         int back2 = fileXBM->getPos();
 
-        int seek = readInts(fileXBM, 1)[0]; // size of the property
+        s32 seek = readData<s32>(fileXBM); // size of the property
         // The dimensions of the textures
         if (propertyName == "width" && propertyType == "Uint")
         {
-            width1 = readInts(fileXBM, 1)[0];
+            width1 = readData<s32>(fileXBM);
         }
         else if (propertyName == "height" && propertyType == "Uint")
         {
-            height1 = readInts(fileXBM, 1)[0];
+            height1 = readData<s32>(fileXBM);
         }
         // Compression format
         else if (propertyType == "ETextureCompression")
         {
-            dxt = stringsXBM[readUnsignedShorts(fileXBM, 1)[0]-1];
+            dxt = stringsXBM[readData<u16>(fileXBM)-1];
 
             if  (dxt == "TCM_DXTNoAlpha")
                 dxt = "\x44\x58\x54\x31";
@@ -1296,7 +1291,7 @@ void CW2ENTMeshFileLoader::TEXTURE(io::IReadFile* fileXBM, core::stringc filenam
     }
     log->addAndPush("Read header ok\n");
 
-    readUnsignedChars(fileXBM, 27);
+    fileXBM->seek(27, true); //readUnsignedChars(fileXBM, 27);
 
     // If a compression method has been found
     if (dxt.size() > 0)
@@ -1367,18 +1362,19 @@ void CW2ENTMeshFileLoader::vert_format(io::IReadFile* file)
     // clear the vector
     IdLOD.clear();
 
-    core::array<unsigned char> data = readUnsignedChars(file, 8);
+    core::array<u8> data = readDataArray<u8>(file, 8);
 
     // ???
     if (data[3] != 5)
         return;
 
     // Read the LODS data
-    int nLODS = readUnsignedChars(file, 1)[0];
+    int nLODS = readData<u8>(file);
     for (int i = 0; i < nLODS; i++)
     {
-        data = readUnsignedChars(file, 5);
-        readUnsignedChars(file, data[0]*2);readUnsignedChars(file, 6);
+        data = readDataArray<u8>(file, 5);
+        readDataArray<u8>(file, data[0]*2);
+        readDataArray<u8>(file, 6);
         IdLOD.push_back(data);
     }
 }
@@ -1676,88 +1672,6 @@ bool CW2ENTMeshFileLoader::find (core::array<core::stringc> stringVect, core::st
             return true;
     }
     return false;
-}
-
-
-
-
-
-
-
-// Read functions
-core::stringc CW2ENTMeshFileLoader::readWord(io::IReadFile* f, int nbLetters)
-{
-    core::stringc str;
-
-    char buf;
-    for (int i = 0; i < nbLetters; ++i)
-    {
-        f->read(&buf, 1);
-        if (buf != 0)
-        {
-            str += buf;
-            if (str.size() > 300)
-               break;
-        }
-    }
-
-    return str;
-}
-
-core::array<int> CW2ENTMeshFileLoader::readInts (io::IReadFile* f, int nbInt)
-{
-    core::array<int> intVect;
-    int buf;
-
-    for (int i = 0; i < nbInt; ++i)
-    {
-        f->read(&buf, 4);
-        intVect.push_back(buf);
-    }
-
-    return intVect;
-}
-
-core::array<unsigned short> CW2ENTMeshFileLoader::readUnsignedShorts (io::IReadFile* f, int nbShorts)
-{
-    core::array<unsigned short> unShortVect;
-    unsigned short buf;
-
-    for (int i = 0; i < nbShorts; ++i)
-    {
-        f->read(&buf, 2);
-        unShortVect.push_back(buf);
-    }
-
-    return unShortVect;
-}
-
-core::array<unsigned char> CW2ENTMeshFileLoader::readUnsignedChars (io::IReadFile* f, int nbChar)
-{
-    core::array<unsigned char> unCharVect;
-    unsigned char buf;
-
-    for (int i = 0; i < nbChar; ++i)
-    {
-        f->read(&buf, 1);
-        unCharVect.push_back(buf);
-    }
-
-    return unCharVect;
-}
-
-core::array<float> CW2ENTMeshFileLoader::readFloats (io::IReadFile* f, int nbFloat)
-{
-    core::array<float> floatVect;
-    float buf;
-
-    for (int i = 0; i < nbFloat; ++i)
-    {
-        f->read(&buf, 4);
-        floatVect.push_back(buf);
-    }
-
-    return floatVect;
 }
 
 } // end namespace scene

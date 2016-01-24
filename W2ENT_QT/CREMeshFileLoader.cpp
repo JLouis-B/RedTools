@@ -17,6 +17,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "LoadersUtils.h"
+
 //#define _DEBUG
 #ifdef _DEBUG
 #define _REREADER_DEBUG
@@ -100,12 +102,11 @@ bool CREMeshFileLoader::load(io::IReadFile* f)
     _lod1 = 0;
     _lod2 = 0;
 
-    u32 nbLOD;
-    f->read(&nbLOD, 4);
+    u32 nbLOD = readData<u32>(f);
     nbLOD--;
 
     f->seek(28);
-    s32 adress = readInts(f, 1)[0];
+    s32 adress = readData<s32>(f);
     f->seek(adress);
 
     #ifdef COMPILE_WITH_LODS_SUPPORT
@@ -133,11 +134,11 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
     core::stringc LODname;
 
     f->read(&sizeLODname, 4);
-    LODname = readWord(f, sizeLODname);
+    LODname = readString(f, sizeLODname);
 
     //f->seek(8, true);
-    s32 nbMeshBuffer = readInts(f, 1)[0];
-    s32 nbBones = readInts(f, 1)[0];
+    s32 nbMeshBuffer = readData<s32>(f);
+    s32 nbBones = readData<s32>(f);
 
 
     f->seek(adress + 52);
@@ -153,8 +154,8 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
     {
         //SMeshBufferTangents* buf = new SMeshBufferTangents();
         SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
-        s32 sizeMatName = readInts(f, 1)[0];
-        irr::core::stringc matName = readWord(f, sizeMatName);
+        s32 sizeMatName = readData<s32>(f);
+        irr::core::stringc matName = readString(f, sizeMatName);
 
         /*
         std::cout << "matname" << std::endl;
@@ -162,8 +163,8 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         std::cout << matName.c_str() << std::endl;
         */
 
-        s32 sizeMatDiff = readInts(f, 1)[0];
-        irr::core::stringc matDiff = readWord(f, sizeMatDiff);
+        s32 sizeMatDiff = readData<s32>(f);
+        irr::core::stringc matDiff = readString(f, sizeMatDiff);
 
         video::ITexture *tex = SceneManager->getVideoDriver()->getTexture(matDiff);
         if (tex)
@@ -176,15 +177,15 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         }
 
 
-        s32 sizeMatNor = readInts(f, 1)[0];
-        irr::core::stringc matNor = readWord(f, sizeMatNor);
+        s32 sizeMatNor = readData<s32>(f);
+        irr::core::stringc matNor = readString(f, sizeMatNor);
 
-        s32 sizeMatBle = readInts(f, 1)[0];
-        irr::core::stringc matBle = readWord(f, sizeMatBle);
+        s32 sizeMatBle = readData<s32>(f);
+        irr::core::stringc matBle = readString(f, sizeMatBle);
 
 
-        s32 nbVertices = readInts(f, 1)[0];
-        s32 nbFaces = readInts(f, 1)[0];
+        s32 nbVertices = readData<s32>(f);
+        s32 nbFaces = readData<s32>(f);
 
         /*
         std::cout << sizeMatBle << std::endl;
@@ -233,7 +234,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
 
 
             f->seek(16, true);
-            core::array<f32> strenghts = readFloats(f, 4);
+            core::array<f32> strenghts = readDataArray<f32>(f, 4);
             for (u32 ns = 0; ns < strenghts.size(); ++ns)
             {
                 if (strenghts[ns] != 0.0f)
@@ -242,11 +243,11 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
                     tmp.meshBufferID = n;
                     tmp.vertexID = i;
                     tmp.strenght = strenghts[ns];
-                    tmp.boneID = readFloats(f, 1)[0];
+                    tmp.boneID = readData<f32>(f);
                     weightTable.push_back(tmp);
                 }
                 else
-                    readFloats(f, 1)[0];
+                    readData<f32>(f);
             }
             // UV
             //f->seek(48, true);
@@ -331,12 +332,9 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
             #endif // _REREADER_DEBUG
         }
         buf->recalculateBoundingBox();
-        // AnimatedMesh->addMeshBuffer (buf);
     }
 
-            // Read bones
-
-
+    // Read bones
     for (int i = 0; i < nbBones; i++)
     {
         ISkinnedMesh::SJoint* root;
@@ -364,13 +362,13 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         }
 
 
-        u32 sizeJointName = readInts(f, 1)[0];
-        core::stringc jointName = readWord(f, sizeJointName);
+        u32 sizeJointName = readData<s32>(f);
+        core::stringc jointName = readString(f, sizeJointName);
 
         ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
         joint->Name = jointName;
 
-        core::array<float> jointData = readFloats(f, 12);
+        core::array<f32> jointData = readDataArray<f32>(f, 12);
         irr::core::matrix4 mat (core::matrix4::EM4CONST_IDENTITY);
 
         std::cout << joint->Name.c_str() << " : ";
@@ -439,6 +437,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
 
 }
 
+// TODO : use the new log system
 void CREMeshFileLoader::writeLog()
 {
     io::IWriteFile* log = FileSystem->createAndWriteFile("debug.log");
@@ -446,83 +445,6 @@ void CREMeshFileLoader::writeLog()
     log->drop();
 }
 
-
-
-// Read functions
-core::stringc CREMeshFileLoader::readWord(io::IReadFile* f, s32 nbLetters)
-{
-    core::stringc str;
-    c8 buf;
-    for (s32 i = 0; i < nbLetters; ++i)
-    {
-        f->read(&buf, 1);
-        if (buf != 0)
-        {
-            str += buf;
-            if (str.size() > 300)
-               break;
-        }
-    }
-
-    return str;
-}
-
-core::array<s32> CREMeshFileLoader::readInts (io::IReadFile* f, s32 nbInt)
-{
-    core::array<s32> intVect;
-    s32 buf;
-
-    for (s32 i = 0; i < nbInt; ++i)
-    {
-        f->read(&buf, 4);
-        intVect.push_back(buf);
-    }
-
-    return intVect;
-}
-
-core::array<u16> CREMeshFileLoader::readUnsignedShorts (io::IReadFile* f, s32 nbShorts)
-{
-    core::array<u16> unShortVect;
-
-    u16 buf;
-
-    for (s32 i = 0; i < nbShorts; ++i)
-    {
-        f->read(&buf, 2);
-        unShortVect.push_back(buf);
-    }
-
-    return unShortVect;
-}
-
-core::array<u8> CREMeshFileLoader::readUnsignedChars (io::IReadFile* f, s32 nbChar)
-{
-    core::array<u8> unCharVect;
-    u8 buf;
-
-    for (s32 i = 0; i < nbChar; ++i)
-    {
-        f->read(&buf, 1);
-        unCharVect.push_back(buf);
-    }
-
-    return unCharVect;
-}
-
-core::array<f32> CREMeshFileLoader::readFloats (io::IReadFile* f, s32 nbFloat)
-{
-    core::array<f32> floatVect;
-    f32 buf;
-
-    for (s32 i = 0; i < nbFloat; ++i)
-    {
-        f->read(&buf, 4);
-        floatVect.push_back(buf);
-    }
-
-    return floatVect;
-}
 
 } // end namespace scene
 } // end namespace irr

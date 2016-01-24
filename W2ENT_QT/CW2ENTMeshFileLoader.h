@@ -123,26 +123,17 @@ private:
 
     video::ITexture* getTexture(core::stringc filename);
 
-    // Read functions
-    core::stringc readWord(io::IReadFile* f, int nbLetter);
-    core::array<int> readInts (io::IReadFile* f, int nbInt);
-    core::array<unsigned short> readUnsignedShorts (io::IReadFile* f, int nbShorts);
-    core::array<unsigned char> readUnsignedChars (io::IReadFile* f, int nbChar);
-    core::array<float> readFloats (io::IReadFile* f, int nbInt);
-
     // Attributes
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
-    //scene::SAnimatedMesh* AnimatedMesh;
     scene::ISkinnedMesh* AnimatedMesh;
-	//scene::SMesh* Mesh;
 	unsigned int NbSubMesh;
 
     core::array<Submesh_data> SubMeshData;
     core::array<core::array<unsigned char> >IdLOD;
-    // Data type table
+
+
     core::array<core::stringc> Strings;
-    // External files table
     core::array<core::stringc> FilesTable;
     // Informations about a CMesh
     core::array <Meshdata> MeshesToLoad;

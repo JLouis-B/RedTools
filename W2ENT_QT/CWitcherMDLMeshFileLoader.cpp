@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#include "LoadersUtils.h"
+
 
 enum NodeType
 {
@@ -35,55 +37,6 @@ enum ControllerType
     ControllerOrientation = 96,
     ControllerScale = 184
 };
-
-
-template <class T>
-T readData(io::IReadFile* f)
-{
-    T buf;
-    f->read(&buf, sizeof(T));
-    return buf;
-}
-
-template <class T>
-core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
-{
-    core::array<T> values;
-    for (s32 i = 0; i < nbElem; ++i)
-        values.push_back(readData<T>(f));
-
-    return values;
-}
-
-core::stringc readStringUntilNullFixed(io::IReadFile* file, int count)
-{
-    core::stringc returnedString;
-    char c;
-    while (1) {
-       file->read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
-
-    file->seek(count - (returnedString.size() + 1), true);
-
-    return returnedString;
-}
-
-core::stringc readStringUntilNull2(io::IReadFile* file)
-{
-    core::stringc returnedString;
-    char c;
-    while (1) {
-       file->read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
-
-    return returnedString;
-}
 
 bool stringBeginWith(core::stringc base, core::stringc start)
 {
@@ -185,7 +138,7 @@ bool CWitcherMDLMeshFileLoader::load(io::IReadFile* file)
 
     file->seek(8, true);
 
-    core::stringc name = readStringUntilNullFixed(file, 64);
+    core::stringc name = readStringFixedSize(file, 64);
     //std::cout << "name = " << name.c_str() << std::endl;
     u32 offsetRootNode = readData<u32>(file);
 
@@ -200,14 +153,14 @@ bool CWitcherMDLMeshFileLoader::load(io::IReadFile* file)
 
     file->seek(16, true);
 
-    core::stringc detailMap = readStringUntilNullFixed(file, 64);
+    core::stringc detailMap = readStringFixedSize(file, 64);
     //std::cout << "map = " << detailMap.c_str() << std::endl;
 
     file->seek(4, true);
 
     float modelScale = readData<float>(file);
 
-    core::stringc superModel = readStringUntilNullFixed(file, 64);
+    core::stringc superModel = readStringFixedSize(file, 64);
 
     //std::cout << "superModel = " << superModel.c_str() << std::endl;
 
@@ -381,7 +334,7 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
             continue;
 
         file->seek(7, true);
-        core::stringc texture = readStringUntilNullFixed(file, 32);
+        core::stringc texture = readStringFixedSize(file, 32);
 
         ArrayDef weightsDef = readArrayDef(file);
         core::array<f32> weights = readArray<f32>(file, weightsDef);
@@ -485,7 +438,7 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
     core::stringc texture[4];
     for (u32 i = 0; i < 4; ++i)
     {
-        texture[i] = readStringUntilNullFixed(file, 64);
+        texture[i] = readStringFixedSize(file, 64);
 
         if (texture[i] == "NULL")
             texture[i] = "";
@@ -505,7 +458,7 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
     file->seek(3, true); // Unknown
     file->seek(9, true);
 
-    core::stringc dayNightTransition = readStringUntilNullFixed(file, 200);
+    core::stringc dayNightTransition = readStringFixedSize(file, 200);
 
     file->seek(2, true);
 
@@ -514,7 +467,7 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
     file->seek(12, true);
     file->seek(8, true);
 
-    core::stringc lightMapName = readStringUntilNullFixed(file, 64);
+    core::stringc lightMapName = readStringFixedSize(file, 64);
 
     // Unknown
     file->seek(4, true);
@@ -671,7 +624,7 @@ void CWitcherMDLMeshFileLoader::loadNode(io::IReadFile* file)
     file->seek(8, true); // inherit color flag + id
 
 
-    core::stringc name = readStringUntilNullFixed(file, 64);
+    core::stringc name = readStringFixedSize(file, 64);
     //std::cout << "Name=" << name.c_str() << std::endl;
 
     file->seek(8, true); // parent geometry + parent node
@@ -743,7 +696,7 @@ void CWitcherMDLMeshFileLoader::readTextures(io::IReadFile* file, core::array<co
     core::array<core::stringc> textureLine;
     for (u32 i = 0; i < textureCount; ++i)
     {
-        core::stringc line = readStringUntilNull2(file);
+        core::stringc line = readStringUntilNull(file);
         file->seek(1, true);
         line.trim();
 

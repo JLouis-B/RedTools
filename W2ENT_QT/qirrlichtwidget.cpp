@@ -514,13 +514,6 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (!_currentLodData->_node && extension != ".re")
         return;
 
-    const io::path exportPath = QSTRING_TO_PATH(exportFolder + "/" + filename + extension);
-    IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportPath);
-    if (!file)
-    {
-        feedbackMessage = "fail. Can't create the exported file";
-        return;
-    }
 
     if (Settings::_copyTexture)
     {
@@ -528,6 +521,14 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         exportFolder = exportFolder + "/" +  filename + "_export/";
         QDir dir;
         dir.mkdir(exportFolder);
+    }
+
+    const io::path exportPath = QSTRING_TO_PATH(exportFolder + "/" + filename + extension);
+    IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportPath);
+    if (!file)
+    {
+        feedbackMessage = "fail. Can't create the exported file";
+        return;
     }
 
     if (extension != ".re")

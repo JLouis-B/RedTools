@@ -71,13 +71,18 @@ void Search::search()
 }
 
 void Search::scanFolder(QString repName, int level, std::vector<QString> keywords)
-{
+{   
     level++;
 
     // search the w2ent and w2mesh file
     QDir dirFiles(repName);
     dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Files);
     dirFiles.setNameFilters(QStringList() << "*.w2mesh" << "*.w2ent" << "*.w2rig");
+
+    if (level == 1)
+    {
+        _baseDir = QDir::cleanPath(repName);
+    }
 
     foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
     {
@@ -98,7 +103,7 @@ void Search::scanFolder(QString repName, int level, std::vector<QString> keyword
             }
         }
         if (ok)
-            _ui->listWidget_results->addItem(new QListWidgetItem("{pack0}" + fileInfo.absoluteFilePath().remove(0, Settings::_pack0.size())));
+            _ui->listWidget_results->addItem(new QListWidgetItem("{pack0}" + fileInfo.absoluteFilePath().remove(0, _baseDir.size())));
     }
 
     // search in the subfolders

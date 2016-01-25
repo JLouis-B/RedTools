@@ -29,7 +29,7 @@ public:
     static Export_Mode _mode;
     static QString _exportDest;
 
-    static bool _copyTexture;
+    static bool _copyTextures;
     static bool _nm;
     static bool _sm;
 

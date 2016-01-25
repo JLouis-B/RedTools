@@ -28,13 +28,12 @@ public slots:
     void ok();
     void selectColor();
     void changeExport();
-    void changeDebug();
     void selectDir();
     void selectTW3TexDir();
-    void changeSkel();
     void destroyWindow();
 
 private:
+    QColor _col;
     QString _filename;
     Ui::Options *_ui;
 

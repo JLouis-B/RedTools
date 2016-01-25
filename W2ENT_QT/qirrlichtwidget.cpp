@@ -515,7 +515,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         return;
 
 
-    if (Settings::_copyTexture)
+    if (Settings::_copyTextures)
     {
         // Will be exported in a subfolder
         exportFolder = exportFolder + "/" +  filename + "_export/";
@@ -877,7 +877,7 @@ void QIrrlichtWidget::copyTextures(irr::scene::IMesh* mesh, QString exportFolder
 
             //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
             QString texPath;
-            if (Settings::_copyTexture)
+            if (Settings::_copyTextures)
                 texPath = convertTexture(PATH_TO_QSTRING(buf->getMaterial().getTexture(0)->getName().getPath()), fullPath);
             else
             {
@@ -918,7 +918,7 @@ void QIrrlichtWidget::copyTextures(std::set<irr::io::path> paths, QString export
 
         //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
         QString texPath;
-        if (Settings::_copyTexture)
+        if (Settings::_copyTextures)
             texPath = convertTexture(PATH_TO_QSTRING(*it), fullPath);
         else
         {

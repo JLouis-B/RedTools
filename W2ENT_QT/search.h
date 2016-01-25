@@ -29,6 +29,7 @@ public slots:
 private:
     Ui::Search *_ui;
     QString _pack0lastSearch;
+    QString _baseDir;
 
     void scanFolder(QString repName, int level, std::vector<QString> keywords);
 

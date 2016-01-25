@@ -45,10 +45,11 @@ public slots :
     void checkConvertButton();
     void cleanTexturesPath();
     void extFiles();
-    void changeBaseDir(QString newPath);
     void loadRig();
     void addMesh();
     void bifExtractor();
+    void changeBaseDir(QString newDir);
+
 
 private:
     void updateWindowTitle();

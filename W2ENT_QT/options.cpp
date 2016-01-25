@@ -11,8 +11,9 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     _ui->setupUi(this);
     _ui->doubleSpinBox_cameraRotSpeed->setValue(Settings::_camRotSpeed);
     _ui->doubleSpinBox_cameraSpeed->setValue(Settings::_camSpeed);
+    _col = QColor(Settings::_r, Settings::_g, Settings::_b);
 
-    _ui->checkBox_moveTextures->setChecked(Settings::_copyTexture);
+    _ui->checkBox_moveTextures->setChecked(Settings::_copyTextures);
     _ui->checkBox_mtNormalsMap->setChecked(Settings::_nm);
     _ui->checkBox_mtSpecularMap->setChecked(Settings::_sm);
 
@@ -63,10 +64,7 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
 
     QObject::connect(_ui->checkBox_convertTextures, SIGNAL(clicked(bool)), _ui->comboBox_format, SLOT(setEnabled(bool)));
 
-    QObject::connect(_ui->checkBox_debug, SIGNAL(clicked()), this, SLOT(changeDebug()));
-
     QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
-    QObject::connect(_ui->checkBox_TW3_loadSkel, SIGNAL(clicked()), this, SLOT(changeSkel()));
 
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 }
@@ -99,7 +97,7 @@ void Options::ok()
     Settings::_camRotSpeed = _ui->doubleSpinBox_cameraRotSpeed->value();
     Settings::_camSpeed = _ui->doubleSpinBox_cameraSpeed->value();
 
-    Settings::_copyTexture = _ui->checkBox_moveTextures->isChecked();
+    Settings::_copyTextures = _ui->checkBox_moveTextures->isChecked();
     Settings::_nm = _ui->checkBox_mtNormalsMap->isChecked();
     Settings::_sm = _ui->checkBox_mtSpecularMap->isChecked();
 
@@ -112,36 +110,33 @@ void Options::ok()
     Settings::_convertTextures = _ui->checkBox_convertTextures->isChecked();
     Settings::_texFormat = _ui->comboBox_format->currentText();
 
+    Settings::_TW3TexPath = _ui->lineEdit_TW3_texFolder->text();
+    Settings::_TW3LoadSkel = _ui->checkBox_TW3_loadSkel->isChecked();
+
+    Settings::_debugLog = _ui->checkBox_debug->isChecked();
+
+    Settings::_r = _col.red();
+    Settings::_g = _col.green();
+    Settings::_b = _col.blue();
+
     accept();
     emit optionsValidation();
 }
 
 void Options::selectColor()
 {
-    QColor col = QColorDialog::getColor ( QColor(Settings::_r, Settings::_g, Settings::_b), this );
+    QColor col = QColorDialog::getColor (_col, this);
 
     if(!col.isValid())
         return;
 
-    Settings::_r = col.red();
-    Settings::_g = col.green();
-    Settings::_b = col.blue();
+    _col = col;
 }
 
 void Options::changeExport()
 {
     _ui->lineEdit_exportFolder->setEnabled(_ui->radioButton_custom->isChecked());
     _ui->button_selectDir->setEnabled(_ui->radioButton_custom->isChecked());
-}
-
-void Options::changeDebug()
-{
-    Settings::_debugLog = _ui->checkBox_debug->isChecked();
-}
-
-void Options::changeSkel()
-{
-    Settings::_TW3LoadSkel = _ui->checkBox_TW3_loadSkel->isChecked();
 }
 
 bool isASCII(QString path)
@@ -162,7 +157,6 @@ void Options::selectDir()
         if (isASCII(file))
         {
             _ui->lineEdit_exportFolder->setText(file);
-            Settings::_exportDest = file;
         }
         else
             QMessageBox::critical(this, "Error", "Error : Check that you don't use special characters in your path.");
@@ -177,7 +171,6 @@ void Options::selectTW3TexDir()
         if (isASCII(file))
         {
             _ui->lineEdit_TW3_texFolder->setText(file);
-            Settings::_TW3TexPath = file;
         }
         else
             QMessageBox::critical(this, "Error", "Error : Check that you don't use special characters in your path.");

@@ -80,6 +80,14 @@ struct SBufferInfos
     core::array<SVertexBufferInfos> verticesBuffer;
 };
 
+struct SPropertyHeader
+{
+    core::stringc propName;
+    core::stringc propType;
+    u32 propSize;
+    u32 endPos;
+};
+
 
 struct W3_DataInfos
 {
@@ -140,7 +148,7 @@ private:
     void W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos infos);   // Not handled yet
     void W3_CEntity(io::IReadFile* file, W3_DataInfos infos);           // Not handled yet
     CSkeleton W3_CSkeleton(io::IReadFile* file, W3_DataInfos infos);
-    CSkeleton W3_CMimicFace(io::IReadFile* file, W3_DataInfos infos);
+    void W3_CUnknown(io::IReadFile* file, W3_DataInfos infos);
 
     // load a mesh buffer from the buffer file
     void W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos);
@@ -165,6 +173,8 @@ private:
     core::stringc searchParent(core::stringc bonename);
 
     // To read the properties
+    bool ReadPropertyHeader(io::IReadFile* file, SPropertyHeader& propHeader);
+
     SBufferInfos ReadSMeshCookedDataProperty(io::IReadFile* file);
     core::array<SMeshInfos> ReadSMeshChunkPackedProperty(io::IReadFile* file);
 

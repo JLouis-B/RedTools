@@ -7,12 +7,6 @@ using namespace scene;
 using namespace video;
 using namespace io;
 
-void initLoadData(LOD_data* lodData)
-{
-    lodData->_node = 0;
-    lodData->_skinned = false;
-}
-
 bool QIrrlichtWidget::isLoadableByIrrlicht(io::path filename)
 {
     for (u32 i = 0; i < _device->getSceneManager()->getMeshLoaderCount(); ++i)
@@ -83,12 +77,6 @@ QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     setAutoFillBackground (false);
 
     _currentLOD = LOD_0;
-
-    initLoadData(&_lod0Data);
-    initLoadData(&_lod1Data);
-    initLoadData(&_lod2Data);
-    initLoadData(&_collisionsLodData);
-
     _currentLodData = &_lod0Data;
 
     _reWriter = 0;
@@ -153,15 +141,6 @@ void QIrrlichtWidget::loadMeshPostProcess()
               << ", y=" << mesh->getBoundingBox().MaxEdge.Y - mesh->getBoundingBox().MinEdge.Y
               << ", z=" << mesh->getBoundingBox().MaxEdge.Z - mesh->getBoundingBox().MinEdge.Z << std::endl;
     */
-
-    // Is it a skinned mesh ?
-    if(mesh->getMeshType() == scene::EAMT_SKINNED) //if (dynamic_cast<ISkinnedMesh*>(mesh))
-    {
-        _currentLodData->_skinned = true;
-    }
-    else
-        _currentLodData->_skinned = false;
-
 }
 
 IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMessage)
@@ -499,12 +478,16 @@ QString QIrrlichtWidget::convertTexture(QString filename, QString destDir)
     return destDir;
 }
 
-void scaleSkeleton(scene::ISkinnedMesh* mesh, double factor)
+void scaleSkeleton(scene::IMesh* mesh, float factor)
 {
-    const u32 nbJoints = mesh->getJointCount();
+    if (mesh->getMeshType() != scene::EAMT_SKINNED)
+        return;
+
+    const scene::ISkinnedMesh* skinnedMesh = (scene::ISkinnedMesh*)mesh;
+    const u32 nbJoints = skinnedMesh->getJointCount();
     for (u32 i = 0; i < nbJoints; ++i)
     {
-        ISkinnedMesh::SJoint* joint = mesh->getAllJoints()[i];
+        ISkinnedMesh::SJoint* joint = skinnedMesh->getAllJoints()[i];
         joint->Animatedposition *= factor;
     }
 }
@@ -582,20 +565,17 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (_lod0Data._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), dim/orDim);
-        if(_lod0Data._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_lod0Data._node->getMesh(), (dim/orDim).X);
+        scaleSkeleton(_lod0Data._node->getMesh(), (dim/orDim).X);
     }
     if (_lod1Data._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), dim/orDim);
-        if(_lod1Data._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_lod1Data._node->getMesh(), (dim/orDim).X);
+        scaleSkeleton(_lod1Data._node->getMesh(), (dim/orDim).X);
     }
     if (_lod2Data._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), dim/orDim);
-        if(_lod2Data._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_lod2Data._node->getMesh(), (dim/orDim).X);
+        scaleSkeleton(_lod2Data._node->getMesh(), (dim/orDim).X);
     }
     if (_collisionsLodData._node)
     {
@@ -631,14 +611,14 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     {
         _reWriter->clearLODS();
         if (_lod1Data._node)
-            _reWriter->setLOD1((irr::scene::ISkinnedMesh*)_lod1Data._node->getMesh());
+            _reWriter->setLOD1(_lod1Data._node->getMesh());
         if (_lod2Data._node)
-            _reWriter->setLOD2((irr::scene::ISkinnedMesh*)_lod2Data._node->getMesh());
+            _reWriter->setLOD2(_lod2Data._node->getMesh());
         if (_collisionsLodData._node)
         {
             _reWriter->setCollisionMesh(_collisionsLodData._node->getMesh());
         }
-        _reWriter->writeAnimatedMesh(file, _lod0Data._node->getMesh(), _lod0Data._skinned);
+        _reWriter->writeMesh(file, _lod0Data._node->getMesh());
     }
     else
     {
@@ -669,28 +649,24 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (_lod0Data._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        if(_lod0Data._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_lod0Data._node->getMesh(), scaleFactor);
+        scaleSkeleton(_lod0Data._node->getMesh(), scaleFactor);
     }
 
     if (_lod1Data._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        if(_lod1Data._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_lod1Data._node->getMesh(), scaleFactor);
+        scaleSkeleton(_lod1Data._node->getMesh(), scaleFactor);
     }
 
     if (_lod2Data._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        if(_lod2Data._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_lod2Data._node->getMesh(), scaleFactor);
+        scaleSkeleton(_lod2Data._node->getMesh(), scaleFactor);
     }
     if (_collisionsLodData._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        if(_collisionsLodData._skinned)
-            scaleSkeleton((irr::scene::ISkinnedMesh*)_collisionsLodData._node->getMesh(), scaleFactor);
+        scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactor);
     }
 
     if (file)
@@ -798,17 +774,9 @@ void QIrrlichtWidget::changeLOD(LOD newLOD)
 void QIrrlichtWidget::clearLOD()
 {
     // Delete the current w2ent/w2mesh
-    if(_currentLodData->_node)
-    {
-        _currentLodData->_node->remove();
-        _currentLodData->_node = 0;
+    _currentLodData->clearLodData();
 
-        _device->getSceneManager()->getMeshCache()->clearUnusedMeshes();//->clear();
-
-        _currentLodData->_normalMaps.clear();
-        _currentLodData->_specularMaps.clear();
-        _currentLodData->_skinned = false;
-    }
+    _device->getSceneManager()->getMeshCache()->clearUnusedMeshes();//->clear();
 
     if (!_lod0Data._node && !_lod1Data._node && !_lod2Data._node && !_collisionsLodData._node)
     {
@@ -817,25 +785,12 @@ void QIrrlichtWidget::clearLOD()
     }
 }
 
-
-void clearLodData(LOD_data* data)
-{
-    if (!data->_node)
-        return;
-
-    data->_node->remove();
-    data->_node = 0;
-    data->_normalMaps.clear();
-    data->_specularMaps.clear();
-    data->_skinned = false;
-}
-
 void QIrrlichtWidget::clearAllLODs()
 {
-    clearLodData(&_lod0Data);
-    clearLodData(&_lod1Data);
-    clearLodData(&_lod2Data);
-    clearLodData(&_collisionsLodData);
+    _lod0Data.clearLodData();
+    _lod1Data.clearLodData();
+    _lod2Data.clearLodData();
+    _collisionsLodData.clearLodData();
 
     _device->getSceneManager()->getMeshCache()->clearUnusedMeshes();//->clear();
 
@@ -843,9 +798,9 @@ void QIrrlichtWidget::clearAllLODs()
     _device->getVideoDriver()->removeAllHardwareBuffers();
 }
 
-void QIrrlichtWidget::copyTextures(irr::scene::IMesh* mesh, QString exportFolder)
+void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 {
-    for (unsigned int i = 0; i < mesh->getMeshBufferCount(); ++i)
+    for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
     {
         IMeshBuffer* buf = mesh->getMeshBuffer(i);
 

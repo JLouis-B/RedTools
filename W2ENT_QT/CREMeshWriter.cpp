@@ -252,7 +252,7 @@ bool CREMeshWriter::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mesh, 
 
         LODsize = nbVertices * 112 + nbFaces * 16 + 64 + getMaterialsSize(MeshLOD1);
         if(skinned)
-              LODsize += getJointsSize(MeshLOD1);
+              LODsize += getJointsSize((scene::ISkinnedMesh*)MeshLOD1);
         //LODsize -=4;
         file->write(&LODsize, 4);
     }
@@ -276,7 +276,7 @@ bool CREMeshWriter::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mesh, 
 
         LODsize = nbVertices * 12 + nbFaces * 16 + 64 + getMaterialsSize(MeshLOD2);
         if(skinned)
-               LODsize += getJointsSize(MeshLOD2);
+               LODsize += getJointsSize((scene::ISkinnedMesh*)MeshLOD2);
         //LODsize -=4;
         file->write(&LODsize, 4);
     }
@@ -749,12 +749,12 @@ void CREMeshWriter::writeLOD(io::IWriteFile* file, core::stringc lodName, IMesh*
 
 
 
-void CREMeshWriter::setLOD1(ISkinnedMesh* lod1)
+void CREMeshWriter::setLOD1(IMesh *lod1)
 {
     MeshLOD1 = lod1;
 }
 
-void CREMeshWriter::setLOD2(ISkinnedMesh* lod2)
+void CREMeshWriter::setLOD2(IMesh* lod2)
 {
     MeshLOD2 = lod2;
 }
@@ -774,11 +774,11 @@ void CREMeshWriter::clearLODS()
 bool CREMeshWriter::writeMesh(io::IWriteFile* file, scene::IMesh* mesh, s32 flags)
 {
     // Call writeAnimatedMesh.
-    bool isStatic = true;
-    if(((scene::ISkinnedMesh*)mesh)->getMeshType() == EAMT_SKINNED || ((scene::ISkinnedMesh*)mesh)->getMeshType() == EAMT_UNKNOWN)
-        isStatic = false;
+    bool skinned = false;
+    if (mesh->getMeshType() == EAMT_SKINNED)
+        skinned = true;
 
-    return writeAnimatedMesh(file, (scene::ISkinnedMesh*)mesh, !isStatic, flags);
+    return writeAnimatedMesh(file, (scene::ISkinnedMesh*)mesh, skinned, flags);
 }
 
 

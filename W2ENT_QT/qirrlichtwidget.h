@@ -41,10 +41,24 @@ enum LOD
 
 struct LOD_data
 {
-    irr::scene::IAnimatedMeshSceneNode* _node;//IAnimated
-    std::set<irr::io::path> _normalMaps;
-    std::set<irr::io::path> _specularMaps;
-    bool _skinned;
+    LOD_data() : _node(0)
+    {
+    }
+
+    void clearLodData()
+    {
+        if (!_node)
+            return;
+
+        _node->remove();
+        _node = 0;
+        _normalMaps.clear();
+        _specularMaps.clear();
+    }
+
+    scene::IAnimatedMeshSceneNode* _node;
+    std::set<io::path> _normalMaps;
+    std::set<io::path> _specularMaps;
 };
 
 

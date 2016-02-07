@@ -47,9 +47,8 @@ namespace scene
 
         bool writeAnimatedMesh(io::IWriteFile* file, IMesh *mesh, bool skinned = false, s32 flags=EMWF_NONE);
 
-        void setLOD1(ISkinnedMesh* lod1);
-        void setLOD2(ISkinnedMesh *lod2);
-
+        void setLOD1(IMesh* lod1);
+        void setLOD2(IMesh *lod2);
         void setCollisionMesh(IMesh* mesh);
 
         void clearLODS();
@@ -64,9 +63,8 @@ namespace scene
 		scene::ISceneManager* SceneManager;
 		io::IFileSystem* FileSystem;
 
-        ISkinnedMesh* MeshLOD1;
-        ISkinnedMesh* MeshLOD2;
-
+        IMesh* MeshLOD1;
+        IMesh* MeshLOD2;
         IMesh* CollisionMesh;
 
 
@@ -75,7 +73,7 @@ namespace scene
 
         void createWeightsTable(ISkinnedMesh* mesh);
 
-        std::vector< std::vector< std::vector<Weight> > > _table;
+        std::vector<std::vector<std::vector<Weight> > > _table;
 	};
 
 } // end namespace

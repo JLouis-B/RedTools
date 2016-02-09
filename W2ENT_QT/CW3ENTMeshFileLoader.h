@@ -84,7 +84,7 @@ struct SPropertyHeader
 {
     core::stringc propName;
     core::stringc propType;
-    u32 propSize;
+    s32 propSize;
     u32 endPos;
 };
 

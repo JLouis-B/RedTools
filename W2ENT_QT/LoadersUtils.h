@@ -13,12 +13,27 @@ T readData(io::IReadFile* f)
     return buf;
 }
 
+#define readU32 readData<u32>
+#define readS32 readData<s32>
+#define readU16 readData<u16>
+#define readS16 readData<s16>
+#define readU8 readData<u8>
+#define readS8 readData<s8>
+#define readF32 readData<f32>
+
+
 template <class T>
 core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
 {
     core::array<T> values;
+    values.reallocate(nbElem);
+    values.set_used(nbElem);
+    f->read(values.pointer(), nbElem * sizeof(T));
+
+    /*
     for (s32 i = 0; i < nbElem; ++i)
         values.push_back(readData<T>(f));
+    */
 
     return values;
 }

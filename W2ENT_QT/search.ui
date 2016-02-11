@@ -37,7 +37,7 @@
        <string>Check also the folders name (more results)</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="button_search">
+     <widget class="QPushButton" name="pushButton_search">
       <property name="text">
        <string>Search</string>
       </property>
@@ -94,7 +94,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="pushButton_load">
       <property name="enabled">
        <bool>false</bool>
       </property>

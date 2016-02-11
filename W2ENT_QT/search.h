@@ -3,12 +3,37 @@
 
 #include <QDialog>
 #include <QDir>
+#include <QThread>
 #include "translator.h"
 #include "options.h"
 
 namespace Ui {
 class Search;
 }
+
+class SearchEngine : public QObject
+{
+    Q_OBJECT
+
+public:
+    SearchEngine(QStringList keywords, bool searchFolders);
+    void scanFolder(QString repName, int level);
+
+public slots:
+    void run();
+    void quitThread();
+
+signals:
+    void onProgress(int);
+    void finished();
+    void sendItem(QString);
+
+private:
+    QStringList _keywords;
+    QString _baseDir;
+    bool _searchFolders;
+    bool _stopped;
+};
 
 class Search : public QDialog
 {
@@ -25,16 +50,23 @@ public slots:
     void enableButton();
     void translate();
     void destroyWindow();
+    void setProgress(int progress);
+    void searchEnd();
+    void addResult(QString item);
 
 private:
     Ui::Search *_ui;
-    QString _pack0lastSearch;
-    QString _baseDir;
+    QThread* _thread;
+    SearchEngine* _searchEngine;
 
-    void scanFolder(QString repName, int level, std::vector<QString> keywords);
+    QString _pack0lastSearch;
+
+    void killThread();
 
 signals:
     void loadPressed(QString);
 };
+
+
 
 #endif // SEARCH_H

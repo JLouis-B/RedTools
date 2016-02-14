@@ -57,8 +57,7 @@ struct SVertexBufferInfos
     u32 verticesCoordsOffset;
     u32 uvOffset;
     u32 normalsOffset;
-
-    unsigned short nbVertices;
+    u16 nbVertices;
 };
 
 struct SBufferInfos

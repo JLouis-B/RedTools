@@ -186,13 +186,24 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
     }
     log->addAndPush("Read strings\n");
 
+    s32 nbFiles = headerData[14];
+    std::cout << "nbFiles = " << nbFiles << std::endl;
+    for (u32 i = 0; i < nbFiles; ++i)
+    {
+        Files.push_back(Strings[Strings.size() - nbFiles + i]);
+        std::cout << Files.size() - 1 << "--> " << Files[i].c_str() << std::endl;
+    }
+
     // The files linked in the file
+    // Cause crashes : Some strings has also a dot inside
+    /*
     for (u32 i = 0; i < Strings.size(); ++i)
         if (Strings[i].findFirst('.') != -1)
         {
             Files.push_back(Strings[i]);
-            //std::cout << Files.size() - 1 << "--> " << Strings[i].c_str() << std::endl;
+            std::cout << Files.size() - 1 << "--> " << Strings[i].c_str() << std::endl;
         }
+        */
     log->addAndPush("Textures list created\n");
 
 
@@ -291,19 +302,23 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
     //std::cout << "first vertex = " << meshInfos.firstVertex << std::endl;
 
-    SVertexBufferInfos* inf = 0;
-    u32 sum = 0;
+    // Maybe it's simply 1 verticesBufferInfo/buffer, seems correct and more simple
+    if (bufferInfos.verticesBuffer.size() == AnimatedMesh->getMeshBufferCount())
+        std::cout << "--> 1 verticesBufferInfo/buffer" << std::endl;
+
+    SVertexBufferInfos vBufferInf;
+    u32 nbVertices = 0;
     for (u32 i = 0; i < bufferInfos.verticesBuffer.size(); ++i)
     {
-        sum += bufferInfos.verticesBuffer[i].nbVertices;
-        if (sum > meshInfos.firstVertex)
+        nbVertices += bufferInfos.verticesBuffer[i].nbVertices;
+        if (nbVertices > meshInfos.firstVertex)
         {
-            inf = &bufferInfos.verticesBuffer[i];
+            vBufferInf = bufferInfos.verticesBuffer[i];
             break;
         }
 
     }
-    bufferFile->seek(inf->verticesCoordsOffset + (meshInfos.firstVertex - (sum - inf->nbVertices)) * vertexSize);
+    bufferFile->seek(vBufferInf.verticesCoordsOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * vertexSize);
     std::cout << "POS=" << bufferFile->getPos() << std::endl;
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
@@ -352,7 +367,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         buffer->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
         //std::cout << "Position=" << x << ", " << y << ", " << z << std::endl;
     }
-    bufferFile->seek(inf->uvOffset + (meshInfos.firstVertex - (sum - inf->nbVertices)) * 4);
+    bufferFile->seek(vBufferInf.uvOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * 4);
     //std::cout << "avant UV=" << bufferFile->getPos() << std::endl;
     //bufferFile->seek(8, true);
 
@@ -368,7 +383,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         buffer->Vertices_Standard[i].TCoords = core::vector2df(uf, vf);
     }
     // Not 100% sure...
-    bufferFile->seek(inf->normalsOffset + (meshInfos.firstVertex - (sum - inf->nbVertices)) * 12);
+    bufferFile->seek(vBufferInf.normalsOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * 12);
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
         u16 x, y, z, tmp;
@@ -414,8 +429,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
 bool CW3ENTMeshFileLoader::ReadPropertyHeader(io::IReadFile* file, SPropertyHeader& propHeader)
 {
-    u16 propName = readData<u16>(file);
-    u16 propType = readData<u16>(file);
+    u16 propName = readU16(file);
+    u16 propType = readU16(file);
 
     if (propName == 0 || propType == 0 || propName >= Strings.size() || propType >= Strings.size())
         return false;
@@ -424,7 +439,7 @@ bool CW3ENTMeshFileLoader::ReadPropertyHeader(io::IReadFile* file, SPropertyHead
     propHeader.propType = Strings[propType];
 
     const long back = file->getPos();
-    propHeader.propSize = readData<s32>(file);
+    propHeader.propSize = readS32(file);
     //file->seek(-4, true);
 
     propHeader.endPos = back + propHeader.propSize;
@@ -890,12 +905,17 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
 
         if (propHeader.propName == "mesh")
         {
-            //file->seek(4, true); // size to skip
-            u8 fileId = readData<u8>(file);
+            u8 fileId = readU8(file);
             fileId = 255 - fileId;
             file->seek(3, true);
             scene::ISkinnedMesh* mesh = ReadW2MESHFile(GamePath + Files[fileId]);
-            Meshes.push_back(mesh);
+            if (mesh)
+                Meshes.push_back(mesh);
+            else
+            {
+                log->setConsoleOutput(true);
+                log->addAndPush(core::stringc("Fail to load ") + Files[fileId] + "\n");
+            }
         }
 
         file->seek(propHeader.endPos);
@@ -915,24 +935,23 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
     while (ReadPropertyHeader(file, propHeader))
     {
 
-        //std::cout << "-> @" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
+        std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
-        if (propHeader.propName == "flatCompiledData")
+        if (propHeader.propName == "flatCompiledData") // array of u8
         {
-            s32 propSize = readData<s32>(file);
-            propSize -= 4;
-
+            s32 arraySize = readS32(file);
+            arraySize -= 4;
 
             //std::cout << file->getPos() << std::endl;
 
-            unsigned char data[propSize];
-            file->read(&data[0], propSize);
+            u8 data[arraySize];
+            file->read(data, arraySize);
 
 
-            io::IReadFile* entityFile = SceneManager->getFileSystem()->createMemoryReadFile(data, propSize, "tmpMemFile.w2ent_MEMORY", true);
+            io::IReadFile* entityFile = SceneManager->getFileSystem()->createMemoryReadFile(data, arraySize, "tmpMemFile.w2ent_MEMORY", true);
             if (!entityFile)
                 log->addAndPush("fail\n");
-            //SceneManager->getMesh(entityFile);
+
             CW3ENTMeshFileLoader w3Loader(SceneManager, FileSystem);
             IAnimatedMesh* m = w3Loader.createMesh(entityFile);
             if (m)

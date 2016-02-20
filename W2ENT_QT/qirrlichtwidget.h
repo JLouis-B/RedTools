@@ -43,22 +43,23 @@ struct LOD_data
 {
     LOD_data() : _node(0)
     {
+        clearLodData();
     }
 
     void clearLodData()
     {
-        if (!_node)
-            return;
+        if (_node)
+        {
+            _node->remove();
+            _node = 0;
+        }
 
-        _node->remove();
-        _node = 0;
-        _normalMaps.clear();
-        _specularMaps.clear();
+        _additionalTextures.clear();
+        _additionalTextures.resize(_IRR_MATERIAL_MAX_TEXTURES_);
     }
 
     scene::IAnimatedMeshSceneNode* _node;
-    std::set<io::path> _normalMaps;
-    std::set<io::path> _specularMaps;
+    QVector<std::set<io::path> > _additionalTextures;
 };
 
 
@@ -80,13 +81,13 @@ class QIrrlichtWidget : public QWidget
 
         unsigned int getPolysCount();
         unsigned int getJointsCount();
-        irr::core::vector3df getMeshDimensions();
+        core::vector3df getMeshDimensions();
         void changeOptions();
         void changeLOD(LOD newLOD);
         void clearLOD();
         void clearAllLODs();
 
-        irr::io::IFileSystem* getFileSystem();
+        io::IFileSystem* getFileSystem();
 
 
         QString getFilename();
@@ -116,15 +117,15 @@ class QIrrlichtWidget : public QWidget
         void mouseMoveEvent(QMouseEvent * event);
 
     private:
-        irr::IrrlichtDevice *_device;
-        irr::scene::ICameraSceneNode *_camera;
+        IrrlichtDevice *_device;
+        scene::ICameraSceneNode *_camera;
 
         LOD _currentLOD;
 
-        irr::scene::CREMeshWriter* _reWriter;
+        scene::CREMeshWriter* _reWriter;
 
-        void copyTextures(irr::scene::IMesh* mesh, QString exportFolder);
-        void copyTextures(std::set<irr::io::path> paths, QString exportFolder);
+        void copyTextures(scene::IMesh* mesh, QString exportFolder);
+        void copyTextures(std::set<io::path> paths, QString exportFolder);
 
         LOD_data _lod0Data;
         LOD_data _lod1Data;

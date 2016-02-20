@@ -21,14 +21,10 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
 {
     node->setMaterialFlag(EMF_LIGHTING, false);
     node->setMaterialType(EMT_SOLID);
-
-    node->setMaterialTexture(1, NULL);
-    node->setMaterialTexture(2, NULL);
-    node->setMaterialTexture(3, NULL);
-
     node->setMaterialFlag(EMF_BACK_FACE_CULLING, false);
 
-
+    for (u32 i = 1; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
+        node->setMaterialTexture(i, 0);
 }
 
 bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMessage)
@@ -125,11 +121,12 @@ void QIrrlichtWidget::loadMeshPostProcess()
     // Save the path of normals/specular maps
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
     {
-        IMeshBuffer* buf = mesh->getMeshBuffer(i);
-        if(buf->getMaterial().getTexture(1))
-            _currentLodData->_normalMaps.insert(buf->getMaterial().getTexture(1)->getName().getPath());
-        if(buf->getMaterial().getTexture(2))
-            _currentLodData->_specularMaps.insert(buf->getMaterial().getTexture(2)->getName().getPath());
+        const video::SMaterial mat = mesh->getMeshBuffer(i)->getMaterial();
+        for (u32 i = 1; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
+        {
+            if(mat.getTexture(i))
+                _currentLodData->_additionalTextures[i].insert(mat.getTexture(i)->getName().getPath());
+        }
     }
 
     setMaterialsSettings(_currentLodData->_node);
@@ -518,9 +515,9 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     {
         copyTextures(_currentLodData->_node->getMesh(), exportFolder);
         if(Settings::_nm)
-            copyTextures(_currentLodData->_normalMaps, exportFolder);
+            copyTextures(_currentLodData->_additionalTextures[1], exportFolder);
         if(Settings::_sm)
-            copyTextures(_currentLodData->_specularMaps, exportFolder);
+            copyTextures(_currentLodData->_additionalTextures[2], exportFolder);
     }
     else
     {
@@ -528,25 +525,25 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         {
             copyTextures(_lod0Data._node->getMesh(), exportFolder);
             if(Settings::_nm)
-                copyTextures(_lod0Data._normalMaps, exportFolder);
+                copyTextures(_lod0Data._additionalTextures[1], exportFolder);
             if(Settings::_sm)
-                copyTextures(_lod0Data._specularMaps, exportFolder);
+                copyTextures(_lod0Data._additionalTextures[2], exportFolder);
         }
         if (_lod1Data._node)
         {
             copyTextures(_lod1Data._node->getMesh(), exportFolder);
             if(Settings::_nm)
-                copyTextures(_lod1Data._normalMaps, exportFolder);
+                copyTextures(_lod1Data._additionalTextures[1], exportFolder);
             if(Settings::_sm)
-                copyTextures(_lod1Data._specularMaps, exportFolder);
+                copyTextures(_lod1Data._additionalTextures[2], exportFolder);
         }
         if (_lod2Data._node)
         {
             copyTextures(_lod2Data._node->getMesh(), exportFolder);
             if(Settings::_nm)
-                copyTextures(_lod2Data._normalMaps, exportFolder);
+                copyTextures(_lod2Data._additionalTextures[1], exportFolder);
             if(Settings::_sm)
-                copyTextures(_lod2Data._specularMaps, exportFolder);
+                copyTextures(_lod2Data._additionalTextures[2], exportFolder);
         }
     }
 
@@ -849,9 +846,9 @@ void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 }
 
 
-void QIrrlichtWidget::copyTextures(std::set<irr::io::path> paths, QString exportFolder)
+void QIrrlichtWidget::copyTextures(std::set<path> paths, QString exportFolder)
 {
-    std::set<irr::io::path>::iterator it;
+    std::set<io::path>::iterator it;
     for (it = paths.begin(); it != paths.end(); ++it)
     {
         QString filename = PATH_TO_QSTRING(*it);
@@ -866,7 +863,7 @@ void QIrrlichtWidget::copyTextures(std::set<irr::io::path> paths, QString export
 
         QString targetExtension = ".dds";
         if (Settings::_convertTextures)
-          targetExtension = Settings::_texFormat;
+            targetExtension = Settings::_texFormat;
 
 
         QString fullPath = exportFolder + basePath + targetExtension;

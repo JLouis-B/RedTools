@@ -25,8 +25,7 @@ T readData(io::IReadFile* f)
 template <class T>
 core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
 {
-    core::array<T> values;
-    values.reallocate(nbElem);
+    core::array<T> values(nbElem);
     values.set_used(nbElem);
     f->read(values.pointer(), nbElem * sizeof(T));
 

@@ -11,13 +11,15 @@ Search::Search(QWidget *parent) :
 {
     _ui->setupUi(this);
 
+    resetExtensionsFilter();
     translate();
 
     QObject::connect(_ui->pushButton_search, SIGNAL(clicked()), this, SLOT(search()));
     QObject::connect(_ui->pushButton_load, SIGNAL(clicked()), this, SLOT(load()));
+    QObject::connect(_ui->pushButton_reset, SIGNAL(clicked()), this, SLOT(resetExtensionsFilter()));
     QObject::connect(_ui->listWidget_results, SIGNAL(currentRowChanged(int)), this, SLOT(enableButton()));
 
-    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
+    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));  
 }
 
 Search::~Search()
@@ -30,7 +32,7 @@ void Search::destroyWindow()
     if (_thread)
     {
         _searchEngine->quitThread();
-        while(_thread /*&& !_thread->isFinished()*/)
+        while (_thread)
             QCoreApplication::processEvents();
     }
 
@@ -41,7 +43,7 @@ void Search::translate()
 {
     _ui->label_name->setText(Translator::findTranslation("search_name") + " :");
     _ui->label_result->setText(Translator::findTranslation("search_result") + " :");
-    _ui->label->setText(Translator::findTranslation("search_progress") + " :");
+    _ui->label_progression->setText(Translator::findTranslation("search_progress") + " :");
     _ui->checkBox_folder->setText(Translator::findTranslation("search_check_folder"));
     _ui->pushButton_search->setText(Translator::findTranslation("search_button"));
     _ui->pushButton_load->setText(Translator::findTranslation("search_load"));
@@ -51,18 +53,23 @@ void Search::search()
 {
     QString name = _ui->lineEdit_name->text();
     QStringList keywords = name.split(" ", QString::SkipEmptyParts);
-    if (keywords.size() == 0)
+    QStringList extensions = _ui->lineEdit_extensionsFilter->text().split(" ", QString::SkipEmptyParts);
+    for (QStringList::iterator it = extensions.begin(); it != extensions.end(); ++it)
+    {
+        *it = "*." + (*it);
+    }
+
+    if (keywords.size() == 0 || extensions.size() == 0)
         return;
 
     _ui->pushButton_search->setEnabled(false);
     _ui->pushButton_load->setEnabled(false);
     _ui->listWidget_results->clear();
 
-    _pack0lastSearch = Settings::_pack0;
+    _rootDir = Settings::_pack0;
 
-    //scanFolder(Settings::_pack0, 0, keywords);
     _thread = new QThread();
-    _searchEngine = new SearchEngine(keywords, _ui->checkBox_folder->isChecked());
+    _searchEngine = new SearchEngine(_rootDir, keywords, extensions, _ui->checkBox_folder->isChecked());
     _searchEngine->moveToThread(_thread);
 
     QObject::connect(_thread, SIGNAL(started()), _searchEngine, SLOT(run()));
@@ -104,7 +111,7 @@ void Search::searchEnd()
 
 void Search::load()
 {
-    emit loadPressed(_pack0lastSearch + _ui->listWidget_results->currentItem()->text().remove(0, 7));
+    emit loadPressed(_rootDir + _ui->listWidget_results->currentItem()->text().remove(0, 12));
 }
 
 void Search::enableButton()
@@ -112,17 +119,24 @@ void Search::enableButton()
     _ui->pushButton_load->setEnabled(_ui->listWidget_results->currentRow() != -1);
 }
 
-void SearchEngine::run()
+void Search::resetExtensionsFilter()
 {
-    scanFolder(Settings::_pack0, 0);
-    emit finished();
+    _ui->lineEdit_extensionsFilter->setText("w2mesh w2ent w2rig");
 }
 
 
 // Search ------------------------
-SearchEngine::SearchEngine(QStringList keywords, bool searchFolders) : _keywords(keywords), _searchFolders(searchFolders), _stopped(false)
+SearchEngine::SearchEngine(QString rootDir, QStringList keywords, QStringList extensions, bool searchFolders)
+    : _rootDir(rootDir), _keywords(keywords), _extensions(extensions), _searchFolders(searchFolders), _stopped(false)
 {
 
+}
+
+void SearchEngine::run()
+{
+    _rootDir = QDir::cleanPath(_rootDir);
+    scanFolder(_rootDir, 0);
+    emit finished();
 }
 
 void SearchEngine::scanFolder(QString repName, int level)
@@ -132,15 +146,10 @@ void SearchEngine::scanFolder(QString repName, int level)
     if (_stopped)
         return;
 
-    // search the w2ent and w2mesh file
+    // search the files
     QDir dirFiles(repName);
     dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    dirFiles.setNameFilters(QStringList() << "*.w2mesh" << "*.w2ent" << "*.w2rig");
-
-    if (level == 1)
-    {
-        _baseDir = QDir::cleanPath(repName);
-    }
+    dirFiles.setNameFilters(_extensions);
 
     foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
     {
@@ -149,7 +158,7 @@ void SearchEngine::scanFolder(QString repName, int level)
         if (_searchFolders)
         {
             target = fileInfo.absolutePath() + fileInfo.fileName();
-            target.remove(0, Settings::_pack0.size());
+            target.remove(0, _rootDir.size());
         }
 
         bool ok = true;
@@ -162,21 +171,19 @@ void SearchEngine::scanFolder(QString repName, int level)
             }
         }
         if (ok)
-            emit sendItem("{pack0}" + fileInfo.absoluteFilePath().remove(0, _baseDir.size()));
+            emit sendItem("{Search dir}" + fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
     }
 
     // search in the subfolders
-    //QDir dirSubfolder(repName);
     dirFiles.setNameFilters(QStringList());
     dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Dirs);
-    float i = 0.f;
-    foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
+    int i = 0;
+    foreach (QFileInfo fileInfo, dirFiles.entryInfoList())
     {
         scanFolder(fileInfo.absoluteFilePath(), level);
-        i++;
         if (level == 1)
         {
-            emit onProgress((i/dirFiles.entryInfoList().size())*(100));
+            emit onProgress(((float)++i)/dirFiles.entryInfoList().size() * 100);
         }
     }
 }

@@ -16,7 +16,7 @@ class SearchEngine : public QObject
     Q_OBJECT
 
 public:
-    SearchEngine(QStringList keywords, bool searchFolders);
+    SearchEngine(QString rootDir, QStringList keywords, QStringList extensions, bool searchFolders);
     void scanFolder(QString repName, int level);
 
 public slots:
@@ -30,7 +30,8 @@ signals:
 
 private:
     QStringList _keywords;
-    QString _baseDir;
+    QStringList _extensions;
+    QString _rootDir;
     bool _searchFolders;
     bool _stopped;
 };
@@ -53,13 +54,14 @@ public slots:
     void setProgress(int progress);
     void searchEnd();
     void addResult(QString item);
+    void resetExtensionsFilter();
 
 private:
     Ui::Search *_ui;
     QThread* _thread;
     SearchEngine* _searchEngine;
 
-    QString _pack0lastSearch;
+    QString _rootDir;
 
     void killThread();
 

@@ -104,18 +104,13 @@ bool QIrrlichtWidget::fileIsOpenableByIrrlicht(QString filename)
 
 void QIrrlichtWidget::loadMeshPostProcess()
 {
-
-    scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
-
+    const scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
 
     ReSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
-    ReSize::_dimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
+    //if (ReSize::_unit == Unit_m)
+    //    ReSize::_originalDimensions /= 100.0f;
 
-    if (ReSize::_unit == Unit_m)
-    {
-        ReSize::_originalDimensions /= 100.0f;
-        ReSize::_dimensions /= 100.0f;
-    }
+    ReSize::_dimensions = ReSize::_originalDimensions;
 
 
     // Save the path of normals/specular maps
@@ -556,8 +551,8 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     irr::core::vector3df orDim = ReSize::_originalDimensions;
     irr::core::vector3df dim = ReSize::_dimensions;
 
-    if (ReSize::_unit == Unit_cm)
-        dim = dim / 100.0f;
+    //if (ReSize::_unit == Unit_cm)
+    //    dim = dim / 100.0f;
 
     if (_lod0Data._node)
     {
@@ -759,13 +754,10 @@ void QIrrlichtWidget::changeLOD(LOD newLOD)
     _currentLodData->_node->setVisible(true);
 
     ReSize::_originalDimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
-    ReSize::_dimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
+    //if (ReSize::_unit == Unit_m)
+    //    ReSize::_originalDimensions /= 100.0f;
 
-    if (ReSize::_unit == Unit_m)
-    {
-        ReSize::_originalDimensions /= 100.0f;
-        ReSize::_dimensions /= 100.0f;
-    }
+    ReSize::_dimensions = ReSize::_originalDimensions;
 }
 
 void QIrrlichtWidget::clearLOD()

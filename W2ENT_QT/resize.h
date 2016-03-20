@@ -23,8 +23,8 @@ public:
     explicit ReSize(QWidget *parent = 0);
     ~ReSize();
 
-    static irr::core::vector3df _originalDimensions;
-    static irr::core::vector3df _dimensions;
+    static irr::core::vector3df _originalDimensions;    // original size in cm
+    static irr::core::vector3df _dimensions;            // size in cm
     static Unit _unit;
 
 
@@ -32,7 +32,7 @@ public slots:
     void changeX();
     void changeY();
     void changeZ();
-    void changeUnit();
+    void changeUnit(QString unit);
     void cancel();
 
     void destroyWindow();
@@ -44,11 +44,10 @@ private:
     float _rapportY;
     float _rapportZ;
 
-    irr::core::vector3df _SaveOriginalDimensions;
-    irr::core::vector3df _SaveDimensions;
-    Unit _SaveUnit;
+    irr::core::vector3df _initialDimensions;
+    Unit _initialUnit;
 
-
+    void setNewSize();
 };
 
 #endif // RESIZE_H

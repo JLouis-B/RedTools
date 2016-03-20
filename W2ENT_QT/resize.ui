@@ -126,7 +126,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>m</string>
+    <string>cm</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_unitY">
@@ -139,7 +139,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>m</string>
+    <string>cm</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_unitZ">
@@ -152,7 +152,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>m</string>
+    <string>cm</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_7">
@@ -197,12 +197,12 @@
    </property>
    <item>
     <property name="text">
-     <string>m</string>
+     <string>cm</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>cm</string>
+     <string>m</string>
     </property>
    </item>
   </widget>

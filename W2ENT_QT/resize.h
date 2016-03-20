@@ -15,6 +15,8 @@ enum Unit
     Unit_cm
 };
 
+using namespace irr;
+
 class ReSize : public QDialog
 {
     Q_OBJECT
@@ -23,8 +25,8 @@ public:
     explicit ReSize(QWidget *parent = 0);
     ~ReSize();
 
-    static irr::core::vector3df _originalDimensions;    // original size in cm
-    static irr::core::vector3df _dimensions;            // size in cm
+    static core::vector3df _originalDimensions;    // original size in cm
+    static core::vector3df _dimensions;            // size in cm
     static Unit _unit;
 
 
@@ -33,18 +35,17 @@ public slots:
     void changeY();
     void changeZ();
     void changeUnit(QString unit);
-    void cancel();
 
+    void cancel();
     void destroyWindow();
 
 
-
 private:
-    Ui::ReSize *ui;
-    float _rapportY;
-    float _rapportZ;
+    Ui::ReSize *_ui;
+    float _ratioY;
+    float _ratioZ;
 
-    irr::core::vector3df _initialDimensions;
+    core::vector3df _initialDimensions;
     Unit _initialUnit;
 
     void setNewSize();

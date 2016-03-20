@@ -107,9 +107,6 @@ void QIrrlichtWidget::loadMeshPostProcess()
     const scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
 
     ReSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
-    //if (ReSize::_unit == Unit_m)
-    //    ReSize::_originalDimensions /= 100.0f;
-
     ReSize::_dimensions = ReSize::_originalDimensions;
 
 
@@ -548,11 +545,8 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (_currentLodData->_node)
         mesh = _currentLodData->_node->getMesh();
 
-    irr::core::vector3df orDim = ReSize::_originalDimensions;
-    irr::core::vector3df dim = ReSize::_dimensions;
-
-    //if (ReSize::_unit == Unit_cm)
-    //    dim = dim / 100.0f;
+    core::vector3df orDim = ReSize::_originalDimensions;
+    core::vector3df dim = ReSize::_dimensions;
 
     if (_lod0Data._node)
     {

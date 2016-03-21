@@ -27,6 +27,26 @@ enum EMeshVertexType
     EMVT_SKINNED
 };
 
+enum EAnimTrackType
+{
+    EATT_POSITION,
+    EATT_ORIENTATION,
+    EATT_SCALE
+};
+
+enum SAnimationBufferOrientationCompressionMethod
+{
+    ABOCM_PackIn64bitsW,
+    ABOCM_PackIn48bitsW,
+    ABOCM_PackIn40bitsW,
+    ABOCM_AsFloat_XYZW,
+    ABOCM_AsFloat_XYZSignedW,
+    ABOCM_AsFloat_XYZSignedWInLastBit,
+    ABOCM_PackIn48bits,
+    ABOCM_PackIn40bits,
+    ABOCM_PackIn32bits
+};
+
 
 // Information to load a mesh from the buffer
 struct SMeshInfos
@@ -90,8 +110,23 @@ struct SPropertyHeader
 
 struct W3_DataInfos
 {
-    int adress;
-    int size;
+    s32 adress;
+    s32 size;
+};
+
+struct SAnimationBufferBitwiseCompressedData
+{
+    SAnimationBufferBitwiseCompressedData() : type(EATT_POSITION), dt(0.f), compression(0), numFrames(0), dataAddr(0), dataAddrFallback(0)
+    {
+
+    }
+
+    EAnimTrackType type;
+    f32 dt;
+    s8 compression;
+    u16 numFrames;
+    u32 dataAddr;
+    u32 dataAddrFallback;
 };
 
 
@@ -147,10 +182,15 @@ private:
     void W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos infos);   // Not handled yet
     void W3_CEntity(io::IReadFile* file, W3_DataInfos infos);           // Not handled yet
     CSkeleton W3_CSkeleton(io::IReadFile* file, W3_DataInfos infos);
+    void W3_CAnimationBufferBitwiseCompressed(io::IReadFile* file, W3_DataInfos infos);
     void W3_CUnknown(io::IReadFile* file, W3_DataInfos infos);
 
     // load a mesh buffer from the buffer file
     void W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos);
+
+    SAnimationBufferBitwiseCompressedData ReadSAnimationBufferBitwiseCompressedDataProperty(io::IReadFile* file);
+    core::array<core::array<SAnimationBufferBitwiseCompressedData> > ReadSAnimationBufferBitwiseCompressedBoneTrackProperty(io::IReadFile* file);
+    void readAnimBuffer(core::array<core::array<SAnimationBufferBitwiseCompressedData> >& inf, io::IReadFile *dataFile, SAnimationBufferOrientationCompressionMethod c);
 
     void ReadBones(io::IReadFile* file);
 
@@ -184,6 +224,7 @@ private:
     core::vector3df ReadVector3Property(io::IReadFile* file);
     void ReadUnknowProperty(io::IReadFile* file);
     EMeshVertexType ReadEMVTProperty(io::IReadFile* file);
+    SAnimationBufferOrientationCompressionMethod ReadAnimationBufferOrientationCompressionMethodProperty(io::IReadFile* file);
     void ReadRenderChunksProperty(io::IReadFile* file, SBufferInfos* buffer);
     void ReadMaterialsProperty(io::IReadFile* file);
     video::SMaterial ReadIMaterialProperty(io::IReadFile* file);

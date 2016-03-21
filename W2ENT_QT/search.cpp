@@ -121,7 +121,7 @@ void Search::enableButton()
 
 void Search::resetExtensionsFilter()
 {
-    _ui->lineEdit_extensionsFilter->setText("w2mesh w2ent w2rig");
+    _ui->lineEdit_extensionsFilter->setText("w2mesh w2ent w2rig w2anims");
 }
 
 

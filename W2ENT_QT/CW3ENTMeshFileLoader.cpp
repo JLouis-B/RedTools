@@ -1030,31 +1030,30 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
 
         if (propHeader.propName == "bones")
         {
+            // array
             s32 nbBones = readData<s32>(file);
-
             file->seek(1, true);
 
             skeleton.nbBones = nbBones;
 
             for (s32 i = 0; i < nbBones; ++i)
             {
-                file->seek(4, true);    // refer to string table : name + StringANSI
-                s32 size = readData<s32>(file);
-                file->seek(1, true); // a char with word size
+                SPropertyHeader h;
+                ReadPropertyHeader(file, h);  // name + StringANSI
 
-                size -= 5; // 5 characters readed
-
-                core::stringc name = readString(file, size);
+                u8 nameSize = readU8(file);
+                core::stringc name = readString(file, nameSize);
                 skeleton.names.push_back(name);
 
                 std::cout << "name=" << name.c_str() << std::endl;
 
+                // An other property (nameAsCName)
                 file->seek(13, true); // nameAsCName + CName + size + CName string ID + 3 0x00 octets
             }
         }
         else if (propHeader.propName == "parentIndices")
         {
-            //std::cout << "end supposed to be at " << file->getPos() + propSize - 4 << std::endl;
+            //std::cout << "@EndOfProperty = " << propHeader.endPos << std::endl;
             s32 nbBones = readData<s32>(file);
 
             for (s32 i = 0; i < nbBones; ++i)
@@ -1070,29 +1069,54 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
         file->seek(propHeader.endPos);
     }
 
-    // Now there are the matrix
+    // Now there are the transformations
     file->seek(-2, true);
     std::cout << file->getPos() << std::endl;
 
-    //std::cout << "read the matrix" << std::endl;
     for (u32 i = 0; i < skeleton.nbBones; ++i)
     {
-        core::matrix4 mat(core::matrix4::EM4CONST_IDENTITY);
-        u32 m = 0;
-        for (u32 j = 0; j < 12; ++j)
-        {
-            if (m == 3 || m == 7 || m == 11)
-                m++;
+        std::cout << "bone = " << skeleton.names[i].c_str() << std::endl;
+        // position (vector 4) + quaternion (4 float) + scale (vector 4)
+        core::vector3df position;
+        position.X = readF32(file);
+        position.Y = readF32(file);
+        position.Z = readF32(file);
+        readF32(file); // the w component
 
-            float value = readData<float>(file);
-            //mat[m] = value;
-            //std::cout << value << std::endl;
-            m++;
-        }
-        skeleton.matrix.push_back(mat);
+        core::quaternion orientation;
+        orientation.X = readF32(file);
+        orientation.Y = readF32(file);
+        orientation.Z = readF32(file);
+        orientation.W = readF32(file);
+
+        core::vector3df scale;
+        scale.X = readF32(file);
+        scale.Y = readF32(file);
+        scale.Z = readF32(file);
+        readF32(file); // the w component
+
+        core::matrix4 posMat;
+        posMat.setTranslation(position);
+
+        core::matrix4 rotMat;
+        core::vector3df euler;
+        orientation.toEuler(euler);
+        rotMat.setRotationRadians(euler);
+
+        core::matrix4 scaleMat;
+        scaleMat.setScale(scale);
+
+        core::matrix4 localTransform = posMat * rotMat * scaleMat;
+        skeleton.matrix.push_back(localTransform);
+        skeleton.positions.push_back(position);
+        skeleton.rotations.push_back(orientation);
+        skeleton.scales.push_back(scale);
+
+        std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
+        std::cout << "Rotation = " << euler.X * core::RADTODEG << ", " << euler.Y * core::RADTODEG << ", " << euler.Z * core::RADTODEG << std::endl;
+        std::cout << "Scale = " << scale.X << ", " << scale.Y << ", " << scale.Z << std::endl;
     }
 
-    //std::cout << "end read the matrix" << std::endl;
     Skeleton = skeleton;
 
     log->addAndPush("W3_CSkeleton end\n");
@@ -1355,10 +1379,10 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
         core::vector3df position = matr.getTranslation();
         core::matrix4 invRot;
         matr.getInverse(invRot);
-        invRot.rotateVect(position);
+        //invRot.rotateVect(position);
 
         core::vector3df rotation = invRot.getRotationDegrees();
-        rotation = core::vector3df(0, 0, 0);
+        //rotation = core::vector3df(0, 0, 0);
         position = - position;
         core::vector3df scale = matr.getScale();
 
@@ -1366,18 +1390,17 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
         {
             //Build GlobalMatrix:
             core::matrix4 positionMatrix;
-            positionMatrix.setTranslation( position );
+            positionMatrix.setTranslation(position);
             core::matrix4 scaleMatrix;
-            scaleMatrix.setScale( scale );
+            scaleMatrix.setScale(scale);
             core::matrix4 rotationMatrix;
             rotationMatrix.setRotationDegrees(rotation);
 
-            joint->GlobalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
+            joint->GlobalMatrix =  scaleMatrix * rotationMatrix * positionMatrix;
             joint->LocalMatrix = joint->GlobalMatrix;
 
-
             joint->Animatedposition = joint->LocalMatrix.getTranslation();
-            joint->Animatedrotation = joint->LocalMatrix.getRotationDegrees();
+            joint->Animatedrotation = core::quaternion(joint->LocalMatrix.getRotationDegrees()).makeInverse();
             joint->Animatedscale = joint->LocalMatrix.getScale();
         }
     }

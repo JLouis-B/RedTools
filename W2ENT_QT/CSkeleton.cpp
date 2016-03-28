@@ -96,15 +96,16 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
     // Set the hierarchy
     for (u32 i = 0; i < nbBones; ++i)
     {
-        core::stringc bone = names[i];
-
-
-        scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, bone);
+        core::stringc boneName = names[i];
+        scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, boneName);
         if (!joint)
-            continue;
+        {
+            joint = mesh->addJoint();
+            joint->Name = boneName;
+        }
 
         scene::ISkinnedMesh::SJoint* parentJoint = 0;
-        short parent =  i;
+        short parent = i;
         while (!parentJoint && parent != -1)
         {
             parent = parentId[parent];
@@ -119,52 +120,21 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
     }
 
     // Set matrix from CSkeleton
-    /*
     for (u32 i = 0; i < nbBones; ++i)
     {
-        core::stringc bone = names[i];
+        core::stringc boneName = names[i];
 
-        scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, bone);
+        scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, boneName);
         if (!joint)
             continue;
 
         core::matrix4 mat = matrix[i];
-        joint->GlobalMatrix = mat;
+        joint->LocalMatrix = mat;
 
-        core::matrix4 matr = mat;
-        irr::core::vector3df position = matr.getTranslation();
-        irr::core::matrix4 invRot;
-        matr.getInverse(invRot);
-        invRot.rotateVect(position);
-
-        core::vector3df rotation = invRot.getRotationDegrees();
-        rotation = core::vector3df(0, 0, 0);
-        position = - position;
-        irr::core::vector3df scale = matr.getScale();
-
-        if (joint)
-        {
-            //Build GlobalMatrix:
-            core::matrix4 positionMatrix;
-            positionMatrix.setTranslation( position );
-            core::matrix4 scaleMatrix;
-            scaleMatrix.setScale( scale );
-            core::matrix4 rotationMatrix;
-            rotationMatrix.setRotationDegrees(rotation);
-
-            joint->GlobalMatrix = positionMatrix * rotationMatrix * scaleMatrix;
-        }
-    }*/
-
-    // Local matrix need to be re-computed
-    for (u32 i = 0; i < mesh->getJointCount(); ++i)
-    {
-        scene::ISkinnedMesh::SJoint* joint = mesh->getAllJoints()[i];
-        computeLocal(mesh, joint);
-
-        joint->Animatedposition = joint->LocalMatrix.getTranslation();
-        joint->Animatedrotation = joint->LocalMatrix.getRotationDegrees();
-        joint->Animatedscale = joint->LocalMatrix.getScale();
+        joint->Animatedposition = positions[i];
+        joint->Animatedrotation = rotations[i];
+        joint->Animatedrotation.makeInverse();
+        joint->Animatedscale = scales[i];
     }
 
     return true;

@@ -165,6 +165,7 @@ public:
 
     core::array<video::SMaterial> Materials;
     CSkeleton Skeleton;
+    scene::ISkinnedMesh* meshToAnimate;
 
 private:
 
@@ -172,6 +173,7 @@ private:
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
+
 
 
     // load the different types of data

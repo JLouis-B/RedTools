@@ -304,6 +304,7 @@
     </property>
     <addaction name="actionClean_textures_path"/>
     <addaction name="actionSet_rig"/>
+    <addaction name="actionSet_animations"/>
    </widget>
    <widget class="QMenu" name="menuTheWitcher_1_tools">
     <property name="title">
@@ -453,6 +454,11 @@
   <action name="actionBIF_extractor">
    <property name="text">
     <string>BIF extractor</string>
+   </property>
+  </action>
+  <action name="actionSet_animations">
+   <property name="text">
+    <string>Set animations</string>
    </property>
   </action>
  </widget>

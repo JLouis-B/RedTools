@@ -98,6 +98,7 @@ class QIrrlichtWidget : public QWidget
         QString convertTexture(QString filename, QString destDir);
 
         bool loadRig(const io::path filename, core::stringc &feedbackMessage);
+        bool loadAnims(const io::path filename, core::stringc &feedbackMessage);
         bool fileIsOpenableByIrrlicht(QString filename);
 
 

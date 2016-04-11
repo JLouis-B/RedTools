@@ -27,6 +27,38 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
         node->setMaterialTexture(i, 0);
 }
 
+bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedbackMessage)
+{
+    io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
+    if (!file)
+    {
+        feedbackMessage = "Error : The file can't be opened.";
+        return false;
+    }
+
+    scene::CW3ENTMeshFileLoader loader(_device->getSceneManager(), _device->getFileSystem());
+
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
+
+    // use the loader to add the animation to the new model
+    loader.meshToAnimate = newMesh;
+    scene::IAnimatedMesh* mesh = loader.createMesh(file);
+    file->drop();
+
+    if (mesh)
+        mesh->drop();
+
+
+    newMesh->setDirty();
+    newMesh->finalize();
+
+    _currentLodData->_node->setMesh(newMesh);
+
+    setMaterialsSettings(_currentLodData->_node);
+    return true;
+
+}
+
 bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMessage)
 {
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);

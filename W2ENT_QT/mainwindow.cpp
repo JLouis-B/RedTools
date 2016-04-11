@@ -89,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
 
     QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(loadRig()));
+    QObject::connect(_ui->actionSet_animations, SIGNAL(triggered(bool)), this, SLOT(loadAnimations()));
     QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
     QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
 
@@ -165,6 +166,20 @@ void MainWindow::loadRig()
         QMessageBox::information(this, "Sucess", feedback.c_str());
     else
         QMessageBox::critical(this, "Error", feedback.c_str());
+
+    updateWindowTitle();
+}
+
+void MainWindow::loadAnimations()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to use", Settings::_pack0, "The Witcher 3 animations (*.w2anims)");
+
+    if (file == "")
+        return;
+
+    core::stringc feedback;
+    bool sucess = _irrWidget->loadAnims(QSTRING_TO_PATH(file), feedback);
+
 
     updateWindowTitle();
 }

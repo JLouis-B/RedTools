@@ -36,7 +36,7 @@ namespace scene
 
 //! Constructor
 CW3ENTMeshFileLoader::CW3ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0)
+: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0), meshToAnimate(0)
 {
 	#ifdef _DEBUG
     setDebugName("CW3ENTMeshFileLoader");
@@ -259,7 +259,7 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
         {
             W3_CSkeleton(file, infos);
         }
-        else if (dataTypeName == "CAnimationBufferBitwiseCompressed")
+        else if (dataTypeName == "CAnimationBufferBitwiseCompressed" && meshToAnimate)
         {
             W3_CAnimationBufferBitwiseCompressed(file, infos);
         }
@@ -947,6 +947,8 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
             // TODO
             for (u32 f = 0; f < infos.numFrames; ++f)
             {
+                u32 keyframe = f * 10;
+
 
                 //std::cout << "Adress = " << dataFile->getPos() << std::endl;
                 u8 compressionSize = 0; // no compression
@@ -958,13 +960,15 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                 if (infos.type == EATT_POSITION)
                 {
                     std::cout << "compressionSize= " << (u32)compressionSize << std::endl;
-                    f32 sx = readCompressedFloat(dataFile, compressionSize);
-                    f32 sy = readCompressedFloat(dataFile, compressionSize);
-                    f32 sz = readCompressedFloat(dataFile, compressionSize);
+                    f32 px = readCompressedFloat(dataFile, compressionSize);
+                    f32 py = readCompressedFloat(dataFile, compressionSize);
+                    f32 pz = readCompressedFloat(dataFile, compressionSize);
 
-                    std::cout << "Position value = " << sx << ", " << sy << ", " << sz << std::endl;
+                    std::cout << "Position value = " << px << ", " << py << ", " << pz << std::endl;
 
-                    //scene::ISkinnedMesh::SPositionKey* key = AnimatedMesh->addPositionKey(i);
+                    scene::ISkinnedMesh::SPositionKey* key = meshToAnimate->addPositionKey(meshToAnimate->getAllJoints()[i]);
+                    key->position = core::vector3df(px, py, pz);
+                    key->frame = keyframe;
                 }
                 if (infos.type == EATT_ORIENTATION)
                 {
@@ -1019,7 +1023,9 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                         std::cout << "Euler : x=" << euler.X << ", y=" << euler.Y << ", z=" << euler.Z << std::endl;
 
                     }
-                    //scene::ISkinnedMesh::SPositionKey* key = AnimatedMesh->addRotationKey(i);
+                    scene::ISkinnedMesh::SRotationKey* key = meshToAnimate->addRotationKey(meshToAnimate->getAllJoints()[i]);
+                    key->rotation = orientation;
+                    key->frame = keyframe;
                 }
                 if (infos.type == EATT_SCALE)
                 {
@@ -1030,8 +1036,9 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
 
                     std::cout << "Scale value = " << sx << ", " << sy << ", " << sz << std::endl;
 
-                    //scene::ISkinnedMesh::SScaleKey* key = AnimatedMesh->addScaleKey(i);
-                    //key->position = core::vector3df(sx, sy, sz);
+                    scene::ISkinnedMesh::SScaleKey* key = meshToAnimate->addScaleKey(meshToAnimate->getAllJoints()[i]);
+                    key->scale = core::vector3df(sx, sy, sz);
+                    key->frame = keyframe;
                 }
             }
         }

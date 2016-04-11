@@ -46,6 +46,7 @@ public slots :
     void cleanTexturesPath();
     void extFiles();
     void loadRig();
+    void loadAnimations();
     void addMesh();
     void bifExtractor();
     void changeBaseDir(QString newDir);

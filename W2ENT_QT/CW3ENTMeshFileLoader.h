@@ -174,7 +174,7 @@ private:
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
 
-
+    u32 frameOffset;
 
     // load the different types of data
     bool W3_load(io::IReadFile* file);

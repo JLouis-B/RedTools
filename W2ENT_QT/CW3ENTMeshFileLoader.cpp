@@ -36,7 +36,7 @@ namespace scene
 
 //! Constructor
 CW3ENTMeshFileLoader::CW3ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0), meshToAnimate(0)
+: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0), meshToAnimate(0), frameOffset(0)
 {
 	#ifdef _DEBUG
     setDebugName("CW3ENTMeshFileLoader");
@@ -947,7 +947,8 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
             // TODO
             for (u32 f = 0; f < infos.numFrames; ++f)
             {
-                u32 keyframe = f * 10;
+                u32 keyframe = f;
+                keyframe += frameOffset;
 
 
                 //std::cout << "Adress = " << dataFile->getPos() << std::endl;
@@ -1072,6 +1073,9 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
     io::IReadFile* dataFile = 0;
     SAnimationBufferOrientationCompressionMethod compress;
 
+    f32 animDuration = 1.0f;
+    u32 numFrames = 0;
+
     SPropertyHeader propHeader;
     while (ReadPropertyHeader(file, propHeader))
     {
@@ -1092,19 +1096,28 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
         }
         else if (propHeader.propName == "duration")
         {
-            std::cout << "duration = " << ReadFloatProperty(file) << std::endl;
+            animDuration = readF32(file);
+            std::cout << "duration = " << animDuration << std::endl;
+        }
+        else if (propHeader.propName == "numFrames")
+        {
+            numFrames = readU32(file);
+            std::cout << "numFrames = " << numFrames << std::endl;
         }
 
         std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         file->seek(propHeader.endPos);
     }
 
+    f32 animationSpeed = (f32)numFrames / animDuration;
+    meshToAnimate->setAnimationSpeed(animationSpeed);
     if (dataFile)
     {
         readAnimBuffer(inf, dataFile, compress);
         dataFile->drop();
     }
 
+    frameOffset += numFrames;
     log->addAndPush("W3_CAnimationBufferBitwiseCompressed end\n");
 }
 

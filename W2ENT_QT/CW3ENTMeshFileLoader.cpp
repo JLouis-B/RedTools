@@ -16,6 +16,8 @@
 #include "halffloat.h"
 
 #include <sstream>
+#include <cmath>
+#include <cfloat>
 
 #include "LoadersUtils.h"
 
@@ -124,7 +126,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	{
         for (u32 i = 0; i < Meshes.size(); ++i)
         {
-            combineMeshes(AnimatedMesh, Meshes[i]);
+            combineMeshes(AnimatedMesh, Meshes[i], true);
             Meshes[i]->drop();
         }
 
@@ -362,6 +364,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
                     w->strength = fweight;
                     w->vertex_id = i;
                     //std::cout << "TEST:" << fweight << ", " << bufferId << ", " << i << std::endl;
+
+                    W3_DataCache::_instance.addVertexEntry(boneId, bufferId, i, fweight);
                 }
             }
 
@@ -511,7 +515,7 @@ core::array<core::array<SAnimationBufferBitwiseCompressedData> > CW3ENTMeshFileL
 {
     s32 arraySize = readS32(file);
     file->seek(1, true);
-    std::cout << "array size = " << arraySize << std::endl;
+    std::cout << "Array size = " << arraySize << std::endl;
 
     core::array<core::array<SAnimationBufferBitwiseCompressedData> > inf;
     inf.push_back(core::array<SAnimationBufferBitwiseCompressedData>());
@@ -531,6 +535,7 @@ core::array<core::array<SAnimationBufferBitwiseCompressedData> > CW3ENTMeshFileL
             ReadPropertyHeader(file, propHeader);
             inf.push_back(core::array<SAnimationBufferBitwiseCompressedData>());
 
+            std::cout << "New bone : (index = " << i << ")" << std::endl;
             log->addAndPush("New bone :\n");
         }
 
@@ -630,6 +635,8 @@ SAnimationBufferOrientationCompressionMethod CW3ENTMeshFileLoader::ReadAnimation
 
     if (enumString == "ABOCM_PackIn48bitsW")
         return ABOCM_PackIn48bitsW;
+    else
+        std::cout << "NEW ORIENTATION COMPRESSION METHOD" << std::endl;
 
     return (SAnimationBufferOrientationCompressionMethod)0;
 }
@@ -911,9 +918,9 @@ float readCompressedFloat(io::IReadFile* file, u8 compressionSize)
         return readF32(file); // Not tested yet !
 }
 
-float bits12ToFloat(s32 value)
+float bits12ToFloat(s16 value)
 {
-    if (value & 0x00000800)
+    if (value & 0x0800)
         value = value;
     else
         value = -value;
@@ -927,22 +934,41 @@ float bits12ToFloat(s32 value)
 void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBufferBitwiseCompressedData> >& inf, io::IReadFile* dataFile, SAnimationBufferOrientationCompressionMethod c)
 {
     // Create bones to store the keys if they doesn't exist
-    if (AnimatedMesh->getJointCount() < inf.size())
+    /*
+    if (meshToAnimate->getJointCount() < inf.size())
     {
-        for (u32 i = AnimatedMesh->getJointCount(); i < inf.size(); ++i)
-            AnimatedMesh->addJoint();
+        for (u32 i = meshToAnimate->getJointCount(); i < inf.size(); ++i)
+            meshToAnimate->addJoint();
     }
+    */
 
 
     for (u32 i = 0; i < inf.size(); ++i)
     {
+        scene::ISkinnedMesh::SJoint* joint = meshToAnimate->getAllJoints()[i];
+        std::cout << "---> JOINT : " << joint->Name.c_str() << std::endl;
+
         for (u32 j = 0; j < inf[i].size(); ++j)
         {
             SAnimationBufferBitwiseCompressedData infos = inf[i][j];
             dataFile->seek(infos.dataAddr);
+
+            // Debug infos
+            std::cout << "--> Type : ";
+            if (infos.type == EATT_POSITION)
+                std::cout << "EATT_POSITION";
+            else if (infos.type == EATT_ORIENTATION)
+                std::cout << "EATT_ORIENTATION";
+            else
+                std::cout << "EATT_SCALE";
+            std::cout << std::endl;
+
+
+
             std::cout << "numFrames = " << infos.numFrames << std::endl;
             std::cout << "dt=" << infos.dt << std::endl;
-            std::cout << "compression=" << (int)infos.compression << std::endl;
+            std::cout << "@=" << dataFile->getPos() << std::endl;
+            //std::cout << "compression=" << (int)infos.compression << std::endl;
 
             // TODO
             for (u32 f = 0; f < infos.numFrames; ++f)
@@ -960,16 +986,19 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
 
                 if (infos.type == EATT_POSITION)
                 {
-                    std::cout << "compressionSize= " << (u32)compressionSize << std::endl;
+                    //std::cout << "compressionSize= " << (u32)compressionSize << std::endl;
                     f32 px = readCompressedFloat(dataFile, compressionSize);
                     f32 py = readCompressedFloat(dataFile, compressionSize);
                     f32 pz = readCompressedFloat(dataFile, compressionSize);
 
                     std::cout << "Position value = " << px << ", " << py << ", " << pz << std::endl;
 
-                    scene::ISkinnedMesh::SPositionKey* key = meshToAnimate->addPositionKey(meshToAnimate->getAllJoints()[i]);
+                    /*
+                    scene::ISkinnedMesh::SPositionKey* key = meshToAnimate->addPositionKey(joint);
                     key->position = core::vector3df(px, py, pz);
                     key->frame = keyframe;
+                    */
+
                 }
                 if (infos.type == EATT_ORIENTATION)
                 {
@@ -988,25 +1017,18 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
 
                         f32 fx, fy, fz, fw;
 
-                        s32 x = 0, y = 0, z = 0, w = 0;
+                        s16 x = 0, y = 0, z = 0, w = 0;
                         x = (bits & 0x0000FFF000000000) >> 36;
                         y = (bits & 0x0000000FFF000000) >> 24;
                         z = (bits & 0x0000000000FFF000) >> 12;
-                        w = bits & 0x0000000000000FFF;
+                        w =  bits & 0x0000000000000FFF;
 
-
+                        /*
                         std::cout << std::dec << x << std::endl;
                         std::cout << std::hex << x << std::endl;
                         std::cout << std::hex << y << std::endl;
                         std::cout << std::hex << z << std::endl;
                         std::cout << std::hex << w << std::endl;
-
-
-                        /*
-                        memcpy(&fx, &x, 4);
-                        memcpy(&fy, &y, 4);
-                        memcpy(&fz, &z, 4);
-                        memcpy(&fw, &w, 4);
                         */
 
                         fx = bits12ToFloat(x);
@@ -1024,13 +1046,14 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                         std::cout << "Euler : x=" << euler.X << ", y=" << euler.Y << ", z=" << euler.Z << std::endl;
 
                     }
-                    scene::ISkinnedMesh::SRotationKey* key = meshToAnimate->addRotationKey(meshToAnimate->getAllJoints()[i]);
+
+                    scene::ISkinnedMesh::SRotationKey* key = meshToAnimate->addRotationKey(joint);
                     key->rotation = orientation;
                     key->frame = keyframe;
                 }
                 if (infos.type == EATT_SCALE)
                 {
-                    std::cout << "compressionSize= " << (int)compressionSize << std::endl;
+                    //std::cout << "compressionSize= " << (int)compressionSize << std::endl;
                     f32 sx = readCompressedFloat(dataFile, compressionSize);
                     f32 sy = readCompressedFloat(dataFile, compressionSize);
                     f32 sz = readCompressedFloat(dataFile, compressionSize);
@@ -1042,6 +1065,7 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                     key->frame = keyframe;
                 }
             }
+            std::cout << std::endl;
         }
     }
 }
@@ -1075,6 +1099,7 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
 
     f32 animDuration = 1.0f;
     u32 numFrames = 0;
+    u16 defferedData = 0;
 
     SPropertyHeader propHeader;
     while (ReadPropertyHeader(file, propHeader))
@@ -1088,7 +1113,6 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
         {
             u32 arraySize = readU32(file);
             data = readDataArray<s8>(file, arraySize);
-            dataFile = FileSystem->createMemoryReadFile(data.pointer(), data.size(), "tempData");
         }
         else if (propHeader.propName == "orientationCompressionMethod")
         {
@@ -1104,6 +1128,10 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
             numFrames = readU32(file);
             std::cout << "numFrames = " << numFrames << std::endl;
         }
+        else if (propHeader.propName == "deferredData")
+        {
+            defferedData = readU16(file);
+        }
 
         std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         file->seek(propHeader.endPos);
@@ -1111,6 +1139,17 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
 
     f32 animationSpeed = (f32)numFrames / animDuration;
     meshToAnimate->setAnimationSpeed(animationSpeed);
+
+    if (defferedData == 0)
+        dataFile = FileSystem->createMemoryReadFile(data.pointer(), data.size(), "tempData");
+    else
+    {
+        core::stringc filename = file->getFileName() + "." + toStr(defferedData) + ".buffer";
+        std::cout << "Filename deffered = " << filename.c_str() << std::endl;
+        dataFile = FileSystem->createAndOpenFile(filename);
+    }
+
+
     if (dataFile)
     {
         readAnimBuffer(inf, dataFile, compress);
@@ -1119,6 +1158,20 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
 
     frameOffset += numFrames;
     log->addAndPush("W3_CAnimationBufferBitwiseCompressed end\n");
+}
+
+// sometimes toEuler give NaN numbers
+void chechNaNErrors(core::vector3df& vector3)
+{
+    if (std::isnan(vector3.X) || std::isinf(vector3.X))
+        vector3.X = 0.f;
+
+    if (std::isnan(vector3.Y) || std::isinf(vector3.Y))
+        vector3.Y = 0.f;
+
+    if (std::isnan(vector3.Z) || std::isinf(vector3.Z))
+        vector3.Z = 0.f;
+
 }
 
 CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos infos)
@@ -1207,20 +1260,26 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
         core::matrix4 rotMat;
         core::vector3df euler;
         orientation.toEuler(euler);
+        std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
+        //std::cout << "Rotation (radians) = " << euler.X << ", " << euler.Y << ", " << euler.Z << std::endl;
+        chechNaNErrors(euler);
+
         rotMat.setRotationRadians(euler);
 
         core::matrix4 scaleMat;
         scaleMat.setScale(scale);
 
         core::matrix4 localTransform = posMat * rotMat * scaleMat;
+        orientation.makeInverse();
         skeleton.matrix.push_back(localTransform);
         skeleton.positions.push_back(position);
         skeleton.rotations.push_back(orientation);
         skeleton.scales.push_back(scale);
 
-        std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
+        //std::cout << "Rotation (NaN fixed) = " << euler.X << ", " << euler.Y << ", " << euler.Z << std::endl;
         std::cout << "Rotation = " << euler.X * core::RADTODEG << ", " << euler.Y * core::RADTODEG << ", " << euler.Z * core::RADTODEG << std::endl;
         std::cout << "Scale = " << scale.X << ", " << scale.Y << ", " << scale.Z << std::endl;
+        std::cout << std::endl;
     }
 
     Skeleton = skeleton;
@@ -1508,6 +1567,8 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
             joint->Animatedposition = joint->LocalMatrix.getTranslation();
             joint->Animatedrotation = core::quaternion(joint->LocalMatrix.getRotationDegrees()).makeInverse();
             joint->Animatedscale = joint->LocalMatrix.getScale();
+
+            W3_DataCache::_instance.addBoneEntry(joint->Name, matrix);
         }
     }
 

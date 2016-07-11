@@ -22,7 +22,6 @@ public:
     core::array<core::vector3df> scales;
 
     bool applyToModel(scene::ISkinnedMesh* mesh);
-    bool checkIfPerfectlyCorresponding(scene::ISkinnedMesh* mesh);
 };
 
 #endif // CSKELETON_H

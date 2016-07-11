@@ -1,12 +1,12 @@
 #ifndef MESHCOMBINER
 #define MESHCOMBINER
 
-#include <irrlicht.h>
+#include <ISceneManager.h>
 
 using namespace irr;
 
-void combineMeshes(scene::ISkinnedMesh* source, scene::ISkinnedMesh* addition);
-scene::ISkinnedMesh* copySkinnedMesh(scene::ISceneManager* Smgr, scene::ISkinnedMesh* meshToCopy);
+void combineMeshes(scene::ISkinnedMesh* newMesh, scene::IMesh *addition, bool preserveBones);
+scene::ISkinnedMesh* copySkinnedMesh(scene::ISceneManager* smgr, scene::IMesh* meshToCopy, bool preserveBones);
 
 
 #endif // MESHCOMBINER

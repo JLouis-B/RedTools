@@ -65,6 +65,19 @@ void computeLocal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* 
         joint->LocalMatrix = joint->GlobalMatrix;
 }
 
+void computeGlobal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
+{
+    scene::ISkinnedMesh::SJoint* parent = getRealParent(mesh, joint);
+    if (parent)
+        joint->GlobalMatrix = parent->GlobalMatrix * joint->LocalMatrix;
+    else
+        joint->GlobalMatrix = joint->LocalMatrix;
+
+    for (u32 i = 0; i < joint->Children.size(); ++i)
+    {
+        computeGlobal(mesh, joint->Children[i]);
+    }
+}
 
 scene::ISkinnedMesh::SJoint* getJointByName(scene::ISkinnedMesh* mesh, core::stringc name)
 {
@@ -82,18 +95,7 @@ scene::ISkinnedMesh::SJoint* getJointByName(scene::ISkinnedMesh* mesh, core::str
 
 bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
 {
-    // is it the good skeleton ?
-    //if (!checkIfPerfectlyCorresponding(mesh))
-    //    return false;
-
-    // Clear the previous hierarchy
-    for (u32 i = 0; i < mesh->getJointCount(); ++i)
-    {
-        scene::ISkinnedMesh::SJoint* joint = mesh->getAllJoints()[i];
-        joint->Children.clear();
-    }
-
-    // Set the hierarchy
+    // Create the bones
     for (u32 i = 0; i < nbBones; ++i)
     {
         core::stringc boneName = names[i];
@@ -103,23 +105,21 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
             joint = mesh->addJoint();
             joint->Name = boneName;
         }
-
-        scene::ISkinnedMesh::SJoint* parentJoint = 0;
-        short parent = i;
-        while (!parentJoint && parent != -1)
-        {
-            parent = parentId[parent];
-            if (parent == -1)   // root
-                break;
-
-            parentJoint = getJointByName(mesh, names[parent]);
-            if (parentJoint)
-                parentJoint->Children.push_back(joint);
-        }
-
     }
 
-    // Set matrix from CSkeleton
+    // Set the hierarchy
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        short parent = parentId[i];
+        if (parent != -1) // root
+        {
+            scene::ISkinnedMesh::SJoint* parentJoint = getJointByName(mesh, names[parent]);
+            if (parentJoint)
+                parentJoint->Children.push_back(mesh->getAllJoints()[i]);
+        }
+    }
+
+    // Set the transformations
     for (u32 i = 0; i < nbBones; ++i)
     {
         core::stringc boneName = names[i];
@@ -133,23 +133,14 @@ bool CSkeleton::applyToModel(scene::ISkinnedMesh* mesh)
 
         joint->Animatedposition = positions[i];
         joint->Animatedrotation = rotations[i];
-        joint->Animatedrotation.makeInverse();
         joint->Animatedscale = scales[i];
     }
 
-    return true;
-}
-
-bool CSkeleton::checkIfPerfectlyCorresponding(scene::ISkinnedMesh* mesh)
-{
-    for (u32 i = 0; i < nbBones; ++i)
+    // Compute the global matrix
+    core::array<scene::ISkinnedMesh::SJoint*> roots = getRootJoints(mesh);
+    for (u32 i = 0; i < roots.size(); ++i)
     {
-        core::stringc bone = names[i];
-        //std::cout << bone.c_str() << std::endl;
-
-        scene::ISkinnedMesh::SJoint* joint = getJointByName(mesh, bone);
-        if (!joint)
-            return false;
+        computeGlobal(mesh, roots[i]);
     }
 
     return true;

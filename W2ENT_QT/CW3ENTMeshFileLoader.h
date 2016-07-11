@@ -12,9 +12,8 @@
 #include "ISkinnedMesh.h"
 
 #include "CSkeleton.h"
-
+#include "W3_DataCache.h"
 #include "meshcombiner.h"
-
 #include "log.h"
 
 

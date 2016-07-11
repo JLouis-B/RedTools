@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     tw1bifextractor.cpp \
     tw1bifextractorui.cpp \
     CWitcherMDLMeshFileLoader.cpp \
-    LoadersUtils.cpp
+    LoadersUtils.cpp \
+    W3_DataCache.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -65,7 +66,8 @@ HEADERS  += mainwindow.h \
     tw1bifextractor.h \
     tw1bifextractorui.h \
     CWitcherMDLMeshFileLoader.h \
-    LoadersUtils.h
+    LoadersUtils.h \
+    W3_DataCache.h
 
 FORMS    += mainwindow.ui \
     options.ui \

@@ -38,7 +38,7 @@ bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedback
 
     scene::CW3ENTMeshFileLoader loader(_device->getSceneManager(), _device->getFileSystem());
 
-    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), true);
 
     // use the loader to add the animation to the new model
     loader.meshToAnimate = newMesh;
@@ -77,13 +77,17 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
 
     CSkeleton skeleton = loader.Skeleton;
 
-    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), false);
 
     bool sucess = skeleton.applyToModel(newMesh);
     if (sucess)
         feedbackMessage = "Rig sucessfully applied";
     else
         feedbackMessage = "The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?";
+
+    // Apply the skinning
+    W3_DataCache::_instance.setOwner(newMesh);
+    W3_DataCache::_instance.apply();
 
     newMesh->setDirty();
     newMesh->finalize();
@@ -177,6 +181,10 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkel);
 
+    // Clear the previous data
+    W3_DataCache::_instance.clear();
+
+
     const io::path irrFilename = QSTRING_TO_PATH(filename);
     io::path extension;
     core::getFileNameExtension(extension, irrFilename);
@@ -231,8 +239,8 @@ bool QIrrlichtWidget::addMesh(QString filename, stringc &feedbackMessage)
         return false;
     }
 
-    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), (scene::ISkinnedMesh*)_currentLodData->_node->getMesh());
-    combineMeshes(newMesh, (scene::ISkinnedMesh*)mesh);
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), true);
+    combineMeshes(newMesh, mesh, true);
     newMesh->finalize();
     _currentLodData->_node->setMesh(newMesh);
 
@@ -920,7 +928,7 @@ QString QIrrlichtWidget::getPath()
         return "";
 }
 
-bool QIrrlichtWidget::isEmpty (LOD lod)
+bool QIrrlichtWidget::isEmpty(LOD lod)
 {
     switch (lod)
     {
@@ -937,6 +945,7 @@ bool QIrrlichtWidget::isEmpty (LOD lod)
             return (_collisionsLodData._node == 0);
         break;
     }
+    return false;
 }
 
 

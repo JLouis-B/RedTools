@@ -219,8 +219,8 @@ private:
     core::array<SMeshInfos> ReadSMeshChunkPackedProperty(io::IReadFile* file);
 
     u32 ReadUInt32Property(io::IReadFile* file);
-    char ReadUInt8Property(io::IReadFile* file);
-    float ReadFloatProperty(io::IReadFile* file);
+    u8 ReadUInt8Property(io::IReadFile* file);
+    f32 ReadFloatProperty(io::IReadFile* file);
     bool ReadBoolProperty(io::IReadFile* file);
     core::vector3df ReadVector3Property(io::IReadFile* file);
     void ReadUnknowProperty(io::IReadFile* file);

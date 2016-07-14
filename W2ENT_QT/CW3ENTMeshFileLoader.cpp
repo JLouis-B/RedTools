@@ -74,7 +74,7 @@ bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
 
 
 //! creates/loads an animated mesh from the file.
-//! \return Pos32er to the created mesh. Returns 0 if loading failed.
+//! \return Pointer to the created mesh. Returns 0 if loading failed.
 //! If you no longer need the mesh, you should call IAnimatedMesh::drop().
 //! See IReferenceCounted::drop() for more information.
 IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
@@ -96,7 +96,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
-        GameTexturesPath = GameTexturesPath = SceneManager->getParameters()->getAttributeAsStringW("TW_TW3_TEX_PATH");
+        GameTexturesPath = SceneManager->getParameters()->getAttributeAsStringW("TW_TW3_TEX_PATH");
     #else
         GamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
         GameTexturesPath = SceneManager->getParameters()->getAttributeAsString("TW_TW3_TEX_PATH");
@@ -137,7 +137,6 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
 		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         //SceneManager->getMeshManipulator()->flipSurfaces(AnimatedMesh);
-
 	}
 	else
 	{
@@ -206,7 +205,7 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
             std::cout << Files.size() - 1 << "--> " << Strings[i].c_str() << std::endl;
         }
         */
-    log->addAndPush("Textures list created\n");
+    log->addAndPush("Files list created\n");
 
 
     s32 contentChunkStart = headerData[19];
@@ -300,7 +299,6 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
     //std::cout << "Num vertices=" << meshInfos.numVertices << std::endl;
     buffer->Vertices_Standard.reallocate(meshInfos.numVertices);
-    buffer->Vertices_Standard.set_used(meshInfos.numVertices);
 
     u32 vertexSize = 20;
     if (meshInfos.vertexType == EMVT_SKINNED)
@@ -326,6 +324,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     }
     bufferFile->seek(vBufferInf.verticesCoordsOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * vertexSize);
     std::cout << "POS=" << bufferFile->getPos() << std::endl;
+
+    const video::SColor defaultColor(255, 255, 255, 255);
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
         u16 x, y, z, tmp;
@@ -371,8 +371,9 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
         }
 
+        buffer->Vertices_Standard.push_back(video::S3DVertex());
         buffer->Vertices_Standard[i].Pos = core::vector3df(x, y, z) / 65535.f * bufferInfos.quantizationScale + bufferInfos.quantizationOffset;
-        buffer->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
+        buffer->Vertices_Standard[i].Color = defaultColor;
         //std::cout << "Position=" << x << ", " << y << ", " << z << std::endl;
     }
     bufferFile->seek(vBufferInf.uvOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * 4);
@@ -408,19 +409,16 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     // Indices -------------------------------------------------------------------
     bufferFile->seek(bufferInfos.indicesBufferOffset + meshInfos.firstIndice * 2);
 
-    buffer->Indices.reallocate(meshInfos.numIndices);
-    buffer->Indices.set_used(meshInfos.numIndices);
+
 
     //std::cout << "offset=" << meshInfos.firstIndice << std::endl;
     //std::cout << "num indices=" << meshInfos.numIndices << std::endl;
+    buffer->Indices.set_used(meshInfos.numIndices);
     for (u32 i = 0; i < meshInfos.numIndices; ++i)
     {
-        u16 indice;
-        bufferFile->read(&indice, 2);
+        const u16 indice = readU16(bufferFile);
 
         // Indice need to be inversed for the normals
-        //buffer->Indices[i] = indice;
-
         if (i % 3 == 0)
             buffer->Indices[i] = indice;
         else if (i % 3 == 1)
@@ -429,9 +427,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
             buffer->Indices[i-1] = indice;
     }
 
-    buffer->setDirty();
     SceneManager->getMeshManipulator()->recalculateNormals(buffer);
-
     bufferFile->drop();
 }
 
@@ -455,20 +451,19 @@ bool CW3ENTMeshFileLoader::ReadPropertyHeader(io::IReadFile* file, SPropertyHead
     return true;
 }
 
-u32 CW3ENTMeshFileLoader::ReadUInt32Property(io::IReadFile* file)
+inline u32 CW3ENTMeshFileLoader::ReadUInt32Property(io::IReadFile* file)
 {
-    u32 value = readData<u32>(file);
-
-    //std::cout << "Value = " << value << std::endl;
-    return value;
+    return readU32(file);
 }
 
-char CW3ENTMeshFileLoader::ReadUInt8Property(io::IReadFile* file)
+inline u8 CW3ENTMeshFileLoader::ReadUInt8Property(io::IReadFile* file)
 {
-    char value = readData<char>(file);
+    return readU8(file);
+}
 
-    //std::cout << "Value = " << value << std::endl;
-    return value;
+inline f32 CW3ENTMeshFileLoader::ReadFloatProperty(io::IReadFile* file)
+{
+    return readF32(file);
 }
 
 bool CW3ENTMeshFileLoader::ReadBoolProperty(io::IReadFile* file)
@@ -476,11 +471,6 @@ bool CW3ENTMeshFileLoader::ReadBoolProperty(io::IReadFile* file)
     char valueChar = readData<char>(file);
     bool value = (valueChar == 0) ? false : true;
     return value;
-}
-
-float CW3ENTMeshFileLoader::ReadFloatProperty(io::IReadFile* file)
-{
-    return readF32(file);
 }
 
 SAnimationBufferBitwiseCompressedData CW3ENTMeshFileLoader::ReadSAnimationBufferBitwiseCompressedDataProperty(io::IReadFile* file)
@@ -1573,21 +1563,21 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
     }
 
     // 1 float per bone ???
-     readBonesNumber(file);
-     for (char i = 0; i < nbBones; ++i)
-     {
-         float value = readData<float>(file);
-         log->addAndPush(core::stringc("value = ") + toStr(value) + "\n");
-     }
+    readBonesNumber(file);
+    for (char i = 0; i < nbBones; ++i)
+    {
+        float value = readData<float>(file);
+        log->addAndPush(core::stringc("value = ") + toStr(value) + "\n");
+    }
 
-     // 1 s32 par bone. parent ID ? no
-     readBonesNumber(file);
-     for (char i = 0; i < nbBones; ++i)
-     {
-         u32 parent = readData<u32>(file);
-         //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
-     }
-     log->addAndPush("Bones loaded\n");
+    // 1 s32 par bone. parent ID ? no
+    readBonesNumber(file);
+    for (char i = 0; i < nbBones; ++i)
+    {
+        u32 parent = readData<u32>(file);
+        //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
+    }
+    log->addAndPush("Bones loaded\n");
 }
 
 

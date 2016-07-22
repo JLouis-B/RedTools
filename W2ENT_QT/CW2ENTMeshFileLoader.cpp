@@ -610,7 +610,7 @@ void CW2ENTMeshFileLoader::CSkeleton(io::IReadFile* file, DataInfos infos)
 {
     file->seek(infos.adress);
 
-    std::cout << "begin at " << infos.adress << " and end at " << infos.adress + infos.size << ", so size = " << infos.size << std::endl;
+    //std::cout << "begin at " << infos.adress << " and end at " << infos.adress + infos.size << ", so size = " << infos.size << std::endl;
 
     while(1)
     {
@@ -624,7 +624,7 @@ void CW2ENTMeshFileLoader::CSkeleton(io::IReadFile* file, DataInfos infos)
         core::stringc property = Strings[propertyId-1];  // Name of the property
         core::stringc propertyType = Strings[propertyTypeId-1];  // Type of the property
 
-        std::cout << "property=" << property.c_str() << ", type=" << propertyType.c_str() << std::endl;
+        //std::cout << "property=" << property.c_str() << ", type=" << propertyType.c_str() << std::endl;
 
         u16 name3 = readData<u16>(file);
 
@@ -839,14 +839,16 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
     log->addAndPush("Drawmesh_static\n");
 
     int back = file->getPos();
+    const video::SColor defaultColor(255, 255, 255, 255);
 
     for(unsigned int n = 0; n <NbSubMesh; n++)
     {
-        log->addAndPush("submesh\n");
+        if (n>=IdLOD[0][0])
+            continue;
 
-        core::array<core::array<f32 > >vertexes;
-        core::array<unsigned short > faceslist;
-        core::array<core::array<f32 > > uvcoord;
+        log->addAndPush("submesh\n");
+        SSkinMeshBuffer *buf = AnimatedMesh->addMeshBuffer();
+
         Submesh_data var = SubMeshData[n];
         //std::cout << "var.vertype = " << var.vertype << std::endl;
 
@@ -862,73 +864,44 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
         int VertEnd = var.dataI[2];
 
         file->seek(back+VertStart*vertsize);
+        buf->Vertices_Standard.reallocate(VertEnd);
         for (int i = 0; i < VertEnd; i++)
         {
             int back1 = file->getPos();
+            video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
+            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
+
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
+            vertex.TCoords = core::vector2df(uv[0], uv[1]);
+            vertex.Color = defaultColor;
+            buf->Vertices_Standard.push_back(vertex);
 
-            uvcoord.push_back(uv);
-            vertexes.push_back(position);
             file->seek(back1 + vertsize);
         }
         int FacesStart = var.dataI[1];
         int FacesEnd = var.dataI[3];
 
         file->seek(back+data[0]+FacesStart*2);
-        faceslist = readDataArray<u16>(file, FacesEnd);
 
-        if (n<IdLOD[0][0])
-        {
-            SSkinMeshBuffer *buf = AnimatedMesh->addMeshBuffer();
-
-            buf->Vertices_Standard.reallocate(vertexes.size());
-            buf->Vertices_Standard.set_used(vertexes.size());
-
-            for (unsigned int i = 0; i < vertexes.size(); i++)
-            {
-                buf->Vertices_Standard[i].Pos.X = vertexes[i][0];
-                buf->Vertices_Standard[i].Pos.Y = vertexes[i][2];
-                buf->Vertices_Standard[i].Pos.Z = vertexes[i][1];
-
-                std::cout << "Vertex = " << vertexes[i][0] << ", " << vertexes[i][1] << ", " << vertexes[i][2] << std::endl;
+        buf->Indices.set_used(FacesEnd);
+        file->read(buf->Indices.pointer(), FacesEnd * 2);
 
 
-                buf->Vertices_Standard[i].TCoords.X = uvcoord[i][0];
-                buf->Vertices_Standard[i].TCoords.Y = uvcoord[i][1];
-                std::cout << "UV = " << uvcoord[i][0] << ", " << uvcoord[i][1] << std::endl;
+        int result = 0;
+        if (n < mats.size())
+            if ((unsigned int)mats[n] < Materials.size())
+                result = mats[n];
+        //std::cout << "MaterialSize= " << Materials.size() << std::endl;
+        //std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;
 
+        buf->Material = Materials[result].material;
 
-                buf->Vertices_Standard[i].Color = irr::video::SColor(255,255,255,255);
-            }
-
-            buf->Indices.reallocate(faceslist.size());
-            buf->Indices.set_used(faceslist.size());
-
-            for (unsigned int i = 0; i < faceslist.size(); i+=3)
-            {
-                buf->Indices[i] = faceslist[i];
-                buf->Indices[i + 1] = faceslist[i+1];
-                buf->Indices[i + 2] = faceslist[i+2];
-            }
-
-            int result = 0;
-            if (n < mats.size())
-                if ((unsigned int)mats[n] < Materials.size())
-                    result = mats[n];
-            //std::cout << "MaterialSize= " << Materials.size() << std::endl;
-            //std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;
-
-            buf->Material = Materials[result].material;
-
-            SceneManager->getMeshManipulator()->recalculateNormals(buf);
-            buf->recalculateBoundingBox();
-            //Mesh->addMeshBuffer(buf);
-            //Mesh->setDirty();
-            AnimatedMesh->setDirty();
-        }
+        SceneManager->getMeshManipulator()->recalculateNormals(buf);
+        buf->recalculateBoundingBox();
     }
+    AnimatedMesh->setDirty();
 
     log->addAndPush("Drawmesh_static OK\n");
 }
@@ -939,13 +912,16 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
     log->addAndPush("Drawmesh\n");
 
     int back = file->getPos();
+    const video::SColor defaultColor(255, 255, 255, 255);
 
     for (unsigned int n = 0 ; n <NbSubMesh; n++)
     {
-        core::array<core::array<f32 > >vertexes;
-        core::array<u16 > faceslist;
-        core::array<core::array<f32 > > uvcoord;
-        core::array<core::array<unsigned char> > weighting;
+        if (n>=IdLOD[0][0])
+            continue;
+
+        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
+
+        core::array<core::array<u8> > weighting;
         // std::cout << "var.vertype = " << SubMeshData[n].vertype << std::endl;
         int vertsize = 0;
         if (SubMeshData[n].vertype==1)
@@ -960,16 +936,23 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
         int VertEnd = var.dataI[2];
 
         file->seek(back+VertStart*vertsize);
+        buf->Vertices_Standard.reallocate(VertEnd);
+        weighting.reallocate(VertEnd);
         for (int i = 0; i < VertEnd; i++)
         {
             int back1 = file->getPos();
+            video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
+            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
+
             weighting.push_back(readDataArray<u8>(file, 8));
+
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
+            vertex.TCoords = core::vector2df(uv[0], uv[1]);
+            vertex.Color = defaultColor;
+            buf->Vertices_Standard.push_back(vertex);
 
-            uvcoord.push_back(uv);
-            vertexes.push_back(position);
             file->seek(back1+vertsize);
         }
 
@@ -977,56 +960,25 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
         int FacesEnd = var.dataI[3];
 
         // Faces
-        file->seek(back+data[2]+FacesStart*2);
-        faceslist = readDataArray<u16>(file, FacesEnd);
+        file->seek(back+data[2]+FacesStart*2);        
+        buf->Indices.set_used(FacesEnd);
+        file->read(buf->Indices.pointer(), FacesEnd * 2);
 
 
-        if (n<IdLOD[0][0])
-        {
-            // Make a mesh buffer from vertex, faces and UV data
-            SSkinMeshBuffer *buf = AnimatedMesh->addMeshBuffer();
-            // TODO : Add weigting data
+        int result = 0;
+        if (n < mats.size())
+            if ((unsigned int)mats[n] < Materials.size())
+                result = mats[n];
 
-            buf->Vertices_Standard.reallocate(vertexes.size());
-            buf->Vertices_Standard.set_used(vertexes.size());
+        /*std::cout << "MaterialSize= " << Materials.size() << std::endl;
+        std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;*/
 
-            for (unsigned int i = 0; i < vertexes.size(); i++)
-            {
-                buf->Vertices_Standard[i].Pos.X = vertexes[i][0];
-                buf->Vertices_Standard[i].Pos.Y = vertexes[i][2];
-                buf->Vertices_Standard[i].Pos.Z = vertexes[i][1];
+        buf->Material = Materials[result].material;
 
-                buf->Vertices_Standard[i].TCoords.X = uvcoord[i][0];
-                buf->Vertices_Standard[i].TCoords.Y = uvcoord[i][1];
+        make_vertex_group(SubMeshData[n], weighting);
 
-                buf->Vertices_Standard[i].Color = irr::video::SColor(255,255,255,255);
-            }
-
-            buf->Indices.reallocate(faceslist.size());
-            buf->Indices.set_used(faceslist.size());
-
-            for (unsigned int i = 0; i < faceslist.size(); i+=3)
-            {
-                buf->Indices[i] = faceslist[i];
-                buf->Indices[i + 1] = faceslist[i+1];
-                buf->Indices[i + 2] = faceslist[i+2];
-            }
-
-            int result = 0;
-            if (n < mats.size())
-                if ((unsigned int)mats[n] < Materials.size())
-                    result = mats[n];
-
-            /*std::cout << "MaterialSize= " << Materials.size() << std::endl;
-            std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;*/
-
-            buf->Material = Materials[result].material;
-
-            make_vertex_group(SubMeshData[n], weighting);
-
-            SceneManager->getMeshManipulator()->recalculateNormals(buf);
-            buf->recalculateBoundingBox();
-        }
+        SceneManager->getMeshManipulator()->recalculateNormals(buf);
+        buf->recalculateBoundingBox();
     }
 
     log->addAndPush("Drawmesh OK\n");

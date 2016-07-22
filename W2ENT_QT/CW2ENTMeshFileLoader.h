@@ -40,12 +40,6 @@ struct Submesh_data
     core::array <unsigned short> dataH;
 };
 
-struct UV
-{
-    float u;
-    float v;
-};
-
 struct Mat
 {
     int id;

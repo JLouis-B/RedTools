@@ -48,6 +48,8 @@ public:
 
     static bool _firstUse;
 
+    static QString _appVersion;
+
     static QString getExportFolder();
 
     static void loadFromXML(QString filename);

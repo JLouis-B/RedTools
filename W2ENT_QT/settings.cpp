@@ -31,6 +31,8 @@ QString Settings::_formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
 
 bool Settings::_firstUse = true;
 
+QString Settings::_appVersion = "2.4";
+
 QString Settings::getExportFolder()
 {
     if (Settings::_mode == Export_Pack0)

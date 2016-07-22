@@ -71,6 +71,8 @@ public:
     void clear();
     void apply();
     void skin();
+
+    u32 _bufferID;
 };
 
 #endif // W3_DATACACHE_H

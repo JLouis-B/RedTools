@@ -34,6 +34,7 @@ void combineMeshes(scene::ISkinnedMesh* newMesh, scene::IMesh* addition, bool pr
     if (!newMesh || !addition)
         return;
 
+    const u32 sourceMeshBufferCount = newMesh->getMeshBufferCount();
     const u32 meshBufferCount = addition->getMeshBufferCount();
     for ( u32 b=0; b<meshBufferCount; ++b)
     {
@@ -104,6 +105,7 @@ void combineMeshes(scene::ISkinnedMesh* newMesh, scene::IMesh* addition, bool pr
         return;
 
     scene::ISkinnedMesh* skinnedMesh = static_cast<scene::ISkinnedMesh*>(addition);
+    const u32 meshSourceJointCount = newMesh->getJointCount();
     const u32 jointCount = skinnedMesh->getJointCount();
     for ( u32 j=0; j<jointCount; ++j)
     {
@@ -123,9 +125,9 @@ void combineMeshes(scene::ISkinnedMesh* newMesh, scene::IMesh* addition, bool pr
         jointClone->ScaleKeys = joint->ScaleKeys;
         for (u32 w = 0; w < joint->Weights.size(); ++w)
         {
-            scene::ISkinnedMesh::SWeight weight = joint->Weights[w];
+            const scene::ISkinnedMesh::SWeight weight = joint->Weights[w];
             scene::ISkinnedMesh::SWeight* weightClone = newMesh->addWeight(jointClone);
-            weightClone->buffer_id = weight.buffer_id;
+            weightClone->buffer_id = weight.buffer_id + sourceMeshBufferCount;
             weightClone->strength = weight.strength;
             weightClone->vertex_id = weight.vertex_id;
         }
@@ -134,7 +136,7 @@ void combineMeshes(scene::ISkinnedMesh* newMesh, scene::IMesh* addition, bool pr
     for ( u32 j=0; j<jointCount; ++j)
     {
         const scene::ISkinnedMesh::SJoint* const joint = skinnedMesh->getAllJoints()[j];
-        scene::ISkinnedMesh::SJoint* jointClone = newMesh->getAllJoints()[j];
+        scene::ISkinnedMesh::SJoint* jointClone = newMesh->getAllJoints()[meshSourceJointCount + j];
         for (u32 c = 0; c < joint->Children.size(); ++c)
         {
             jointClone->Children.push_back(newMesh->getAllJoints()[newMesh->getJointNumber(joint->Children[c]->Name.c_str())]);

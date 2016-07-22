@@ -20,6 +20,7 @@
 #include <cfloat>
 
 #include "LoadersUtils.h"
+#include "settings.h"
 
 //#define _DEBUG
 
@@ -108,7 +109,9 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     Files.clear();
     Meshes.clear();
 
-    log->add("-> ");
+    log->add("-> Exported with The Witcher Converter ");
+    log->add(Settings::_appVersion.toStdString().c_str());
+    log->add("\n-> ");
     log->add(f->getFileName().c_str());
     log->add("\n-> Load Sekeleton is ");
     if (SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
@@ -124,11 +127,13 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
 	if (load(f))
 	{
+        /*
         for (u32 i = 0; i < Meshes.size(); ++i)
         {
             combineMeshes(AnimatedMesh, Meshes[i], true);
             Meshes[i]->drop();
         }
+        */
 
 		AnimatedMesh->finalize();
         Feedback += "done";
@@ -1294,9 +1299,15 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
             u8 fileId = readU8(file);
             fileId = 255 - fileId;
             file->seek(3, true);
+            W3_DataCache::_instance._bufferID += AnimatedMesh->getMeshBufferCount();
             scene::ISkinnedMesh* mesh = ReadW2MESHFile(GamePath + Files[fileId]);
+            W3_DataCache::_instance._bufferID -= AnimatedMesh->getMeshBufferCount();
             if (mesh)
-                Meshes.push_back(mesh);
+            {
+                // Merge in the main mesh
+                combineMeshes(AnimatedMesh, mesh, true);
+                //Meshes.push_back(mesh);
+            }
             else
             {
                 log->setConsoleOutput(true);

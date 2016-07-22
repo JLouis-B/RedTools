@@ -4,7 +4,7 @@
 
 W3_DataCache W3_DataCache::_instance = W3_DataCache();
 
-W3_DataCache::W3_DataCache() : _owner(0)
+W3_DataCache::W3_DataCache() : _owner(0), _bufferID(0)
 {
 
 }
@@ -28,7 +28,7 @@ void W3_DataCache::addBoneEntry(core::stringc name, core::matrix4 boneOffset)
 
 void W3_DataCache::addVertexEntry(u32 boneID, u16 meshBufferID, u32 vertexID, f32 strenght)
 {
-    _vertices.push_back(VertexSkinningEntry(boneID, meshBufferID, vertexID, strenght));
+    _vertices.push_back(VertexSkinningEntry(boneID, _bufferID + meshBufferID, vertexID, strenght));
 }
 
 void W3_DataCache::apply()

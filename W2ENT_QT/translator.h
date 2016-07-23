@@ -18,7 +18,7 @@ class Translator
 
 public:
     static void setParentWidget(QWidget *parent);
-    static QString findTranslation(QString element);
+    static QString get(QString element);
     static void loadCurrentLanguage();
 };
 

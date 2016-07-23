@@ -1,191 +1,77 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <translation>
-	<element>
-		<name>button_fileSelector</name>
-		<text>Sélectionner un modèle 3D</text>
-	</element>
-	<element>
-		<name>button_convertir</name>
-		<text>Convertir -></text>
-	</element>
-	<element>
-		<name>dialogue_file</name>
-		<text>Choississez le fichier</text>
-	</element>
-	<element>
-		<name>dialogue_folder</name>
-		<text>Choississez le dossier du jeu</text>
-	</element>
-	<element>
-		<name>log_writingFile</name>
-		<text>Ecriture du fichier</text>
-	</element>
-	<element>
-		<name>log_readingFile</name>
-		<text>Lecture du fichier</text>
-	</element>
-	<element>
-		<name>log_abort</name>
-		<text>Annulé : Le dossier de destination n'existe pas.</text>
-	</element>
-	<element>
-		<name>log_warning_empty</name>
-		<text>Attention : Le nom du fichier cible n'a pas été rempli</text>
-	</element>
-	<element>
-		<name>base_directory</name>
-		<text>Repertoire de base</text>
-	</element>
-	<element>
-		<name>label_exported_file_name</name>
-		<text>Nom</text>
-	</element>
-	<element>
-		<name>menu_menu</name>
-		<text>Menu</text>
-	</element>
-	<element>
-		<name>menu_quit</name>
-		<text>Quitter</text>
-	</element>
-	<element>
-		<name>menu_language</name>
-		<text>Langue</text>
-	</element>
-	<element>
-		<name>menu_display</name>
-		<text>Affichage</text>
-	</element>
-	<element>
-		<name>menu_wireframe</name>
-		<text>Fil de fer</text>
-	</element>
-	<element>
-		<name>menu_search</name>
-		<text>Rechercher</text>
-	</element>
-	<element>
-		<name>menu_options</name>
-		<text>Options</text>
-	</element>
-	<element>
-		<name>menu_linkedFiles</name>
-		<text>Montrer les fichiers liés</text>
-	</element>
-	<element>
-		<name>menu_help</name>
-		<text>Aide</text>
-	</element>
-	<element>
-		<name>menu_webpage</name>
-		<text>Page web</text>
-	</element>
-		<element>
-		<name>menu_setRig</name>
-		<text>Charger un rig</text>
-	</element>
-	<element>
-		<name>menu_addMesh</name>
-		<text>Ajouter d'autres meshes</text>
-	</element>
-	<element>
-		<name>search_name</name>
-		<text>Nom</text>
-	</element>
-	<element>
-		<name>search_button</name>
-		<text>Rechercher</text>
-	</element>
-	<element>
-		<name>search_result</name>
-		<text>Resultats</text>
-	</element>
-	<element>
-		<name>search_check_folder</name>
-		<text>Vérifier aussi les noms de dossiers (plus de résultats)</text>
-	</element>
-	<element>
-		<name>search_progress</name>
-		<text>Progression</text>
-	</element>
-	<element>
-		<name>search_load</name>
-		<text>Charger</text>
-	</element>
-	<element>
-		<name>options_view</name>
-		<text>View</text>
-	</element>
-	<element>
-		<name>options_camera</name>
-		<text>Caméra</text>
-	</element>
-	<element>
-		<name>options_camera_movement_speed</name>
-		<text>Vitesse de mouvement</text>
-	</element>
-	<element>
-		<name>options_camera_rot_speed</name>
-		<text>Vitesse de rotation</text>
-	</element>
-	<element>
-		<name>options_background</name>
-		<text>Couleur de fond</text>
-	</element>
-	<element>
-		<name>options_export</name>
-		<text>Export</text>
-	</element>
-	<element>
-		<name>options_export_to_pack0</name>
-		<text>Exporter vers le dossier pack0</text>
-	</element>
-	<element>
-		<name>options_export_to_other</name>
-		<text>Exporter vers un autre dossier</text>
-	</element>
-	<element>
-		<name>options_export_move_textures</name>
-		<text>Déplacer les textures</text>
-	</element>
-	<element>
-		<name>options_export_target</name>
-		<text>Choisissez le dossier d'export</text>
-	</element>
-	<element>
-		<name>options_debug_log</name>
-		<text>Générer le "debug.log"</text>
-	</element>
-	<element>
-		<name>options_debug_log_label</name>
-		<text>En cas de problème pour charger un fichier w2ent/w2mesh, vous pouvez activer cette option pour générer un fichier de log. Ce fichier peut m'aider à corriger votre problème, donc en cas de problème vous pouvez m'envoyer ce fichier (via le foru The witcher si vous etes inscrit ou par mail à jeanlouis.boudrand@hotmail.fr.)</text>
-	</element>
-	<element>
-		<name>re_tools</name>
-		<text>Outils .RE</text>
-	</element>
-	<element>
-		<name>re_size</name>
-		<text>Dimensions</text>
-	</element>
-	<element>
-		<name>re_lod_empty</name>
-		<text>vide</text>
-	</element>
-	<element>
-		<name>re_lod_clear</name>
-		<text>Supprimer le LOD courant</text>
-	</element>
-	<element>
-		<name>re_lod_clear_all</name>
-		<text>Supprimer tous les LODs</text>
-	</element>
-	<element>
-		<name>w3_tools</name>
-		<text>Outils The Witcher 3</text>
-	</element>
-	<element>
-		<name>w3_tex_path</name>
-		<text>LUA utils : Corriger les paths des textures</text>
-	</element>
+	<!-- Main view -->
+	<element id="button_fileSelector" text="Sélectionner un modèle 3D"/>
+	<element id="button_convertir" text="Convertir ->"/>
+	<element id="dialogue_file" text="Choississez le fichier"/>
+	<element id="dialogue_folder" text="Choississez le dossier du jeu"/>
+	<element id="base_directory" text="Repertoire de base"/>
+	<element id="label_exported_file_name" text="Nom"/>
+	
+	
+	<!-- Log window -->
+	<element id="log_writingFile" text="Ecriture du fichier"/>
+	<element id="log_readingFile" text="Lecture du fichier"/>
+	<element id="log_abort" text="Annulé : Le dossier de destination n'existe pas."/>
+	<element id="log_warning_empty" text="Attention : Le nom du fichier cible n'a pas été rempli"/>
+
+	
+	<!-- Menus -->
+	<element id="menu_menu" text="Menu"/>
+	<element id="menu_menu_options" text="Options"/>
+	<element id="menu_menu_search" text="Rechercher"/>
+	<element id="menu_menu_addMesh" text="Ajouter d'autres meshes"/>
+	<element id="menu_menu_linkedFiles" text="Montrer les fichiers liés"/>
+	<element id="menu_menu_quit" text="Quitter"/>
+	
+	<element id="menu_re" text="Outils Redkit"/>
+	<element id="menu_re_size" text="Dimensions"/>
+	<element id="menu_re_lod_empty" text="vide"/>
+	<element id="menu_re_lod_clear" text="Supprimer le LOD séléctionné"/>
+	<element id="menu_re_lod_clear_all" text="Supprimer tous les LODs"/>
+	
+	<element id="menu_tw1" text="Outils The Witcher 1"/>
+	<element id="menu_tw1_bif" text="Extracteur de .BIF"/>
+	
+	<element id="menu_tw3" text="Outils The Witcher 3"/>
+	<element id="menu_tw3_tex_path" text="LUA utils : Corriger les paths des textures"/>
+	<element id="menu_tw3_setRig" text="Charger un rig"/>
+	<element id="menu_tw3_setAnimation" text="Charger une animation (à venir...)"/>
+	
+	<element id="menu_display" text="Affichage"/>
+	<element id="menu_display_wireframe" text="Fil de fer"/>
+	
+	<element id="menu_language" text="Langue"/>
+	
+	<element id="menu_help" text="Aide"/>
+	<element id="menu_help_webpage" text="Page web"/>
+	
+	
+	<!-- Search tool -->
+	<element id="search_name" text="Nom"/>
+	<element id="search_load" text="Charger"/>
+	<element id="search_button" text="Rechercher"/>
+	<element id="search_progress" text="Progression"/>
+	<element id="search_extensions_filter" text="Filtre d'extensions"/>
+	<element id="search_check_folder" text="Vérifier aussi les noms de dossiers (plus de résultats)"/>
+	<element id="search_result" text="Résultats"/>
+	
+	
+	<!-- Options -->
+	<element id="options_view" text="View"/>
+	<element id="options_camera" text="Caméra"/>
+	<element id="options_camera_movement_speed" text="Vitesse de mouvement"/>
+	<element id="options_camera_rot_speed" text="Vitesse de rotation"/>
+	<element id="options_background" text="Couleur de fond"/>
+	<element id="options_export" text="Export"/>
+	<element id="options_export_to_pack0" text="Exporter vers le dossier 'Repertoire de base'"/>
+	<element id="options_export_to_other" text="Exporter vers un autre dossier"/>
+	<element id="options_export_move_textures" text="Copier les textures"/>
+	<element id="options_export_target" text="Choisissez le dossier d'export"/>
+	<element id="options_export_convert_textures" text="Convertir les textures"/>
+	<element id="options_tw3_textures_folder" text="Dossier des textures"/>
+	<element id="options_tw3_skeleton" text="Charger les squelettes (expérimental et instable - A désactiver si vous n'en avez pas besoin)"/>
+	<element id="options_debug_log" text="Générer le 'debug.log'"/>
+	<element id="options_debug_log_label" text="En cas de problème pour charger un fichier w2ent/w2mesh, vous pouvez activer cette option pour générer un fichier de log. Ce fichier peut m'aider à corriger votre problème, donc en cas de problème vous pouvez m'envoyer ce fichier (via le foru The witcher si vous etes inscrit ou par mail à jeanlouis.boudrand@hotmail.fr.)"/>
+
 </translation>

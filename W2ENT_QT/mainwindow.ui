@@ -306,7 +306,7 @@
     <addaction name="actionSet_rig"/>
     <addaction name="actionSet_animations"/>
    </widget>
-   <widget class="QMenu" name="menuTheWitcher_1_tools">
+   <widget class="QMenu" name="menuThe_Witcher_1_tools">
     <property name="title">
      <string>The Witcher 1 tools</string>
     </property>
@@ -315,7 +315,7 @@
    <addaction name="menuMenu"/>
    <addaction name="menu_RE_tools"/>
    <addaction name="menuThe_Witcher_3_tools"/>
-   <addaction name="menuTheWitcher_1_tools"/>
+   <addaction name="menuThe_Witcher_1_tools"/>
    <addaction name="menuDisplay"/>
    <addaction name="menuLanguages"/>
    <addaction name="menuHelp"/>

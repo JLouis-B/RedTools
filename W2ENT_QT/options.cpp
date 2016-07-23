@@ -32,16 +32,22 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
 
     setFixedSize(this->size());
 
-    _ui->checkBox_moveTextures->setText(Translator::findTranslation("options_export_move_textures"));
-    _ui->radioButton_custom->setText(Translator::findTranslation("options_export_to_other"));
-    _ui->radioButton_pack0->setText(Translator::findTranslation("options_export_to_pack0"));
-    _ui->label_colorSelector->setText(Translator::findTranslation("options_background"));
-    _ui->label_movementSpeed->setText(Translator::findTranslation("options_camera_movement_speed"));
-    _ui->label_rotSpeed->setText(Translator::findTranslation("options_camera_rot_speed"));
-    _ui->View->setTabText(0, Translator::findTranslation("options_export"));
-    _ui->View->setTabText(2, Translator::findTranslation("options_view"));
-    _ui->checkBox_debug->setText(Translator::findTranslation("options_debug_log"));
-    _ui->label_debugLog->setText(Translator::findTranslation("options_debug_log_label"));
+    _ui->View->setTabText(0, Translator::get("options_export"));
+    _ui->checkBox_moveTextures->setText(Translator::get("options_export_move_textures"));
+    _ui->radioButton_custom->setText(Translator::get("options_export_to_other"));
+    _ui->radioButton_pack0->setText(Translator::get("options_export_to_pack0"));
+    _ui->checkBox_convertTextures->setText(Translator::get("options_export_convert_textures"));
+
+    _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
+    _ui->checkBox_TW3_loadSkel->setText(Translator::get("options_tw3_skeleton"));
+
+    _ui->View->setTabText(2, Translator::get("options_view"));
+    _ui->label_camera->setText(Translator::get("options_camera"));
+    _ui->label_movementSpeed->setText(Translator::get("options_camera_movement_speed"));
+    _ui->label_rotSpeed->setText(Translator::get("options_camera_rot_speed"));
+    _ui->checkBox_debug->setText(Translator::get("options_debug_log"));
+    _ui->label_debugLog->setText(Translator::get("options_debug_log_label"));
+    _ui->label_colorSelector->setText(Translator::get("options_background"));
 
     _ui->checkBox_debug->setChecked(Settings::_debugLog);
 
@@ -151,7 +157,7 @@ bool isASCII(QString path)
 
 void Options::selectDir()
 {
-    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_exportFolder->text());
+    QString file = QFileDialog::getExistingDirectory(this, Translator::get("options_export_target"), _ui->lineEdit_exportFolder->text());
     if (file != "")
     {
         if (isASCII(file))
@@ -165,7 +171,7 @@ void Options::selectDir()
 
 void Options::selectTW3TexDir()
 {
-    QString file = QFileDialog::getExistingDirectory(this, Translator::findTranslation("options_export_target"), _ui->lineEdit_TW3_texFolder->text());
+    QString file = QFileDialog::getExistingDirectory(this, Translator::get("options_export_target"), _ui->lineEdit_TW3_texFolder->text());
     if (file != "")
     {
         if (isASCII(file))

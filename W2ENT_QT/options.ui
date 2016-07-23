@@ -242,12 +242,12 @@
       <rect>
        <x>20</x>
        <y>30</y>
-       <width>81</width>
+       <width>341</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Texture folder :</string>
+      <string>Textures folder :</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="checkBox_TW3_loadSkel">
@@ -255,12 +255,12 @@
       <rect>
        <x>20</x>
        <y>110</y>
-       <width>91</width>
+       <width>341</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Load skeleton</string>
+      <string>Load skeleton (experimental - disable it if you don't need it)</string>
      </property>
     </widget>
    </widget>
@@ -268,13 +268,13 @@
     <attribute name="title">
      <string>View</string>
     </attribute>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_camera">
      <property name="geometry">
       <rect>
        <x>20</x>
        <y>20</y>
-       <width>46</width>
-       <height>13</height>
+       <width>341</width>
+       <height>16</height>
       </rect>
      </property>
      <property name="text">

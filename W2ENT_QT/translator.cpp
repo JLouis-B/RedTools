@@ -30,7 +30,8 @@ QMap<QString, QString> Translator::loadLanguage(const QString file)
     {
         if(!domElement.isNull() && node.nodeName() == "element")
         {
-            translation.insert(node.firstChildElement("name").text(), node.firstChildElement("text").text());
+            const QDomElement nodeElement = node.toElement();
+            translation.insert(nodeElement.attribute("id"), nodeElement.attribute("text"));
         }
         node = node.nextSibling();
     }
@@ -45,8 +46,7 @@ void Translator::loadCurrentLanguage()
     _trad = loadLanguage(file);
 }
 
-
-QString Translator::findTranslation(QString element)
+QString Translator::get(QString element)
 {
     const QMap<QString, QString>::iterator it = _trad.find(element);
     if (it == _trad.end())

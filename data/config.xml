@@ -18,7 +18,7 @@
   <move_normals_map>1</move_normals_map>
   <move_specular_map>0</move_specular_map>
  </export>
- <formats_in>The Witcher 2 3D models (*.w2ent , *.w2mesh);; Red Engine 3D models (*.re);; Common 3D models formats (*.obj , *.fbx , *.3ds , *.lwo , *.lws , *.lxo , *.ac , *.cob , *.scn , *.xml , *.dae , *.mesh , *.my3D , *.blend , *.ase , *.mdc , *.smd , *.vta , *.m3 , *.3d , *.md5 , *.ifc , *.xgl , *.zgl , *.dxf , *.lmts , *.bsp , *.dmf , *.oct , *.irrmesh , *.csm , *.stl , *.bvh , *.csm , .*ply , *.x , *.b3d , *.ms3d , *.md3 , *.md2 , *.mdl , *.wal , *.smf , *.nff , *.q3d , *.q3s , *.off , *.raw , *.ter , *.mdl , *.hmp , *.ndo , *.assbin , *.assxml , *.stp)</formats_in>
+ <formats_in>The Witcher 2/3 3D models (*.w2mesh , *.w2ent);; The Witcher 1 3D models (*.mdb);; Red Engine 3D models (*.re);; Common 3D models formats (*.obj , *.fbx , *.3ds , *.lwo , *.lws , *.lxo , *.ac , *.cob , *.scn , *.xml , *.dae , *.mesh , *.my3D , *.blend , *.ase , *.mdc , *.smd , *.vta , *.m3 , *.3d , *.md5 , *.ifc , *.xgl , *.zgl , *.dxf , *.lmts , *.bsp , *.dmf , *.oct , *.irrmesh , *.csm , *.stl , *.bvh , *.csm , .*ply , *.x , *.b3d , *.ms3d , *.md3 , *.md2 , *.mdl , *.wal , *.smf , *.nff , *.q3d , *.q3s , *.off , *.raw , *.ter , *.mdl , *.hmp , *.ndo , *.assbin , *.assxml , *.stp)</formats_in>
  <unit>m</unit>
  <textures_conversion>
   <enabled>0</enabled>

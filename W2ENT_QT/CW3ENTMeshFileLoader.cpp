@@ -188,16 +188,16 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
     {
         core::stringc str = readStringUntilNull(file);
         Strings.push_back(str);
-        std::cout << str.c_str() << std::endl;
+        //std::cout << str.c_str() << std::endl;
     }
     log->addAndPush("Read strings\n");
 
     s32 nbFiles = headerData[14];
-    std::cout << "nbFiles = " << nbFiles << std::endl;
+    //std::cout << "nbFiles = " << nbFiles << std::endl;
     for (u32 i = 0; i < nbFiles; ++i)
     {
         Files.push_back(Strings[Strings.size() - nbFiles + i]);
-        std::cout << Files.size() - 1 << "--> " << Files[i].c_str() << std::endl;
+        //std::cout << Files.size() - 1 << "--> " << Files[i].c_str() << std::endl;
     }
 
     // The files linked in the file
@@ -312,8 +312,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     //std::cout << "first vertex = " << meshInfos.firstVertex << std::endl;
 
     // Maybe it's simply 1 verticesBufferInfo/buffer, seems correct and more simple
-    if (bufferInfos.verticesBuffer.size() == AnimatedMesh->getMeshBufferCount())
-        std::cout << "--> 1 verticesBufferInfo/buffer" << std::endl;
+    //if (bufferInfos.verticesBuffer.size() == AnimatedMesh->getMeshBufferCount())
+    //    std::cout << "--> 1 verticesBufferInfo/buffer" << std::endl;
 
     SVertexBufferInfos vBufferInf;
     u32 nbVertices = 0;
@@ -328,7 +328,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
     }
     bufferFile->seek(vBufferInf.verticesCoordsOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * vertexSize);
-    std::cout << "POS=" << bufferFile->getPos() << std::endl;
+    //std::cout << "POS=" << bufferFile->getPos() << std::endl;
 
     const video::SColor defaultColor(255, 255, 255, 255);
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
@@ -734,12 +734,12 @@ void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBuffer
         file->read(&buffInfos.uvOffset, 4);
         file->read(&buffInfos.normalsOffset, 4);
 
-        std::cout << "adresses = " << buffInfos.verticesCoordsOffset << ", " << buffInfos.uvOffset << ", " << buffInfos.normalsOffset << std::endl;
+        //std::cout << "adresses = " << buffInfos.verticesCoordsOffset << ", " << buffInfos.uvOffset << ", " << buffInfos.normalsOffset << std::endl;
 
         file->seek(14, true);
 
         file->read(&buffInfos.nbVertices, 2);
-        std::cout << "Nb VERT=" << buffInfos.nbVertices << std::endl;
+        //std::cout << "Nb VERT=" << buffInfos.nbVertices << std::endl;
 
         file->seek(9, true);
 
@@ -846,7 +846,7 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
     SPropertyHeader propHeader;
     while(ReadPropertyHeader(file, propHeader))
     {
-        std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
         if (propHeader.propName == "indexBufferSize")
         {
@@ -1074,7 +1074,7 @@ void CW3ENTMeshFileLoader::W3_CUnknown(io::IReadFile* file, W3_DataInfos infos)
     SPropertyHeader propHeader;
     while (ReadPropertyHeader(file, propHeader))
     {
-        std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         file->seek(propHeader.endPos);
     }
     log->addAndPush("W3_CUnknown end\n");
@@ -1199,7 +1199,7 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
                 core::stringc name = readString(file, nameSize);
                 skeleton.names.push_back(name);
 
-                std::cout << "name=" << name.c_str() << std::endl;
+                //std::cout << "name=" << name.c_str() << std::endl;
 
                 // An other property (nameAsCName)
                 file->seek(13, true); // nameAsCName + CName + size + CName string ID + 3 0x00 octets
@@ -1225,11 +1225,11 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
 
     // Now there are the transformations
     file->seek(-2, true);
-    std::cout << file->getPos() << std::endl;
+    //std::cout << file->getPos() << std::endl;
 
     for (u32 i = 0; i < skeleton.nbBones; ++i)
     {
-        std::cout << "bone = " << skeleton.names[i].c_str() << std::endl;
+        //std::cout << "bone = " << skeleton.names[i].c_str() << std::endl;
         // position (vector 4) + quaternion (4 float) + scale (vector 4)
         core::vector3df position;
         position.X = readF32(file);
@@ -1255,7 +1255,7 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
         core::matrix4 rotMat;
         core::vector3df euler;
         orientation.toEuler(euler);
-        std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
+        //std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
         //std::cout << "Rotation (radians) = " << euler.X << ", " << euler.Y << ", " << euler.Z << std::endl;
         chechNaNErrors(euler);
 
@@ -1272,9 +1272,9 @@ CSkeleton CW3ENTMeshFileLoader::W3_CSkeleton(io::IReadFile* file, W3_DataInfos i
         skeleton.scales.push_back(scale);
 
         //std::cout << "Rotation (NaN fixed) = " << euler.X << ", " << euler.Y << ", " << euler.Z << std::endl;
-        std::cout << "Rotation = " << euler.X * core::RADTODEG << ", " << euler.Y * core::RADTODEG << ", " << euler.Z * core::RADTODEG << std::endl;
-        std::cout << "Scale = " << scale.X << ", " << scale.Y << ", " << scale.Z << std::endl;
-        std::cout << std::endl;
+        //std::cout << "Rotation = " << euler.X * core::RADTODEG << ", " << euler.Y * core::RADTODEG << ", " << euler.Z * core::RADTODEG << std::endl;
+        //std::cout << "Scale = " << scale.X << ", " << scale.Y << ", " << scale.Z << std::endl;
+        //std::cout << std::endl;
     }
 
     Skeleton = skeleton;
@@ -1332,7 +1332,7 @@ void CW3ENTMeshFileLoader::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos 
     while (ReadPropertyHeader(file, propHeader))
     {
 
-        std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
         if (propHeader.propName == "flatCompiledData") // array of u8
         {

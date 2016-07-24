@@ -64,8 +64,8 @@ void W3_DataCache::apply()
         weight->strength = entry._strenght;
     }
 
-
-    skin();
+    // To debug
+    //skin();
 }
 
 void W3_DataCache::skin()

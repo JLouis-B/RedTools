@@ -457,6 +457,9 @@
    </property>
   </action>
   <action name="actionSet_animations">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Set animations</string>
    </property>

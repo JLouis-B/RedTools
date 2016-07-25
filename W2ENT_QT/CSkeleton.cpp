@@ -6,6 +6,10 @@ CSkeleton::CSkeleton() : nbBones(0)
 {
 
 }
+
+core::array<scene::ISkinnedMesh::SJoint*> getRootJoints(const scene::ISkinnedMesh* mesh);
+// Definition in IrrAssimpExport
+/*
 core::array<scene::ISkinnedMesh::SJoint*> getRootJoints(const scene::ISkinnedMesh* mesh)
 {
     core::array<scene::ISkinnedMesh::SJoint*> roots;
@@ -30,6 +34,7 @@ core::array<scene::ISkinnedMesh::SJoint*> getRootJoints(const scene::ISkinnedMes
 
     return roots;
 }
+*/
 
 scene::ISkinnedMesh::SJoint* getRealParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
 {

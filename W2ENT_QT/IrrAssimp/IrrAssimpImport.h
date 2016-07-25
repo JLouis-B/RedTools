@@ -10,10 +10,25 @@
 
 #include "IrrAssimpUtils.h"
 
+class SkinnedVertex
+{
+public:
+    SkinnedVertex()
+    {
+        Moved = false;
+        Position = irr::core::vector3df(0, 0, 0);
+        Normal = irr::core::vector3df(0, 0, 0);
+    }
+
+    bool Moved;
+    irr::core::vector3df Position;
+    irr::core::vector3df Normal;
+};
+
 class IrrAssimpImport : public irr::scene::IMeshLoader
 {
     public:
-        IrrAssimpImport(irr::scene::ISceneManager* smgr);
+        explicit IrrAssimpImport(irr::scene::ISceneManager* smgr);
         virtual ~IrrAssimpImport();
 
         virtual irr::scene::IAnimatedMesh* createMesh(irr::io::IReadFile* file);
@@ -23,16 +38,26 @@ class IrrAssimpImport : public irr::scene::IMeshLoader
 
     protected:
     private:
-        void createNode(irr::scene::ISkinnedMesh* mesh, aiNode* node);
-        irr::scene::ISkinnedMesh::SJoint* findJoint (irr::scene::ISkinnedMesh* mesh, irr::core::stringc jointName);
-        aiNode* findNode (const aiScene* scene, aiString jointName);
-        void computeLocal(irr::scene::ISkinnedMesh* mesh, const aiScene* pScene, irr::scene::ISkinnedMesh::SJoint* joint);
-        irr::video::ITexture* getTexture(irr::core::stringc path, irr::core::stringc fileDir);
-
-        irr::core::array<irr::video::SMaterial> Mats;
-
         irr::scene::ISceneManager* Smgr;
         irr::io::IFileSystem* FileSystem;
+        irr::core::array<irr::video::SMaterial> Mats;
+        const aiScene* AssimpScene;
+        irr::io::path FilePath;
+        irr::scene::ISkinnedMesh* Mesh;
+
+        void createMaterials();
+        void createMeshes();
+        void createAnimation();
+        void createNode(const aiNode* node);
+        irr::scene::ISkinnedMesh::SJoint* findJoint(const irr::core::stringc jointName);
+        aiNode* findNode(aiString jointName);
+        irr::video::ITexture* getTexture(irr::core::stringc path, irr::core::stringc fileDir);
+
+        // skinning
+        irr::core::array<SkinnedVertex> skinnedVertex;
+        void skinJoint(irr::scene::ISkinnedMesh::SJoint *joint, aiBone* bone);
+        void buildSkinnedVertexArray(irr::scene::IMeshBuffer* buffer);
+        void applySkinnedVertexArray(irr::scene::IMeshBuffer* buffer);
 };
 
 #endif // IRRASSIMPIMPORT_H

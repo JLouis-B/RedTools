@@ -32,21 +32,6 @@ struct VertexSkinningEntry
     f32 _strenght;
 };
 
-class SkinnedVertex
-{
-public:
-    SkinnedVertex()
-    {
-        Moved = false;
-        Position = irr::core::vector3df(0, 0, 0);
-        Normal = irr::core::vector3df(0, 0, 0);
-    }
-
-    bool Moved;
-    irr::core::vector3df Position;
-    irr::core::vector3df Normal;
-};
-
 class W3_DataCache
 {
     scene::ISkinnedMesh* _owner;

@@ -19,7 +19,7 @@ class ExportFormat
 class IrrAssimp
 {
     public:
-        IrrAssimp(irr::scene::ISceneManager* smgr);
+        explicit IrrAssimp(irr::scene::ISceneManager* smgr);
         virtual ~IrrAssimp();
 
 
@@ -38,7 +38,7 @@ class IrrAssimp
             - "stlb" for STL in binary mode
             - and "ply" for the PLY format
         */
-        bool exportMesh(irr::scene::IMesh* mesh, irr::core::stringc format, irr::core::stringc path);
+        void exportMesh(irr::scene::IMesh* mesh, irr::core::stringc format, irr::core::stringc path);
 
 
         // Return the list of available export formats

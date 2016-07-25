@@ -3,7 +3,7 @@
 
 using namespace irr;
 
-IrrAssimpImport::IrrAssimpImport(irr::scene::ISceneManager* smgr) : Smgr(smgr), FileSystem(smgr->getFileSystem())
+IrrAssimpImport::IrrAssimpImport(scene::ISceneManager* smgr) : Smgr(smgr), FileSystem(smgr->getFileSystem())
 {
     //ctor
 }
@@ -18,7 +18,7 @@ void Log(core::vector3df vect)
     std::cout << "Vector = " << vect.X << ", " << vect.Y << ", " << vect.Z << std::endl;
 }
 
-irr::core::matrix4 AssimpToIrrMatrix(aiMatrix4x4 assimpMatrix)
+core::matrix4 AssimpToIrrMatrix(aiMatrix4x4 assimpMatrix)
 {
     core::matrix4 irrMatrix;
 
@@ -45,47 +45,40 @@ irr::core::matrix4 AssimpToIrrMatrix(aiMatrix4x4 assimpMatrix)
     return irrMatrix;
 }
 
-aiMatrix4x4 getAbsoluteMatrixOf(aiNode* node)
-{
-    if (node->mParent == NULL)
-        return node->mTransformation;
 
-    return node->mTransformation * getAbsoluteMatrixOf(node->mParent);
-}
-
-scene::ISkinnedMesh::SJoint* IrrAssimpImport::findJoint (scene::ISkinnedMesh* mesh, core::stringc jointName)
+scene::ISkinnedMesh::SJoint* IrrAssimpImport::findJoint(const core::stringc jointName)
 {
-    for (unsigned int i = 0; i < mesh->getJointCount(); ++i)
+    for (unsigned int i = 0; i < Mesh->getJointCount(); ++i)
     {
-        if (core::stringc(mesh->getJointName(i)) == jointName)
-            return mesh->getAllJoints()[i];
+        if (core::stringc(Mesh->getJointName(i)) == jointName)
+            return Mesh->getAllJoints()[i];
     }
     std::cout << "Error, no joint" << std::endl;
     return 0;
 }
 
-aiNode* IrrAssimpImport::findNode (const aiScene* scene, aiString jointName)
+aiNode* IrrAssimpImport::findNode(const aiString jointName)
 {
-    if (scene->mRootNode->mName == jointName)
-        return scene->mRootNode;
+    if (AssimpScene->mRootNode->mName == jointName)
+        return AssimpScene->mRootNode;
 
-    return scene->mRootNode->FindNode(jointName);
+    return AssimpScene->mRootNode->FindNode(jointName);
 }
 
-void IrrAssimpImport::createNode(scene::ISkinnedMesh* mesh, aiNode* node)
+void IrrAssimpImport::createNode(const aiNode* node)
 {
     scene::ISkinnedMesh::SJoint* jointParent = 0;
 
     if (node->mParent != 0)
     {
-        jointParent = findJoint(mesh, node->mParent->mName.C_Str());
+        jointParent = findJoint(node->mParent->mName.C_Str());
     }
 
-    scene::ISkinnedMesh::SJoint* joint = mesh->addJoint(jointParent);
+    scene::ISkinnedMesh::SJoint* joint = Mesh->addJoint(jointParent);
     joint->Name = node->mName.C_Str();
     joint->LocalMatrix = AssimpToIrrMatrix(node->mTransformation);
 
-	if (jointParent)
+    if (jointParent)
         joint->GlobalMatrix = jointParent->GlobalMatrix * joint->LocalMatrix;
     else
         joint->GlobalMatrix = joint->LocalMatrix;
@@ -98,13 +91,13 @@ void IrrAssimpImport::createNode(scene::ISkinnedMesh* mesh, aiNode* node)
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
     {
         aiNode* childNode = node->mChildren[i];
-        createNode(mesh, childNode);
+        createNode(childNode);
     }
 }
 
-video::SColor AssimpToIrrColor(aiColor4D color)
+video::SColor AssimpToIrrColor(const aiColor4D color)
 {
-    return video::SColor(color.a * 255.f, color.r * 255.f, color.g * 255.f, color.b * 255.f);
+    return video::SColor(static_cast<u32>(color.a * 255), static_cast<u32>(color.r * 255), static_cast<u32>(color.g * 255), static_cast<u32>(color.b * 255));
 }
 
 video::ITexture* IrrAssimpImport::getTexture(core::stringc path, core::stringc fileDir)
@@ -122,46 +115,63 @@ video::ITexture* IrrAssimpImport::getTexture(core::stringc path, core::stringc f
     // TODO after 1.9 release : Rewrite this with IMeshTextureLoader
 }
 
+
 bool IrrAssimpImport::isALoadableFileExtension(const io::path& filename) const
 {
     Assimp::Importer importer;
 
     io::path extension;
-    irr::core::getFileNameExtension(extension, filename);
+    core::getFileNameExtension(extension, filename);
     return importer.IsExtensionSupported (to_char_string(extension).c_str());
 }
 
-
-irr::scene::IAnimatedMesh* IrrAssimpImport::createMesh(irr::io::IReadFile* file)
+scene::IAnimatedMesh* IrrAssimpImport::createMesh(io::IReadFile* file)
 {
-    irr::io::path path = file->getFileName();
+    FilePath = file->getFileName();
 
     Assimp::Importer Importer;
-    const aiScene* pScene = Importer.ReadFile(to_char_string(path).c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
-
-    if (!pScene)
+    AssimpScene = Importer.ReadFile(to_char_string(FilePath).c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+    if (!AssimpScene)
     {
         Error = Importer.GetErrorString();
         return 0;
     }
-
     else
         Error = "";
 
-    core::stringc fileDir = FileSystem->getFileDir(path);
-
-    Mats.clear();
-
     // Create mesh
-    scene::ISkinnedMesh* mesh = Smgr->createSkinnedMesh();
+    Mesh = Smgr->createSkinnedMesh();
 
+    // Load materials
+    createMaterials();
+
+    // Load nodes
+    const aiNode* root = AssimpScene->mRootNode;
+    createNode(root);
+
+    // Load meshes
+    createMeshes();
+
+    // Load animations
+    createAnimation();
+
+    Mesh->setDirty();
+    Mesh->finalize();
+
+    return Mesh;
+}
+
+void IrrAssimpImport::createMaterials()
+{
     // Basic material support
-    for (unsigned int i = 0; i < pScene->mNumMaterials; ++i)
+    const core::stringc fileDir = FileSystem->getFileDir(FilePath);
+    Mats.clear();
+    for (unsigned int i = 0; i < AssimpScene->mNumMaterials; ++i)
     {
         video::SMaterial material;
         material.MaterialType = video::EMT_SOLID;
 
-        aiMaterial* mat = pScene->mMaterials[i];
+        aiMaterial* mat = AssimpScene->mMaterials[i];
 
         aiColor4D color;
         if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &color)) {
@@ -205,35 +215,35 @@ irr::scene::IAnimatedMesh* IrrAssimpImport::createMesh(irr::io::IReadFile* file)
 
         Mats.push_back(material);
     }
+}
 
-    aiNode* root = pScene->mRootNode;
-    createNode(mesh, root);
-
-    for (unsigned int i = 0; i < pScene->mNumMeshes; ++i)
+void IrrAssimpImport::createMeshes()
+{
+    for (unsigned int i = 0; i < AssimpScene->mNumMeshes; ++i)
     {
-        //std::cout << "i=" << i << " of " << pScene->mNumMeshes << std::endl;
-        aiMesh* paiMesh = pScene->mMeshes[i];
+        //std::cout << "i=" << i << " of " << AssimpScene->mNumMeshes << std::endl;
+        aiMesh* paiMesh = AssimpScene->mMeshes[i];
 
-        scene::SSkinMeshBuffer* buffer = mesh->addMeshBuffer();
+        scene::SSkinMeshBuffer* buffer = Mesh->addMeshBuffer();
 
         buffer->Vertices_Standard.reallocate(paiMesh->mNumVertices);
         buffer->Vertices_Standard.set_used(paiMesh->mNumVertices);
 
         for (unsigned int j = 0; j < paiMesh->mNumVertices; ++j)
         {
-            aiVector3D vertex = paiMesh->mVertices[j];
+            const aiVector3D vertex = paiMesh->mVertices[j];
             buffer->Vertices_Standard[j].Pos = core::vector3df(vertex.x, vertex.y, vertex.z);
 
             if (paiMesh->HasNormals())
             {
-                aiVector3D normal = paiMesh->mNormals[j];
+                const aiVector3D normal = paiMesh->mNormals[j];
                 buffer->Vertices_Standard[j].Normal = core::vector3df(normal.x, normal.y, normal.z);
             }
 
             if (paiMesh->HasVertexColors(0))
             {
-                aiColor4D color = paiMesh->mColors[0][j] * 255.f;
-                buffer->Vertices_Standard[j].Color = irr::video::SColor(color.a, color.r, color.g, color.b);
+                const aiColor4D color = paiMesh->mColors[0][j];
+                buffer->Vertices_Standard[j].Color = AssimpToIrrColor(color);
             }
             else
             {
@@ -286,86 +296,81 @@ irr::scene::IAnimatedMesh* IrrAssimpImport::createMesh(irr::io::IReadFile* file)
         if (!paiMesh->HasNormals())
             Smgr->getMeshManipulator()->recalculateNormals(buffer);
 
+
+        // Skinning
+        buildSkinnedVertexArray(buffer);
         for (unsigned int j = 0; j < paiMesh->mNumBones; ++j)
         {
             aiBone* bone = paiMesh->mBones[j];
 
-            //std::cout << "Name=" << bone->mName.C_Str() << std::endl;
-            scene::ISkinnedMesh::SJoint* joint = findJoint(mesh, core::stringc(bone->mName.C_Str()));
+            scene::ISkinnedMesh::SJoint* joint = findJoint(core::stringc(bone->mName.C_Str()));
             if (joint == 0)
+            {
                 std::cout << "Error, no joint" << std::endl;
+                continue;
+            }
 
-            //core::matrix4 globalBoneTransform = AssimpToIrrMatrix(getAbsoluteMatrixOf(findNode(pScene, bone->mName)));
-            //core::matrix4 invRoot = AssimpToIrrMatrix(pScene->mRootNode->mTransformation.Inverse());
-
+            /* The old version
             core::matrix4 boneOffset = AssimpToIrrMatrix(bone->mOffsetMatrix);
             core::matrix4 invBoneOffset;
             boneOffset.getInverse(invBoneOffset);
 
-            const core::vector3df nullVector = core::vector3df(0, 0, 0);
-
-            const core::vector3df translation = boneOffset.getTranslation();
-            core::vector3df translation2 = translation;
-            //boneOffset.setInverseTranslation(translation);
-            //invBoneOffset.rotateVect(translation2);
-
             core::matrix4 rotationMatrix;
             rotationMatrix.setRotationDegrees(invBoneOffset.getRotationDegrees());
-
             core::matrix4 translationMatrix;
-            translationMatrix.setTranslation(translation);
+            translationMatrix.setTranslation(boneOffset.getTranslation());
+			core::matrix4 scaleMatrix;
+            scaleMatrix.setScale(invBoneOffset.getScale());
 
-            core::matrix4 globalBoneMatrix = rotationMatrix * translationMatrix;
+            core::matrix4 globalBoneMatrix = scaleMatrix * rotationMatrix * translationMatrix;
             globalBoneMatrix.setInverseTranslation(globalBoneMatrix.getTranslation());
 
             joint->GlobalMatrix = globalBoneMatrix;
-            joint->LocalMatrix = globalBoneMatrix;
+            // And compute the local from global after (joint->LocalMatrix = invGlobalParent * joint->GlobalMatrix; if it's not a root)
+            */
 
 
             for (unsigned int h = 0; h < bone->mNumWeights; ++h)
             {
                 aiVertexWeight weight = bone->mWeights[h];
-                scene::ISkinnedMesh::SWeight* w = mesh->addWeight(joint);
-                w->buffer_id = mesh->getMeshBufferCount() - 1;
+                scene::ISkinnedMesh::SWeight* w = Mesh->addWeight(joint);
+                w->buffer_id = Mesh->getMeshBufferCount() - 1;
                 w->strength = weight.mWeight;
                 w->vertex_id = weight.mVertexId;
             }
 
+            skinJoint(joint, bone);
         }
+        applySkinnedVertexArray(buffer);
     }
+}
 
-
-    // Compute the globals from locals
-    for (u32 i = 0; i < mesh->getJointCount(); ++i)
-    {
-        scene::ISkinnedMesh::SJoint* joint = mesh->getAllJoints()[i];
-        computeLocal(mesh, pScene, joint);
-    }
-
+void IrrAssimpImport::createAnimation()
+{
     int frameOffset = 0;
-    for (unsigned int i = 0; i < pScene->mNumAnimations; ++i)
+    for (unsigned int i = 0; i < AssimpScene->mNumAnimations; ++i)
     {
-        aiAnimation* anim = pScene->mAnimations[i];
+        aiAnimation* anim = AssimpScene->mAnimations[i];
 
         if (anim->mTicksPerSecond != 0.f)
         {
-            mesh->setAnimationSpeed(anim->mTicksPerSecond);
+            Mesh->setAnimationSpeed(anim->mTicksPerSecond);
         }
 		// Some loader of assimp give time in second for keyframe instead of frame number, which cause bug when casted to int
         if (anim->mTicksPerSecond == 1)
-            mesh->setAnimationSpeed(mesh->getAnimationSpeed() * 60.f);
+            Mesh->setAnimationSpeed(Mesh->getAnimationSpeed() * 60.f);
 
         //std::cout << "numChannels : " << anim->mNumChannels << std::endl;
         for (unsigned int j = 0; j < anim->mNumChannels; ++j)
         {
             aiNodeAnim* nodeAnim = anim->mChannels[j];
-            scene::ISkinnedMesh::SJoint* joint = findJoint(mesh, nodeAnim->mNodeName.C_Str());
+            scene::ISkinnedMesh::SJoint* joint = findJoint(nodeAnim->mNodeName.C_Str());
 
             for (unsigned int k = 0; k < nodeAnim->mNumPositionKeys; ++k)
             {
                 aiVectorKey key = nodeAnim->mPositionKeys[k];
 
-                scene::ISkinnedMesh::SPositionKey* irrKey = mesh->addPositionKey(joint);
+                scene::ISkinnedMesh::SPositionKey* irrKey = Mesh->addPositionKey(joint);
 
                 irrKey->frame = key.mTime + frameOffset;
                 if (anim->mTicksPerSecond == 1)
@@ -380,7 +385,7 @@ irr::scene::IAnimatedMesh* IrrAssimpImport::createMesh(irr::io::IReadFile* file)
                 core::quaternion quat (-assimpQuat.x, -assimpQuat.y, -assimpQuat.z, assimpQuat.w);
 				quat.normalize();
 
-                scene::ISkinnedMesh::SRotationKey* irrKey = mesh->addRotationKey(joint);
+                scene::ISkinnedMesh::SRotationKey* irrKey = Mesh->addRotationKey(joint);
 
                 irrKey->frame = key.mTime + frameOffset;
                 if (anim->mTicksPerSecond == 1)
@@ -391,7 +396,7 @@ irr::scene::IAnimatedMesh* IrrAssimpImport::createMesh(irr::io::IReadFile* file)
             {
                 aiVectorKey key = nodeAnim->mScalingKeys[k];
 
-                scene::ISkinnedMesh::SScaleKey* irrKey = mesh->addScaleKey(joint);
+                scene::ISkinnedMesh::SScaleKey* irrKey = Mesh->addScaleKey(joint);
 
                 irrKey->frame = key.mTime + frameOffset;
                 if (anim->mTicksPerSecond == 1)
@@ -403,32 +408,57 @@ irr::scene::IAnimatedMesh* IrrAssimpImport::createMesh(irr::io::IReadFile* file)
 
         frameOffset += anim->mDuration;
     }
-
-    mesh->setDirty();
-    mesh->finalize();
-
-    return mesh;
 }
 
-
-void IrrAssimpImport::computeLocal(scene::ISkinnedMesh* mesh, const aiScene* pScene, scene::ISkinnedMesh::SJoint* joint)
+// Adapted from http://sourceforge.net/p/assimp/discussion/817654/thread/5462cbf5
+void IrrAssimpImport::skinJoint(scene::ISkinnedMesh::SJoint *joint, aiBone* bone)
 {
-    scene::ISkinnedMesh::SJoint* jointParent = 0;
+	if (bone->mNumWeights)
+	{
+	    core::matrix4 boneOffset = AssimpToIrrMatrix(bone->mOffsetMatrix);
+	    core::matrix4 boneMat = joint->GlobalMatrix * boneOffset; //* InverseRootNodeWorldTransform;
 
-    if(pScene->mRootNode->FindNode(aiString(joint->Name.c_str()))->mParent != NULL)
-        jointParent = findJoint(mesh, pScene->mRootNode->FindNode(aiString(joint->Name.c_str()))->mParent->mName.C_Str());
+        const u32 bufferId = Mesh->getMeshBufferCount() - 1;
 
-    if (jointParent)
+		for (u32 i = 0; i < bone->mNumWeights; ++i)
+		{
+		    const aiVertexWeight weight = bone->mWeights[i];
+			const u32 vertexId = weight.mVertexId;
+
+			core::vector3df sourcePos = Mesh->getMeshBuffer(bufferId)->getPosition(vertexId);
+			core::vector3df sourceNorm = Mesh->getMeshBuffer(bufferId)->getNormal(vertexId);
+			core::vector3df destPos, destNormal;
+			boneMat.transformVect(destPos, sourcePos);
+			boneMat.rotateVect(destNormal, sourceNorm);
+
+			skinnedVertex[vertexId].Moved = true;
+            skinnedVertex[vertexId].Position += destPos * weight.mWeight;
+            skinnedVertex[vertexId].Normal += destNormal * weight.mWeight;
+		}
+	}
+}
+
+void IrrAssimpImport::buildSkinnedVertexArray(scene::IMeshBuffer* buffer)
+{
+    skinnedVertex.clear();
+
+    skinnedVertex.reallocate(buffer->getVertexCount());
+    for (u32 i = 0; i < buffer->getVertexCount(); ++i)
     {
-        if (jointParent->LocalMatrix == jointParent->GlobalMatrix)
-            computeLocal(mesh, pScene, jointParent);
-
-        irr::core::matrix4 globalParent = jointParent->GlobalMatrix;
-        irr::core::matrix4 invGlobalParent;
-        globalParent.getInverse(invGlobalParent);
-
-        joint->LocalMatrix = invGlobalParent * joint->GlobalMatrix;
+        skinnedVertex.push_back(SkinnedVertex());
     }
-    else
-        ;   //std::cout << "Root ?" << std::endl;
+
+}
+
+void IrrAssimpImport::applySkinnedVertexArray(scene::IMeshBuffer* buffer)
+{
+    for (u32 i = 0; i < buffer->getVertexCount(); ++i)
+    {
+        if (skinnedVertex[i].Moved)
+        {
+            buffer->getPosition(i) = skinnedVertex[i].Position;
+            buffer->getNormal(i) = skinnedVertex[i].Normal;
+        }
+    }
+    skinnedVertex.clear();
 }

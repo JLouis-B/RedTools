@@ -99,6 +99,16 @@
       <string>.stp (Step files)</string>
      </property>
     </item>
+    <item>
+     <property name="text">
+      <string>.gltf (GL Transmission Format)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>.glb (GL Transmission Format - Binary)</string>
+     </property>
+    </item>
    </widget>
    <widget class="QLineEdit" name="lineEdit_exportedFilename">
     <property name="geometry">

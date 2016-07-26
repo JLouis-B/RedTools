@@ -660,6 +660,10 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
             extensionFlag = "assxml";
         else if (extension == ".stp")
             extensionFlag = "stp";
+        else if (extension == ".gltf")
+            extensionFlag = "gltf";
+        else if (extension == ".glb")
+            extensionFlag = "glb";
 
         //std::cout << "nb output=" << assimp.getExportFormats().size() << std::endl;
 

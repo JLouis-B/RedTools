@@ -611,28 +611,15 @@ void CW2ENTMeshFileLoader::CSkeleton(io::IReadFile* file, DataInfos infos)
     file->seek(infos.adress);
 
     //std::cout << "begin at " << infos.adress << " and end at " << infos.adress + infos.size << ", so size = " << infos.size << std::endl;
-
     while(1)
     {
-        unsigned short propertyId, propertyTypeId;
-        file->read(&propertyId, 2);
-        file->read(&propertyTypeId, 2);
-
-        if (propertyId >= Strings.size() || propertyTypeId >= Strings.size() || propertyTypeId == 0 || propertyId == 0)
+        W2_PropertyHeader propHeader;
+        if (!ReadPropertyHeader(file, propHeader))
             break;
 
-        core::stringc property = Strings[propertyId-1];  // Name of the property
-        core::stringc propertyType = Strings[propertyTypeId-1];  // Type of the property
-
-        //std::cout << "property=" << property.c_str() << ", type=" << propertyType.c_str() << std::endl;
-
-        u16 name3 = readData<u16>(file);
-
-        s32 seek = readData<s32>(file);
-        file->seek(seek - 4, true);
-        if (property == "importFile")
-            break;
+        file->seek(propHeader.endPos);
     }
+    file->seek(-4, true);
 }
 
 void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
@@ -648,32 +635,19 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
     //    mats.push_back(tmp.nMat[i]);
 
     // we go to the adress of the data
-    //file->seek(tmp.data2[2]);
     file->seek(tmp.infos.adress);
     int nModel = tmp.nModel;    // we get the mesh index
-
-    int error_with_bones = 0;
 
     // Read all the properties of the mesh
     while(1)
     {
-        unsigned short propertyId, propertyTypeId;
-        file->read(&propertyId, 2);
-        file->read(&propertyTypeId, 2);
-
-        if (propertyId >= Strings.size() || propertyTypeId >= Strings.size() || propertyTypeId == 0 || propertyId == 0)
+        W2_PropertyHeader propHeader;
+        if (!ReadPropertyHeader(file, propHeader))
             break;
 
-        core::stringc property = Strings[propertyId-1];  // Name of the property
-        core::stringc propertyType = Strings[propertyTypeId-1];  // Type of the property
-
-        u16 name3 = readData<u16>(file);
-
-        s32 seek = readData<s32>(file);
-        file->seek(seek - 4, true);
-        if (property == "importFile")
-            break;
+        file->seek(propHeader.endPos);
     }
+    file->seek(-4, true);
 
     // Read the LODS data ?
     vert_format(file);
@@ -684,7 +658,7 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
 
     /*
     if  (magic == 1)
-        readUnsignedChars(file, 1);
+        readU8(file);
     else
         rigged = 1;
     */
@@ -693,14 +667,14 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
     if (magicData != 1)
         file->seek(-1, true);
 
-    if(nbBones == 128) // Why 128 ? because when we readUnsignedChars, we do -128, so here we test nbBones = 0 = static
+    if (nbBones == 128)
     {
         file->seek(1, true); //readUnsignedChars(file, 1);
         static_meshes(file, mats,nModel);
     }
     else // If the mesh isn't static
     {
-        log->addAndPush("LooP\n");
+        log->addAndPush("Loop\n");
 
         bonenames.clear();
         bones_data.clear();
@@ -727,11 +701,8 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
             else
             {
                 log->addAndPush("error_with_bones OK\n");
-
                 name = "bone-";
                 name += i;
-
-                error_with_bones = 1;
             }
 
             bool ok = true;
@@ -1014,96 +985,107 @@ video::ITexture* CW2ENTMeshFileLoader::getTexture(core::stringc filename)
     return texture;
 }
 
+bool CW2ENTMeshFileLoader::ReadPropertyHeader(io::IReadFile* file, W2_PropertyHeader& propHeader)
+{
+    u16 propName = readU16(file);
+    u16 propType = readU16(file);
+
+    if (propName == 0 || propType == 0 || propName >= Strings.size() || propType >= Strings.size())
+        return false;
+
+    propHeader.propName = Strings[propName - 1];
+    propHeader.propType = Strings[propType - 1];
+
+    // The difference with TW3
+    file->seek(2, true);
+
+    const long back = file->getPos();
+    propHeader.propSize = readS32(file);
+    propHeader.endPos = back + propHeader.propSize;
+
+    return true;
+}
+
 void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos infos, int nMats)
 {
-    // global mat
-    // mat = Material.New('w2ent-'+str(w2ent_id)+'-mat-'+str(nMat))
-    // CREATE A MATERIAL
-
     int back = file->getPos();
     file->seek(infos.adress);
 
     log->addAndPush("Read material...\n");
 
-    Mat tmp;
-    tmp.material.MaterialType = video::EMT_SOLID ;
-    tmp.material.DiffuseColor = video::SColor(255,255,255,255);
-    tmp.material.AmbientColor = video::SColor(255,255,255,255);
-    tmp.material.EmissiveColor = video::SColor(255,255,255,255);
-    //tmp.material.ColorMaterial =
-    tmp.id = nMats;
+    video::SMaterial material;
+    material.MaterialType = video::EMT_SOLID;
 
-    //std::cout << "Index = " << debugIndex << std::endl;
-    core::stringc propertyName = Strings[readData<u16>(file) - 1];
-    core::stringc propertyType = Strings[readData<u16>(file) - 1];
-
-    file->seek(6, true);
-    //readUnsignedChars(file, 2);
-    //readInts(file, 1);
-
-    FilesTable[255-readData<u8>(file)];
-    file->seek(6, true); //readUnsignedChars(file, 6);
-
-    int nMatElement = readData<s32>(file);
-
-    log->addAndPush(core::stringc("nMatElement = ") + core::stringc(nMatElement) + core::stringc("\n"));
-
-    for (int n = 0; n < nMatElement; n++)
+    while (1)
     {
-        back = file->getPos();
-        int seek = readData<s32>(file);
+        W2_PropertyHeader propHeader;
+        if (!ReadPropertyHeader(file, propHeader))
+            break;
 
-        unsigned short propertyIndex = readData<u16>(file)-1;
-        unsigned short propertyTypeIndex = readData<u16>(file)-1;
-
-        if (propertyIndex == -1)    // if refer to the string -1, nothing to load
-            return;
-
-        propertyName = Strings[propertyIndex];
-        propertyType = Strings[propertyTypeIndex];
-
-        if (propertyType =="*ITexture")
+        //std::cout << propHeader.propName.c_str() << std::endl;
+        //std::cout << propHeader.propType.c_str() << std::endl;
+        if (propHeader.propType == "*IMaterial")
         {
-            int imageID = readData<u8>(file);
-            if (imageID>0)
+            file->seek(1, true); //FilesTable[255-readData<u8>(file)];
+            file->seek(6, true); //readUnsignedChars(file, 6);
+
+            int nMatElement = readData<s32>(file);
+
+            log->addAndPush(core::stringc("nMatElement = ") + core::stringc(nMatElement) + core::stringc("\n"));
+
+            for (int n = 0; n < nMatElement; n++)
             {
-                // ImageID is the index of the texture file in the FilesTable
-                //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
-                core::stringc texturePath = GamePath + FilesTable[255-imageID];
-                file->seek(3, true); //readUnsignedChars(file, 3);
+                back = file->getPos();
+                int seek = readData<s32>(file);
 
-                if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")
-                {
-                    video::ITexture* tex = getTexture(texturePath);
-                    tmp.material.setTexture(0, tex);
-                }
-                else if (propertyName == "normalmap" || propertyName == "tex_Normal" || propertyName == "Normal" || propertyName == "sptTexNormal")
-                {
-                    tmp.material.MaterialType = video::EMT_PARALLAX_MAP_SOLID ;
+                u16 propertyIndex = readU16(file) - 1;
+                u16 propertyTypeIndex = readU16(file) - 1;
 
-                    // normal map
-                    video::ITexture* tex = getTexture(texturePath);
-                    tmp.material.setTexture(1, tex);
-                }
-                if (propertyName == "specular" || propertyName == "tex_Specular" || propertyName == "Specular" || propertyName == "sptTexSpecular")
+                core::stringc propertyName = Strings[propertyIndex];
+                core::stringc propertyType = Strings[propertyTypeIndex];
+
+                if (propertyType == "*ITexture")
                 {
-                    // not handled by irrlicht
-                    video::ITexture* tex = getTexture(texturePath);
-                    tmp.material.setTexture(2, tex);
+                    int imageID = readData<u8>(file);
+                    if (imageID>0)
+                    {
+                        // ImageID is the index of the texture file in the FilesTable
+                        //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
+                        core::stringc texturePath = GamePath + FilesTable[255-imageID];
+                        file->seek(3, true); //readUnsignedChars(file, 3);
+
+                        if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")
+                        {
+                            video::ITexture* tex = getTexture(texturePath);
+                            material.setTexture(0, tex);
+                        }
+                        else if (propertyName == "normalmap" || propertyName == "tex_Normal" || propertyName == "Normal" || propertyName == "sptTexNormal")
+                        {
+                            material.MaterialType = video::EMT_PARALLAX_MAP_SOLID ;
+
+                            // normal map
+                            video::ITexture* tex = getTexture(texturePath);
+                            material.setTexture(1, tex);
+                        }
+                        if (propertyName == "specular" || propertyName == "tex_Specular" || propertyName == "Specular" || propertyName == "sptTexSpecular")
+                        {
+                            // not handled by irrlicht
+                            video::ITexture* tex = getTexture(texturePath);
+                            material.setTexture(2, tex);
+                        }
+                    }
+
                 }
+                file->seek(back + seek);
             }
-
         }
-        if (propertyType =="Float")
-        {
-            file->seek(4, true);
-            //readFloats(file, 1)[0];
-        }
-        file->seek(back + seek);
+        file->seek(propHeader.endPos);
     }
-    Materials.push_back(tmp);
+    Mat w2Mat;
+    w2Mat.id = nMats;
+    w2Mat.material = material;
 
-
+    Materials.push_back(w2Mat);
     //std::cout << "Texture : " << FilesTable[255-readUnsignedChars(1)[0]] << std::endl;
 }
 

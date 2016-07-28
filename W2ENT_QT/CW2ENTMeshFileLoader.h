@@ -26,6 +26,14 @@ struct DataInfos
     int adress;
 };
 
+struct W2_PropertyHeader
+{
+    core::stringc propName;
+    core::stringc propType;
+    s32 propSize;
+    u32 endPos;
+};
+
 struct Meshdata
 {
     int nModel;
@@ -83,6 +91,8 @@ public:
 
 
 private:
+
+    bool ReadPropertyHeader(io::IReadFile* file, W2_PropertyHeader& propHeader);
 
     // Main function
 	bool load(io::IReadFile* file);

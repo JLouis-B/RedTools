@@ -305,7 +305,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     //std::cout << "Num vertices=" << meshInfos.numVertices << std::endl;
     buffer->Vertices_Standard.reallocate(meshInfos.numVertices);
 
-    u32 vertexSize = 20;
+    u32 vertexSize = 8;
     if (meshInfos.vertexType == EMVT_SKINNED)
         vertexSize += meshInfos.numBonesPerVertex * 2;
 
@@ -317,28 +317,32 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
     SVertexBufferInfos vBufferInf;
     u32 nbVertices = 0;
+    u32 firstVertexOffset = 0;
     for (u32 i = 0; i < bufferInfos.verticesBuffer.size(); ++i)
     {
         nbVertices += bufferInfos.verticesBuffer[i].nbVertices;
         if (nbVertices > meshInfos.firstVertex)
         {
             vBufferInf = bufferInfos.verticesBuffer[i];
+            // the index of the first vertex in the buffer
+            firstVertexOffset = meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices);
+            std::cout << "firstVertexOffset=" << firstVertexOffset << std::endl;
             break;
         }
 
     }
-    bufferFile->seek(vBufferInf.verticesCoordsOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * vertexSize);
-    //std::cout << "POS=" << bufferFile->getPos() << std::endl;
+    bufferFile->seek(vBufferInf.verticesCoordsOffset + firstVertexOffset * vertexSize);
+    std::cout << "POS vCoords=" << bufferFile->getPos() << std::endl;
 
     const video::SColor defaultColor(255, 255, 255, 255);
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        u16 x, y, z, tmp;
+        u16 x, y, z, w;
 
         bufferFile->read(&x, 2);
         bufferFile->read(&y, 2);
         bufferFile->read(&z, 2);
-        bufferFile->read(&tmp, 2);
+        bufferFile->read(&w, 2);
 
         // skip skinning data
         if (meshInfos.vertexType == EMVT_SKINNED && !SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
@@ -381,9 +385,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         buffer->Vertices_Standard[i].Color = defaultColor;
         //std::cout << "Position=" << x << ", " << y << ", " << z << std::endl;
     }
-    bufferFile->seek(vBufferInf.uvOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * 4);
-    //std::cout << "avant UV=" << bufferFile->getPos() << std::endl;
-    //bufferFile->seek(8, true);
+    bufferFile->seek(vBufferInf.uvOffset + firstVertexOffset * 4);
+    std::cout << "POS vUV=" << bufferFile->getPos() << std::endl;
 
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
@@ -397,15 +400,16 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         buffer->Vertices_Standard[i].TCoords = core::vector2df(uf, vf);
     }
     // Not 100% sure...
-    bufferFile->seek(vBufferInf.normalsOffset + (meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices)) * 12);
+    bufferFile->seek(vBufferInf.normalsOffset + firstVertexOffset * 8);
+    std::cout << "POS vNormals=" << bufferFile->getPos() << std::endl;
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        u16 x, y, z, tmp;
+        u16 x, y, z, w;
 
         bufferFile->read(&x, 2);
         bufferFile->read(&y, 2);
         bufferFile->read(&z, 2);
-        bufferFile->read(&tmp, 2);
+        bufferFile->read(&w, 2);
 
         //std::cout << "Position=" << x * infos.quantizationScale.X<< ", " << y * infos.quantizationScale.Y<< ", " << z << std::endl;
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z) / 65535.f * bufferInfos.quantizationScale + bufferInfos.quantizationOffset;
@@ -416,8 +420,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
 
 
-    //std::cout << "offset=" << meshInfos.firstIndice << std::endl;
-    //std::cout << "num indices=" << meshInfos.numIndices << std::endl;
+    std::cout << "POS Indices=" << bufferFile->getPos() - bufferInfos.indicesBufferOffset << std::endl;
+    std::cout << "num indices=" << meshInfos.numIndices << std::endl;
     buffer->Indices.set_used(meshInfos.numIndices);
     for (u32 i = 0; i < meshInfos.numIndices; ++i)
     {
@@ -718,30 +722,33 @@ core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::I
 
 void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBufferInfos* buffer)
 {
-    s32 nbElements = readData<s32>(file); // array size (= bytes count here)
-    const long back = file->getPos();
-
+    s32 nbElements = readS32(file); // array size (= bytes count here)
     //std::cout << "nbElem = " << nbElements << ", @= " << file->getPos() << ", end @=" << back + propSize << std::endl;
+    //const long back = file->getPos();
 
-    file->seek(1, true);
-    char nbBuffers = readData<char>(file);
+    //file->seek(1, true);
+    u8 nbBuffers = readU8(file);
+    std::cout << "nbBuffers = " << (u8)nbBuffers << std::endl;
 
-    //for (u32 i = 0; i < nbBuffers; ++i)
-    while(file->getPos() - back < nbElements)
+    //while(file->getPos() - back < nbElements)
+    for (u32 i = 0; i < nbBuffers; ++i)
     {
+        std::cout << "@@@ -> " << file->getPos() << std::endl;
         SVertexBufferInfos buffInfos;
+        file->seek(1, true); // Unknown
+
         file->read(&buffInfos.verticesCoordsOffset, 4);
         file->read(&buffInfos.uvOffset, 4);
         file->read(&buffInfos.normalsOffset, 4);
 
-        //std::cout << "adresses = " << buffInfos.verticesCoordsOffset << ", " << buffInfos.uvOffset << ", " << buffInfos.normalsOffset << std::endl;
-
-        file->seek(14, true);
+        file->seek(9, true); // Unknown
+        file->seek(4, true); // indicesOffset
+        file->seek(1, true); // 0x1D
 
         file->read(&buffInfos.nbVertices, 2);
         //std::cout << "Nb VERT=" << buffInfos.nbVertices << std::endl;
-
-        file->seek(9, true);
+        file->seek(4, true); // nbIndices
+        file->seek(4, true); // Unknown
 
         buffer->verticesBuffer.push_back(buffInfos);
     }
@@ -846,7 +853,7 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
     SPropertyHeader propHeader;
     while(ReadPropertyHeader(file, propHeader))
     {
-        //std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
         if (propHeader.propName == "indexBufferSize")
         {

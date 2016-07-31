@@ -812,9 +812,9 @@ void CW2ENTMeshFileLoader::drawmesh_static(io::IReadFile* file, core::array<int>
     int back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
-    for(unsigned int n = 0; n <NbSubMesh; n++)
+    for (unsigned int n = 0; n < NbSubMesh; n++)
     {
-        if (n>=IdLOD[0][0])
+        if (n >= IdLOD[0][0])
             continue;
 
         log->addAndPush("submesh\n");
@@ -885,9 +885,9 @@ void CW2ENTMeshFileLoader::drawmesh(io::IReadFile* file, core::array<int> data, 
     int back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
-    for (unsigned int n = 0 ; n <NbSubMesh; n++)
+    for (unsigned int n = 0; n < NbSubMesh; n++)
     {
-        if (n>=IdLOD[0][0])
+        if (n >= IdLOD[0][0])
             continue;
 
         SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
@@ -990,7 +990,7 @@ bool CW2ENTMeshFileLoader::ReadPropertyHeader(io::IReadFile* file, W2_PropertyHe
     u16 propName = readU16(file);
     u16 propType = readU16(file);
 
-    if (propName == 0 || propType == 0 || propName >= Strings.size() || propType >= Strings.size())
+    if (propName == 0 || propType == 0 || propName > Strings.size() || propType > Strings.size())
         return false;
 
     propHeader.propName = Strings[propName - 1];
@@ -1303,8 +1303,8 @@ void CW2ENTMeshFileLoader::vert_format(io::IReadFile* file)
         return;
 
     // Read the LODS data
-    int nLODS = readData<u8>(file);
-    for (int i = 0; i < nLODS; i++)
+    u8 nLODS = readU8(file);
+    for (u8 i = 0; i < nLODS; i++)
     {
         data = readDataArray<u8>(file, 5);
         readDataArray<u8>(file, data[0]*2);

@@ -69,14 +69,20 @@ struct SMeshInfos
 // Informations about the .buffer file
 struct SVertexBufferInfos
 {
-    SVertexBufferInfos() : verticesCoordsOffset(0), uvOffset(0), normalsOffset(0), nbVertices(0)
+    SVertexBufferInfos() : verticesCoordsOffset(0), uvOffset(0), normalsOffset(0), indicesOffset(0), nbVertices(0), nbIndices(0), lod(1)
     {
     }
 
     u32 verticesCoordsOffset;
     u32 uvOffset;
     u32 normalsOffset;
+
+    u32 indicesOffset;
+
     u16 nbVertices;
+    u32 nbIndices;
+
+    u8 lod;
 };
 
 struct SBufferInfos
@@ -173,7 +179,7 @@ private:
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
 
-    u32 frameOffset;
+    u32 frameOffset;    
 
     // load the different types of data
     bool W3_load(io::IReadFile* file);
@@ -230,6 +236,7 @@ private:
     void ReadMaterialsProperty(io::IReadFile* file);
     video::SMaterial ReadIMaterialProperty(io::IReadFile* file);
     core::array<core::vector3df> ReadBonesPosition(io::IReadFile* file);
+    void ReadRenderLODSProperty(io::IReadFile* file);
 
     // read external files
     video::SMaterial ReadW2MIFile(core::stringc filename);

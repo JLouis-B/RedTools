@@ -318,6 +318,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     SVertexBufferInfos vBufferInf;
     u32 nbVertices = 0;
     u32 firstVertexOffset = 0;
+    u32 nbIndices = 0;
+    u32 firstIndiceOffset = 0;
     for (u32 i = 0; i < bufferInfos.verticesBuffer.size(); ++i)
     {
         nbVertices += bufferInfos.verticesBuffer[i].nbVertices;
@@ -329,8 +331,29 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
             std::cout << "firstVertexOffset=" << firstVertexOffset << std::endl;
             break;
         }
-
     }
+    for (u32 i = 0; i < bufferInfos.verticesBuffer.size(); ++i)
+    {
+        nbIndices += bufferInfos.verticesBuffer[i].nbIndices;
+        if (nbIndices > meshInfos.firstIndice)
+        {
+            vBufferInf = bufferInfos.verticesBuffer[i];
+            firstIndiceOffset = meshInfos.firstIndice - (nbIndices - vBufferInf.nbIndices);
+            std::cout << "firstIndiceOffset=" << firstVertexOffset << std::endl;
+            break;
+        }
+    }
+
+    /*
+    if (vBufferInf.lod != 1)
+    {
+        bufferFile->drop();
+        return;
+    }
+    */
+
+
+
     bufferFile->seek(vBufferInf.verticesCoordsOffset + firstVertexOffset * vertexSize);
     std::cout << "POS vCoords=" << bufferFile->getPos() << std::endl;
 
@@ -416,7 +439,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     }
 
     // Indices -------------------------------------------------------------------
-    bufferFile->seek(bufferInfos.indicesBufferOffset + meshInfos.firstIndice * 2);
+    bufferFile->seek(bufferInfos.indicesBufferOffset + vBufferInf.indicesOffset + firstIndiceOffset * 2);
 
 
 
@@ -677,7 +700,7 @@ core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::I
             }
         }
 
-        //std::cout << "@" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
+        std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
         if (propHeader.propName == "numIndices")
         {
@@ -728,7 +751,7 @@ void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBuffer
 
     //file->seek(1, true);
     u8 nbBuffers = readU8(file);
-    std::cout << "nbBuffers = " << (u8)nbBuffers << std::endl;
+    std::cout << "nbBuffers = " << (u32)nbBuffers << std::endl;
 
     //while(file->getPos() - back < nbElements)
     for (u32 i = 0; i < nbBuffers; ++i)
@@ -742,13 +765,14 @@ void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBuffer
         file->read(&buffInfos.normalsOffset, 4);
 
         file->seek(9, true); // Unknown
-        file->seek(4, true); // indicesOffset
+        file->read(&buffInfos.indicesOffset, 4);
         file->seek(1, true); // 0x1D
 
         file->read(&buffInfos.nbVertices, 2);
         //std::cout << "Nb VERT=" << buffInfos.nbVertices << std::endl;
-        file->seek(4, true); // nbIndices
-        file->seek(4, true); // Unknown
+        file->read(&buffInfos.nbIndices, 4);
+        file->seek(3, true); // Unknown
+        buffInfos.lod = readU8(file); // lod ?
 
         buffer->verticesBuffer.push_back(buffInfos);
     }
@@ -844,6 +868,17 @@ core::array<core::vector3df> CW3ENTMeshFileLoader::ReadBonesPosition(io::IReadFi
     return positions;
 }
 
+void CW3ENTMeshFileLoader::ReadRenderLODSProperty(io::IReadFile* file)
+{
+    // LOD distances ?
+    u32 arraySize = readU32(file);
+    for (u32 i = 0; i < arraySize; ++i)
+    {
+        f32 value = readF32(file);
+        std::cout << "Value : " << value << std::endl;
+    }
+}
+
 SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* file)
 {
     SBufferInfos bufferInfos;
@@ -880,10 +915,12 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
             core::array<core::vector3df> positions = ReadBonesPosition(file);
             nbBonesPos = positions.size();
         }
-        //else if (property == "collisionInitPositionOffset")
+        //else if (propHeader.propName == "collisionInitPositionOffset")
         //    ReadVector3Property(file, &bufferInfos);
         else if (propHeader.propName == "renderChunks")
             ReadRenderChunksProperty(file, &bufferInfos);
+        else if (propHeader.propName == "renderLODs")
+            ReadRenderLODSProperty(file);
         //else
         //    ReadUnknowProperty(file);
         file->seek(propHeader.endPos);
@@ -1417,6 +1454,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
     SPropertyHeader propHeader;
     while (ReadPropertyHeader(file, propHeader))
     {
+        std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         if (propHeader.propType == "SMeshCookedData")
         {
             log->addAndPush("Buffer infos\n");

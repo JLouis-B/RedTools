@@ -407,6 +407,9 @@ void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
 
 void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
 {
+    if (_device == 0)
+        return;
+
     irr::SEvent irrEvent;
     irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
 
@@ -418,7 +421,7 @@ void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
 
 
     u32 buttonState = 0;
-    if (QApplication::mouseButtons ()  & Qt::LeftButton) {
+    if (QApplication::mouseButtons () & Qt::LeftButton) {
         buttonState |= EMBSM_LEFT;
     }
     if (QApplication::mouseButtons () & Qt::RightButton) {
@@ -436,55 +439,50 @@ void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
 
 void QIrrlichtWidget::mousePressEvent( QMouseEvent* event )
 {
+    if (_device == 0)
+        return;
+
     // If there is a mouse event, we should report it to Irrlicht for the Maya camera
     irr::SEvent irrEvent;
-
     irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
 
-    if ( _device != 0 )
-    {
-        if (event->button() == Qt::LeftButton)
-            irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
-        else if (event->button() == Qt::RightButton)
-            irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
-        else if (event->button() == Qt::MiddleButton)
-            irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
+    if (event->button() == Qt::LeftButton)
+        irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
+    else if (event->button() == Qt::RightButton)
+        irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
+    else if (event->button() == Qt::MiddleButton)
+        irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
 
-        irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
-        irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
-        irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
+    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
+    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
+    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
 
-        if(_device->postEventFromUser( irrEvent ))
-            event->accept();
-    }
+    if(_device->postEventFromUser( irrEvent ))
+        event->accept();
 }
 
 void QIrrlichtWidget::mouseReleaseEvent( QMouseEvent* event )
 {
+    if (_device == 0)
+        return;
+
     // If there is a mouse event, we should report it to Irrlicht for the Maya camera
     irr::SEvent irrEvent;
-
     irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
 
-    if (_device)
-    {
-        if (event->button() == Qt::LeftButton)
-            irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
-        else if (event->button() == Qt::RightButton)
-        {
-            irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
-        }
-        else if (event->button() == Qt::MiddleButton)
-        {
-            irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
-        }
-        irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
-        irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
-        irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
+    if (event->button() == Qt::LeftButton)
+        irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
+    else if (event->button() == Qt::RightButton)
+        irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
+    else if (event->button() == Qt::MiddleButton)
+        irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
 
-        if(_device->postEventFromUser( irrEvent ))
-            event->accept();
-    }
+    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
+    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
+    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
+
+    if(_device->postEventFromUser( irrEvent ))
+        event->accept();
 }
 
 

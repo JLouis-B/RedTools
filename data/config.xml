@@ -25,7 +25,10 @@
   <format>.jpg</format>
  </textures_conversion>
  <debug>0</debug>
- <TW3_textures></TW3_textures>
- <TW3_loadSkel>0</TW3_loadSkel>
+ <TW3>
+  <TW3_textures></TW3_textures>
+  <TW3_loadSkel>0</TW3_loadSkel>
+  <TW3_loadBestLOD>0</TW3_loadBestLOD>
+ </TW3>
  <first_use>1</first_use>
 </config>

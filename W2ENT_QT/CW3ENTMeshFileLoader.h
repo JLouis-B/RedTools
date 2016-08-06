@@ -193,7 +193,7 @@ private:
     void W3_CUnknown(io::IReadFile* file, W3_DataInfos infos);
 
     // load a mesh buffer from the buffer file
-    void W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos);
+    bool W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos);
 
     SAnimationBufferBitwiseCompressedData ReadSAnimationBufferBitwiseCompressedDataProperty(io::IReadFile* file);
     core::array<core::array<SAnimationBufferBitwiseCompressedData> > ReadSAnimationBufferBitwiseCompressedBoneTrackProperty(io::IReadFile* file);
@@ -249,8 +249,10 @@ private:
     // debug log
     Log* log;
 
-    io::path GameTexturesPath;
-    io::path GamePath;
+    bool ConfigLoadSkeleton;
+    bool ConfigLoadOnlyBestLOD;
+    io::path ConfigGameTexturesPath;
+    io::path ConfigGamePath;
 
     core::array<scene::ISkinnedMesh*> Meshes;
 

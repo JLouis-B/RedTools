@@ -49,10 +49,11 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     _ui->label_debugLog->setText(Translator::get("options_debug_log_label"));
     _ui->label_colorSelector->setText(Translator::get("options_background"));
 
-    _ui->checkBox_debug->setChecked(Settings::_debugLog);
-
     _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
     _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkel);
+    _ui->checkBox_TW3_loadBestLOD->setChecked(Settings::_TW3LoadBestLOD);
+
+    _ui->checkBox_debug->setChecked(Settings::_debugLog);
 
     changeExport();
 
@@ -118,6 +119,7 @@ void Options::ok()
 
     Settings::_TW3TexPath = _ui->lineEdit_TW3_texFolder->text();
     Settings::_TW3LoadSkel = _ui->checkBox_TW3_loadSkel->isChecked();
+    Settings::_TW3LoadBestLOD = _ui->checkBox_TW3_loadBestLOD->isChecked();
 
     Settings::_debugLog = _ui->checkBox_debug->isChecked();
 

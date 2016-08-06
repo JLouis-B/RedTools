@@ -44,6 +44,8 @@ public:
 
     static QString _TW3TexPath;
     static bool _TW3LoadSkel;
+    static bool _TW3LoadBestLOD;
+
     static QString _formats;
 
     static bool _firstUse;

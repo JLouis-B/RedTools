@@ -96,12 +96,16 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 		return 0;
 
     #ifdef _IRR_WCHAR_FILESYSTEM
-        GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
-        GameTexturesPath = SceneManager->getParameters()->getAttributeAsStringW("TW_TW3_TEX_PATH");
+        ConfigGamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
+        ConfigGameTexturesPath = SceneManager->getParameters()->getAttributeAsStringW("TW_TW3_TEX_PATH");
     #else
-        GamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
-        GameTexturesPath = SceneManager->getParameters()->getAttributeAsString("TW_TW3_TEX_PATH");
+        ConfigGamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
+        ConfigGameTexturesPath = SceneManager->getParameters()->getAttributeAsString("TW_TW3_TEX_PATH");
     #endif
+
+    ConfigLoadSkeleton = SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL");
+    ConfigLoadOnlyBestLOD = SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_BEST_LOD_ONLY");
+
 
     //Clear up
     Strings.clear();
@@ -114,7 +118,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     log->add("\n-> ");
     log->add(f->getFileName().c_str());
     log->add("\n-> Load Sekeleton is ");
-    if (SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
+    if (ConfigLoadSkeleton)
         log->add("enabled\n");
     else
         log->add("disabled\n");
@@ -288,33 +292,8 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
 
 
 
-void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos)
+bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos bufferInfos, SMeshInfos meshInfos)
 {
-    scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
-    buffer->VertexType = video::EVT_STANDARD;
-
-    io::IReadFile* bufferFile = FileSystem->createAndOpenFile(file->getFileName() + ".1.buffer");
-    if (!bufferFile)
-    {
-        //std::cout << "Fail to open buffer file" << std::endl;
-        Feedback += "\nThe .buffer file associated to the mesh hasn't been found.\nHave you extracted the necessary bundle ?\n";
-        log->addAndPush(" fail to open .buffer file ");
-        return;
-    }
-
-    //std::cout << "Num vertices=" << meshInfos.numVertices << std::endl;
-    buffer->Vertices_Standard.reallocate(meshInfos.numVertices);
-
-    u32 vertexSize = 8;
-    if (meshInfos.vertexType == EMVT_SKINNED)
-        vertexSize += meshInfos.numBonesPerVertex * 2;
-
-    //std::cout << "first vertex = " << meshInfos.firstVertex << std::endl;
-
-    // Maybe it's simply 1 verticesBufferInfo/buffer, seems correct and more simple
-    //if (bufferInfos.verticesBuffer.size() == AnimatedMesh->getMeshBufferCount())
-    //    std::cout << "--> 1 verticesBufferInfo/buffer" << std::endl;
-
     SVertexBufferInfos vBufferInf;
     u32 nbVertices = 0;
     u32 firstVertexOffset = 0;
@@ -344,14 +323,32 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         }
     }
 
-    /*
-    if (vBufferInf.lod != 1)
-    {
-        bufferFile->drop();
-        return;
-    }
-    */
+    // Check if it's the best LOD
+    if (ConfigLoadOnlyBestLOD && vBufferInf.lod != 1)
+        return false;
 
+    io::IReadFile* bufferFile = FileSystem->createAndOpenFile(file->getFileName() + ".1.buffer");
+    if (!bufferFile)
+    {
+        Feedback += "\nThe .buffer file associated to the mesh hasn't been found.\nHave you extracted the necessary bundle ?\n";
+        log->addAndPush(" fail to open .buffer file ");
+        return false;
+    }
+
+
+    scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+    buffer->VertexType = video::EVT_STANDARD;
+    //std::cout << "Num vertices=" << meshInfos.numVertices << std::endl;
+    buffer->Vertices_Standard.reallocate(meshInfos.numVertices);
+
+    u32 vertexSize = 8;
+    if (meshInfos.vertexType == EMVT_SKINNED)
+        vertexSize += meshInfos.numBonesPerVertex * 2;
+
+    //std::cout << "first vertex = " << meshInfos.firstVertex << std::endl;
+    // Maybe it's simply 1 verticesBufferInfo/buffer, seems correct and more simple
+    //if (bufferInfos.verticesBuffer.size() == AnimatedMesh->getMeshBufferCount())
+    //    std::cout << "--> 1 verticesBufferInfo/buffer" << std::endl;
 
 
     bufferFile->seek(vBufferInf.verticesCoordsOffset + firstVertexOffset * vertexSize);
@@ -368,7 +365,7 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         bufferFile->read(&w, 2);
 
         // skip skinning data
-        if (meshInfos.vertexType == EMVT_SKINNED && !SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
+        if (meshInfos.vertexType == EMVT_SKINNED && !ConfigLoadSkeleton)
         {
             bufferFile->seek(meshInfos.numBonesPerVertex * 2, true);
         }
@@ -461,6 +458,8 @@ void CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
     SceneManager->getMeshManipulator()->recalculateNormals(buffer);
     bufferFile->drop();
+
+    return true;
 }
 
 bool CW3ENTMeshFileLoader::ReadPropertyHeader(io::IReadFile* file, SPropertyHeader& propHeader)
@@ -1344,7 +1343,7 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
             fileId = 255 - fileId;
             file->seek(3, true);
             W3_DataCache::_instance._bufferID += AnimatedMesh->getMeshBufferCount();
-            scene::ISkinnedMesh* mesh = ReadW2MESHFile(GamePath + Files[fileId]);
+            scene::ISkinnedMesh* mesh = ReadW2MESHFile(ConfigGamePath + Files[fileId]);
             W3_DataCache::_instance._bufferID -= AnimatedMesh->getMeshBufferCount();
             if (mesh)
             {
@@ -1480,7 +1479,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
    log->addAndPush(core::stringc("All properties readed, @=") + toStr(file->getPos()) + "\n");
 
-   if (!isStatic && nbBonesPos > 0 && SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL"))
+   if (!isStatic && nbBonesPos > 0 && ConfigLoadSkeleton)
    {
         ReadBones(file);
    }
@@ -1488,25 +1487,26 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
    for (u32 i = 0; i < meshes.size(); ++i)
    {
         log->addAndPush("Read buffer...");
-        W3_ReadBuffer(file, bufferInfos, meshes[i]);
-        //std::cout << "Read a buffer, Material ID = "  << meshes[i].materialID << std::endl;
+        if (!W3_ReadBuffer(file, bufferInfos, meshes[i]))
+            continue;
 
+        //std::cout << "Read a buffer, Material ID = "  << meshes[i].materialID << std::endl;
         if (meshes[i].materialID < Materials.size())
         {
             //std::cout << "Material assigned to meshbuffer" << std::endl;
-            AnimatedMesh->getMeshBuffer(i)->getMaterial() = Materials[meshes[i].materialID];
+            AnimatedMesh->getMeshBuffer(AnimatedMesh->getMeshBufferCount() - 1)->getMaterial() = Materials[meshes[i].materialID];
         }
         else
         {
             //std::cout << "Error, mat " << meshes[i].materialID << "doesn't exist" << std::endl;
             /*
             if (Materials.size() >= 1)
-                AnimatedMesh->getMeshBuffer(i)->getMaterial() = Materials[0];
+                AnimatedMesh->getMeshBuffer(AnimatedMesh->getMeshBufferCount() - 1)->getMaterial() = Materials[0];
             */
         }
         log->addAndPush("OK\n");
    }
-    log->addAndPush("W3_CMesh end\n");
+   log->addAndPush("W3_CMesh end\n");
 }
 
 void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
@@ -1715,7 +1715,7 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
 
             if (core::hasFileExtension(Files[fileId], "w2mi"))
             {
-                mat = ReadW2MIFile(GamePath + Files[fileId]);
+                mat = ReadW2MIFile(ConfigGamePath + Files[fileId]);
                 return mat;
             }
         }
@@ -1758,7 +1758,7 @@ video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
     // Check for textures extracted with the LUA tools
     filename = baseFilename + core::stringc(".dds");
     filename.replace("\\", "#");
-    filename = GameTexturesPath + filename;
+    filename = ConfigGameTexturesPath + filename;
 
     if (FileSystem->existFile(filename))
         texture = SceneManager->getVideoDriver()->getTexture(filename);
@@ -1777,7 +1777,7 @@ video::ITexture* CW3ENTMeshFileLoader::getTexture(io::path filename)
 
     for (u32 i = 0; i < possibleExtensions.size(); ++i)
     {
-        filename = GameTexturesPath + baseFilename + possibleExtensions[i];
+        filename = ConfigGameTexturesPath + baseFilename + possibleExtensions[i];
 
         if (FileSystem->existFile(filename))
             texture = SceneManager->getVideoDriver()->getTexture(filename);

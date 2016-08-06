@@ -25,7 +25,8 @@ QString Settings::_texFormat = ".jpg";
 QString Settings::_pack0 = "";
 
 QString Settings::_TW3TexPath = "";
-bool Settings::_TW3LoadSkel = true;
+bool Settings::_TW3LoadSkel = false;
+bool Settings::_TW3LoadBestLOD = false;
 
 QString Settings::_formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
 
@@ -45,7 +46,7 @@ void Settings::loadFromXML(QString filename)
 {
 
     // Load config from XML
-    QDomDocument *dom = new QDomDocument("config");
+    QDomDocument* dom = new QDomDocument("config");
     QFile xml_doc(filename);
 
     if(!xml_doc.open(QIODevice::ReadOnly))
@@ -117,15 +118,12 @@ void Settings::loadFromXML(QString filename)
         {
             Settings::_debugLog = node.toElement().text().toInt();
         }
-        if(node.nodeName() == "TW3_textures")
+        if(node.nodeName() == "TW3")
         {
-            Settings::_TW3TexPath = node.toElement().text();
+            Settings::_TW3TexPath = node.firstChildElement("TW3_textures").text();
+            Settings::_TW3LoadSkel = node.firstChildElement("TW3_loadSkel").text().toInt();
+            Settings::_TW3LoadBestLOD = node.firstChildElement("TW3_loadBestLOD").text().toInt();
         }
-        if(node.nodeName() == "TW3_loadSkel")
-        {
-            Settings::_TW3LoadSkel = node.toElement().text().toInt();
-        }
-
         if (node.nodeName() == "first_use")
         {
             Settings::_firstUse = node.toElement().text().toInt();
@@ -256,13 +254,24 @@ void Settings::saveToXML(QString filename)
     config_elem.appendChild(debug_elem);
     debug_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_debugLog)));
 
+
+    // TW3
+    QDomElement TW3_elem = dom.createElement("TW3");
+    config_elem.appendChild(TW3_elem);
+
     QDomElement tw3tex_elem = dom.createElement("TW3_textures");
-    config_elem.appendChild(tw3tex_elem);
+    TW3_elem.appendChild(tw3tex_elem);
     tw3tex_elem.appendChild(dom.createTextNode(Settings::_TW3TexPath));
 
     QDomElement tw3skel_elem = dom.createElement("TW3_loadSkel");
-    config_elem.appendChild(tw3skel_elem);
+    TW3_elem.appendChild(tw3skel_elem);
     tw3skel_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_TW3LoadSkel)));
+
+    QDomElement tw3bestlod_elem = dom.createElement("TW3_loadBestLOD");
+    TW3_elem.appendChild(tw3bestlod_elem);
+    tw3bestlod_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_TW3LoadBestLOD)));
+
+
 
 
     QDomElement firstuse_elem = dom.createElement("first_use");

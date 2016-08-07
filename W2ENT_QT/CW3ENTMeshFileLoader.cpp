@@ -113,15 +113,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     Files.clear();
     Meshes.clear();
 
-    log->add("-> Exported with The Witcher Converter ");
-    log->add(Settings::_appVersion.toStdString().c_str());
-    log->add("\n-> ");
-    log->add(f->getFileName().c_str());
-    log->add("\n-> Load Sekeleton is ");
-    if (ConfigLoadSkeleton)
-        log->add("enabled\n");
-    else
-        log->add("disabled\n");
+    writeLogHeader(f);
 
     log->add("Start loading\n");
     log->push();
@@ -159,6 +151,33 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	return AnimatedMesh;
 }
 
+void CW3ENTMeshFileLoader::writeLogBoolProperty(core::stringc name, bool value)
+{
+    log->add("-> ");
+    log->add(name);
+    log->add(" is ");
+    if (value)
+        log->add("enabled\n");
+    else
+        log->add("disabled\n");
+}
+
+void CW3ENTMeshFileLoader::writeLogHeader(const io::IReadFile* f)
+{
+    log->add("-> Exported with The Witcher Converter ");
+    log->add(Settings::_appVersion.toStdString().c_str());
+    log->add("\n");
+
+    log->add("-> File : ");
+    log->add(f->getFileName().c_str());
+    log->add("\n");
+
+    writeLogBoolProperty("Load Sekeleton", ConfigLoadSkeleton);
+    writeLogBoolProperty("Load only best LOD", ConfigLoadOnlyBestLOD);
+
+    log->add("_________________________________________________________\n\n\n");
+}
+
 void checkMaterial(video::SMaterial mat)
 {
     if (mat.getTexture(0))
@@ -173,7 +192,7 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
 
     readString(file, 4); // CR2W
 
-    const s32 fileFormatVersion = readData<s32>(file);
+    const s32 fileFormatVersion = readS32(file);
     file->seek(4, true);
 
     core::array<s32> headerData = readDataArray<s32>(file, 38);
@@ -419,12 +438,15 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
         buffer->Vertices_Standard[i].TCoords = core::vector2df(uf, vf);
     }
-    // Not 100% sure...
+
+
+    // Not sure...
+    /*
     bufferFile->seek(vBufferInf.normalsOffset + firstVertexOffset * 8);
     std::cout << "POS vNormals=" << bufferFile->getPos() << std::endl;
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        u16 x, y, z, w;
+        s16 x, y, z, w;
 
         bufferFile->read(&x, 2);
         bufferFile->read(&y, 2);
@@ -432,13 +454,14 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         bufferFile->read(&w, 2);
 
         //std::cout << "Position=" << x * infos.quantizationScale.X<< ", " << y * infos.quantizationScale.Y<< ", " << z << std::endl;
-        buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z) / 65535.f * bufferInfos.quantizationScale + bufferInfos.quantizationOffset;
+        buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
+        buffer->Vertices_Standard[i].Normal.normalize();
     }
+    */
+
 
     // Indices -------------------------------------------------------------------
     bufferFile->seek(bufferInfos.indicesBufferOffset + vBufferInf.indicesOffset + firstIndiceOffset * 2);
-
-
 
     std::cout << "POS Indices=" << bufferFile->getPos() - bufferInfos.indicesBufferOffset << std::endl;
     std::cout << "num indices=" << meshInfos.numIndices << std::endl;

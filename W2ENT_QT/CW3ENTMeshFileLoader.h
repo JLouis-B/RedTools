@@ -248,6 +248,8 @@ private:
 
     // debug log
     Log* log;
+    void writeLogBoolProperty(core::stringc name, bool value);
+    void writeLogHeader(const io::IReadFile *f);
 
     bool ConfigLoadSkeleton;
     bool ConfigLoadOnlyBestLOD;

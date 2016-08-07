@@ -15,6 +15,8 @@
 #include "IWriteFile.h"
 
 #include "LoadersUtils.h"
+#include "settings.h"
+
 
 #include <sstream>
 
@@ -69,8 +71,13 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	if (!f)
 		return 0;
 
-    log = new Log(SceneManager, "debug.log");
-    log->enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
+    LogOutput output = LOG_NONE;
+    // If we want the log in cout
+    //output |= LOG_CONSOLE;
+
+    if (SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"))
+        output |= LOG_FILE;
+    log = new Log(SceneManager, "debug.log", output);
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
@@ -79,12 +86,18 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
     #endif
 
     // log
-    log->add("-> ");
+    log->add("-> Exported with The Witcher Converter ");
+    log->add(Settings::_appVersion.toStdString().c_str());
+    log->add("\n");
+
+    log->add("-> File : ");
     log->add(f->getFileName().c_str());
     log->add("\n");
+
+    log->add("_________________________________________________________\n\n\n");
+
     log->add("Start loading\n");
     log->push();
-
 
     AnimatedMesh = SceneManager->createSkinnedMesh();
 

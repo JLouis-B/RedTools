@@ -80,18 +80,7 @@ bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
 //! See IReferenceCounted::drop() for more information.
 IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 {
-    // Create and enable the log file if the option is selected on the soft
-    log = new Log(SceneManager, "debug.log");
-    log->enable(SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"));
-    log->setConsoleOutput(true);
     Feedback = "";
-
-    if (!log->works())
-    {
-        Feedback += "\nError : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)\n";
-        return 0;
-    }
-
 	if (!f)
 		return 0;
 
@@ -106,18 +95,32 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     ConfigLoadSkeleton = SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_SKEL");
     ConfigLoadOnlyBestLOD = SceneManager->getParameters()->getAttributeAsBool("TW_TW3_LOAD_BEST_LOD_ONLY");
 
-
     //Clear up
     Strings.clear();
     Materials.clear();
     Files.clear();
     Meshes.clear();
 
+
+    LogOutput output = LOG_NONE;
+    // If we want the log in cout
+    //output |= LOG_CONSOLE;
+
+    if (SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"))
+        output |= LOG_FILE;
+
+    // Create and enable the log file if the option is selected on the soft
+    log = new Log(SceneManager, "debug.log", output);
+
+    if (log->isEnabled() && !log->works())
+    {
+        delete log;
+        Feedback += "\nError : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)\n";
+        return 0;
+    }
+
     writeLogHeader(f);
-
-    log->add("Start loading\n");
-    log->push();
-
+    log->addAndPush("Start loading\n");
 
     AnimatedMesh = SceneManager->createSkinnedMesh();
 
@@ -1376,7 +1379,6 @@ void CW3ENTMeshFileLoader::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos i
             }
             else
             {
-                log->setConsoleOutput(true);
                 log->addAndPush(core::stringc("Fail to load ") + Files[fileId] + "\n");
             }
         }

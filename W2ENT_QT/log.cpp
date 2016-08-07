@@ -1,10 +1,10 @@
 #include "log.h"
 
-Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename) : Smgr(smgr), Filename(filename)
-{
-    Enabled = true;
-    ConsoleOutput = false;
 
+Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename, LogOutput output) : Smgr(smgr), Filename(filename), Output(output)
+{
+    if (!hasOutput(LOG_FILE))
+        return;
 
 #ifdef USE_FLUSH_PATCH
     LogFile = 0;
@@ -33,6 +33,11 @@ Log::~Log()
 
 void Log::add(core::stringc addition)
 {
+    if (hasOutput(LOG_CONSOLE))
+        std::cout << addition.c_str();
+    if (!hasOutput(LOG_FILE))
+        return;
+
 #ifdef USE_FLUSH_PATCH
     if (!LogFile)
         return;
@@ -41,14 +46,11 @@ void Log::add(core::stringc addition)
 #else
     Content += addition;
 #endif
-
-    if (ConsoleOutput)
-        std::cout << addition.c_str();
 }
 
 void Log::push()
 {
-    if (!Enabled)
+    if (!hasOutput(LOG_FILE))
         return;
 
 #ifdef USE_FLUSH_PATCH
@@ -71,22 +73,14 @@ void Log::push()
 
 void Log::addAndPush(core::stringc addition)
 {
-    if (!Enabled)
+    if (!isEnabled())
         return;
 
     add(addition);
     push();
 }
 
-void Log::enable(bool enabled)
-{
-    Enabled = enabled;
-}
 
-bool Log::isEnabled()
-{
-    return Enabled;
-}
 
 bool Log::works()
 {
@@ -105,7 +99,17 @@ bool Log::works()
 #endif
 }
 
-void Log::setConsoleOutput(bool enabled)
+void Log::setOutput(LogOutput output)
 {
-    ConsoleOutput = enabled;
+    Output = output;
+}
+
+bool Log::hasOutput(LogOutput output)
+{
+    return (Output & output) != 0;
+}
+
+bool Log::isEnabled()
+{
+    return !hasOutput(LOG_NONE);
 }

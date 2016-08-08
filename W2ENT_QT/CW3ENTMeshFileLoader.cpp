@@ -329,7 +329,7 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
             vBufferInf = bufferInfos.verticesBuffer[i];
             // the index of the first vertex in the buffer
             firstVertexOffset = meshInfos.firstVertex - (nbVertices - vBufferInf.nbVertices);
-            std::cout << "firstVertexOffset=" << firstVertexOffset << std::endl;
+            //std::cout << "firstVertexOffset=" << firstVertexOffset << std::endl;
             break;
         }
     }
@@ -340,7 +340,7 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         {
             vBufferInf = bufferInfos.verticesBuffer[i];
             firstIndiceOffset = meshInfos.firstIndice - (nbIndices - vBufferInf.nbIndices);
-            std::cout << "firstIndiceOffset=" << firstVertexOffset << std::endl;
+            //std::cout << "firstIndiceOffset=" << firstVertexOffset << std::endl;
             break;
         }
     }
@@ -374,7 +374,7 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
 
 
     bufferFile->seek(vBufferInf.verticesCoordsOffset + firstVertexOffset * vertexSize);
-    std::cout << "POS vCoords=" << bufferFile->getPos() << std::endl;
+    //std::cout << "POS vCoords=" << bufferFile->getPos() << std::endl;
 
     const video::SColor defaultColor(255, 255, 255, 255);
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
@@ -428,7 +428,7 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
         //std::cout << "Position=" << x << ", " << y << ", " << z << std::endl;
     }
     bufferFile->seek(vBufferInf.uvOffset + firstVertexOffset * 4);
-    std::cout << "POS vUV=" << bufferFile->getPos() << std::endl;
+    //std::cout << "POS vUV=" << bufferFile->getPos() << std::endl;
 
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
@@ -466,8 +466,8 @@ bool CW3ENTMeshFileLoader::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffe
     // Indices -------------------------------------------------------------------
     bufferFile->seek(bufferInfos.indicesBufferOffset + vBufferInf.indicesOffset + firstIndiceOffset * 2);
 
-    std::cout << "POS Indices=" << bufferFile->getPos() - bufferInfos.indicesBufferOffset << std::endl;
-    std::cout << "num indices=" << meshInfos.numIndices << std::endl;
+    //std::cout << "POS Indices=" << bufferFile->getPos() - bufferInfos.indicesBufferOffset << std::endl;
+    //std::cout << "num indices=" << meshInfos.numIndices << std::endl;
     buffer->Indices.set_used(meshInfos.numIndices);
     for (u32 i = 0; i < meshInfos.numIndices; ++i)
     {
@@ -587,7 +587,7 @@ core::array<core::array<SAnimationBufferBitwiseCompressedData> > CW3ENTMeshFileL
         }
 
 
-        std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         if (propHeader.propType == "SAnimationBufferBitwiseCompressedData")
         {
             SAnimationBufferBitwiseCompressedData animInf = ReadSAnimationBufferBitwiseCompressedDataProperty(file);
@@ -725,7 +725,7 @@ core::array<SMeshInfos> CW3ENTMeshFileLoader::ReadSMeshChunkPackedProperty(io::I
             }
         }
 
-        std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
         if (propHeader.propName == "numIndices")
         {
@@ -776,12 +776,12 @@ void CW3ENTMeshFileLoader::ReadRenderChunksProperty(io::IReadFile* file, SBuffer
 
     //file->seek(1, true);
     u8 nbBuffers = readU8(file);
-    std::cout << "nbBuffers = " << (u32)nbBuffers << std::endl;
+    //std::cout << "nbBuffers = " << (u32)nbBuffers << std::endl;
 
     //while(file->getPos() - back < nbElements)
     for (u32 i = 0; i < nbBuffers; ++i)
     {
-        std::cout << "@@@ -> " << file->getPos() << std::endl;
+        //std::cout << "@@@ -> " << file->getPos() << std::endl;
         SVertexBufferInfos buffInfos;
         file->seek(1, true); // Unknown
 
@@ -900,7 +900,7 @@ void CW3ENTMeshFileLoader::ReadRenderLODSProperty(io::IReadFile* file)
     for (u32 i = 0; i < arraySize; ++i)
     {
         f32 value = readF32(file);
-        std::cout << "Value : " << value << std::endl;
+        //std::cout << "Value : " << value << std::endl;
     }
 }
 
@@ -913,7 +913,7 @@ SBufferInfos CW3ENTMeshFileLoader::ReadSMeshCookedDataProperty(io::IReadFile* fi
     SPropertyHeader propHeader;
     while(ReadPropertyHeader(file, propHeader))
     {
-        std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "@" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
 
         if (propHeader.propName == "indexBufferSize")
         {
@@ -1197,7 +1197,7 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
             defferedData = readU16(file);
         }
 
-        std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         file->seek(propHeader.endPos);
     }
 
@@ -1478,7 +1478,7 @@ void CW3ENTMeshFileLoader::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
     SPropertyHeader propHeader;
     while (ReadPropertyHeader(file, propHeader))
     {
-        std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
+        //std::cout << "-> @" << file->getPos() <<", property = " << propHeader.propName.c_str() << ", type = " << propHeader.propType.c_str() << std::endl;
         if (propHeader.propType == "SMeshCookedData")
         {
             log->addAndPush("Buffer infos\n");

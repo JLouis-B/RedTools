@@ -144,7 +144,7 @@ private:
     // Materials of the meshes
     core::array<Mat> Materials;
 
-    io::path GamePath;
+    io::path ConfigGamePath;
 
     // Bones data
     irr::core::array<core::stringc> bonenames;

@@ -80,9 +80,9 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
     log = new Log(SceneManager, "debug.log", output);
 
     #ifdef _IRR_WCHAR_FILESYSTEM
-        GamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
+        ConfigGamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
     #else
-        GamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
+        ConfigGamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
     #endif
 
     // log
@@ -1064,7 +1064,7 @@ void CW2ENTMeshFileLoader::CMaterialInstance(io::IReadFile* file, DataInfos info
                     {
                         // ImageID is the index of the texture file in the FilesTable
                         //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
-                        core::stringc texturePath = GamePath + FilesTable[255-imageID];
+                        core::stringc texturePath = ConfigGamePath + FilesTable[255-imageID];
                         file->seek(3, true); //readUnsignedChars(file, 3);
 
                         if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")

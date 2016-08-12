@@ -7,28 +7,28 @@
 
 ExtFiles::ExtFiles(QIrrlichtWidget* irrlicht, QWidget *parent) :
     QDialog(parent), _irrlicht(irrlicht),
-    ui(new Ui::ExtFiles)
+    _ui(new Ui::ExtFiles)
 {
-    ui->setupUi(this);
+    _ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
 
-    QObject::connect(ui->button_close, SIGNAL(clicked(bool)), this, SLOT(close()));
-    QObject::connect(ui->button_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
+    QObject::connect(_ui->button_close, SIGNAL(clicked(bool)), this, SLOT(close()));
+    QObject::connect(_ui->button_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
 
-    QObject::connect(ui->button_back, SIGNAL(clicked(bool)), this, SLOT(back()));
-    QObject::connect(ui->button_checkW2MI, SIGNAL(clicked(bool)), this, SLOT(checkW2MI()));
-    QObject::connect(ui->listWidget, SIGNAL(currentTextChanged(QString)), this, SLOT(changeSelection(QString)));
+    QObject::connect(_ui->button_back, SIGNAL(clicked(bool)), this, SLOT(back()));
+    QObject::connect(_ui->button_checkW2MI, SIGNAL(clicked(bool)), this, SLOT(checkW2MI()));
+    QObject::connect(_ui->listWidget, SIGNAL(currentTextChanged(QString)), this, SLOT(changeSelection(QString)));
 }
 
 ExtFiles::~ExtFiles()
 {
-    delete ui;
+    delete _ui;
 }
 
 void ExtFiles::read(QString filename)
 {
-    ui->lineEdit->setText(filename);
-    ui->listWidget->clear();
+    _ui->lineEdit->setText(filename);
+    _ui->listWidget->clear();
 
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     const WitcherFileType fileType = getFileType(filenamePath);
@@ -36,16 +36,16 @@ void ExtFiles::read(QString filename)
     switch (fileType)
     {
         case WFT_NOT_WITCHER:
-            ui->label_fileType->setText("File type : Not a witcher file");
+            _ui->label_fileType->setText("File type : Not a witcher file");
             return;
             break;
 
         case WFT_WITCHER_2:
-            ui->label_fileType->setText("File type : The Witcher 2 file");
+            _ui->label_fileType->setText("File type : The Witcher 2 file");
             break;
 
         case WFT_WITCHER_3:
-            ui->label_fileType->setText("File type : The Witcher 3 file");
+            _ui->label_fileType->setText("File type : The Witcher 3 file");
             break;
     }
 
@@ -53,14 +53,14 @@ void ExtFiles::read(QString filename)
     core::array<core::stringc> files = read(filenamePath);
     for (u32 i = 0; i < files.size(); ++i)
     {
-        ui->listWidget->addItem(QString(files[i].c_str()));
+        _ui->listWidget->addItem(QString(files[i].c_str()));
     }
 }
 
 
 void ExtFiles::selectFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", ui->lineEdit->text(), "");
+    QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", _ui->lineEdit->text(), "");
     if (file != "")
     {
         read(file);
@@ -103,36 +103,18 @@ core::array<core::stringc> ExtFiles::read(io::path filename)
             break;
 
         case WFT_WITCHER_2:
-            files = ReadTW2File(filename);
+            files = readTW2File(filename);
             break;
 
         case WFT_WITCHER_3:
-            files = ReadTW3File(filename);
+            files = readTW3File(filename);
             break;
     }
     return files;
 }
 
-// Wicther 2 --------------------------------------
-core::stringc readWord(irr::io::IReadFile* file, int nbLetters)
-{
-    core::stringc str;
-
-    char buf;
-    for (int i = 0; i < nbLetters; ++i)
-    {
-        file->read(&buf, 1);
-        if (buf != 0)
-        {
-            str += buf;
-            if (str.size() > 1000)
-               break;
-        }
-    }
-    return str;
-}
-
-core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
+// Witcher 2 --------------------------------------
+core::array<core::stringc> ExtFiles::readTW2File(io::path filename)
 {
     irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
 
@@ -156,7 +138,7 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
         file->read(&wordSize, 1);
         wordSize -= 128;
 
-        Types.push_back(readWord(file, wordSize));
+        Types.push_back(readString(file, wordSize));
     }
 
 
@@ -176,7 +158,7 @@ core::array<core::stringc> ExtFiles::ReadTW2File(io::path filename)
                 file->seek(1, true);
 
             core::stringc filename, file_type;
-            filename = readWord(file, size);
+            filename = readString(file, size);
 
             int file_typeIndex;
             file->read(&file_typeIndex, 4);
@@ -205,7 +187,7 @@ bool isAFile(core::stringc string)
     return (string.findFirst('.') != -1);
 }
 
-core::array<core::stringc> ExtFiles::ReadTW3File(io::path filename)
+core::array<core::stringc> ExtFiles::readTW3File(io::path filename)
 {
     core::array<core::stringc> files;
 
@@ -238,18 +220,18 @@ core::array<core::stringc> ExtFiles::ReadTW3File(io::path filename)
 // W2MI stuff ----------------
 void ExtFiles::checkW2MI()
 {
-    _back = ui->lineEdit->text();
-    read(Settings::_pack0 + "/" + ui->listWidget->currentItem()->text());
-    ui->button_back->setEnabled(true);
+    _back = _ui->lineEdit->text();
+    read(Settings::_pack0 + "/" + _ui->listWidget->currentItem()->text());
+    _ui->button_back->setEnabled(true);
 }
 
 void ExtFiles::changeSelection(QString newSelectedText)
 {
-    ui->button_checkW2MI->setEnabled(newSelectedText.contains(".w2mi"));
+    _ui->button_checkW2MI->setEnabled(newSelectedText.contains(".w2mi"));
 }
 
 void ExtFiles::back()
 {
     read(_back);
-    ui->button_back->setEnabled(false);
+    _ui->button_back->setEnabled(false);
 }

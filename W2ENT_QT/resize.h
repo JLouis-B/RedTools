@@ -2,7 +2,7 @@
 #define RESIZE_H
 
 #include <QDialog>
-#include <irrlicht.h>
+#include <vector3d.h>
 
 
 namespace Ui {

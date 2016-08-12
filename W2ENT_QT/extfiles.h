@@ -27,7 +27,7 @@ class ExtFiles : public QDialog
     Q_OBJECT
 
 public:
-    explicit ExtFiles(QIrrlichtWidget *irrlicht, QWidget *parent = 0);
+    explicit ExtFiles(QIrrlichtWidget* irrlicht, QWidget *parent = 0);
     ~ExtFiles();
 
     void read(QString filename);
@@ -41,12 +41,11 @@ public slots :
     void back();
 
 private:
-    Ui::ExtFiles *ui;
+    QIrrlichtWidget* _irrlicht;
+    Ui::ExtFiles* _ui;
 
-    QIrrlichtWidget *_irrlicht;
-
-    core::array<core::stringc> ReadTW3File(io::path filename);
-    core::array<core::stringc> ReadTW2File(io::path filename);
+    core::array<core::stringc> readTW3File(io::path filename);
+    core::array<core::stringc> readTW2File(io::path filename);
 
     WitcherFileType getFileType(io::path filename);
     core::array<core::stringc> read(io::path filename);

@@ -10,6 +10,7 @@ ExtFiles::ExtFiles(QIrrlichtWidget* irrlicht, QWidget *parent) :
     ui(new Ui::ExtFiles)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_DeleteOnClose);
 
     QObject::connect(ui->button_close, SIGNAL(clicked(bool)), this, SLOT(close()));
     QObject::connect(ui->button_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
@@ -17,20 +18,12 @@ ExtFiles::ExtFiles(QIrrlichtWidget* irrlicht, QWidget *parent) :
     QObject::connect(ui->button_back, SIGNAL(clicked(bool)), this, SLOT(back()));
     QObject::connect(ui->button_checkW2MI, SIGNAL(clicked(bool)), this, SLOT(checkW2MI()));
     QObject::connect(ui->listWidget, SIGNAL(currentTextChanged(QString)), this, SLOT(changeSelection(QString)));
-
-    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 }
 
 ExtFiles::~ExtFiles()
 {
     delete ui;
 }
-
-void ExtFiles::destroyWindow()
-{
-    delete this;
-}
-
 
 void ExtFiles::read(QString filename)
 {
@@ -64,10 +57,6 @@ void ExtFiles::read(QString filename)
     }
 }
 
-void ExtFiles::close()
-{
-    delete this;
-}
 
 void ExtFiles::selectFile()
 {

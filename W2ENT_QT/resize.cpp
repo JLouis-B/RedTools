@@ -10,6 +10,7 @@ ReSize::ReSize(QWidget *parent) :
     _ui(new Ui::ReSize)
 {
     _ui->setupUi(this);
+    setAttribute(Qt::WA_DeleteOnClose);
 
     core::vector3df size = _dimensions;
 
@@ -35,7 +36,6 @@ ReSize::ReSize(QWidget *parent) :
     QObject::connect(_ui->combo_unit, SIGNAL(currentTextChanged(QString)), this, SLOT(changeUnit(QString)));
 
     QObject::connect(this, SIGNAL(rejected()), this, SLOT(cancel()));
-    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 
     _initialUnit = _unit;
     _initialDimensions = _dimensions;
@@ -44,11 +44,6 @@ ReSize::ReSize(QWidget *parent) :
 ReSize::~ReSize()
 {
     delete _ui;
-}
-
-void ReSize::destroyWindow()
-{
-    delete this;
 }
 
 void ReSize::cancel()

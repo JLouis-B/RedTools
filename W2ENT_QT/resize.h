@@ -37,7 +37,6 @@ public slots:
     void changeUnit(QString unit);
 
     void cancel();
-    void destroyWindow();
 
 
 private:

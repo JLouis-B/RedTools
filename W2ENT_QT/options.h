@@ -30,7 +30,6 @@ public slots:
     void changeExport();
     void selectDir();
     void selectTW3TexDir();
-    void destroyWindow();
 
 private:
     QColor _col;

@@ -9,6 +9,8 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     _ui(new Ui::Options), _irr(irr)
 {
     _ui->setupUi(this);
+    setAttribute(Qt::WA_DeleteOnClose);
+
     _ui->doubleSpinBox_cameraRotSpeed->setValue(Settings::_camRotSpeed);
     _ui->doubleSpinBox_cameraSpeed->setValue(Settings::_camSpeed);
     _col = QColor(Settings::_r, Settings::_g, Settings::_b);
@@ -72,18 +74,11 @@ Options::Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
     QObject::connect(_ui->checkBox_convertTextures, SIGNAL(clicked(bool)), _ui->comboBox_format, SLOT(setEnabled(bool)));
 
     QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
-
-    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 }
 
 Options::~Options()
 {
     delete _ui;
-}
-
-void Options::destroyWindow()
-{
-    delete this;
 }
 
 void Options::reset()

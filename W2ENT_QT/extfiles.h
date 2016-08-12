@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QFileDialog>
-#include <irrlicht.h>
+#include <IReadFile.h>
 
 #include "utils.h"
 
@@ -33,9 +33,7 @@ public:
     void read(QString filename);
 
 public slots :
-    void close();
     void selectFile();
-    void destroyWindow();
 
     // w2mi stuff
     void checkW2MI();

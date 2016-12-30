@@ -135,9 +135,8 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
         */
 
 		AnimatedMesh->finalize();
-        Feedback += "done";
-
-        SceneManager->getParameters()->setAttribute("TW_FEEDBACK", Feedback.c_str());
+        //Feedback += "done";
+        // No feedback = 'done' feedback so it's necesseray to fill it
 
 		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         //SceneManager->getMeshManipulator()->flipSurfaces(AnimatedMesh);
@@ -150,6 +149,8 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     log->addAndPush("LOADING FINISHED\n");
     delete log;
+
+    SceneManager->getParameters()->setAttribute("TW_FEEDBACK", Feedback.c_str());
 
 	return AnimatedMesh;
 }
@@ -195,8 +196,8 @@ bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
 
     readString(file, 4); // CR2W
 
-    const s32 fileFormatVersion = readS32(file);
-    file->seek(4, true);
+    //const s32 fileFormatVersion = readS32(file);
+    file->seek(8, true); // fileFormatVersion + other
 
     core::array<s32> headerData = readDataArray<s32>(file, 38);
     log->addAndPush("Read header\n");
@@ -1753,22 +1754,27 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
     return mat;
 }
 
+// Check the file format version and load the mesh if it's ok
 bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
 {
     readString(file,4); // CR2W
 
-    core::array<s32> data = readDataArray<s32>(file, 10);
+    const s32 fileFormatVersion = readS32(file);
+    log->add("File format version : ");
+    log->add(toStr(fileFormatVersion));
+    log->add("\n");
+    log->push();
 
-    const s32 fileFormatVersion = data[0];
     if (fileFormatVersion >= 162)
     {
-        log->add("File format version : ");
-        log->add(toStr(fileFormatVersion));
-        log->add("\n");
-        log->push();
         return W3_load(file);
     }
-    return false;
+    else
+    {
+        log->addAndPush("Error : Incorrect file format version\n");
+        Feedback = "\nError : Incorrect file format version";
+        return false;
+    }
 }
 
 

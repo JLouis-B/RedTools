@@ -207,7 +207,8 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
             //l.addAndPush("feedback is ");
             //l.addAndPush(feedbackMessage.c_str());
         }
-        else if (!mesh)
+
+        if (!mesh && feedbackMessage == "")
         {
             feedbackMessage = "\nError : loading of the mesh failed for unknown reason.";
         }

@@ -62,7 +62,7 @@ bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
     file->seek(4);
 
     s32 version = readData<s32>(file);
-
+    //std::cout << "Version = " << version << std::endl;
     if (version >= 162)
     {
         file->drop();
@@ -1760,8 +1760,12 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
     core::array<s32> data = readDataArray<s32>(file, 10);
 
     const s32 fileFormatVersion = data[0];
-    if (fileFormatVersion == 162)
+    if (fileFormatVersion >= 162)
     {
+        log->add("File format version : ");
+        log->add(toStr(fileFormatVersion));
+        log->add("\n");
+        log->push();
         return W3_load(file);
     }
     return false;

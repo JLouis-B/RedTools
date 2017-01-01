@@ -31,7 +31,7 @@ void ExtFiles::read(QString filename)
     _ui->listWidget->clear();
 
     const io::path filenamePath = QSTRING_TO_PATH(filename);
-    const WitcherFileType fileType = getFileType(filenamePath);
+    const WitcherFileType fileType = getFileType(_irrlicht, filenamePath);
 
     switch (fileType)
     {
@@ -68,9 +68,9 @@ void ExtFiles::selectFile()
 }
 
 
-WitcherFileType ExtFiles::getFileType(io::path filename)
+WitcherFileType getFileType(QIrrlichtWidget* irrlicht, io::path filename)
 {
-    irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
+    irr::io::IReadFile* file = irrlicht->getFileSystem()->createAndOpenFile(filename);
 
     if (!file)
         return WFT_NOT_WITCHER;
@@ -84,7 +84,7 @@ WitcherFileType ExtFiles::getFileType(io::path filename)
 
     if (versionNumber == 115)
         return WFT_WITCHER_2;
-    else if (versionNumber == 162)
+    else if (versionNumber >= 162)
         return WFT_WITCHER_3;
     else
         return WFT_NOT_WITCHER;
@@ -95,7 +95,7 @@ core::array<core::stringc> ExtFiles::read(io::path filename)
 {
     core::array<core::stringc> files;
 
-    const WitcherFileType fileType = getFileType(filename);
+    const WitcherFileType fileType = getFileType(_irrlicht, filename);
 
     switch (fileType)
     {
@@ -126,27 +126,22 @@ core::array<core::stringc> ExtFiles::readTW2File(io::path filename)
 
     file->seek(4);
 
-    int data[10];
-    file->read(&data, 40);
+    core::array<s32> header = readDataArray<s32>(file, 10);
 
-    core::array<core::stringc> Types;
+    core::array<core::stringc> Strings;
 
-    file->seek(data[2]);
-    for (int i = 0; i < data[3]; i++)
+    file->seek(header[2]);
+    for (int i = 0; i < header[3]; ++i)
     {
-        unsigned char wordSize;
-        file->read(&wordSize, 1);
-        wordSize -= 128;
-
-        Types.push_back(readString(file, wordSize));
+        Strings.push_back(readString(file, readU8(file) -128));
     }
 
 
-    for (u32 typeIndex = 0; typeIndex < Types.size(); typeIndex++)
+    for (u32 typeIndex = 0; typeIndex < Strings.size(); typeIndex++)
     {
         //Externals files
-        file->seek(data[6]);
-        for (int i = 0; i < data[7]; i++)
+        file->seek(header[6]);
+        for (int i = 0; i < header[7]; i++)
         {
             unsigned char format_name, size;
             file->read(&size, 1);
@@ -169,7 +164,7 @@ core::array<core::stringc> ExtFiles::readTW2File(io::path filename)
             if ((u32)file_typeIndex == typeIndex)
             {
                 //cout << Types[index] << " : " << filename << endl;
-                core::stringc file = Types[file_typeIndex] + " : " + filename;
+                core::stringc file = Strings[file_typeIndex] + " : " + filename;
                 files.push_back(file);
             }
             //cout << filename << endl;
@@ -181,14 +176,9 @@ core::array<core::stringc> ExtFiles::readTW2File(io::path filename)
 }
 
 // Witcher 3 -------------------------
-
-bool isAFile(core::stringc string)
-{
-    return (string.findFirst('.') != -1);
-}
-
 core::array<core::stringc> ExtFiles::readTW3File(io::path filename)
 {
+    core::array<core::stringc> strings;
     core::array<core::stringc> files;
 
     irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
@@ -199,18 +189,21 @@ core::array<core::stringc> ExtFiles::readTW3File(io::path filename)
 
     file->seek(12);
 
-    int headerData[38];
-    file->read(&headerData, 38 * 4);
+    core::array<s32> headerData = readDataArray<s32>(file, 38);
 
-    int stringChunkStart = headerData[7];
-    int stringChunkSize = headerData[8];
+    s32 stringChunkStart = headerData[7];
+    s32 stringChunkSize = headerData[8];
     file->seek(stringChunkStart);
     while (file->getPos() - stringChunkStart < stringChunkSize)
     {
         core::stringc str = readStringUntilNull(file);
-        if (isAFile(str))
-            files.push_back(str);
-        //std::cout << str.c_str() << std::endl;
+        strings.push_back(str);
+    }
+
+    s32 nbFiles = headerData[14];
+    for (s32 i = 0; i < nbFiles; ++i)
+    {
+        files.push_back(strings[strings.size() - nbFiles + i]);
     }
 
     file->drop();

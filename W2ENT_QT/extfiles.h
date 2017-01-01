@@ -18,9 +18,12 @@ enum WitcherFileType
     WFT_NOT_WITCHER
 };
 
+WitcherFileType getFileType(QIrrlichtWidget* irrlicht, io::path filename);
+
 namespace Ui {
 class ExtFiles;
 }
+
 
 class ExtFiles : public QDialog
 {
@@ -47,7 +50,7 @@ private:
     core::array<core::stringc> readTW3File(io::path filename);
     core::array<core::stringc> readTW2File(io::path filename);
 
-    WitcherFileType getFileType(io::path filename);
+
     core::array<core::stringc> read(io::path filename);
 
     QString _back;

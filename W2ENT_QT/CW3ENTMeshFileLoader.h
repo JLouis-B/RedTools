@@ -13,6 +13,7 @@
 
 #include "CSkeleton.h"
 #include "W3_DataCache.h"
+#include "TW_Utils.h"
 #include "meshcombiner.h"
 #include "log.h"
 

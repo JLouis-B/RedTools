@@ -51,26 +51,16 @@ CW3ENTMeshFileLoader::CW3ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFile
 //! based on the file extension (e.g. ".bsp")
 bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) const
 {
-
     if (core::hasFileExtension ( filename, "w2ent_MEMORY" ))
         return true;
 
     io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
-    if (!file)
-        return false;
 
-    file->seek(4);
-
-    s32 version = readData<s32>(file);
-    //std::cout << "Version = " << version << std::endl;
-    if (version >= 162)
-    {
+    bool checkIsLoadable = (checkTWFileFormatVersion(file) == WFT_WITCHER_3) && checkTWFileExtension(filename);
+    if (file)
         file->drop();
-        return core::hasFileExtension ( filename, "w2ent" ) || core::hasFileExtension ( filename, "w2mesh" ) || core::hasFileExtension ( filename, "w2rig" ) || core::hasFileExtension ( filename, "w2anims" );
-    }
 
-    file->drop();
-    return false;
+    return checkIsLoadable;
 }
 
 
@@ -1765,7 +1755,7 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
     log->add("\n");
     log->push();
 
-    if (fileFormatVersion >= 162)
+    if (checkTWFileFormatVersion(file) == WFT_WITCHER_3)
     {
         return W3_load(file);
     }

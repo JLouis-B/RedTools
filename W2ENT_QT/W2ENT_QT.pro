@@ -39,7 +39,9 @@ SOURCES += main.cpp\
     tw1bifextractorui.cpp \
     CWitcherMDLMeshFileLoader.cpp \
     LoadersUtils.cpp \
-    W3_DataCache.cpp
+    W3_DataCache.cpp \
+    MaterialsExplorer.cpp \
+    TW_Utils.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -67,7 +69,9 @@ HEADERS  += mainwindow.h \
     tw1bifextractorui.h \
     CWitcherMDLMeshFileLoader.h \
     LoadersUtils.h \
-    W3_DataCache.h
+    W3_DataCache.h \
+    MaterialsExplorer.h \
+    TW_Utils.h
 
 FORMS    += mainwindow.ui \
     options.ui \
@@ -75,11 +79,12 @@ FORMS    += mainwindow.ui \
     resize.ui \
     cleantexturespath.ui \
     extfiles.ui \
-    tw1bifextractorui.ui
+    tw1bifextractorui.ui \
+    MaterialsExplorer.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5323-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5323-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\CB_build\code\libassimp.dll.a

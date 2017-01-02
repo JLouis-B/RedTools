@@ -6,19 +6,13 @@
 #include <IReadFile.h>
 
 #include "utils.h"
+#include "TW_Utils.h"
 
 using namespace irr;
 
 class QIrrlichtWidget;
 
-enum WitcherFileType
-{
-    WFT_WITCHER_2,
-    WFT_WITCHER_3,
-    WFT_NOT_WITCHER
-};
 
-WitcherFileType getFileType(QIrrlichtWidget* irrlicht, io::path filename);
 
 namespace Ui {
 class ExtFiles;
@@ -47,11 +41,8 @@ private:
     QIrrlichtWidget* _irrlicht;
     Ui::ExtFiles* _ui;
 
-    core::array<core::stringc> readTW3File(io::path filename);
-    core::array<core::stringc> readTW2File(io::path filename);
-
-
-    core::array<core::stringc> read(io::path filename);
+    core::array<core::stringc> readTW3File(io::IReadFile *file);
+    core::array<core::stringc> readTW2File(io::IReadFile *file);
 
     QString _back;
 };

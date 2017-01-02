@@ -27,34 +27,42 @@ ExtFiles::~ExtFiles()
 
 void ExtFiles::read(QString filename)
 {
+    core::array<core::stringc> files;
+
     _ui->lineEdit->setText(filename);
     _ui->listWidget->clear();
 
     const io::path filenamePath = QSTRING_TO_PATH(filename);
-    const WitcherFileType fileType = getFileType(_irrlicht, filenamePath);
+    io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
+
+    WitcherFileType fileType = checkTWFileFormatVersion(file);
+    if (!checkTWFileExtension(filenamePath))
+        fileType = WFT_NOT_WITCHER;
+
 
     switch (fileType)
     {
         case WFT_NOT_WITCHER:
             _ui->label_fileType->setText("File type : Not a witcher file");
             return;
-            break;
 
         case WFT_WITCHER_2:
+            files = readTW2File(file);
             _ui->label_fileType->setText("File type : The Witcher 2 file");
             break;
 
         case WFT_WITCHER_3:
+            files = readTW3File(file);
             _ui->label_fileType->setText("File type : The Witcher 3 file");
             break;
     }
 
-
-    core::array<core::stringc> files = read(filenamePath);
     for (u32 i = 0; i < files.size(); ++i)
     {
         _ui->listWidget->addItem(QString(files[i].c_str()));
     }
+
+    file->drop();
 }
 
 
@@ -67,62 +75,10 @@ void ExtFiles::selectFile()
     }
 }
 
-
-WitcherFileType getFileType(QIrrlichtWidget* irrlicht, io::path filename)
-{
-    irr::io::IReadFile* file = irrlicht->getFileSystem()->createAndOpenFile(filename);
-
-    if (!file)
-        return WFT_NOT_WITCHER;
-
-    int versionNumber;
-
-    file->seek(4, true);
-    file->read(&versionNumber, 4);
-
-    file->drop();
-
-    if (versionNumber == 115)
-        return WFT_WITCHER_2;
-    else if (versionNumber >= 162)
-        return WFT_WITCHER_3;
-    else
-        return WFT_NOT_WITCHER;
-}
-
-
-core::array<core::stringc> ExtFiles::read(io::path filename)
-{
-    core::array<core::stringc> files;
-
-    const WitcherFileType fileType = getFileType(_irrlicht, filename);
-
-    switch (fileType)
-    {
-        case WFT_NOT_WITCHER:
-            break;
-
-        case WFT_WITCHER_2:
-            files = readTW2File(filename);
-            break;
-
-        case WFT_WITCHER_3:
-            files = readTW3File(filename);
-            break;
-    }
-    return files;
-}
-
 // Witcher 2 --------------------------------------
-core::array<core::stringc> ExtFiles::readTW2File(io::path filename)
+core::array<core::stringc> ExtFiles::readTW2File(io::IReadFile* file)
 {
-    irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
-
     core::array<core::stringc> files;
-    if (!file)
-    {
-        return files;
-    }
 
     file->seek(4);
 
@@ -171,21 +127,14 @@ core::array<core::stringc> ExtFiles::readTW2File(io::path filename)
         }
     }
 
-    file->drop();
     return files;
 }
 
 // Witcher 3 -------------------------
-core::array<core::stringc> ExtFiles::readTW3File(io::path filename)
+core::array<core::stringc> ExtFiles::readTW3File(io::IReadFile* file)
 {
     core::array<core::stringc> strings;
     core::array<core::stringc> files;
-
-    irr::io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filename);
-    if (!file)
-    {
-        return files;
-    }
 
     file->seek(12);
 
@@ -206,7 +155,6 @@ core::array<core::stringc> ExtFiles::readTW3File(io::path filename)
         files.push_back(strings[strings.size() - nbFiles + i]);
     }
 
-    file->drop();
     return files;
 }
 

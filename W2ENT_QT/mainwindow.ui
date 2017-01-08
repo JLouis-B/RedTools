@@ -315,6 +315,7 @@
     <addaction name="actionClean_textures_path"/>
     <addaction name="actionSet_rig"/>
     <addaction name="actionSet_animations"/>
+    <addaction name="actionMaterials_explorer"/>
    </widget>
    <widget class="QMenu" name="menuThe_Witcher_1_tools">
     <property name="title">
@@ -472,6 +473,11 @@
    </property>
    <property name="text">
     <string>Set animations</string>
+   </property>
+  </action>
+  <action name="actionMaterials_explorer">
+   <property name="text">
+    <string>Materials explorer</string>
    </property>
   </action>
  </widget>

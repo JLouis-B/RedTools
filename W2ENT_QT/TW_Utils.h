@@ -14,6 +14,7 @@ enum WitcherFileType
 
 WitcherFileType checkTWFileFormatVersion(io::IReadFile* file);
 bool checkTWFileExtension(io::path filename);
-
+void loadTWStringsAndFiles(io::IReadFile* file, WitcherFileType fileType, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes = false);
+void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes = false);
 
 #endif // TW_UTILS_H

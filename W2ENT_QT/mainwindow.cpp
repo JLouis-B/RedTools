@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(loadRig()));
     QObject::connect(_ui->actionSet_animations, SIGNAL(triggered(bool)), this, SLOT(loadAnimations()));
+    QObject::connect(_ui->actionMaterials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
     QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
     QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
 
@@ -381,6 +382,11 @@ void MainWindow::search()
     QObject::connect(this, SIGNAL(languageChanged()), w, SLOT(translate()));
 }
 
+void MainWindow::matExplorer()
+{
+    MaterialsExplorer* m = new MaterialsExplorer(this, _irrWidget);
+    m->show();
+}
 
 void MainWindow::loadFile(QString path)
 {

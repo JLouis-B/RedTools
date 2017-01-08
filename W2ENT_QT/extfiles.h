@@ -41,8 +41,7 @@ private:
     QIrrlichtWidget* _irrlicht;
     Ui::ExtFiles* _ui;
 
-    core::array<core::stringc> readTW3File(io::IReadFile *file);
-    core::array<core::stringc> readTW2File(io::IReadFile *file);
+    core::array<core::stringc> readTW2File(io::IReadFile *file, core::array<core::stringc>& files);
 
     QString _back;
 };

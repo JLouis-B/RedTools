@@ -7,9 +7,10 @@
 #include "resize.h"
 #include "cleantexturespath.h"
 #include "tw1bifextractorui.h"
+#include "MaterialsExplorer.h"
+
 #include <iostream>
 #include <QDesktopServices>
-#include <QtConcurrent>
 
 namespace Ui {
 class MainWindow;
@@ -36,6 +37,7 @@ public slots :
     void openWebpage();
     void options();
     void search();
+    void matExplorer();
     void loadFile(QString path);
     void changeOptions();
     void re_size();

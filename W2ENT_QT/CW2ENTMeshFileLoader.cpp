@@ -14,7 +14,7 @@
 #include "IReadFile.h"
 #include "IWriteFile.h"
 
-#include "LoadersUtils.h"
+#include "TW_Utils.h"
 #include "settings.h"
 
 
@@ -46,19 +46,10 @@ bool CW2ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
     if (!file)
         return false;
 
-    file->seek(4);
-
-    int version = 0;
-    file->read(&version, 4);
-
-    if (version < 162)
-    {
-        file->drop();
-        return core::hasFileExtension ( filename, "w2ent" ) || core::hasFileExtension ( filename, "w2mesh" );
-    }
+    bool checkIsLoadable = (checkTWFileFormatVersion(file) == WFT_WITCHER_2) && checkTWFileExtension(filename);
 
     file->drop();
-    return false;
+    return checkIsLoadable;
 }
 
 
@@ -448,38 +439,10 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
 
     readString(file, 4); // CR2W
 
+    loadTW2StringsAndFiles(file, Strings, FilesTable, false);
+    log->addAndPush("Table 1 & 2 OK\n");
+
     core::array<s32> header = readDataArray<s32>(file, 10);
-
-    const int fileFormatVersion = header[0];
-
-    // Strings list
-    file->seek(back + header[2]);
-    for (int i = 0; i < header[3]; ++i)
-        Strings.push_back(readString(file, readData<u8>(file) -128));
-
-    log->addAndPush("Table 1 OK\n");
-
-    // This list is the list of all the externals files used by the file
-    file->seek(back + header[6]);    
-    for (int i = 0; i < header[7]; ++i)
-    {
-        core::array<u8> format_name = readDataArray<u8>(file, 2);
-        unsigned char size      = format_name[0];
-        unsigned char offset    = format_name[1];
-
-        file->seek(-1, true);
-
-        if (offset == 1)
-            file->seek(1, true);
-
-        core::stringc filename = readString(file, size);
-        file->seek(4, true);    //int index = readInts(file, 1)-1;
-        // Type of the file (Cmesh, CmaterielInstance...)
-        // core::stringc file_type = Strings[index];
-
-        FilesTable.push_back(filename);
-    }
-    log->addAndPush("Table 2 OK\n");
 
     //std::cout << std::endl << "Liste 3 (de taille " << data[9] << ") : " << std::endl;
 

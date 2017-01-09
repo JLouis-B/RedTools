@@ -2,6 +2,7 @@
 #define TW_UTILS_H
 
 #include <irrlicht.h>
+#include "LoadersUtils.h"
 
 using namespace irr;
 

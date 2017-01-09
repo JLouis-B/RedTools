@@ -55,10 +55,11 @@ bool CW3ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) co
         return true;
 
     io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
+    if (!file)
+        return false;
 
     bool checkIsLoadable = (checkTWFileFormatVersion(file) == WFT_WITCHER_3) && checkTWFileExtension(filename);
-    if (file)
-        file->drop();
+    file->drop();
 
     return checkIsLoadable;
 }
@@ -182,54 +183,11 @@ void checkMaterial(video::SMaterial mat)
 
 bool CW3ENTMeshFileLoader::W3_load(io::IReadFile* file)
 {
-    file->seek(0);
+    loadTWStringsAndFiles(file, WFT_WITCHER_3, Strings, Files, false);
+    log->addAndPush("Read strings and files\n");
 
-    readString(file, 4); // CR2W
-
-    //const s32 fileFormatVersion = readS32(file);
-    file->seek(8, true); // fileFormatVersion + other
-
+    file->seek(12);
     core::array<s32> headerData = readDataArray<s32>(file, 38);
-    log->addAndPush("Read header\n");
-
-    /*
-        The header :
-        - data[7/8]   : adress/size string chunk
-        - data[10/11] : adress/size content chunk
-    */
-
-    s32 stringChunkStart = headerData[7];
-    s32 stringChunkSize = headerData[8];
-    file->seek(stringChunkStart);
-    while (file->getPos() - stringChunkStart < stringChunkSize)
-    {
-        core::stringc str = readStringUntilNull(file);
-        Strings.push_back(str);
-        //std::cout << str.c_str() << std::endl;
-    }
-    log->addAndPush("Read strings\n");
-
-    s32 nbFiles = headerData[14];
-    //std::cout << "nbFiles = " << nbFiles << std::endl;
-    for (u32 i = 0; i < nbFiles; ++i)
-    {
-        Files.push_back(Strings[Strings.size() - nbFiles + i]);
-        //std::cout << Files.size() - 1 << "--> " << Files[i].c_str() << std::endl;
-    }
-
-    // The files linked in the file
-    // Cause crashes : Some strings has also a dot inside
-    /*
-    for (u32 i = 0; i < Strings.size(); ++i)
-        if (Strings[i].findFirst('.') != -1)
-        {
-            Files.push_back(Strings[i]);
-            std::cout << Files.size() - 1 << "--> " << Strings[i].c_str() << std::endl;
-        }
-        */
-    log->addAndPush("Files list created\n");
-
-
     s32 contentChunkStart = headerData[19];
     s32 contentChunkSize = headerData[20];
 

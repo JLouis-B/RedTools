@@ -1,5 +1,4 @@
 #include "TW_Utils.h"
-#include "LoadersUtils.h"
 
 bool checkTWFileExtension(io::path filename)
 {

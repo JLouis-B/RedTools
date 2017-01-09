@@ -384,7 +384,7 @@ void MainWindow::search()
 
 void MainWindow::matExplorer()
 {
-    MaterialsExplorer* m = new MaterialsExplorer(this, _irrWidget);
+    MaterialsExplorer* m = new MaterialsExplorer(this, _irrWidget, _ui->lineEdit_ImportedFile->text());
     m->show();
 }
 

@@ -40,7 +40,6 @@ private:
     void W3_CMaterialInstance(io::IReadFile* file, W3_DataInfos infos, core::array<core::stringc>& strings, core::array<core::stringc>& files);
 
     std::vector<std::vector<Property>> _materials;
-    void clearTable();
 };
 
 #endif // MATERIALSEXPLORER_H

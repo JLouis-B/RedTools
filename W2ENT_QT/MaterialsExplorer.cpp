@@ -20,15 +20,9 @@ MaterialsExplorer::~MaterialsExplorer()
     delete _ui;
 }
 
-void MaterialsExplorer::clearTable()
-{
-    for (int i = 0; i < _ui->tableWidget_properties->rowCount(); ++i)
-        _ui->tableWidget_properties->removeRow(0);
-}
-
 void MaterialsExplorer::selectMaterial(int row)
 {
-    clearTable();
+    _ui->tableWidget_properties->setRowCount(0);
 
     if (row < _materials.size())
     {
@@ -43,7 +37,7 @@ void MaterialsExplorer::selectMaterial(int row)
     }
 }
 
-QString parseData(core::array<core::stringc>& files, QString type, io::IReadFile* file, int size)
+QString parseData(core::array<core::stringc>& strings, core::array<core::stringc>& files, QString type, io::IReadFile* file, int size)
 {
 
     if (type == "Float")
@@ -58,17 +52,44 @@ QString parseData(core::array<core::stringc>& files, QString type, io::IReadFile
     }
     else if (type == "Color")
     {
+        /*
+        std::cout << "ADRESS = " << file->getPos() << std::endl;
+        file->seek(1, true);
+        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
+        file->seek(5, true);
+        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
+        file->seek(5, true);
+        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
+        file->seek(5, true);
+        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
+        file->seek(5, true);
+        */
+
         file->seek(9, true);
         QString r = QString::number(readU8(file));
         file->seek(8, true);
         QString g = QString::number(readU8(file));
         file->seek(8, true);
         QString b = QString::number(readU8(file));
-        std::cout << "ADRESS = " << file->getPos() << std::endl;
-        return "RGB = " + r + ", " + g + ", " + b;
+        file->seek(8, true);
+        QString a = QString::number(readU8(file));
+
+        return "RGBA = " + r + ", " + g + ", " + b + ", " + a;
+    }
+    else if (type == "Vector")
+    {
+        file->seek(9, true);
+        QString r = QString::number(readF32(file));
+        file->seek(8, true);
+        QString g = QString::number(readF32(file));
+        file->seek(8, true);
+        QString b = QString::number(readF32(file));
+        file->seek(8, true);
+        QString a = QString::number(readF32(file));
+        return "XYZW = " + r + ", " + g + ", " + b + ", " + a;
     }
     else
-        return "WIP";
+        return "TODO";
 }
 
 void MaterialsExplorer::ReadIMaterialProperty(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files)
@@ -95,7 +116,7 @@ void MaterialsExplorer::ReadIMaterialProperty(io::IReadFile* file, core::array<c
         Property p;
         p.name = strings[propId].c_str();
         p.type = strings[propTypeId].c_str();
-        p.data = parseData(files, p.type, file, propSize);
+        p.data = parseData(strings, files, p.type, file, propSize);
 
 
         materialProps.push_back(p);
@@ -224,7 +245,7 @@ void MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
         s32 back = file->getPos();
         if (dataTypeName == "CMaterialInstance")
         {
-            _ui->listWidgetMaterials->addItem("Material");
+            _ui->listWidgetMaterials->addItem("Material " + QString::number(i));
             W3_CMaterialInstance(file, infos, strings, files);
         }
         else
@@ -242,7 +263,7 @@ void MaterialsExplorer::read(QString filename)
     _ui->listWidgetMaterials->clear();
     _materials.clear();
 
-    clearTable();
+    _ui->tableWidget_properties->setRowCount(0);
 
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);

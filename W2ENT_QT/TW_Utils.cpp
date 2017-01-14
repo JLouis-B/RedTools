@@ -24,9 +24,21 @@ WitcherFileType checkTWFileFormatVersion(io::IReadFile* file)
         return WFT_NOT_WITCHER;
 }
 
+WitcherFileType checkIsTWFile(io::IReadFile* file, io::path filename)
+{
+    WitcherFileType fileType = checkTWFileFormatVersion(file);
+    if (!checkTWFileExtension(filename))
+        fileType = WFT_NOT_WITCHER;
+
+    return fileType;
+}
+
 
 void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes)
 {
+    if (!file)
+        return;
+
     const long initialPos = file->getPos();
     file->seek(4);
     core::array<s32> header = readDataArray<s32>(file, 10);

@@ -24,7 +24,7 @@ void MaterialsExplorer::selectMaterial(int row)
 {
     _ui->tableWidget_properties->setRowCount(0);
 
-    if (row < _materials.size())
+    if ((size_t)row < _materials.size())
     {
         std::vector<Property> properties = _materials[row];
         for (auto p : properties)
@@ -52,19 +52,6 @@ QString parseData(core::array<core::stringc>& strings, core::array<core::stringc
     }
     else if (type == "Color")
     {
-        /*
-        std::cout << "ADRESS = " << file->getPos() << std::endl;
-        file->seek(1, true);
-        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
-        file->seek(5, true);
-        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
-        file->seek(5, true);
-        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
-        file->seek(5, true);
-        std::cout << "prop = " << strings[readU16(file)].c_str() << ", type = " << strings[readU16(file)].c_str() << std::endl;
-        file->seek(5, true);
-        */
-
         file->seek(9, true);
         QString r = QString::number(readU8(file));
         file->seek(8, true);
@@ -78,6 +65,7 @@ QString parseData(core::array<core::stringc>& strings, core::array<core::stringc
     }
     else if (type == "Vector")
     {
+        //std::cout << "ADRESS = " << file->getPos() << std::endl;
         file->seek(9, true);
         QString r = QString::number(readF32(file));
         file->seek(8, true);
@@ -89,7 +77,9 @@ QString parseData(core::array<core::stringc>& strings, core::array<core::stringc
         return "XYZW = " + r + ", " + g + ", " + b + ", " + a;
     }
     else
-        return "TODO";
+    {
+        return "Type not implemented. Adress : " + file->getPos();
+    }
 }
 
 void MaterialsExplorer::ReadIMaterialProperty(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files)
@@ -122,34 +112,6 @@ void MaterialsExplorer::ReadIMaterialProperty(io::IReadFile* file, core::array<c
         materialProps.push_back(p);
 
         //std::cout << "The property is " << Strings[propId].c_str() << " of the type " << Strings[propTypeId].c_str() << std::endl;
-        /*
-        const s32 textureLayer = getTextureLayerFromTextureType(Strings[propId]);
-        if (textureLayer != -1)
-        {
-            u8 texId = readData<u8>(file);
-            texId = 255 - texId;
-
-            if (texId < Files.size())
-            {
-                video::ITexture* texture = 0;
-                texture = getTexture(Files[texId]);
-
-                if (texture)
-                {
-                    log->addAndPush(core::stringc(" ") + Strings[propId].c_str() + " ");
-                    mat.setTexture(textureLayer, texture);
-
-                    if (textureLayer == 1)  // normal map
-                        mat.MaterialType = video::EMT_NORMAL_MAP_SOLID;
-                }
-                else
-                {
-                    Feedback += "Some textures havn't been found, have you correctly set your textures directory ?\n";
-                    log->addAndPush(core::stringc("Error : the file ") + Files[texId] + core::stringc(" can't be opened.\n"));
-                }
-            }
-        }
-        */
         file->seek(back + propSize);
     }
 
@@ -248,10 +210,6 @@ void MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
             _ui->listWidgetMaterials->addItem("Material " + QString::number(i));
             W3_CMaterialInstance(file, infos, strings, files);
         }
-        else
-        {
-            //W3_CUnknown(file, infos);
-        }
         file->seek(back);
     }
 }
@@ -268,17 +226,15 @@ void MaterialsExplorer::read(QString filename)
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
-    const WitcherFileType fileType = WFT_WITCHER_3;//checkTWFileFormatVersion(file);
-
+    const WitcherFileType fileType = checkIsTWFile(file, filenamePath);
     switch (fileType)
     {
         case WFT_NOT_WITCHER:
             _ui->label_fileType->setText("File type : Not a witcher file");
-            return;
+            break;
 
         case WFT_WITCHER_2:
-            _ui->label_fileType->setText("File type : Not a witcher file");
-            return;
+            _ui->label_fileType->setText("File type : The Witcher 2 file (not supported yet)");
             break;
 
         case WFT_WITCHER_3:
@@ -287,19 +243,8 @@ void MaterialsExplorer::read(QString filename)
             break;
     }
 
-    /*
-    int row = _ui->listWidgetMaterials->selectedIndexes().at(0).row();
-    if (row < _materials.size())
-    {
-        std::vector<Property> properties = _materials[row];
-        for (auto p : properties)
-        {
-            _ui->tableWidget_properties->insertRow(_ui->tableWidget_properties->rowCount());
-            _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 0, new QTableWidgetItem(p.name));
-            _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 1, new QTableWidgetItem(p.type));
-            _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 2, new QTableWidgetItem(p.data));
-        }
-    }*/
+    if (file)
+        file->drop();
 }
 
 

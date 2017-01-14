@@ -36,11 +36,7 @@ void ExtFiles::read(QString filename)
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
-    WitcherFileType fileType = checkTWFileFormatVersion(file);
-    if (!checkTWFileExtension(filenamePath))
-        fileType = WFT_NOT_WITCHER;
-
-
+    const WitcherFileType fileType = checkIsTWFile(file, filenamePath);
     switch (fileType)
     {
         case WFT_NOT_WITCHER:
@@ -62,7 +58,8 @@ void ExtFiles::read(QString filename)
         _ui->listWidget->addItem(QString(files[i].c_str()));
     }
 
-    file->drop();
+    if (file)
+        file->drop();
 }
 
 

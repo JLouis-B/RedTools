@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     Settings::_pack0 = _ui->lineEdit_folder->text();
-    Settings::loadFromXML("config.xml");
+    Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");
     _ui->lineEdit_folder->setText(Settings::_pack0);
 
     _firstSelection = true;
@@ -238,7 +238,7 @@ void MainWindow::cleanTexturesPath()
 
 MainWindow::~MainWindow()
 {
-    Settings::saveToXML("config.xml");
+    Settings::saveToXML(QCoreApplication::applicationDirPath() + "/config.xml");
 
     // Delete UI
     delete _ui;

@@ -42,7 +42,7 @@ QMap<QString, QString> Translator::loadLanguage(const QString file)
 
 void Translator::loadCurrentLanguage()
 {
-    const QString file = Settings::_language;
+    const QString file = QCoreApplication::applicationDirPath() + "/" + Settings::_language;
     _trad = loadLanguage(file);
 }
 

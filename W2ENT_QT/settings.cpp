@@ -32,7 +32,7 @@ QString Settings::_formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
 
 bool Settings::_firstUse = true;
 
-QString Settings::_appVersion = "2.5";
+QString Settings::_appVersion = "2.6";
 
 QString Settings::getExportFolder()
 {
@@ -65,31 +65,27 @@ void Settings::loadFromXML(QString filename)
     {
         if(node.nodeName() == "language")
             Settings::_language = node.toElement().text();
-
-        if(node.nodeName() == "pack0")
+        else if(node.nodeName() == "pack0")
         {
             Settings::_pack0 = node.toElement().text();
         }
-
-        if(node.nodeName() == "camera")
+        else if(node.nodeName() == "camera")
         {
             Settings::_camSpeed = node.firstChildElement("speed").text().toDouble();
             Settings::_camRotSpeed = node.firstChildElement("rotation_speed").text().toDouble();
         }
-
-        if(node.nodeName() == "background_color")
+        else if(node.nodeName() == "background_color")
         {
             Settings::_r = node.firstChildElement("r").text().toInt();
             Settings::_g = node.firstChildElement("g").text().toInt();
             Settings::_b = node.firstChildElement("b").text().toInt();
         }
-        if(node.nodeName() == "textures_conversion")
+        else if(node.nodeName() == "textures_conversion")
         {
             Settings::_convertTextures = node.firstChildElement("enabled").text().toInt();
             Settings::_texFormat = node.firstChildElement("format").text();
         }
-
-        if(node.nodeName() == "export")
+        else if(node.nodeName() == "export")
         {
             if (node.firstChildElement("type").text() == "pack0")
                 Settings::_mode = Export_Pack0;
@@ -102,11 +98,11 @@ void Settings::loadFromXML(QString filename)
             Settings::_nm = node.firstChildElement("move_normals_map").text().toInt();
             Settings::_sm = node.firstChildElement("move_specular_map").text().toInt();
         }
-        if(node.nodeName() == "formats_in")
+        else if(node.nodeName() == "formats_in")
         {
             _formats = node.toElement().text();
         }
-        if(node.nodeName() == "unit")
+        else if(node.nodeName() == "unit")
         {
             QString unit = node.toElement().text();
             if (unit == "m")
@@ -114,17 +110,17 @@ void Settings::loadFromXML(QString filename)
             else if (unit == "cm")
                 ReSize::_unit = Unit_cm;
         }
-        if(node.nodeName() == "debug")
+        else if(node.nodeName() == "debug")
         {
             Settings::_debugLog = node.toElement().text().toInt();
         }
-        if(node.nodeName() == "TW3")
+        else if(node.nodeName() == "TW3")
         {
             Settings::_TW3TexPath = node.firstChildElement("TW3_textures").text();
             Settings::_TW3LoadSkel = node.firstChildElement("TW3_loadSkel").text().toInt();
             Settings::_TW3LoadBestLOD = node.firstChildElement("TW3_loadBestLOD").text().toInt();
         }
-        if (node.nodeName() == "first_use")
+        else if (node.nodeName() == "first_use")
         {
             Settings::_firstUse = node.toElement().text().toInt();
         }

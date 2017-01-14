@@ -16,5 +16,8 @@ int main(int argc, char *argv[])
     w.show();
     w.initIrrlicht();
 
+    if (QCoreApplication::arguments().size() > 1)
+        w.loadFile(QCoreApplication::arguments().at(1));
+
     return a.exec();
 }

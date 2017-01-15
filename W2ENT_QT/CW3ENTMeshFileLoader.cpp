@@ -21,7 +21,7 @@
 
 #include "LoadersUtils.h"
 #include "settings.h"
-
+#include "utils.h"
 //#define _DEBUG
 
 
@@ -101,7 +101,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
         output |= LOG_FILE;
 
     // Create and enable the log file if the option is selected on the soft
-    log = new Log(SceneManager, "debug.log", output);
+    log = new Log(SceneManager, QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"), output);
 
     if (log->isEnabled() && !log->works())
     {

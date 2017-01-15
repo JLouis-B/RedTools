@@ -1,5 +1,5 @@
 #include "log.h"
-
+#include <cstdio>
 
 Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename, LogOutput output) : Smgr(smgr), Filename(filename), Output(output)
 {
@@ -12,12 +12,9 @@ Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename, LogOutput outp
         LogFile = Smgr->getFileSystem()->createAndWriteFile(Filename, false);
 #else
     Content = "";
-
-    io::IWriteFile* logFile = 0;
     if (Smgr)
-        logFile = Smgr->getFileSystem()->createAndWriteFile(Filename, false);
-    if (logFile)
-        logFile->drop();
+        if (Smgr->getFileSystem()->existFile(Filename))
+            remove(Filename.c_str());
 #endif
 
 }
@@ -73,9 +70,6 @@ void Log::push()
 
 void Log::addAndPush(core::stringc addition)
 {
-    if (!isEnabled())
-        return;
-
     add(addition);
     push();
 }
@@ -84,6 +78,9 @@ void Log::addAndPush(core::stringc addition)
 
 bool Log::works()
 {
+    if (!hasOutput(LOG_FILE))
+        return true;
+
 #ifdef USE_FLUSH_PATCH
     return LogFile != 0;
 #else

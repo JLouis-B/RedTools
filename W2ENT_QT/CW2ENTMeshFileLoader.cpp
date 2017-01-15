@@ -16,6 +16,7 @@
 
 #include "TW_Utils.h"
 #include "settings.h"
+#include "utils.h"
 
 
 #include <sstream>
@@ -68,7 +69,7 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     if (SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"))
         output |= LOG_FILE;
-    log = new Log(SceneManager, "debug.log", output);
+    log = new Log(SceneManager, QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"), output);
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         ConfigGamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");

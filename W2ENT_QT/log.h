@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-//#define USE_FLUSH_PATCH
+#define USE_FLUSH_PATCH
 
 using namespace irr;
 

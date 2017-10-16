@@ -44,9 +44,9 @@ public:
 
     void add(core::stringc addition);
     void addLine(core::stringc addition);
-    void addAndPush(core::stringc addition);
-    void addLineAndPush(core::stringc addition);
-    void push();
+    void addAndFlush(core::stringc addition);
+    void addLineAndFlush(core::stringc addition);
+    void flush();
 
     bool isEnabled();
     bool works();

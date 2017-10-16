@@ -100,7 +100,7 @@ void Log::addLine(core::stringc addition)
     add(addition.append('\n'));
 }
 
-void Log::push()
+void Log::flush()
 {
     if (!hasOutput(LOG_FILE))
         return;
@@ -123,15 +123,15 @@ void Log::push()
 #endif
 }
 
-void Log::addLineAndPush(core::stringc addition)
+void Log::addLineAndFlush(core::stringc addition)
 {
-    addAndPush(addition.append('\n'));
+    addAndFlush(addition.append('\n'));
 }
 
-void Log::addAndPush(core::stringc addition)
+void Log::addAndFlush(core::stringc addition)
 {
     add(addition);
-    push();
+    flush();
 }
 
 

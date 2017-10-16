@@ -931,6 +931,8 @@ float readCompressedFloat(io::IReadFile* file, u8 compressionSize)
         return readF32(file); // Not tested yet !
 }
 
+/*
+// old version
 float bits12ToFloat(s16 value)
 {
     if (value & 0x0800)
@@ -940,7 +942,14 @@ float bits12ToFloat(s16 value)
 
     value = (value & 0x000007FF);
     float fVal = value / 2047.f;
+    return fVal;
+}
+*/
 
+// Fixed by Ákos Köte, thx
+float bits12ToFloat(s16 value)
+{
+    float fVal = (2047.0f - value) * (1 / 2048.0f);
     return fVal;
 }
 
@@ -1047,7 +1056,7 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                         fx = bits12ToFloat(x);
                         fy = bits12ToFloat(y);
                         fz = bits12ToFloat(z);
-                        fw = bits12ToFloat(w);
+                        fw = -bits12ToFloat(w);
 
                         orientation = core::quaternion(fx, fy, fz, fw);
                         core::vector3df euler;

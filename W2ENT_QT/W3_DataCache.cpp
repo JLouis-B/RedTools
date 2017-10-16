@@ -65,7 +65,7 @@ void W3_DataCache::apply()
     }
 
     // To debug
-    //skin();
+    skin();
 }
 
 void W3_DataCache::skin()

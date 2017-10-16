@@ -1,5 +1,55 @@
 #include "log.h"
 #include <cstdio>
+#include <stdarg.h>
+
+
+
+core::stringc formatString(core::stringc baseString, ...)
+{
+    core::stringc newString = "";
+    va_list va;
+    va_start(va, baseString);
+
+    char lastChar = 'a';
+    for (u32 i = 0; i < baseString.size(); ++i)
+    {
+        char currentChar = baseString[i];
+        if (lastChar == '%')
+        {
+            switch(currentChar)
+            {
+                case 'd':
+                {
+                    int intValue = va_arg(va, int);
+                    newString += toStr(intValue);
+                    break;
+                }
+                case 'f':
+                {
+                    float floatValue = va_arg(va, double);
+                    newString += toStr(floatValue);
+                    break;
+                }
+                case 's':
+                {
+                    char* strValue = va_arg(va, char*);
+                    newString += toStr(strValue);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        if (currentChar != '%' && lastChar != '%')
+            newString.append(currentChar);
+
+        lastChar = currentChar;
+    }
+
+    va_end(va);
+    return newString;
+}
 
 Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename, LogOutput output) : Smgr(smgr), Filename(filename), Output(output)
 {
@@ -45,6 +95,11 @@ void Log::add(core::stringc addition)
 #endif
 }
 
+void Log::addLine(core::stringc addition)
+{
+    add(addition.append('\n'));
+}
+
 void Log::push()
 {
     if (!hasOutput(LOG_FILE))
@@ -66,6 +121,11 @@ void Log::push()
         file->drop();
     }
 #endif
+}
+
+void Log::addLineAndPush(core::stringc addition)
+{
+    addAndPush(addition.append('\n'));
 }
 
 void Log::addAndPush(core::stringc addition)

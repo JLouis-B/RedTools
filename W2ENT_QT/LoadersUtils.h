@@ -28,12 +28,6 @@ core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
     core::array<T> values(nbElem);
     values.set_used(nbElem);
     f->read(values.pointer(), nbElem * sizeof(T));
-
-    /*
-    for (s32 i = 0; i < nbElem; ++i)
-        values.push_back(readData<T>(f));
-    */
-
     return values;
 }
 

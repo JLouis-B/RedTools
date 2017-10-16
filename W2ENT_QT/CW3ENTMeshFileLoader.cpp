@@ -15,7 +15,6 @@
 #include "IWriteFile.h"
 #include "halffloat.h"
 
-#include <sstream>
 #include <cmath>
 #include <cfloat>
 
@@ -24,13 +23,6 @@
 #include "utils.h"
 //#define _DEBUG
 
-
-template <typename T>
-core::stringc toStr(const T& t) {
-   std::ostringstream os;
-   os << t;
-   return core::stringc(os.str().c_str());
-}
 
 namespace irr
 {
@@ -95,7 +87,7 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 
     LogOutput output = LOG_NONE;
     // If we want the log in cout
-    //output |= LOG_CONSOLE;
+    output |= LOG_CONSOLE;
 
     if (SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"))
         output |= LOG_FILE;
@@ -511,7 +503,7 @@ core::array<core::array<SAnimationBufferBitwiseCompressedData> > CW3ENTMeshFileL
 {
     s32 arraySize = readS32(file);
     file->seek(1, true);
-    std::cout << "Array size = " << arraySize << std::endl;
+    log->addLineAndPush(formatString("Array size = %d", arraySize));
 
     core::array<core::array<SAnimationBufferBitwiseCompressedData> > inf;
     inf.push_back(core::array<SAnimationBufferBitwiseCompressedData>());
@@ -531,8 +523,7 @@ core::array<core::array<SAnimationBufferBitwiseCompressedData> > CW3ENTMeshFileL
             ReadPropertyHeader(file, propHeader);
             inf.push_back(core::array<SAnimationBufferBitwiseCompressedData>());
 
-            std::cout << "New bone : (index = " << i << ")" << std::endl;
-            log->addAndPush("New bone :\n");
+            log->addLineAndPush(formatString("New bone : (index = %d)\n", i));
         }
 
 
@@ -953,6 +944,16 @@ float bits12ToFloat(s16 value)
     return fVal;
 }
 
+core::stringc getAnimTrackString(EAnimTrackType type)
+{
+    if (type == EATT_POSITION)
+        return "EATT_POSITION";
+    else if (type == EATT_ORIENTATION)
+        return "EATT_ORIENTATION";
+    else
+        return "EATT_SCALE";
+}
+
 void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBufferBitwiseCompressedData> >& inf, io::IReadFile* dataFile, SAnimationBufferOrientationCompressionMethod c)
 {
     // Create bones to store the keys if they doesn't exist
@@ -968,7 +969,7 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
     for (u32 i = 0; i < inf.size(); ++i)
     {
         scene::ISkinnedMesh::SJoint* joint = meshToAnimate->getAllJoints()[i];
-        std::cout << "---> JOINT : " << joint->Name.c_str() << std::endl;
+        log->addLineAndPush(formatString("---> JOINT : %s", joint->Name.c_str()));
 
         for (u32 j = 0; j < inf[i].size(); ++j)
         {
@@ -976,20 +977,11 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
             dataFile->seek(infos.dataAddr);
 
             // Debug infos
-            std::cout << "--> Type : ";
-            if (infos.type == EATT_POSITION)
-                std::cout << "EATT_POSITION";
-            else if (infos.type == EATT_ORIENTATION)
-                std::cout << "EATT_ORIENTATION";
-            else
-                std::cout << "EATT_SCALE";
-            std::cout << std::endl;
+            log->addLineAndPush(formatString("--> Type : %s", getAnimTrackString(infos.type).c_str()));
 
-
-
-            std::cout << "numFrames = " << infos.numFrames << std::endl;
-            std::cout << "dt=" << infos.dt << std::endl;
-            std::cout << "@=" << dataFile->getPos() << std::endl;
+            log->addLineAndPush(formatString("numFrames = %d", infos.numFrames));
+            log->addLineAndPush(formatString("dt = %f", infos.dt));
+            log->addLineAndPush(formatString("@ = %d", dataFile->getPos()));
             //std::cout << "compression=" << (int)infos.compression << std::endl;
 
             // TODO
@@ -1013,7 +1005,7 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                     f32 py = readCompressedFloat(dataFile, compressionSize);
                     f32 pz = readCompressedFloat(dataFile, compressionSize);
 
-                    std::cout << "Position value = " << px << ", " << py << ", " << pz << std::endl;
+                    log->addLineAndPush(formatString("Position value = %f, %f, %f", px, py, pz));
 
                     /*
                     scene::ISkinnedMesh::SPositionKey* key = meshToAnimate->addPositionKey(joint);
@@ -1063,10 +1055,13 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                         orientation.toEuler(euler);
                         euler *= core::RADTODEG;
 
-                        std::cout << "Quaternion : x=" << fx << ", y=" << fy << ", z=" << fz << ", w=" << fw << std::endl;
-                        std::cout << "Quaternion mult =" << fx * fx + fy * fy + fz * fz + fw * fw << std::endl;
-                        std::cout << "Euler : x=" << euler.X << ", y=" << euler.Y << ", z=" << euler.Z << std::endl;
-
+                        if (log->isEnabled())
+                        {
+                            log->addLine(formatString("Quaternion : x=%f, y=%f, z=%f, w=%f", fx, fy, fz, fw));
+                            log->addLine(formatString("Quaternion mult : x=%f, y=%f, z=%f, w=%f", fx * fx + fy * fy + fz * fz + fw * fw));
+                            log->addLine(formatString("Euler : x=%f, y=%f, z=%f", euler.X, euler.Y, euler.Z));
+                            log->push();
+                        }
                     }
 
                     scene::ISkinnedMesh::SRotationKey* key = meshToAnimate->addRotationKey(joint);
@@ -1080,7 +1075,7 @@ void CW3ENTMeshFileLoader::readAnimBuffer(core::array<core::array<SAnimationBuff
                     f32 sy = readCompressedFloat(dataFile, compressionSize);
                     f32 sz = readCompressedFloat(dataFile, compressionSize);
 
-                    std::cout << "Scale value = " << sx << ", " << sy << ", " << sz << std::endl;
+                    log->addLineAndPush(formatString("Scale value = %f, %f, %f", sx, sy, sz));
 
                     scene::ISkinnedMesh::SScaleKey* key = meshToAnimate->addScaleKey(meshToAnimate->getAllJoints()[i]);
                     key->scale = core::vector3df(sx, sy, sz);
@@ -1143,12 +1138,12 @@ void CW3ENTMeshFileLoader::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* f
         else if (propHeader.propName == "duration")
         {
             animDuration = readF32(file);
-            std::cout << "duration = " << animDuration << std::endl;
+            log->addAndPush(formatString("duration = %f", animDuration));
         }
         else if (propHeader.propName == "numFrames")
         {
             numFrames = readU32(file);
-            std::cout << "numFrames = " << numFrames << std::endl;
+            log->addAndPush(formatString("numFrames = %d", numFrames));
         }
         else if (propHeader.propName == "deferredData")
         {

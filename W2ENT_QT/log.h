@@ -4,10 +4,20 @@
 #include <irrlicht.h>
 
 #include <iostream>
+#include <sstream>
 
 //#define USE_FLUSH_PATCH
 
 using namespace irr;
+
+
+template <typename T>
+core::stringc toStr(const T& t) {
+   std::ostringstream os;
+   os << t;
+   return core::stringc(os.str().c_str());
+}
+core::stringc formatString(core::stringc baseString, ...);
 
 enum LogOutput
 {
@@ -33,7 +43,9 @@ public:
     ~Log();
 
     void add(core::stringc addition);
+    void addLine(core::stringc addition);
     void addAndPush(core::stringc addition);
+    void addLineAndPush(core::stringc addition);
     void push();
 
     bool isEnabled();

@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <stdarg.h>
 
-
+Log Log::_instance = Log();
 
 core::stringc formatString(core::stringc baseString, ...)
 {
@@ -51,19 +51,26 @@ core::stringc formatString(core::stringc baseString, ...)
     return newString;
 }
 
-Log::Log(irr::scene::ISceneManager* smgr, core::stringc filename, LogOutput output) : Smgr(smgr), Filename(filename), Output(output)
+Log::Log() : FileSystem(nullptr), Filename(core::stringc()), Output(LOG_NONE)
 {
+
+}
+
+void Log::create(io::IFileSystem* fileSystem, core::stringc filename)
+{
+    FileSystem = fileSystem;
+    Filename = filename;
+
     if (!hasOutput(LOG_FILE))
         return;
 
 #ifdef USE_FLUSH_PATCH
-    LogFile = 0;
-    if (Smgr)
-        LogFile = Smgr->getFileSystem()->createAndWriteFile(Filename, false);
+    LogFile = nullptr;
+    if (FileSystem)
+        LogFile = FileSystem->createAndWriteFile(Filename, false);
 #else
     Content = "";
-    if (Smgr)
-        if (Smgr->getFileSystem()->existFile(Filename))
+    if (FileSystem && FileSystem->existFile(Filename))
             remove(Filename.c_str());
 #endif
 
@@ -112,8 +119,8 @@ void Log::flush()
     LogFile->flush();
 #else
     irr::io::IWriteFile* file = 0;
-    if (Smgr)
-        file = Smgr->getFileSystem()->createAndWriteFile(Filename, true);
+    if (FileSystem)
+        file = FileSystem->createAndWriteFile(Filename, true);
     if (file)
     {
         file->write(Content.c_str(), Content.size());
@@ -145,8 +152,8 @@ bool Log::works()
     return LogFile != 0;
 #else
     irr::io::IWriteFile* file = 0;
-    if (Smgr)
-        file = Smgr->getFileSystem()->createAndWriteFile(Filename, true);
+    if (FileSystem)
+        file = FileSystem->createAndWriteFile(Filename, true);
     if (file)
     {
         file->drop();
@@ -161,6 +168,11 @@ void Log::setOutput(LogOutput output)
     Output = output;
 }
 
+void Log::addOutput(LogOutput output)
+{
+    Output |= output;
+}
+
 bool Log::hasOutput(LogOutput output)
 {
     return (Output & output) != 0;
@@ -168,5 +180,10 @@ bool Log::hasOutput(LogOutput output)
 
 bool Log::isEnabled()
 {
-    return !hasOutput(LOG_NONE);
+    return Output != LOG_NONE;
+}
+
+Log* Log::Instance()
+{
+    return &_instance;
 }

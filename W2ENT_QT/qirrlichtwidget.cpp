@@ -347,6 +347,16 @@ void QIrrlichtWidget::init ()
 
     // et on lance notre timer
     startTimer (0);
+
+    // creation du fichier de log
+    Log::Instance()->setOutput(LOG_NONE);
+    if (Settings::_debugLog)
+        Log::Instance()->addOutput(LOG_FILE);
+
+    // debug seulement !
+    Log::Instance()->addOutput(LOG_CONSOLE);
+
+    Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"));
 }
 
 void QIrrlichtWidget::updateIrrlicht (QIrrlichtWidget *irrWidget)

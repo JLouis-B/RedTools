@@ -43,7 +43,7 @@ CW2ENTMeshFileLoader::CW2ENTMeshFileLoader(scene::ISceneManager* smgr, io::IFile
 //! based on the file extension (e.g. ".bsp")
 bool CW2ENTMeshFileLoader::isALoadableFileExtension(const io::path& filename) const
 {
-    irr::io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
+    io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
     if (!file)
         return false;
 
@@ -63,13 +63,7 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	if (!f)
 		return 0;
 
-    LogOutput output = LOG_NONE;
-    // If we want the log in cout
-    //output |= LOG_CONSOLE;
-
-    if (SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"))
-        output |= LOG_FILE;
-    log = new Log(SceneManager, QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"), output);
+    log = Log::Instance();
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         ConfigGamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
@@ -106,8 +100,6 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
     MeshesToLoad.clear();
     NbSubMesh = 0;
 
-
-    delete log;
 	return AnimatedMesh;
 }
 

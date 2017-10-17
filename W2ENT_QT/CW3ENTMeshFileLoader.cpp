@@ -84,20 +84,10 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
     Files.clear();
     Meshes.clear();
 
-
-    LogOutput output = LOG_NONE;
-    // If we want the log in cout
-    output |= LOG_CONSOLE;
-
-    if (SceneManager->getParameters()->getAttributeAsBool("TW_DEBUG_LOG"))
-        output |= LOG_FILE;
-
-    // Create and enable the log file if the option is selected on the soft
-    log = new Log(SceneManager, QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"), output);
+    log = Log::Instance();
 
     if (log->isEnabled() && !log->works())
     {
-        delete log;
         Feedback += "\nError : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)\n";
         return 0;
     }
@@ -131,7 +121,6 @@ IAnimatedMesh* CW3ENTMeshFileLoader::createMesh(io::IReadFile* f)
 	}
 
     log->addLineAndFlush("LOADING FINISHED");
-    delete log;
 
     SceneManager->getParameters()->setAttribute("TW_FEEDBACK", Feedback.c_str());
 

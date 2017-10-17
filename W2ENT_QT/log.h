@@ -39,8 +39,10 @@ inline LogOutput operator&(LogOutput a, LogOutput b)
 class Log
 {
 public:
-    Log(irr::scene::ISceneManager* smgr = 0, core::stringc filename = "", LogOutput output = LOG_NONE);
+    Log();
     ~Log();
+
+    void create(io::IFileSystem* fileSystem, core::stringc filename);
 
     void add(core::stringc addition);
     void addLine(core::stringc addition);
@@ -52,10 +54,13 @@ public:
     bool works();
 
     void setOutput(LogOutput output);
+    void addOutput(LogOutput output);
+
+    static Log *Instance();
 
 private:
 
-    irr::scene::ISceneManager* Smgr;
+    io::IFileSystem* FileSystem;
     core::stringc Filename;
     core::stringc Content;
 
@@ -65,6 +70,8 @@ private:
     #ifdef USE_FLUSH_PATCH
     irr::io::IWriteFile* LogFile;
     #endif
+
+    static Log _instance;
 };
 
 #endif // LOG_H

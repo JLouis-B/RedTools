@@ -21,7 +21,6 @@
 #include "LoadersUtils.h"
 #include "settings.h"
 #include "utils.h"
-//#define _DEBUG
 
 
 namespace irr

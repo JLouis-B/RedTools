@@ -21,8 +21,6 @@
 
 #include <sstream>
 
-//#define _DEBUG
-
 
 namespace irr
 {
@@ -159,8 +157,7 @@ void CW2ENTMeshFileLoader::make_vertex_group(Submesh_data dataSubMesh, core::arr
                 for (int tmpStr = 0; tmpStr < data2[id_1].size(); ++tmpStr)
                     vertexGroupName.append(data2[id_1][tmpStr]);
 
-                logContent += vertexGroupName;
-                writeLog();*/
+                */
 
             }
         }
@@ -560,9 +557,7 @@ void CW2ENTMeshFileLoader::CSkeleton(io::IReadFile* file, DataInfos infos)
 
 void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
 {
-    #ifdef _W2ENTREADER_DEBUG
-    std::cout << "Load a mesh..." <<std::endl;
-    #endif
+    log->addLineAndFlush("Load a mesh...");
 
     core::array<int> mats = tmp.nMat;
 
@@ -692,9 +687,8 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
                 return;
             }
             */
-            #ifdef _W2ENTREADER_DEBUG
-            std::cout << "Submesh : vertEnd = " << s_data.dataI[2] << ", vertype = "<< s_data.vertype  <<std::endl;
-            #endif
+
+            log->addLineAndFlush(formatString("Submesh : vertEnd = %d, vertype = %d", s_data.dataI[2], s_data.vertype));
         }
 
         file->seek(back);
@@ -706,9 +700,8 @@ void CW2ENTMeshFileLoader::CMesh(io::IReadFile* file, Meshdata tmp)
         drawmesh(file, data, mats, nModel);
 
     }
-    #ifdef _W2ENTREADER_DEBUG
-    std::cout << "Mesh loaded" <<std::endl;
-    #endif
+
+    log->addLineAndFlush("Mesh loaded");
 }
 
 

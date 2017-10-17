@@ -12,6 +12,7 @@
 #include "SAnimatedMesh.h"
 #include "IMeshManipulator.h"
 #include "ISkinnedMesh.h"
+#include "log.h"
 
 namespace irr
 {
@@ -64,29 +65,13 @@ private:
 
     void readLOD(io::IReadFile* f);
 
-
-	void writeLog();
-
-
-    // Read functions
-    core::stringc readWord(io::IReadFile* f, s32 nbLetter);
-    core::array<s32> readInts (io::IReadFile* f, s32 nbInt);
-    core::array<u16> readUnsignedShorts (io::IReadFile* f, s32 nbShorts);
-    core::array<u8> readUnsignedChars (io::IReadFile* f, s32 nbChar);
-    core::array<f32> readFloats (io::IReadFile* f, s32 nbInt);
-
     // Atrributes
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
-    //scene::SMesh* Mesh;
-    //CSkinnedMesh* AnimatedMesh;
-
 
     //DEBUG
-    core::stringc logContent;
-
-
+    Log* log;
 };
 
 } // end namespace scene

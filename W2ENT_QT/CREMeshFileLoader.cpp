@@ -15,7 +15,6 @@
 #include "IWriteFile.h"
 
 #include <sstream>
-#include <iostream>
 
 #include "LoadersUtils.h"
 
@@ -56,16 +55,13 @@ IAnimatedMesh* CREMeshFileLoader::createMesh(io::IReadFile* f)
 	if (!f)
 		return 0;
 
-    #ifdef _REREADER_DEBUG
-	u32 time = os::Timer::getRealTime();
+    log = Log::Instance();
 
-    // log
-    logContent = "-> ";
-    logContent+= f->getFileName().c_str();
-    logContent+= "\n";
-    logContent+= "Start loading\n";
-    writeLog();
-    #endif
+    if (log->isEnabled())
+    {
+        log->addLineAndFlush(formatString("-> %s", f->getFileName().c_str()));
+        log->addLineAndFlush("Start loading");
+    }
 
 
     AnimatedMesh = SceneManager->createSkinnedMesh();
@@ -81,14 +77,8 @@ IAnimatedMesh* CREMeshFileLoader::createMesh(io::IReadFile* f)
 		AnimatedMesh->drop();
 		AnimatedMesh = 0;
 	}
-    #ifdef _REREADER_DEBUG
-	time = os::Timer::getRealTime() - time;
-	core::stringc tmpString = "Time to load ";
-	tmpString += "binary RE file: ";
-	tmpString += time;
-	tmpString += "ms";
-	os::Printer::log(tmpString.c_str());
-    #endif
+
+    log->addLineAndFlush("Loaded");
 
 	return AnimatedMesh;
 }
@@ -155,7 +145,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         //SMeshBufferTangents* buf = new SMeshBufferTangents();
         SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
         s32 sizeMatName = readS32(f);
-        irr::core::stringc matName = readString(f, sizeMatName);
+        core::stringc matName = readString(f, sizeMatName);
 
         /*
         std::cout << "matname" << std::endl;
@@ -164,7 +154,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         */
 
         s32 sizeMatDiff = readS32(f);
-        irr::core::stringc matDiff = readString(f, sizeMatDiff);
+        core::stringc matDiff = readString(f, sizeMatDiff);
 
         video::ITexture *tex = SceneManager->getVideoDriver()->getTexture(matDiff);
         if (tex)
@@ -178,10 +168,10 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
 
 
         s32 sizeMatNor = readS32(f);
-        irr::core::stringc matNor = readString(f, sizeMatNor);
+        core::stringc matNor = readString(f, sizeMatNor);
 
         s32 sizeMatBle = readS32(f);
-        irr::core::stringc matBle = readString(f, sizeMatBle);
+        core::stringc matBle = readString(f, sizeMatBle);
 
 
         s32 nbVertices = readS32(f);
@@ -192,19 +182,13 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         std::cout << matBle.c_str() << std::endl;
         */
 
-
-
-        #ifdef _REREADER_DEBUG
-        core::stringc tmpString = "nbVertices : ";
-        tmpString += nbVertices;
-        tmpString += "\nnbFaces : ";
-        tmpString += nbFaces;
-        tmpString += "\nposition curseur : ";
-        tmpString += f->getPos();
-        tmpString += "\n";
-        os::Printer::log(tmpString.c_str());
-        #endif
-
+        if (log->isEnabled())
+        {
+            log->addLine(formatString("nbVertices : %d", nbVertices));
+            log->addLine(formatString("nbFaces : %d", nbFaces));
+            log->addLine(formatString("pos : %d", f->getPos()));
+            log->flush();
+        }
 
         buf->Vertices_Standard.reallocate(nbVertices);
         buf->Vertices_Standard.set_used(nbVertices);
@@ -282,23 +266,12 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
 
             buf->Vertices_Standard[i].Color = irr::video::SColor(255,255,255,255);
 
-            #ifdef _REREADER_DEBUG
-            tmpString = "Vertice :  x = ";
-            tmpString += x;
-            tmpString += "     y = ";
-            tmpString += y;
-            tmpString += "     z = ";
-            tmpString += z;
-            tmpString += ", UV = ";
-            tmpString += u;
-            tmpString += " et ";
-            tmpString += v;
-            os::Printer::log(tmpString.c_str());
-            #endif
+            if (log->isEnabled())
+                log->addLine(formatString("Vertice : x=%f, y=%f, z=%f, UV : u=%f, v=%f", x, y, z, u, v));
 
             //std::cout << "Vertice :  x = " << x << "  y = "<< y << "  z = "<< z << ", UV = " << u << " et " << v << std::endl;
-
         }
+        log->flush();
 
         buf->Indices.reallocate(nbFaces * 3);
         buf->Indices.set_used(nbFaces * 3);
@@ -318,19 +291,9 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
             buf->Indices[3*i + 1] = idx3;
             buf->Indices[3*i + 2] = idx2;
 
-
-            #ifdef _REREADER_DEBUG
-            tmpString = "Indice :  idx1 = ";
-            tmpString += idx1;
-            tmpString += "  idx2 = ";
-            tmpString += idx2;
-            tmpString += "  idx3 = ";
-            tmpString += idx3;
-            tmpString += ", nothing = ";
-            tmpString += nothing;
-            os::Printer::log(tmpString.c_str());
-            #endif // _REREADER_DEBUG
+            log->addLine(formatString("Indice : idx1 = %d, idx2 = %d, idx3 = %d", idx1, idx2, idx3));
         }
+        log->flush();
         buf->recalculateBoundingBox();
     }
 
@@ -369,7 +332,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         joint->Name = jointName;
 
         core::array<f32> jointData = readDataArray<f32>(f, 12);
-        irr::core::matrix4 mat (core::matrix4::EM4CONST_IDENTITY);
+        core::matrix4 mat (core::matrix4::EM4CONST_IDENTITY);
 
         std::cout << joint->Name.c_str() << " : ";
         int m = 0;
@@ -386,35 +349,35 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         //std::cout << "Rotation : X="<< mat.getRotationDegrees().X << ", Y="<< mat.getRotationDegrees().Y << ", Z="<< mat.getRotationDegrees().Z << std::endl;
         //std::cout << "Scale : X="<<mat.getScale().X << ", Y="<< mat.getScale().Y << ", Z="<< mat.getScale().Z << std::endl;
 
-                    irr::core::matrix4 posMat;
-            irr::core::vector3df pos = mat.getTranslation();
+        core::matrix4 posMat;
+        core::vector3df pos = mat.getTranslation();
 
-                    irr::core::matrix4 invRot;
+        core::matrix4 invRot;
         mat.getInverse(invRot);
-            invRot.rotateVect(pos);
+        invRot.rotateVect(pos);
 
-            double tmp = pos.Y;
-            pos.Y = pos.Z;
-            pos.Z = tmp;
-            pos += meshCenter;
-            posMat.setTranslation(pos);
+        double tmp = pos.Y;
+        pos.Y = pos.Z;
+        pos.Z = tmp;
+        pos += meshCenter;
+        posMat.setTranslation(pos);
 
-            irr::core::matrix4 rotMat;
-            irr::core::vector3df rot = mat.getRotationDegrees();
-            tmp = rot.Y;
-            rot.Y = rot.Z;
-            rot.Z = tmp;
-            rot = core::vector3df(0.0f, 0.0f, 0.0f);
-            rotMat.setRotationDegrees(rot);
+        core::matrix4 rotMat;
+        core::vector3df rot = mat.getRotationDegrees();
+        tmp = rot.Y;
+        rot.Y = rot.Z;
+        rot.Z = tmp;
+        rot = core::vector3df(0.0f, 0.0f, 0.0f);
+        rotMat.setRotationDegrees(rot);
 
-            irr::core::matrix4 scaleMat;
-            irr::core::vector3df scale = mat.getScale();
-            tmp = scale.Y;
-            scale.Y = scale.Z;
-            scale.Z = tmp;
-            scaleMat.setScale(scale);
+        core::matrix4 scaleMat;
+        core::vector3df scale = mat.getScale();
+        tmp = scale.Y;
+        scale.Y = scale.Z;
+        scale.Z = tmp;
+        scaleMat.setScale(scale);
 
-            mat = posMat * rotMat * scaleMat;
+        mat = posMat * rotMat * scaleMat;
 
         joint->Animatedposition = pos;
         joint->Animatedrotation = rot;
@@ -436,15 +399,6 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
     }
 
 }
-
-// TODO : use the new log system
-void CREMeshFileLoader::writeLog()
-{
-    io::IWriteFile* log = FileSystem->createAndWriteFile("debug.log");
-    log->write(logContent.c_str(), logContent.size());
-    log->drop();
-}
-
 
 } // end namespace scene
 } // end namespace irr

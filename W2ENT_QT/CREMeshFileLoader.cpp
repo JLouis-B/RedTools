@@ -102,11 +102,11 @@ bool CREMeshFileLoader::load(io::IReadFile* f)
     _lod1 = 0;
     _lod2 = 0;
 
-    u32 nbLOD = readData<u32>(f);
+    u32 nbLOD = readU32(f);
     nbLOD--;
 
     f->seek(28);
-    s32 adress = readData<s32>(f);
+    s32 adress = readS32(f);
     f->seek(adress);
 
     #ifdef COMPILE_WITH_LODS_SUPPORT
@@ -137,8 +137,8 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
     LODname = readString(f, sizeLODname);
 
     //f->seek(8, true);
-    s32 nbMeshBuffer = readData<s32>(f);
-    s32 nbBones = readData<s32>(f);
+    s32 nbMeshBuffer = readS32(f);
+    s32 nbBones = readS32(f);
 
 
     f->seek(adress + 52);
@@ -154,7 +154,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
     {
         //SMeshBufferTangents* buf = new SMeshBufferTangents();
         SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
-        s32 sizeMatName = readData<s32>(f);
+        s32 sizeMatName = readS32(f);
         irr::core::stringc matName = readString(f, sizeMatName);
 
         /*
@@ -163,7 +163,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         std::cout << matName.c_str() << std::endl;
         */
 
-        s32 sizeMatDiff = readData<s32>(f);
+        s32 sizeMatDiff = readS32(f);
         irr::core::stringc matDiff = readString(f, sizeMatDiff);
 
         video::ITexture *tex = SceneManager->getVideoDriver()->getTexture(matDiff);
@@ -177,15 +177,15 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         }
 
 
-        s32 sizeMatNor = readData<s32>(f);
+        s32 sizeMatNor = readS32(f);
         irr::core::stringc matNor = readString(f, sizeMatNor);
 
-        s32 sizeMatBle = readData<s32>(f);
+        s32 sizeMatBle = readS32(f);
         irr::core::stringc matBle = readString(f, sizeMatBle);
 
 
-        s32 nbVertices = readData<s32>(f);
-        s32 nbFaces = readData<s32>(f);
+        s32 nbVertices = readS32(f);
+        s32 nbFaces = readS32(f);
 
         /*
         std::cout << sizeMatBle << std::endl;
@@ -243,11 +243,11 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
                     tmp.meshBufferID = n;
                     tmp.vertexID = i;
                     tmp.strenght = strenghts[ns];
-                    tmp.boneID = readData<f32>(f);
+                    tmp.boneID = readF32(f);
                     weightTable.push_back(tmp);
                 }
                 else
-                    readData<f32>(f);
+                    readF32(f);
             }
             // UV
             //f->seek(48, true);
@@ -362,7 +362,7 @@ void CREMeshFileLoader::readLOD(io::IReadFile* f)
         }
 
 
-        u32 sizeJointName = readData<s32>(f);
+        u32 sizeJointName = readS32(f);
         core::stringc jointName = readString(f, sizeJointName);
 
         ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();

@@ -52,7 +52,7 @@ bool stringBeginWith(core::stringc base, core::stringc start)
 
 bool readBool(io::IReadFile* f)
 {
-    char valChar = readData<char>(f);
+    u8 valChar = readU8(f);
     return valChar == 1 ? true : false;
 }
 
@@ -70,11 +70,11 @@ bool CWitcherMDLMeshFileLoader::isALoadableFileExtension(const io::path& filenam
 ArrayDef readArrayDef(io::IReadFile* file)
 {
     ArrayDef def;
-    def.firstElemOffest = readData<u32>(file);
+    def.firstElemOffest = readU32(file);
 
     // nbUsedEntries is equal to nbAllocatedEntries
-    def.nbUsedEntries = readData<u32>(file);
-    def.nbAllocatedEntries = readData<u32>(file);
+    def.nbUsedEntries = readU32(file);
+    def.nbAllocatedEntries = readU32(file);
     return def;
 }
 
@@ -101,15 +101,15 @@ bool CWitcherMDLMeshFileLoader::load(io::IReadFile* file)
 {
     GameTexturesPath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
     
-    if (readData<u8>(file) != 0) // 0 = binary file
+    if (readU8(file) != 0) // 0 = binary file
     {
         std::cout << "Error : not a binary file" << std::endl;
         return false;
     }
     file->seek(4);
 
-    ModelInfos.fileVersion = readData<u32>(file) & 0x0FFFFFFF; // should be 133 or 136
-    u32 modelCount = readData<u32>(file); // should be 1 ?
+    ModelInfos.fileVersion = readU32(file) & 0x0FFFFFFF; // should be 133 or 136
+    u32 modelCount = readU32(file); // should be 1 ?
     if (modelCount != 1)
     {
         std::cout << "Error : modelCount != 1 isn't handled" << std::endl;
@@ -117,14 +117,14 @@ bool CWitcherMDLMeshFileLoader::load(io::IReadFile* file)
     }
 
     file->seek(4, true);
-    ModelInfos.sizeModelData = readData<u32>(file);
+    ModelInfos.sizeModelData = readU32(file);
     file->seek(4, true);
     ModelInfos.offsetModelData = 32;
 
     if (ModelInfos.fileVersion == 133)
     {
-        ModelInfos.offsetRawData  = readData<u32>(file) + ModelInfos.offsetModelData;
-        ModelInfos.sizeRawData = readData<u32>(file);
+        ModelInfos.offsetRawData  = readU32(file) + ModelInfos.offsetModelData;
+        ModelInfos.sizeRawData = readU32(file);
         ModelInfos.offsetTexData  = ModelInfos.offsetModelData;
         ModelInfos.sizeTexData = 0;
     }
@@ -132,24 +132,24 @@ bool CWitcherMDLMeshFileLoader::load(io::IReadFile* file)
     {
         ModelInfos.offsetRawData  = ModelInfos.offsetModelData;
         ModelInfos.sizeRawData = 0;
-        ModelInfos.offsetTexData  = readData<u32>(file) + ModelInfos.offsetModelData;
-        ModelInfos.sizeTexData = readData<u32>(file);
+        ModelInfos.offsetTexData  = readU32(file) + ModelInfos.offsetModelData;
+        ModelInfos.sizeTexData = readU32(file);
     }
 
     file->seek(8, true);
 
     core::stringc name = readStringFixedSize(file, 64);
     //std::cout << "name = " << name.c_str() << std::endl;
-    u32 offsetRootNode = readData<u32>(file);
+    u32 offsetRootNode = readU32(file);
 
     file->seek(32, true);
-    u8 type = readData<u8>(file);
+    u8 type = readU8(file);
 
     file->seek(3, true);
     file->seek(48, true);
 
-    float firstLOD = readData<float>(file);
-    float lastLOD  = readData<float>(file);
+    f32 firstLOD = readF32(file);
+    f32 lastLOD  = readF32(file);
 
     file->seek(16, true);
 
@@ -158,7 +158,7 @@ bool CWitcherMDLMeshFileLoader::load(io::IReadFile* file)
 
     file->seek(4, true);
 
-    float modelScale = readData<float>(file);
+    f32 modelScale = readF32(file);
 
     core::stringc superModel = readStringFixedSize(file, 64);
 
@@ -226,11 +226,11 @@ core::matrix4 CWitcherMDLMeshFileLoader::readNodeControllers(io::IReadFile* file
 
     for (u32 i = 0; i < key.nbUsedEntries; ++i)
     {
-        s32 controllerType = readData<s32>(file);
-        s16 nbRows = readData<s16>(file);
-        s16 firstKeyIndex = readData<s16>(file);
-        s16 firstValueIndex = readData<s16>(file);
-        s8 nbColumns = readData<s8>(file);
+        s32 controllerType = readS32(file);
+        s16 nbRows = readS16(file);
+        s16 firstKeyIndex = readS16(file);
+        s16 firstValueIndex = readS16(file);
+        s8 nbColumns = readS8(file);
         file->seek(1, true); // Pad, not used
 
 
@@ -274,7 +274,7 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
 
     file->seek(28, true);
 
-    u32 offMeshArrays = readData<u32>(file);
+    u32 offMeshArrays = readU32(file);
 
     // sector ID
     file->seek(16, true);
@@ -329,7 +329,7 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
     for (u32 i = 0; i < layersDef.nbUsedEntries; ++i)
     {
         file->seek(ModelInfos.offsetRawData + layersDef.firstElemOffest + i * 52);
-        bool hasTexture = (readData<u8>(file) == 1);
+        bool hasTexture = (readU8(file) == 1);
         if (!hasTexture)
             continue;
 
@@ -354,9 +354,9 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
     file->seek(ModelInfos.offsetRawData + vertexDef.firstElemOffest);
     for (u32 i = 0; i < vertexDef.nbUsedEntries; ++i)
     {
-        float x = readData<f32>(file);
-        float y = readData<f32>(file);
-        float z = readData<f32>(file);
+        f32 x = readF32(file);
+        f32 y = readF32(file);
+        f32 z = readF32(file);
         core::vector3df pos(x, y, z);
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
@@ -366,9 +366,9 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
     for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
     {
-        float x = readData<f32>(file);
-        float y = readData<f32>(file);
-        float z = readData<f32>(file);
+        f32 x = readF32(file);
+        f32 y = readF32(file);
+        f32 z = readF32(file);
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
     }
 
@@ -392,8 +392,8 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
             float u = 0.f, v = 0.f;
             if (i < tVerts[t].nbUsedEntries)
             {
-                u = readData<f32>(file);
-                v = readData<f32>(file);
+                u = readF32(file);
+                v = readF32(file);
             }
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
@@ -409,9 +409,9 @@ void CWitcherMDLMeshFileLoader::readTexturePaint(io::IReadFile* file, core::matr
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);
     for (u32 i = 0; i < facesCount; ++i)
     {
-        buffer->Indices[i * 3 + 0] = readData<u32>(file);
-        buffer->Indices[i * 3 + 1] = readData<u32>(file);
-        buffer->Indices[i * 3 + 2] = readData<u32>(file);
+        buffer->Indices[i * 3 + 0] = readU32(file);
+        buffer->Indices[i * 3 + 1] = readU32(file);
+        buffer->Indices[i * 3 + 2] = readU32(file);
 
         file->seek(68, true);
     }
@@ -423,7 +423,7 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
 {
     file->seek(8, true); // Function pointer
 
-    u32 offMeshArrays = readData<u32>(file);
+    u32 offMeshArrays = readU32(file);
 
     file->seek(4, true); // Unknown
     file->seek(24, true); // bbox
@@ -473,7 +473,7 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
     file->seek(4, true);
     file->seek(4, true);
 
-    ModelInfos.offsetTextureInfo = readData<u32>(file);
+    ModelInfos.offsetTextureInfo = readU32(file);
 
     u32 endPos = file->seek(ModelInfos.offsetRawData + offMeshArrays);
 
@@ -496,7 +496,7 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
 
 
     if (ModelInfos.fileVersion == 133)
-        ModelInfos.offsetTexData = readData<u32>(file);
+        ModelInfos.offsetTexData = readU32(file);
 
 
     if ((vertexDef.nbUsedEntries == 0) || (facesDef.nbUsedEntries == 0))
@@ -518,9 +518,9 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
     file->seek(ModelInfos.offsetRawData + vertexDef.firstElemOffest);
     for (u32 i = 0; i < vertexDef.nbUsedEntries; ++i)
     {
-        float x = readData<f32>(file);
-        float y = readData<f32>(file);
-        float z = readData<f32>(file);
+        float x = readF32(file);
+        float y = readF32(file);
+        float z = readF32(file);
         core::vector3df pos(x, y, z);
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
@@ -530,9 +530,9 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
     for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
     {
-        float x = readData<f32>(file);
-        float y = readData<f32>(file);
-        float z = readData<f32>(file);
+        float x = readF32(file);
+        float y = readF32(file);
+        float z = readF32(file);
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
     }
 
@@ -556,8 +556,8 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
             float u = 0.f, v = 0.f;
             if (i < tVerts[t].nbUsedEntries)
             {
-                u = readData<f32>(file);
-                v = readData<f32>(file);
+                u = readF32(file);
+                v = readF32(file);
             }
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
@@ -578,9 +578,9 @@ void CWitcherMDLMeshFileLoader::readMesh(io::IReadFile* file, core::matrix4 tran
         if (ModelInfos.fileVersion == 133)
             file->seek(3 * 4, true);
 
-        buffer->Indices[i * 3 + 0] = readData<u32>(file);
-        buffer->Indices[i * 3 + 1] = readData<u32>(file);
-        buffer->Indices[i * 3 + 2] = readData<u32>(file);
+        buffer->Indices[i * 3 + 0] = readU32(file);
+        buffer->Indices[i * 3 + 1] = readU32(file);
+        buffer->Indices[i * 3 + 2] = readU32(file);
 
         if (ModelInfos.fileVersion == 133)
             file->seek(4, true);
@@ -647,10 +647,10 @@ void CWitcherMDLMeshFileLoader::loadNode(io::IReadFile* file)
 
     file->seek(8, true); // fixed rot + imposter group ?
 
-    s32 minLOD = readData<s32>(file);
-    s32 maxLOD = readData<s32>(file);
+    s32 minLOD = readS32(file);
+    s32 maxLOD = readS32(file);
 
-    NodeType type = (NodeType) readData<u32>(file);
+    NodeType type = (NodeType) readU32(file);
     //std::cout << "type = " << type << std::endl;
 
 
@@ -690,8 +690,8 @@ void CWitcherMDLMeshFileLoader::readTextures(io::IReadFile* file, core::array<co
 
     file->seek(offset);
 
-    u32 textureCount = readData<u32>(file);
-    u32 offTexture = readData<u32>(file);
+    u32 textureCount = readU32(file);
+    u32 offTexture = readU32(file);
 
     core::array<core::stringc> textureLine;
     for (u32 i = 0; i < textureCount; ++i)

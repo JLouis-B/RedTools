@@ -53,7 +53,15 @@ core::stringc formatString(core::stringc baseString, ...)
 
 Log::Log() : FileSystem(nullptr), Filename(core::stringc()), Output(LOG_NONE)
 {
+    #ifdef USE_FLUSH_PATCH
+        LogFile = nullptr;
+    #endif
+}
 
+Log::~Log()
+{
+    addLineAndFlush("Close the log file");
+    close();
 }
 
 void Log::create(io::IFileSystem* fileSystem, core::stringc filename)
@@ -64,24 +72,26 @@ void Log::create(io::IFileSystem* fileSystem, core::stringc filename)
     if (!hasOutput(LOG_FILE))
         return;
 
+    close();
+
 #ifdef USE_FLUSH_PATCH
-    LogFile = nullptr;
     if (FileSystem)
         LogFile = FileSystem->createAndWriteFile(Filename, false);
 #else
-    Content = "";
     if (FileSystem && FileSystem->existFile(Filename))
             remove(Filename.c_str());
 #endif
 
 }
 
-Log::~Log()
+void Log::close()
 {
     #ifdef USE_FLUSH_PATCH
         if (LogFile)
             LogFile->drop();
+        LogFile = nullptr;
     #else
+        Content = "";
     #endif
 }
 
@@ -149,9 +159,9 @@ bool Log::works()
         return true;
 
 #ifdef USE_FLUSH_PATCH
-    return LogFile != 0;
+    return LogFile != nullptr;
 #else
-    irr::io::IWriteFile* file = 0;
+    irr::io::IWriteFile* file = nullptr;
     if (FileSystem)
         file = FileSystem->createAndWriteFile(Filename, true);
     if (file)

@@ -15,11 +15,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     _currentLOD = LOD_0;
 
-    // Logs
-    _ui->textEdit_log->setReadOnly (true);
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "The Witcher 3D models converter " + Settings::_appVersion + "\n");
-
-
     Settings::_pack0 = _ui->lineEdit_folder->text();
     Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");
     _ui->lineEdit_folder->setText(Settings::_pack0);
@@ -97,7 +92,16 @@ MainWindow::MainWindow(QWidget *parent) :
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
 
+    // Logs
+    _ui->textEdit_log->setReadOnly (true);
+}
 
+void MainWindow::addToUILog(QString log)
+{
+    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + log);
+
+    QString logLogFile = "LOG UI LEVEL : " + log;
+    Log::Instance()->addAndFlush(logLogFile.toStdString().c_str());
 }
 
 void MainWindow::addMesh()
@@ -113,7 +117,7 @@ void MainWindow::addMesh()
             continue;
         }
 
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::get("log_readingFile") + " '" + file + "'... ");
+        addToUILog(Translator::get("log_readingFile") + " '" + file + "'... ");
 
         core::stringc feedbackMessage;
 
@@ -122,7 +126,7 @@ void MainWindow::addMesh()
         else
             _irrWidget->addMesh(file, feedbackMessage);
 
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedbackMessage.c_str() + "\n");
+        addToUILog(QString(feedbackMessage.c_str()) + "\n");
     }
 
     if (!_irrWidget->isEmpty(_currentLOD))
@@ -255,6 +259,7 @@ void MainWindow::initIrrlicht()
     _irrWidget->show();
     _irrWidget->setGeometry(0, 40, 768, 432);
     _irrWidget->init();
+    addToUILog(QString("The Witcher 3D models converter ") + Settings::_appVersion + "\n");
 }
 
 void MainWindow::selectFile()
@@ -275,9 +280,9 @@ void MainWindow::convertir()
 {
     // Warning if no filename specified
     if (_ui->lineEdit_exportedFilename->text() == "")
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::get("log_warning_empty") + "\n");
+        addToUILog(Translator::get("log_warning_empty") + "\n");
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::get("log_writingFile") + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
+    addToUILog(Translator::get("log_writingFile") + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
     QCoreApplication::processEvents();
 
     core::stringc feedback = "";
@@ -289,11 +294,11 @@ void MainWindow::convertir()
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
-        _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + "\n" + Translator::get("log_abort") + "\n");
+        addToUILog("\n" + Translator::get("log_abort") + "\n");
         return;
     }
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedback.c_str() + "\n");
+    addToUILog(QString(feedback.c_str()) + "\n");
 }
 
 void MainWindow::translate()
@@ -396,7 +401,7 @@ void MainWindow::loadFile(QString path)
         return;
     }
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + Translator::get("log_readingFile") + " '" + path + "'... ");
+    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
     _ui->lineEdit_ImportedFile->setText(path);
     QCoreApplication::processEvents();
 
@@ -434,7 +439,7 @@ void MainWindow::loadFile(QString path)
         _firstSelection = false;
     }
 
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + feedbackMessage.c_str() + "\n");
+    addToUILog(QString(feedbackMessage.c_str()) + "\n");
     updateWindowTitle();
 }
 

@@ -137,7 +137,7 @@ void CW3ENTMeshFileLoader::writeLogBoolProperty(core::stringc name, bool value)
 
 void CW3ENTMeshFileLoader::writeLogHeader(const io::IReadFile* f)
 {
-    log->addLine(formatString("-> Exported with The Witcher Converter %s", Settings::_appVersion.toStdString().c_str()));
+    log->addLine("");
     log->addLine(formatString("-> File : %s", f->getFileName().c_str()));
 
     writeLogBoolProperty("Load Sekeleton", ConfigLoadSkeleton);

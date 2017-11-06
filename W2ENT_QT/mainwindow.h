@@ -56,6 +56,7 @@ public slots :
 
 private:
     void updateWindowTitle();
+    void addToUILog(QString log);
 
     Ui::MainWindow *_ui;
     QIrrlichtWidget *_irrWidget;

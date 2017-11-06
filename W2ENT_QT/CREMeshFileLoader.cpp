@@ -59,10 +59,12 @@ IAnimatedMesh* CREMeshFileLoader::createMesh(io::IReadFile* f)
 
     if (log->isEnabled())
     {
-        log->addLineAndFlush(formatString("-> %s", f->getFileName().c_str()));
-        log->addLineAndFlush("Start loading");
+        log->addLine("");
+        log->addLine(formatString("-> File : %s", f->getFileName().c_str()));
+        log->add("_________________________________________________________\n\n\n");
+        log->addLine("Start loading");
+        log->flush();
     }
-
 
     AnimatedMesh = SceneManager->createSkinnedMesh();
 

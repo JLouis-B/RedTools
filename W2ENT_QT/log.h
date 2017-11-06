@@ -43,6 +43,7 @@ public:
     ~Log();
 
     void create(io::IFileSystem* fileSystem, core::stringc filename);
+    void close();
 
     void add(core::stringc addition);
     void addLine(core::stringc addition);

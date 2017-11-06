@@ -70,7 +70,7 @@ IAnimatedMesh* CW2ENTMeshFileLoader::createMesh(io::IReadFile* f)
     #endif
 
     // log
-    log->addLine(formatString("-> Exported with The Witcher Converter %s", Settings::_appVersion.toStdString().c_str()));
+    log->addLine("");
     log->addLine(formatString("-> File : %s", f->getFileName().c_str()));
 
     log->add("_________________________________________________________\n\n\n");

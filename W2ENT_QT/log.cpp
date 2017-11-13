@@ -119,6 +119,9 @@ void Log::addLine(core::stringc addition)
 
 void Log::flush()
 {
+    if (hasOutput(LOG_CONSOLE))
+        std::cout.flush();
+
     if (!hasOutput(LOG_FILE))
         return;
 

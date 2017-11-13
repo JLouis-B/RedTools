@@ -1697,7 +1697,7 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
     readString(file,4); // CR2W
 
     const s32 fileFormatVersion = readS32(file);
-    log->addLineAndFlush(formatString("File format version : %d"));
+    log->addLineAndFlush(formatString("File format version : %d", fileFormatVersion));
 
     if (checkTWFileFormatVersion(file) == WFT_WITCHER_3)
     {

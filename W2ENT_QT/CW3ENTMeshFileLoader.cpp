@@ -563,7 +563,7 @@ void CW3ENTMeshFileLoader::ReadMaterialsProperty(io::IReadFile* file)
         if (matFileID < Files.size()) // Refer to a w2mi file
         {
             //std::cout << "w2mi file = " << Files[matFileID].c_str() << std::endl;
-            matMats.push_back(ReadW2MIFile(Files[matFileID]));
+            matMats.push_back(ReadW2MIFile(ConfigGamePath + Files[matFileID]));
             file->seek(3, true);
         }
         else
@@ -1598,46 +1598,47 @@ void CW3ENTMeshFileLoader::ReadBones(io::IReadFile* file)
 
 ISkinnedMesh* CW3ENTMeshFileLoader::ReadW2MESHFile(core::stringc filename)
 {
+    ISkinnedMesh* mesh = nullptr;
     io::IReadFile* meshFile = FileSystem->createAndOpenFile(filename);
     if (!meshFile)
     {
-        log->addLineAndFlush("FAIL TO OPEN THE W2MESH FILE");
-        return 0;
+        log->addLineAndFlush(formatString("Fail to open the w2mesh file : %s", filename.c_str()));
     }
+    else
+    {
+        CW3ENTMeshFileLoader w3Loader(SceneManager, FileSystem);
+        mesh = reinterpret_cast<ISkinnedMesh*>(w3Loader.createMesh(meshFile));
+        if (!mesh)
+            log->addLineAndFlush(formatString("Fail to load the w2mesh file : %s", filename.c_str()));
 
-    CW3ENTMeshFileLoader w3Loader(SceneManager, FileSystem);
-    IAnimatedMesh* mesh = 0;
-    mesh = w3Loader.createMesh(meshFile);
-    if (mesh == 0)
-        log->addLineAndFlush("Fail to load MatMesh");
-
-    meshFile->drop();
-    return (ISkinnedMesh*)mesh;
-    //return (ISkinnedMesh*)SceneManager->getMesh(filename);
+        meshFile->drop();
+    }
+    return mesh;
 }
 
 video::SMaterial CW3ENTMeshFileLoader::ReadW2MIFile(core::stringc filename)
 {
+    video::SMaterial material;
     io::IReadFile* matFile = FileSystem->createAndOpenFile(filename);
     if (!matFile)
     {
-        log->addLineAndFlush("FAIL TO OPEN THE W2MI FILE");
-        return video::SMaterial();
+        log->addLineAndFlush(formatString("Fail to open the w2mi file : %s", filename.c_str()));
+    }
+    else
+    {
+        CW3ENTMeshFileLoader w2miLoader(SceneManager, FileSystem);
+        IAnimatedMesh* matMesh = nullptr;
+        matMesh = w2miLoader.createMesh(matFile);
+        if (matMesh)
+            matMesh->drop();
+        else
+            log->addLineAndFlush(formatString("Fail to load the w2mi file : %s", filename.c_str()));
+
+        material = w2miLoader.Materials[0];
+        matFile->drop();
     }
 
-    CW3ENTMeshFileLoader w2miLoader(SceneManager, FileSystem);
-    IAnimatedMesh* matMesh = 0;
-    matMesh = w2miLoader.createMesh(matFile);
-    if (matMesh == 0)
-        log->addLineAndFlush("Fail to load MatMesh");
-    else
-        matMesh->drop();
-
-
-    video::SMaterial mat = w2miLoader.Materials[0];
-    matFile->drop();
-
-    return mat;
+    return material;
 }
 
 video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file, W3_DataInfos infos)
@@ -1659,9 +1660,7 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
             return mat;
         }
 
-        //std::cout << "@" << file->getPos() <<", property = " << property.c_str() << ", type = " << propertyType.c_str() << std::endl;
-
-
+        // material in a w2mi file
         if (propHeader.propName == "baseMaterial")
         {
             u8 fileId = readU8(file);
@@ -1670,12 +1669,17 @@ video::SMaterial CW3ENTMeshFileLoader::W3_CMaterialInstance(io::IReadFile* file,
 
             log->addAndFlush("baseMat find");
 
-            //std::cout << "MATERIAL FILE IS " << Files[fileId].c_str() << std::endl;
-
+            log->addLineAndFlush(formatString("base material : %s", Files[fileId].c_str()));
             if (core::hasFileExtension(Files[fileId], "w2mi"))
             {
+                log->addAndFlush("Is a W2MI");
                 mat = ReadW2MIFile(ConfigGamePath + Files[fileId]);
                 return mat;
+            }
+            else
+            {
+                log->addAndFlush("Not a W2MI");
+                // can be a w2mg (shader) file
             }
         }
 
@@ -1693,7 +1697,7 @@ bool CW3ENTMeshFileLoader::load(io::IReadFile* file)
     readString(file,4); // CR2W
 
     const s32 fileFormatVersion = readS32(file);
-    log->addLineAndFlush(formatString("File format version : %d"));
+    log->addLineAndFlush(formatString("File format version : %d", fileFormatVersion));
 
     if (checkTWFileFormatVersion(file) == WFT_WITCHER_3)
     {

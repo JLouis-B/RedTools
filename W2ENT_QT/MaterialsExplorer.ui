@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>780</width>
+    <width>975</width>
     <height>412</height>
    </rect>
   </property>
@@ -20,14 +20,14 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="label_selectedFile">
        <property name="text">
         <string>Materials in </string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="lineEdit_selectedFile"/>
      </item>
      <item>
       <widget class="QPushButton" name="button_selectFile">
@@ -56,19 +56,22 @@
         <enum>QLayout::SetDefaultConstraint</enum>
        </property>
        <item>
-        <widget class="QLabel" name="labelMaterials">
+        <widget class="QLabel" name="label_materials">
          <property name="text">
           <string>Materials</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="listWidgetMaterials"/>
+        <widget class="QListWidget" name="listWidget_materials"/>
        </item>
       </layout>
      </item>
      <item>
       <widget class="QTableWidget" name="tableWidget_properties">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
+       </property>
        <property name="columnCount">
         <number>3</number>
        </property>

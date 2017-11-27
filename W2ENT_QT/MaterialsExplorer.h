@@ -2,6 +2,8 @@
 #define MATERIALSEXPLORER_H
 
 #include <QDialog>
+#include <QItemDelegate>
+#include <QTableWidgetItem>
 #include "extfiles.h"
 #include "qirrlichtwidget.h"
 
@@ -18,6 +20,25 @@ class MaterialsExplorer;
 
 using namespace irr;
 
+class RichTextDelegate: public QItemDelegate
+{
+public:
+    RichTextDelegate(QObject *parent = 0);
+
+    void paint( QPainter *painter,
+                            const QStyleOptionViewItem &option,
+                            const QModelIndex &index ) const;
+};
+
+class QTableWidgetItemWithData: public QTableWidgetItem
+{
+public:
+    QTableWidgetItemWithData(QString richData, QString rawData);
+
+QString _rawData;
+};
+
+
 class MaterialsExplorer : public QDialog
 {
     Q_OBJECT
@@ -30,6 +51,7 @@ public:
 public slots :
     void selectFile();
     void selectMaterial(int row);
+    void openData(QTableWidgetItem *data);
 
 private:
     QIrrlichtWidget* _irrlicht;

@@ -2,6 +2,42 @@
 #include "ui_MaterialsExplorer.h"
 #include "extfiles.h"
 
+#include <QPainter>
+#include <QTextDocument>
+#include <QDesktopServices>
+
+RichTextDelegate::RichTextDelegate(QObject *parent):QItemDelegate(parent)
+{
+}
+
+void RichTextDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+
+    if( option.state & QStyle::State_Selected )
+        painter->fillRect( option.rect, option.palette.highlight() );
+
+
+    painter->save();
+
+    QTextDocument document;
+    document.setTextWidth(option.rect.width());
+    QVariant value = index.data(Qt::DisplayRole);
+    if (value.isValid() && !value.isNull())
+    {
+                document.setHtml(value.toString());
+                painter->translate(option.rect.topLeft());
+                document.drawContents(painter);
+
+    }
+
+    painter->restore();
+}
+
+QTableWidgetItemWithData::QTableWidgetItemWithData(QString richData, QString rawData) : QTableWidgetItem(richData), _rawData(rawData)
+{
+    setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+}
+
 MaterialsExplorer::MaterialsExplorer(QWidget *parent, QIrrlichtWidget* irrlicht, QString filename) :
     QDialog(parent), _irrlicht(irrlicht),
     _ui(new Ui::MaterialsExplorer)
@@ -10,9 +46,14 @@ MaterialsExplorer::MaterialsExplorer(QWidget *parent, QIrrlichtWidget* irrlicht,
     setAttribute(Qt::WA_DeleteOnClose);
 
     QObject::connect(_ui->button_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
-    QObject::connect(_ui->listWidgetMaterials, SIGNAL(currentRowChanged(int)), this, SLOT(selectMaterial(int)));
+    QObject::connect(_ui->listWidget_materials, SIGNAL(currentRowChanged(int)), this, SLOT(selectMaterial(int)));
 
     read(filename);
+
+    _ui->tableWidget_properties->setItemDelegateForColumn(2, new RichTextDelegate(_ui->tableWidget_properties));
+    QObject::connect(_ui->tableWidget_properties, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(openData(QTableWidgetItem*)));
+
+    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 MaterialsExplorer::~MaterialsExplorer()
@@ -32,10 +73,17 @@ void MaterialsExplorer::selectMaterial(int row)
             _ui->tableWidget_properties->insertRow(_ui->tableWidget_properties->rowCount());
             _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 0, new QTableWidgetItem(p.name));
             _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 1, new QTableWidgetItem(p.type));
-            _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 2, new QTableWidgetItem(p.data));
+
+
+            QString dataRichText = p.data;
+            if (p.type == "handle:ITexture")
+                dataRichText = QString("<a href=\"target\">") + p.data + "</a>";
+
+            _ui->tableWidget_properties->setItem(_ui->tableWidget_properties->rowCount() - 1, 2, new QTableWidgetItemWithData(dataRichText, p.data));
         }
     }
 }
+
 
 QString parseData(core::array<core::stringc>& strings, core::array<core::stringc>& files, QString type, io::IReadFile* file, int size)
 {
@@ -81,6 +129,36 @@ QString parseData(core::array<core::stringc>& strings, core::array<core::stringc
         return "Type not implemented. Adress : " + file->getPos();
     }
 }
+
+void MaterialsExplorer::openData(QTableWidgetItem* data)
+{
+    if (data->column() != 2)
+        return;
+    if (data->text().indexOf("</a>") == -1)
+        return;
+
+    QString rawData = reinterpret_cast<QTableWidgetItemWithData*>(data)->_rawData.replace("\\", "/");
+    QFileInfo info(rawData);
+    QString base = info.path() + "/" + info.baseName();
+    std::cout << base.toStdString().c_str() << std::endl;
+
+    QStringList extensions;
+    extensions.push_back(".jpg");
+    extensions.push_back(".png");
+    extensions.push_back(".tga");
+    extensions.push_back(".dds");
+
+    foreach(QString extension, extensions)
+    {
+        QString fullPath = Settings::_pack0 + "/" + base + extension;
+        if (QFile::exists(fullPath))
+        {
+            QDesktopServices::openUrl(QUrl(fullPath));
+            break;
+        }
+    }
+}
+
 
 void MaterialsExplorer::ReadIMaterialProperty(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files)
 {
@@ -131,7 +209,6 @@ bool ReadPropertyHeader(io::IReadFile* file, SPropertyHeader& propHeader, core::
 
     const long back = file->getPos();
     propHeader.propSize = readS32(file);
-    //file->seek(-4, true);
 
     propHeader.endPos = back + propHeader.propSize;
 
@@ -207,7 +284,7 @@ void MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
         s32 back = file->getPos();
         if (dataTypeName == "CMaterialInstance")
         {
-            _ui->listWidgetMaterials->addItem("Material " + QString::number(i));
+            _ui->listWidget_materials->addItem("Material " + QString::number(i));
             W3_CMaterialInstance(file, infos, strings, files);
         }
         file->seek(back);
@@ -217,8 +294,8 @@ void MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
 
 void MaterialsExplorer::read(QString filename)
 {
-    _ui->lineEdit->setText(filename);
-    _ui->listWidgetMaterials->clear();
+    _ui->lineEdit_selectedFile->setText(filename);
+    _ui->listWidget_materials->clear();
     _materials.clear();
 
     _ui->tableWidget_properties->setRowCount(0);
@@ -250,7 +327,11 @@ void MaterialsExplorer::read(QString filename)
 
 void MaterialsExplorer::selectFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", _ui->lineEdit->text(), "");
+    QString defaultDir = _ui->lineEdit_selectedFile->text();
+    if (_ui->lineEdit_selectedFile->text() == "")
+        defaultDir = Settings::_pack0;
+
+    QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", defaultDir, "");
     if (file != "")
     {
         read(file);

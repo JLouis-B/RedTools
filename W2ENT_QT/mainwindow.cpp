@@ -88,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(_ui->actionMaterials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
     QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
     QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
+    QObject::connect(_ui->actionDZIP_extractor, SIGNAL(triggered(bool)), this, SLOT(dzipExtractor()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
@@ -546,5 +547,11 @@ void MainWindow::bifExtractor()
 {
     tw1bifextractorUI* bif = new tw1bifextractorUI(this);
     bif->show();
+}
+
+void MainWindow::dzipExtractor()
+{
+    TW2_DZIP_ExtractorUI* dzip = new TW2_DZIP_ExtractorUI(this);
+    dzip->show();
 }
 

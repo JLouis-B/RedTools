@@ -7,6 +7,7 @@
 #include "resize.h"
 #include "cleantexturespath.h"
 #include "tw1bifextractorui.h"
+#include "TW2_DZIP_ExtractorUI.h"
 #include "MaterialsExplorer.h"
 
 #include <iostream>
@@ -51,6 +52,7 @@ public slots :
     void loadAnimations();
     void addMesh();
     void bifExtractor();
+    void dzipExtractor();
     void changeBaseDir(QString newDir);
 
 

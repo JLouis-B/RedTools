@@ -251,7 +251,7 @@
      <x>0</x>
      <y>0</y>
      <width>768</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
@@ -323,10 +323,17 @@
     </property>
     <addaction name="actionBIF_extractor"/>
    </widget>
+   <widget class="QMenu" name="menuThe_Witcher_2_tools">
+    <property name="title">
+     <string>The Witcher 2 tools</string>
+    </property>
+    <addaction name="actionDZIP_extractor"/>
+   </widget>
    <addaction name="menuMenu"/>
    <addaction name="menu_RE_tools"/>
-   <addaction name="menuThe_Witcher_3_tools"/>
    <addaction name="menuThe_Witcher_1_tools"/>
+   <addaction name="menuThe_Witcher_2_tools"/>
+   <addaction name="menuThe_Witcher_3_tools"/>
    <addaction name="menuDisplay"/>
    <addaction name="menuLanguages"/>
    <addaction name="menuHelp"/>
@@ -478,6 +485,11 @@
   <action name="actionMaterials_explorer">
    <property name="text">
     <string>Materials explorer</string>
+   </property>
+  </action>
+  <action name="actionDZIP_extractor">
+   <property name="text">
+    <string>DZIP extractor</string>
    </property>
   </action>
  </widget>

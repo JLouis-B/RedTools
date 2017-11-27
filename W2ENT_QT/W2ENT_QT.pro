@@ -41,7 +41,9 @@ SOURCES += main.cpp\
     LoadersUtils.cpp \
     W3_DataCache.cpp \
     MaterialsExplorer.cpp \
-    TW_Utils.cpp
+    TW_Utils.cpp \
+    TW2_DZIP_ExtractorUI.cpp \
+    TW2_DZIP_Extractor.cpp
 
 HEADERS  += mainwindow.h \
     qirrlichtwidget.h \
@@ -71,7 +73,9 @@ HEADERS  += mainwindow.h \
     LoadersUtils.h \
     W3_DataCache.h \
     MaterialsExplorer.h \
-    TW_Utils.h
+    TW_Utils.h \
+    TW2_DZIP_ExtractorUI.h \
+    TW2_DZIP_Extractor.h
 
 FORMS    += mainwindow.ui \
     options.ui \
@@ -80,14 +84,15 @@ FORMS    += mainwindow.ui \
     cleantexturespath.ui \
     extfiles.ui \
     tw1bifextractorui.ui \
-    MaterialsExplorer.ui
+    MaterialsExplorer.ui \
+    TW2_DZIP_ExtractorUI.ui
 
 # Change the paths here :
 LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\lib\Win32-gcc\libIrrlicht.a"
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\CB_build\code\libassimp.dll.a
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\code\libassimp.dll.a
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
 
 DISTFILES += \

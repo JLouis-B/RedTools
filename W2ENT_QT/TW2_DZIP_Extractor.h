@@ -29,6 +29,8 @@ private:
     QString _folder;
     bool _stopped;
 
+    QByteArray decompressLZF(QString filename);
+    void extractDecompressedFile(QBuffer& buffer, QString exportFolder);
 
 public slots :
     void run();

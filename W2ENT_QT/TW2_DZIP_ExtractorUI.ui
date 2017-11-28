@@ -24,7 +24,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_destFolder"/>
+      <widget class="QLineEdit" name="lineEdit_destFolder">
+       <property name="text">
+        <string>D:/TW2_files</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_selectDestFolder">
@@ -45,7 +49,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_dzipFile"/>
+      <widget class="QLineEdit" name="lineEdit_dzipFile">
+       <property name="text">
+        <string>D:/GalaxyGames/The Witcher 2/CookedPC/troll.dzip</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_select_dzipFile">
@@ -90,38 +98,5 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>TW2_DZIP_Extractor</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>TW2_DZIP_Extractor</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

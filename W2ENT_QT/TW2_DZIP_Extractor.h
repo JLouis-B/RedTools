@@ -14,6 +14,10 @@
 // LZF compression explained here :
 // https://en.wikibooks.org/wiki/Data_Compression/Dictionary_compression#LZF
 // https://github.com/ning/compress/wiki/LZFFormat
+// http://forum.xentax.com/viewtopic.php?f=10&t=6634&hilit=xbm&sid=b5dfb3488bf193d58b5e5c07d1a9b6cb
+
+// Reference code to unpack LZF :
+// http://svn.gib.me/public/red/trunk/Gibbed.RED.Unpack/Lzf.cs
 
 
 class TW2_DZIP_Extractor : public QObject
@@ -29,8 +33,9 @@ private:
     QString _folder;
     bool _stopped;
 
-    QByteArray decompressLZF(QString filename);
+    QByteArray readFile(QString filename);
     void extractDecompressedFile(QBuffer& buffer, QString exportFolder);
+    void decompressFile(QBuffer &buffer, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
 
 public slots :
     void run();

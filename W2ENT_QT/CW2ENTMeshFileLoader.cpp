@@ -477,7 +477,7 @@ bool CW2ENTMeshFileLoader::load(io::IReadFile* file)
             MeshesToLoad[MeshesToLoad.size()-1].nMat.push_back(nMat);
             nMat++;
 
-            log->addAndFlush("CMaterialInstance OK\n");
+            log->addLineAndFlush("CMaterialInstance OK");
         }
         else if (dataType == "CMesh")
         {

@@ -69,6 +69,7 @@ void TW2_DZIP_ExtractorUI::extract()
 
     _ui->pushButton_extract->setEnabled(false);
     _ui->label_status->setText("State : Working...");
+    extractSetProgress(0);
     _thread->start();
 }
 

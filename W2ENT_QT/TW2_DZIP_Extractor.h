@@ -33,9 +33,8 @@ private:
     QString _folder;
     bool _stopped;
 
-    QByteArray readFile(QString filename);
-    void extractDecompressedFile(QBuffer& buffer, QString exportFolder);
-    void decompressFile(QBuffer &buffer, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
+    void extractDecompressedFile(QFile &file, QString exportFolder);
+    void decompressFile(QFile &compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
 
 public slots :
     void run();

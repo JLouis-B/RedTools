@@ -13,89 +13,78 @@ void TW2_DZIP_Extractor::run()
 
 void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
 {
-    QByteArray decompressed = readFile(filename);
-
-    // parsing
-    QBuffer decompressedStream(&decompressed);
-    extractDecompressedFile(decompressedStream, exportFolder);
-
-    emit finished();
-}
-
-QByteArray TW2_DZIP_Extractor::readFile(QString filename)
-{
-    QByteArray decompressed;
     QFile dzipFile(filename);
     if (!dzipFile.open(QIODevice::ReadOnly))
     {
         emit error();
-        return decompressed;
     }
 
-    return dzipFile.readAll();
+    // parsing
+    extractDecompressedFile(dzipFile, exportFolder);
+
+    emit finished();
 }
 
-void TW2_DZIP_Extractor::extractDecompressedFile(QBuffer& buffer, QString exportFolder)
+void TW2_DZIP_Extractor::extractDecompressedFile(QFile& file, QString exportFolder)
 {
-    buffer.open(QIODevice::ReadOnly);
     char magic[5] = "\0";
-    buffer.read(magic, 4);
+    file.read(magic, 4);
     //std::cout << magic << std::endl;
 
     int unk1, filesCount, unk2;
     qint64 tableAdress;
-    buffer.read((char*)&unk1, 4);
-    buffer.read((char*)&filesCount, 4);
-    buffer.read((char*)&unk2, 4);
-    buffer.read((char*)&tableAdress, 8);
+    file.read((char*)&unk1, 4);
+    file.read((char*)&filesCount, 4);
+    file.read((char*)&unk2, 4);
+    file.read((char*)&tableAdress, 8);
 
     qint64 tablePosition = tableAdress;
 
     for (int i = 0; i < filesCount; ++i)
     {
-        buffer.seek(tablePosition);
+        file.seek(tablePosition);
 
-        short nsize;
-        buffer.read((char*)&nsize, 2);
+        unsigned short nsize;
+        file.read((char*)&nsize, 2);
 
-        char filename[nsize+1] = "\0";
-        buffer.read(filename, nsize);
+        char filename[nsize] = "\0";
+        file.read(filename, nsize);
         std::cout << filename << std::endl;
 
         int unk03, unk04;
         qint64 size, offset, zsize;
-        buffer.read((char*)&unk03, 4);
-        buffer.read((char*)&unk04, 4);
+        file.read((char*)&unk03, 4);
+        file.read((char*)&unk04, 4);
 
-        buffer.read((char*)&size, 8);
-        buffer.read((char*)&offset, 8);
-        buffer.read((char*)&zsize, 8);
+        file.read((char*)&size, 8);
+        file.read((char*)&offset, 8);
+        file.read((char*)&zsize, 8);
 
-        tablePosition = buffer.pos();
+        tablePosition = file.pos();
 
         /*
         std::cout << "size = " << size << std::endl;
         std::cout << "offset = " << offset << std::endl;
         std::cout << "zsize = " << zsize << std::endl;
         */
-        buffer.seek(offset);
+        file.seek(offset);
         int offsetAdd;
-        buffer.read((char*)&offsetAdd, 4);
-        int realOffset = buffer.pos() - 4 + offsetAdd;
+        file.read((char*)&offsetAdd, 4);
+        int realOffset = file.pos() - 4 + offsetAdd;
         zsize -= offsetAdd;
         //std::cout << "new zsize = " << zsize << std::endl;
 
-        buffer.seek(realOffset);
+        file.seek(realOffset);
         //std::cout << "seek to  = " << realOffset << std::endl;
 
-        decompressFile(buffer, zsize, size, exportFolder, filename);
+        decompressFile(file, zsize, size, exportFolder, QString(filename));
 
-        float progression = ((float)i+1 / (float)filesCount) * 100.f;
+        int progression = (float)((i+1) * 100) / (float)filesCount;
         emit onProgress(progression);
     }
 }
 
-void TW2_DZIP_Extractor::decompressFile(QBuffer& buffer, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+void TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // LZF decompression of the content of the file
     /*
@@ -130,7 +119,7 @@ void TW2_DZIP_Extractor::decompressFile(QBuffer& buffer, qint64 compressedSize, 
 
     // read the content of the file
     char* fileContent = new char[compressedSize];
-    buffer.read(fileContent, compressedSize);
+    compressedFile.read(fileContent, compressedSize);
     //std::cout << "fileContent ok" << std::endl;
 
     char* decompressedFileContent = new char[decompressedSize];
@@ -192,13 +181,26 @@ void TW2_DZIP_Extractor::decompressFile(QBuffer& buffer, qint64 compressedSize, 
     QDir dir = fileInfo.absoluteDir();
     if (dir.mkpath(dir.absolutePath()))
     {
-        QFile file(fullPath);
-        file.open(QIODevice::WriteOnly);
-        file.write(decompressedFileContent, decompressedPosition+1);
-        file.close();
+        QFile decompressedFile(fullPath);
+        if (decompressedFile.open(QIODevice::WriteOnly))
+        {
+            decompressedFile.write(decompressedFileContent, decompressedSize);
+            decompressedFile.close();
+        }
+        else
+            std::cout << "Fail to create file" << std::endl;
     }
     else
-        std::cout << "Fail to create" << std::endl;
+        std::cout << "Fail to create path" << std::endl;
+
+    if (decompressedSize != decompressedPosition)
+    {
+        std::cout << "decompressedSize=" << decompressedSize << std::endl;
+        std::cout << "decompressedPosition=" << decompressedPosition << std::endl;
+    }
+
+    delete[] fileContent;
+    delete[] decompressedFileContent;
 }
 
 void TW2_DZIP_Extractor::quitThread()

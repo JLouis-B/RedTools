@@ -1,4 +1,5 @@
 #include "TW2_DZIP_Extractor.h"
+#include "log.h"
 #include <iostream>
 
 TW2_DZIP_Extractor::TW2_DZIP_Extractor(QString file, QString folder) : _file(file), _folder(folder)
@@ -13,6 +14,7 @@ void TW2_DZIP_Extractor::run()
 
 void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
 {
+    Log::Instance()->addLineAndFlush(formatString("Decompress DZIP file %s", filename.toStdString().c_str()));
     QFile dzipFile(filename);
     if (!dzipFile.open(QIODevice::ReadOnly))
     {
@@ -22,6 +24,7 @@ void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
     // parsing
     extractDecompressedFile(dzipFile, exportFolder);
 
+    Log::Instance()->addLineAndFlush("Decompression finished");
     emit finished();
 }
 
@@ -49,59 +52,51 @@ void TW2_DZIP_Extractor::extractDecompressedFile(QFile& file, QString exportFold
 
         char filename[nsize] = "\0";
         file.read(filename, nsize);
-        std::cout << filename << std::endl;
+        //std::cout << filename << std::endl;
 
         int unk03, unk04;
-        qint64 size, offset, zsize;
+        qint64 compressedSize, offset, decompressedSize;
         file.read((char*)&unk03, 4);
         file.read((char*)&unk04, 4);
 
-        file.read((char*)&size, 8);
+        file.read((char*)&decompressedSize, 8);
         file.read((char*)&offset, 8);
-        file.read((char*)&zsize, 8);
+        file.read((char*)&compressedSize, 8);
 
         tablePosition = file.pos();
 
-        /*
-        std::cout << "size = " << size << std::endl;
-        std::cout << "offset = " << offset << std::endl;
-        std::cout << "zsize = " << zsize << std::endl;
-        */
+
+        //std::cout << "compressedSize = " << compressedSize << std::endl;
+        //std::cout << "offset = " << offset << std::endl;
+        //std::cout << "decompressedSize = " << decompressedSize << std::endl;
+
         file.seek(offset);
         int offsetAdd;
         file.read((char*)&offsetAdd, 4);
-        int realOffset = file.pos() - 4 + offsetAdd;
-        zsize -= offsetAdd;
-        //std::cout << "new zsize = " << zsize << std::endl;
+        qint64 realOffset = file.pos() - 4 + offsetAdd;
+        compressedSize -= offsetAdd;
 
         file.seek(realOffset);
         //std::cout << "seek to  = " << realOffset << std::endl;
 
-        decompressFile(file, zsize, size, exportFolder, QString(filename));
+        if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, QString(filename)))
+            Log::Instance()->addLineAndFlush(formatString("Fail to extract a file : %s", filename));
 
         int progression = (float)((i+1) * 100) / (float)filesCount;
         emit onProgress(progression);
     }
 }
 
-void TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // LZF decompression of the content of the file
     /*
     LZF is a fast compression algorithm that takes very little code space and working memory (assuming we have access to the most recent 8 kByte of decoded text).
-
     LibLZF by Marc Lehmann is designed to be a very small, very fast, very portable data compression library for the LZF compression algorithm.
     Clipboard
 
-
-    To do:
-    Is LZF also developed by Marc Lehmann ?.
-
-    [3] LibLZF source code [4] [5] [6] [7] [8] [9] [10] [11] [12]
-
     LZF is used in TuxOnIce and many other applications.
-
-    The LZF decoder inner loop is: [13] [14] [15] For each copy item, the LZF decoder first fetches a byte X from the compressed file, and breaks the byte X into a 3 bit length and a 5 bit high_distance. The decoder has 3 cases: length==0, length==7, and any other length.
+    The LZF decoder inner loop is: For each copy item, the LZF decoder first fetches a byte X from the compressed file, and breaks the byte X into a 3 bit length and a 5 bit high_distance. The decoder has 3 cases: length==0, length==7, and any other length.
 
             length == 0? (i.e., X in the range 0...31?) Literal: copy the next X+1 literal bytes from the compressed stream and pass them straight through to the current location in the decompressed stream.
             length in 1...6 ? short copy: Use that value as length (later interpreted as a length of 3 to 8 bytes).
@@ -134,7 +129,17 @@ void TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
         //std::cout << "Chunk : byte=" <<  (int)byte << ", length=" << (int)lengthHeader << ", high_distance=" << (int)high_distance << std::endl;
         if (lengthHeader == 0)
         {
+            // get the length of the content
             int length = (int)(byte + 1);
+
+            // 2 files in this case, don't know why
+            if (decompressedPosition + length > decompressedSize)
+            {
+                delete[] fileContent;
+                delete[] decompressedFileContent;
+                return false;
+            }
+
             // copy 'length bytes'
             memcpy(&decompressedFileContent[decompressedPosition], &fileContent[compressedPosition], length);
             decompressedPosition += length;
@@ -151,10 +156,16 @@ void TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
             length += 2;
 
             unsigned char low_distance = fileContent[compressedPosition++];
-            //std::cout << "low distance=" << (int)low_distance << std::endl;
             int distance = (high_distance << 8) | low_distance;
             //std::cout << "distance=" << distance << std::endl;
 
+            // 2 files in this case, don't know why
+            if (decompressedPosition + length > decompressedSize)
+            {
+                delete[] fileContent;
+                delete[] decompressedFileContent;
+                return false;
+            }
 
             int positionBack = decompressedPosition - 1 - distance;
             if (positionBack + length > decompressedPosition)
@@ -193,6 +204,7 @@ void TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
     else
         std::cout << "Fail to create path" << std::endl;
 
+    // issue here
     if (decompressedSize != decompressedPosition)
     {
         std::cout << "decompressedSize=" << decompressedSize << std::endl;
@@ -201,6 +213,8 @@ void TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
 
     delete[] fileContent;
     delete[] decompressedFileContent;
+
+    return true;
 }
 
 void TW2_DZIP_Extractor::quitThread()

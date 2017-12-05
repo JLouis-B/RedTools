@@ -34,7 +34,7 @@ private:
     bool _stopped;
 
     void extractDecompressedFile(QFile &file, QString exportFolder);
-    void decompressFile(QFile &compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
+    bool decompressFile(QFile &compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
 
 public slots :
     void run();

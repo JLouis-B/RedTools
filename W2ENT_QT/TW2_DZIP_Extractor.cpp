@@ -14,7 +14,7 @@ void TW2_DZIP_Extractor::run()
 
 void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
 {
-    Log::Instance()->addLineAndFlush(formatString("Decompress DZIP file %s", filename.toStdString().c_str()));
+    Log::Instance()->addLineAndFlush(formatString("DZIP: Decompress DZIP file %s", filename.toStdString().c_str()));
     QFile dzipFile(filename);
     if (!dzipFile.open(QIODevice::ReadOnly))
     {
@@ -24,7 +24,7 @@ void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
     // parsing
     extractDecompressedFile(dzipFile, exportFolder);
 
-    Log::Instance()->addLineAndFlush("Decompression finished");
+    Log::Instance()->addLineAndFlush("DZIP: Decompression finished");
     emit finished();
 }
 
@@ -80,49 +80,33 @@ void TW2_DZIP_Extractor::extractDecompressedFile(QFile& file, QString exportFold
         //std::cout << "seek to  = " << realOffset << std::endl;
 
         if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, QString(filename)))
-            Log::Instance()->addLineAndFlush(formatString("Fail to extract a file : %s", filename));
+            Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename));
 
         int progression = (float)((i+1) * 100) / (float)filesCount;
         emit onProgress(progression);
+
+        if (_stopped)
+        {
+            Log::Instance()->addLineAndFlush("DZIP: Decompression stopped");
+            break;
+        }
     }
 }
 
 bool TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
-    // LZF decompression of the content of the file
-    /*
-    LZF is a fast compression algorithm that takes very little code space and working memory (assuming we have access to the most recent 8 kByte of decoded text).
-    LibLZF by Marc Lehmann is designed to be a very small, very fast, very portable data compression library for the LZF compression algorithm.
-    Clipboard
-
-    LZF is used in TuxOnIce and many other applications.
-    The LZF decoder inner loop is: For each copy item, the LZF decoder first fetches a byte X from the compressed file, and breaks the byte X into a 3 bit length and a 5 bit high_distance. The decoder has 3 cases: length==0, length==7, and any other length.
-
-            length == 0? (i.e., X in the range 0...31?) Literal: copy the next X+1 literal bytes from the compressed stream and pass them straight through to the current location in the decompressed stream.
-            length in 1...6 ? short copy: Use that value as length (later interpreted as a length of 3 to 8 bytes).
-            length == 7? long copy: fetch a new length byte and add 7. The new byte could have any value 0 to 255, so the sum is 7 to 262 (which is later interpreted as 9 to 264 bytes).
-            Either kind of copy: Fetch a low_distance byte, and combine it with the 5 high_distance bits to get a 13-bit distance. (This implies a 2^13 = 8KByte window).
-            Either kind of copy: Find the text that starts that "distance" back from the current end of decoded text, and copy "length+2" characters from that previously-decoded text to end of the decoded text.
-        Repeat from the beginning until there is no more items in the compressed file.
-
-    Each LZF "item" is one of these 3 formats:
-
-        000LLLLL <L+1>  ; literal reference
-        LLLddddd dddddddd  ; copy L+2 from d bytes before most recently decoded byte
-        111ddddd LLLLLLLL dddddddd  ; copy L+2+7 from d bytes before most recently decoded byte
-    */
+    // Check TW2_DZIP_Extractor to find some good ref about this
 
     // read the content of the file
     char* fileContent = new char[compressedSize];
     compressedFile.read(fileContent, compressedSize);
-    //std::cout << "fileContent ok" << std::endl;
 
     char* decompressedFileContent = new char[decompressedSize];
     qint64 compressedPosition = 0, decompressedPosition = 0;
     while (compressedPosition < compressedSize)
     {
         unsigned char byte = fileContent[compressedPosition++];
-        unsigned char lengthHeader   = (byte >> 5); //(byte & 0b11100000) >> 5;
+        unsigned char lengthHeader   = (byte & 0b11100000) >> 5;
         unsigned char high_distance  = (byte & 0b00011111);
 
         //std::cout << "Compressed cursor=" << compressedPosition << ", decompredd cursor = " << decompressedPosition << std::endl;
@@ -187,7 +171,7 @@ bool TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
 
     // create the file
     QString fullPath = exportFolder + "/" + filename;
-    std::cout << fullPath.toStdString().c_str() << std::endl;
+    //std::cout << fullPath.toStdString().c_str() << std::endl;
     QFileInfo fileInfo(fullPath);
     QDir dir = fileInfo.absoluteDir();
     if (dir.mkpath(dir.absolutePath()))
@@ -199,16 +183,15 @@ bool TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
             decompressedFile.close();
         }
         else
-            std::cout << "Fail to create file" << std::endl;
+            Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to create file %s", fullPath.toStdString().c_str()));
     }
     else
-        std::cout << "Fail to create path" << std::endl;
+        Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
 
-    // issue here
+    // not supposed to happen
     if (decompressedSize != decompressedPosition)
     {
-        std::cout << "decompressedSize=" << decompressedSize << std::endl;
-        std::cout << "decompressedPosition=" << decompressedPosition << std::endl;
+        Log::Instance()->addLineAndFlush(formatString("DZIP: decompressedSize != decompressedPosition : %s", fullPath.toStdString().c_str()));
     }
 
     delete[] fileContent;

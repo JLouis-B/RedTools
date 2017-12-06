@@ -1,12 +1,12 @@
-#include "tw1bifextractorui.h"
-#include "ui_tw1bifextractorui.h"
+#include "ExtractorUI_TW1_BIF.h"
+#include "ui_ExtractorUI_TW1_BIF.h"
 
 
 #include <iostream>
 
-tw1bifextractorUI::tw1bifextractorUI(QWidget *parent) :
+ExtractorUI_TW1_BIF::ExtractorUI_TW1_BIF(QWidget *parent) :
     QDialog(parent),
-    _ui(new Ui::tw1bifextractorUI)
+    _ui(new Ui::ExtractorUI_TW1_BIF)
 {
     _ui->setupUi(this);
     _thread = 0;
@@ -20,12 +20,12 @@ tw1bifextractorUI::tw1bifextractorUI(QWidget *parent) :
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
-tw1bifextractorUI::~tw1bifextractorUI()
+ExtractorUI_TW1_BIF::~ExtractorUI_TW1_BIF()
 {
     delete _ui;
 }
 
-void tw1bifextractorUI::destroyWindow()
+void ExtractorUI_TW1_BIF::destroyWindow()
 {
     if (_thread)
     {
@@ -36,21 +36,21 @@ void tw1bifextractorUI::destroyWindow()
     delete this;
 }
 
-void tw1bifextractorUI::selectFolder()
+void ExtractorUI_TW1_BIF::selectFolder()
 {
     QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
     if (dir != "")
         _ui->lineEdit_exportFolder->setText(dir);
 }
 
-void tw1bifextractorUI::selectFile()
+void ExtractorUI_TW1_BIF::selectFile()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Select a KEY file");
     if (filename != "")
         _ui->lineEdit_keyFile->setText(filename);
 }
 
-void tw1bifextractorUI::extract()
+void ExtractorUI_TW1_BIF::extract()
 {
     const QString file = _ui->lineEdit_keyFile->text();
     const QString folder = _ui->lineEdit_exportFolder->text();
@@ -63,7 +63,7 @@ void tw1bifextractorUI::extract()
     }
 
     _thread = new QThread();
-    _extractor = new TW1bifExtractor(file, folder);
+    _extractor = new Extractor_TW1_BIF(file, folder);
     _extractor->moveToThread(_thread);
 
     QObject::connect(_thread, SIGNAL(started()), _extractor, SLOT(run()));
@@ -78,12 +78,12 @@ void tw1bifextractorUI::extract()
 }
 
 
-void tw1bifextractorUI::extractSetProgress(int value)
+void ExtractorUI_TW1_BIF::extractSetProgress(int value)
 {
     _ui->progressBar->setValue(value);
 }
 
-void tw1bifextractorUI::killExtractThread()
+void ExtractorUI_TW1_BIF::killExtractThread()
 {
     if (!_thread || !_extractor)
         return;
@@ -96,7 +96,7 @@ void tw1bifextractorUI::killExtractThread()
     _extractor = 0;
 }
 
-void tw1bifextractorUI::extractEnd()
+void ExtractorUI_TW1_BIF::extractEnd()
 {
     _ui->progressBar->setValue(_ui->progressBar->maximum());
     _ui->label_state->setText("State : End");
@@ -105,7 +105,7 @@ void tw1bifextractorUI::extractEnd()
     killExtractThread();
 }
 
-void tw1bifextractorUI::extractFail()
+void ExtractorUI_TW1_BIF::extractFail()
 {
     _ui->progressBar->setValue(_ui->progressBar->maximum());
     _ui->label_state->setText("State : Fatal error during the extraction.");

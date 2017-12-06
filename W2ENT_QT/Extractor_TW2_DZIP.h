@@ -20,11 +20,11 @@
 // http://svn.gib.me/public/red/trunk/Gibbed.RED.Unpack/Lzf.cs
 
 
-class TW2_DZIP_Extractor : public QObject
+class Extractor_TW2_DZIP : public QObject
 {
     Q_OBJECT
 public:
-    explicit TW2_DZIP_Extractor(QString file = "", QString folder = "");
+    explicit Extractor_TW2_DZIP(QString file = "", QString folder = "");
 
 private:
     void extractDZIP(QString exportFolder, QString filename);

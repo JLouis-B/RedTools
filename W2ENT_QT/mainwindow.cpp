@@ -545,13 +545,13 @@ void MainWindow::extFiles()
 
 void MainWindow::bifExtractor()
 {
-    tw1bifextractorUI* bif = new tw1bifextractorUI(this);
+    ExtractorUI_TW1_BIF* bif = new ExtractorUI_TW1_BIF(this);
     bif->show();
 }
 
 void MainWindow::dzipExtractor()
 {
-    TW2_DZIP_ExtractorUI* dzip = new TW2_DZIP_ExtractorUI(this);
+    ExtractorUI_TW2_DZIP* dzip = new ExtractorUI_TW2_DZIP(this);
     dzip->show();
 }
 

@@ -1,45 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>tw1bifextractorUI</class>
- <widget class="QDialog" name="tw1bifextractorUI">
+ <class>ExtractorUI_TW2_DZIP</class>
+ <widget class="QDialog" name="ExtractorUI_TW2_DZIP">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>261</height>
+    <height>237</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>TW1 BIF extractor</string>
+   <string>TW2 DZIP extractor</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label_title">
+    <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>The Witcher 1 BIF extractor</string>
+      <string>The Witcher 2 DZIP extractor</string>
      </property>
     </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="label_keyFile">
+      <widget class="QLabel" name="label_destFolder">
        <property name="text">
-        <string>Key file :</string>
+        <string>Destination folder :</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_keyFile"/>
+      <widget class="QLineEdit" name="lineEdit_destFolder">
+       <property name="text">
+        <string>D:/TW2_files</string>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_selectFile">
+      <widget class="QPushButton" name="pushButton_selectDestFolder">
        <property name="text">
         <string>...</string>
        </property>
@@ -48,19 +54,23 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label_exportFolder">
+      <widget class="QLabel" name="label_dzipFile">
        <property name="text">
-        <string>Destination folder :</string>
+        <string>DZIP File :</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_exportFolder"/>
+      <widget class="QLineEdit" name="lineEdit_dzipFile">
+       <property name="text">
+        <string>D:/GalaxyGames/The Witcher 2/CookedPC/troll.dzip</string>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_selectFolder">
+      <widget class="QPushButton" name="pushButton_select_dzipFile">
        <property name="text">
         <string>...</string>
        </property>
@@ -76,7 +86,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_state">
+    <widget class="QLabel" name="label_status">
      <property name="text">
       <string>State : Waiting</string>
      </property>
@@ -102,38 +112,5 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>tw1bifextractorUI</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>tw1bifextractorUI</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

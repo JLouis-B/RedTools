@@ -1,5 +1,5 @@
-#include "tw1bifextractor.h"
-#include <iostream>
+#include "Extractor_TW1_BIF.h"
+#include "log.h"
 
 bool operator< (const ResourceId& a, const ResourceId& b)
 {
@@ -9,7 +9,7 @@ bool operator< (const ResourceId& a, const ResourceId& b)
     return a._resourceId < b._resourceId;
 }
 
-TW1bifExtractor::TW1bifExtractor(QString file, QString folder): _file(file), _folder(folder)
+Extractor_TW1_BIF::Extractor_TW1_BIF(QString file, QString folder): _file(file), _folder(folder)
 {
     _fileTypes = getResourceTypeMap();
     _nbProgress = 0;
@@ -17,7 +17,7 @@ TW1bifExtractor::TW1bifExtractor(QString file, QString folder): _file(file), _fo
     _stopped = false;
 }
 
-void TW1bifExtractor::run()
+void Extractor_TW1_BIF::run()
 {
     extractKeyBIF(_folder, _file);
 }
@@ -27,7 +27,7 @@ void relativeSeek(QFile* buf, int value)
     buf->seek(buf->pos() + value);
 }
 
-QString TW1bifExtractor::getExtensionFromResourceType(unsigned short resourceType)
+QString Extractor_TW1_BIF::getExtensionFromResourceType(unsigned short resourceType)
 {
     QMap<unsigned short, QString>::iterator it = _fileTypes.find(resourceType);
     if (it == _fileTypes.end())
@@ -36,8 +36,9 @@ QString TW1bifExtractor::getExtensionFromResourceType(unsigned short resourceTyp
         return "." + it.value();
 }
 
-void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
+void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString filename)
 {
+    Log::Instance()->addLineAndFlush(formatString("BIF: Decompress file %s", filename.toStdString().c_str()));
     QFile bifFile(filename);
 
     QFileInfo fileInf(bifFile);
@@ -46,6 +47,7 @@ void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
 
     if (!bifFile.open(QIODevice::ReadOnly))
     {
+        Log::Instance()->addLineAndFlush(formatString("BIF: Fail to open %s", filename.toStdString().c_str()));
         emit error();
         return;
     }
@@ -59,7 +61,7 @@ void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
     bifFile.read((char*)&nbFiles, 4);
     bifFile.read((char*)&nbKeys, 4);
 
-    std::cout << "nbFiles = " << nbFiles << std::endl;
+    Log::Instance()->addLineAndFlush(formatString("nbFiles = %d", nbFiles));
 
     relativeSeek(&bifFile, 4);
 
@@ -67,7 +69,6 @@ void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
     bifFile.read((char*)&keysOffset, 4);
 
 
-    std::cout << "keyTable" << std::endl;
     bifFile.seek(keysOffset);
     for (unsigned int i = 0; i < nbKeys; ++i)
     {
@@ -127,12 +128,13 @@ void TW1bifExtractor::extractKeyBIF(QString exportFolder, QString filename)
     }
     _resources.clear();
 
+    Log::Instance()->addLineAndFlush("BIF: Decompression finished");
     emit finished();
 }
 
-void TW1bifExtractor::extractBIF(QString exportFolder, QString filename, unsigned int bifId)
+void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsigned int bifId)
 {
-    std::cout << "Read bif"<< std::endl;
+    Log::Instance()->addLineAndFlush("Read BIF");
     QFile bifFile(filename);
 
     QFileInfo fileInf(bifFile);
@@ -140,19 +142,17 @@ void TW1bifExtractor::extractBIF(QString exportFolder, QString filename, unsigne
     const QString newFileFolder = exportFolder + "/" + baseFilename + "/";
 
     if (!bifFile.open(QIODevice::ReadOnly))
+    {
+        Log::Instance()->addLineAndFlush(formatString("BIF: Fail to open BIF file %s", filename.toStdString().c_str()));
         return;
-
-    /*
-
-    QByteArray bifContent = bifFile.readAll();
-    QBuffer buffer(&bifContent, 0);
-    if (!buffer.open(QIODevice::ReadOnly))
-        return;
-    */
-
+    }
 
     QDir dir;
-    dir.mkdir(newFileFolder);
+    if (!dir.mkdir(newFileFolder))
+    {
+        Log::Instance()->addLineAndFlush(formatString("BIF: Fail to mkdir %s", newFileFolder.toStdString().c_str()));
+        return;
+    }
 
     // magic word "BIFFV1.1"
     bifFile.seek(8);
@@ -207,10 +207,14 @@ void TW1bifExtractor::extractBIF(QString exportFolder, QString filename, unsigne
         else
             filename = QString::number(i);
 
-        QString extension = getExtensionFromResourceType(resourceType);
-        QFile newFile(newFileFolder + filename + extension);
+        const QString extension = getExtensionFromResourceType(resourceType);
+        const QString newFileFilename = newFileFolder + filename + extension;
+        QFile newFile(newFileFilename);
         if (!newFile.open(QIODevice::WriteOnly))
+        {
+            Log::Instance()->addLineAndFlush(formatString("BIF: Fail to open decompressed file %s", newFileFilename.toStdString().c_str()));
             return;
+        }
         newFile.write(fileData);
         newFile.close();
 
@@ -228,15 +232,16 @@ void TW1bifExtractor::extractBIF(QString exportFolder, QString filename, unsigne
             break;
     }
     bifFile.close();
+    Log::Instance()->addLineAndFlush("Read BIF OK");
 }
 
-void TW1bifExtractor::quitThread()
+void Extractor_TW1_BIF::quitThread()
 {
     _stopped = true;
 }
 
 
-QMap<unsigned short, QString> TW1bifExtractor::getResourceTypeMap()
+QMap<unsigned short, QString> Extractor_TW1_BIF::getResourceTypeMap()
 {
     QMap<unsigned short, QString> m;
     m.insert(0x0000, "res");

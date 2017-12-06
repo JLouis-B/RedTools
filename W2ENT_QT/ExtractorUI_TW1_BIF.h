@@ -1,27 +1,27 @@
-#ifndef TW1BIFEXTRACTORUI_H
-#define TW1BIFEXTRACTORUI_H
+#ifndef EXTRACTORUI_TW1_BIF_H
+#define EXTRACTORUI_TW1_BIF_H
 
-#include "tw1bifextractor.h"
+#include "Extractor_TW1_BIF.h"
 #include <QDialog>
 #include <QFileDialog>
 #include <QtConcurrent>
 
 namespace Ui {
-class tw1bifextractorUI;
+class ExtractorUI_TW1_BIF;
 }
 
-class tw1bifextractorUI : public QDialog
+class ExtractorUI_TW1_BIF : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit tw1bifextractorUI(QWidget *parent = 0);
-    ~tw1bifextractorUI();
+    explicit ExtractorUI_TW1_BIF(QWidget *parent = 0);
+    ~ExtractorUI_TW1_BIF();
 
 private:
-    Ui::tw1bifextractorUI *_ui;
+    Ui::ExtractorUI_TW1_BIF *_ui;
     QThread* _thread;
-    TW1bifExtractor* _extractor;
+    Extractor_TW1_BIF* _extractor;
 
 public slots:
     void destroyWindow();
@@ -36,4 +36,4 @@ public slots:
     void killExtractThread();
 };
 
-#endif // TW1BIFEXTRACTORUI_H
+#endif // EXTRACTORUI_TW1_BIF_H

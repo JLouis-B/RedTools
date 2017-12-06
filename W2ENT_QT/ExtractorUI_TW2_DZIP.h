@@ -1,23 +1,23 @@
-#ifndef TW2_DZIP_EXTRACTORUI_H
-#define TW2_DZIP_EXTRACTORUI_H
+#ifndef EXTRACTORUI_TW2_DZIP_H
+#define EXTRACTORUI_TW2_DZIP_H
 
 #include <QDialog>
 #include <QFileDialog>
 #include <QtConcurrent>
 
-#include "TW2_DZIP_Extractor.h"
+#include "Extractor_TW2_DZIP.h"
 
 namespace Ui {
-class TW2_DZIP_ExtractorUI;
+class ExtractorUI_TW2_DZIP;
 }
 
-class TW2_DZIP_ExtractorUI : public QDialog
+class ExtractorUI_TW2_DZIP : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit TW2_DZIP_ExtractorUI(QWidget *parent = 0);
-    ~TW2_DZIP_ExtractorUI();
+    explicit ExtractorUI_TW2_DZIP(QWidget *parent = 0);
+    ~ExtractorUI_TW2_DZIP();
 
 public slots:
     void destroyWindow();
@@ -32,9 +32,9 @@ public slots:
     void killExtractThread();
 
 private:
-    Ui::TW2_DZIP_ExtractorUI* _ui;
+    Ui::ExtractorUI_TW2_DZIP* _ui;
     QThread* _thread;
-    TW2_DZIP_Extractor* _extractor;
+    Extractor_TW2_DZIP* _extractor;
 };
 
-#endif // TW2_DZIP_EXTRACTOR_UI_H
+#endif // EXTRACTORUI_TW2_DZIP_H

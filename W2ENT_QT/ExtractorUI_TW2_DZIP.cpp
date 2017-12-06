@@ -1,9 +1,9 @@
-#include "TW2_DZIP_ExtractorUI.h"
-#include "ui_TW2_DZIP_ExtractorUI.h"
+#include "ExtractorUI_TW2_DZIP.h"
+#include "ui_ExtractorUI_TW2_DZIP.h"
 
-TW2_DZIP_ExtractorUI::TW2_DZIP_ExtractorUI(QWidget *parent) :
+ExtractorUI_TW2_DZIP::ExtractorUI_TW2_DZIP(QWidget *parent) :
     QDialog(parent),
-    _ui(new Ui::TW2_DZIP_ExtractorUI),
+    _ui(new Ui::ExtractorUI_TW2_DZIP),
     _extractor(nullptr),
     _thread(nullptr)
 {
@@ -17,12 +17,12 @@ TW2_DZIP_ExtractorUI::TW2_DZIP_ExtractorUI(QWidget *parent) :
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
-TW2_DZIP_ExtractorUI::~TW2_DZIP_ExtractorUI()
+ExtractorUI_TW2_DZIP::~ExtractorUI_TW2_DZIP()
 {
     delete _ui;
 }
 
-void TW2_DZIP_ExtractorUI::destroyWindow()
+void ExtractorUI_TW2_DZIP::destroyWindow()
 {
     if (_thread)
     {
@@ -33,21 +33,21 @@ void TW2_DZIP_ExtractorUI::destroyWindow()
     delete this;
 }
 
-void TW2_DZIP_ExtractorUI::selectFolder()
+void ExtractorUI_TW2_DZIP::selectFolder()
 {
     QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
     if (dir != "")
         _ui->lineEdit_destFolder->setText(dir);
 }
 
-void TW2_DZIP_ExtractorUI::selectFile()
+void ExtractorUI_TW2_DZIP::selectFile()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Select a DZIP file");
     if (filename != "")
         _ui->lineEdit_dzipFile->setText(filename);
 }
 
-void TW2_DZIP_ExtractorUI::extract()
+void ExtractorUI_TW2_DZIP::extract()
 {
     const QString file = _ui->lineEdit_dzipFile->text();
     const QString folder = _ui->lineEdit_destFolder->text();
@@ -60,7 +60,7 @@ void TW2_DZIP_ExtractorUI::extract()
     }
 
     _thread = new QThread();
-    _extractor = new TW2_DZIP_Extractor(file, folder);
+    _extractor = new Extractor_TW2_DZIP(file, folder);
     _extractor->moveToThread(_thread);
 
     QObject::connect(_thread, SIGNAL(started()), _extractor, SLOT(run()));
@@ -75,12 +75,12 @@ void TW2_DZIP_ExtractorUI::extract()
     _thread->start();
 }
 
-void TW2_DZIP_ExtractorUI::extractSetProgress(int value)
+void ExtractorUI_TW2_DZIP::extractSetProgress(int value)
 {
     _ui->progressBar->setValue(value);
 }
 
-void TW2_DZIP_ExtractorUI::killExtractThread()
+void ExtractorUI_TW2_DZIP::killExtractThread()
 {
     if (!_thread || !_extractor)
         return;
@@ -93,7 +93,7 @@ void TW2_DZIP_ExtractorUI::killExtractThread()
     _extractor = nullptr;
 }
 
-void TW2_DZIP_ExtractorUI::extractEnd()
+void ExtractorUI_TW2_DZIP::extractEnd()
 {
     _ui->progressBar->setValue(_ui->progressBar->maximum());
     _ui->label_status->setText("State : End");
@@ -102,7 +102,7 @@ void TW2_DZIP_ExtractorUI::extractEnd()
     killExtractThread();
 }
 
-void TW2_DZIP_ExtractorUI::extractFail()
+void ExtractorUI_TW2_DZIP::extractFail()
 {
     _ui->progressBar->setValue(_ui->progressBar->maximum());
     _ui->label_status->setText("State : Fatal error during the extraction.");

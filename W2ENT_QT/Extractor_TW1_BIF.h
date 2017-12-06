@@ -26,7 +26,7 @@ public:
 
 bool operator< (const ResourceId& a, const ResourceId& b);
 
-class TW1bifExtractor : public QObject
+class Extractor_TW1_BIF : public QObject
 {
     Q_OBJECT
 
@@ -44,7 +44,7 @@ class TW1bifExtractor : public QObject
 
 
 public:
-    TW1bifExtractor(QString file = "", QString folder = "");
+    Extractor_TW1_BIF(QString file = "", QString folder = "");
     void extractBIF(QString exportFolder, QString filename, unsigned int bifId = 0);
     void extractKeyBIF(QString exportFolder, QString filename);
 

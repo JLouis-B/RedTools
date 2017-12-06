@@ -6,8 +6,8 @@
 #include "options.h"
 #include "resize.h"
 #include "cleantexturespath.h"
-#include "tw1bifextractorui.h"
-#include "TW2_DZIP_ExtractorUI.h"
+#include "ExtractorUI_TW1_BIF.h"
+#include "ExtractorUI_TW2_DZIP.h"
 #include "MaterialsExplorer.h"
 
 #include <iostream>

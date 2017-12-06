@@ -1,18 +1,18 @@
-#include "TW2_DZIP_Extractor.h"
+#include "Extractor_TW2_DZIP.h"
 #include "log.h"
 #include <iostream>
 
-TW2_DZIP_Extractor::TW2_DZIP_Extractor(QString file, QString folder) : _file(file), _folder(folder)
+Extractor_TW2_DZIP::Extractor_TW2_DZIP(QString file, QString folder) : _file(file), _folder(folder)
 {
     _stopped = false;
 }
 
-void TW2_DZIP_Extractor::run()
+void Extractor_TW2_DZIP::run()
 {
     extractDZIP(_folder, _file);
 }
 
-void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
+void Extractor_TW2_DZIP::extractDZIP(QString exportFolder, QString filename)
 {
     Log::Instance()->addLineAndFlush(formatString("DZIP: Decompress DZIP file %s", filename.toStdString().c_str()));
     QFile dzipFile(filename);
@@ -28,7 +28,7 @@ void TW2_DZIP_Extractor::extractDZIP(QString exportFolder, QString filename)
     emit finished();
 }
 
-void TW2_DZIP_Extractor::extractDecompressedFile(QFile& file, QString exportFolder)
+void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFolder)
 {
     char magic[5] = "\0";
     file.read(magic, 4);
@@ -93,7 +93,7 @@ void TW2_DZIP_Extractor::extractDecompressedFile(QFile& file, QString exportFold
     }
 }
 
-bool TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // Check TW2_DZIP_Extractor to find some good ref about this
 
@@ -200,7 +200,7 @@ bool TW2_DZIP_Extractor::decompressFile(QFile& compressedFile, qint64 compressed
     return true;
 }
 
-void TW2_DZIP_Extractor::quitThread()
+void Extractor_TW2_DZIP::quitThread()
 {
     _stopped = true;
 }

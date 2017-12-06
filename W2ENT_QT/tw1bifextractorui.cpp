@@ -16,6 +16,8 @@ tw1bifextractorUI::tw1bifextractorUI(QWidget *parent) :
     QObject::connect(_ui->pushButton_selectFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
     QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(extract()));
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
+
+    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 tw1bifextractorUI::~tw1bifextractorUI()

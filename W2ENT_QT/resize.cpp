@@ -39,6 +39,8 @@ ReSize::ReSize(QWidget *parent) :
 
     _initialUnit = _unit;
     _initialDimensions = _dimensions;
+
+    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 ReSize::~ReSize()

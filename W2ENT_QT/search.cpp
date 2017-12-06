@@ -19,7 +19,9 @@ Search::Search(QWidget *parent) :
     QObject::connect(_ui->pushButton_reset, SIGNAL(clicked()), this, SLOT(resetExtensionsFilter()));
     QObject::connect(_ui->listWidget_results, SIGNAL(currentRowChanged(int)), this, SLOT(enableButton()));
 
-    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));  
+    QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
+
+    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 Search::~Search()

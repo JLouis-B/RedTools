@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <iostream>
 
-#include "settings.h"
+#include "Settings.h"
 
 class Translator
 {

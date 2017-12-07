@@ -14,78 +14,80 @@ TEMPLATE = app
 RC_FILE = app.rc
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    qirrlichtwidget.cpp \
-    options.cpp \
-    search.cpp \
-    translator.cpp \
-    resize.cpp \
-    CREMeshWriter.cpp \
-    CW2ENTMeshFileLoader.cpp \
     IrrAssimp/IrrAssimp.cpp \
     IrrAssimp/IrrAssimpExport.cpp \
     IrrAssimp/IrrAssimpImport.cpp \
-    CW3ENTMeshFileLoader.cpp \
-    cleantexturespath.cpp \
-    extfiles.cpp \
-    log.cpp \
-    utils.cpp \
     IrrAssimp/IrrAssimpUtils.cpp \
-    CREMeshFileLoader.cpp \
-    CSkeleton.cpp \
-    settings.cpp \
-    meshcombiner.cpp \
-    tw1bifextractor.cpp \
-    tw1bifextractorui.cpp \
-    CWitcherMDLMeshFileLoader.cpp \
-    LoadersUtils.cpp \
-    W3_DataCache.cpp \
-    MaterialsExplorer.cpp \
-    TW_Utils.cpp \
-    TW2_DZIP_ExtractorUI.cpp \
-    TW2_DZIP_Extractor.cpp
+    Extractor_TW1_BIF.cpp \
+    Extractor_TW2_DZIP.cpp \
+    GUI_ExtFilesExplorer.cpp \
+    GUI_Extractor_TW2_DZIP.cpp \
+    GUI_Extractor_TW1_BIF.cpp \
+    GUI_MaterialsExplorer.cpp \
+    GUI_MainWindow.cpp \
+    GUI_Options.cpp \
+    Log.cpp \
+    GUI_Search.cpp \
+    Settings.cpp \
+    GUI_Resize.cpp \
+    Translator.cpp \
+    QIrrlichtWidget.cpp \
+    MeshCombiner.cpp \
+    TW3_DataCache.cpp \
+    GUI_CleanTexturesPath.cpp \
+    Utils.cpp \
+    Utils_TW.cpp \
+    IO_MeshLoader_W3ENT.cpp \
+    IO_MeshLoader_W2ENT.cpp \
+    IO_MeshLoader_WitcherMDL.cpp \
+    IO_MeshLoader_RE.cpp \
+    IO_MeshWriter_RE.cpp \
+    Utils_Loaders.cpp \
+    TW3_CSkeleton.cpp
 
-HEADERS  += mainwindow.h \
-    qirrlichtwidget.h \
-    options.h \
-    search.h \
-    translator.h \
-    resize.h \
-    CREMeshWriter.h \
-    CW2ENTMeshFileLoader.h \
+HEADERS  += \
     IrrAssimp/IrrAssimp.h \
     IrrAssimp/IrrAssimpExport.h \
     IrrAssimp/IrrAssimpImport.h \
-    CW3ENTMeshFileLoader.h \
-    cleantexturespath.h \
-    extfiles.h \
-    log.h \
-    utils.h \
     IrrAssimp/IrrAssimpUtils.h \
-    CREMeshFileLoader.h \
-    CSkeleton.h \
-    settings.h \
-    halffloat.h \
-    meshcombiner.h \
-    tw1bifextractor.h \
-    tw1bifextractorui.h \
-    CWitcherMDLMeshFileLoader.h \
-    LoadersUtils.h \
-    W3_DataCache.h \
-    MaterialsExplorer.h \
-    TW_Utils.h \
-    TW2_DZIP_ExtractorUI.h \
-    TW2_DZIP_Extractor.h
+    Extractor_TW1_BIF.h \
+    Extractor_TW2_DZIP.h \
+    GUI_ExtFilesExplorer.h \
+    GUI_Extractor_TW2_DZIP.h \
+    GUI_Extractor_TW1_BIF.h \
+    Settings.h \
+    GUI_Search.h \
+    GUI_Resize.h \
+    GUI_Options.h \
+    TW3_DataCache.h \
+    MeshCombiner.h \
+    Log.h \
+    Translator.h \
+    GUI_CleanTexturesPath.h \
+    QIrrlichtWidget.h \
+    GUI_MainWindow.h \
+    GUI_MaterialsExplorer.h \
+    Utils_TW.h \
+    IO_MeshLoader_WitcherMDL.h \
+    IO_MeshLoader_W3ENT.h \
+    IO_MeshLoader_W2ENT.h \
+    IO_MeshWriter_RE.h \
+    IO_MeshLoader_RE.h \
+    Utils_Loaders.h \
+    Utils_Qt_Irr.h \
+    TW3_CSkeleton.h \
+    Utils_Halffloat.h
 
-FORMS    += mainwindow.ui \
-    options.ui \
-    search.ui \
-    resize.ui \
-    cleantexturespath.ui \
-    extfiles.ui \
-    tw1bifextractorui.ui \
-    MaterialsExplorer.ui \
-    TW2_DZIP_ExtractorUI.ui
+FORMS    += \
+    GUI_ExtFilesExplorer.ui \
+    GUI_Extractor_TW2_DZIP.ui \
+    GUI_Extractor_TW1_BIF.ui \
+    GUI_Search.ui \
+    GUI_MainWindow.ui \
+    GUI_MaterialsExplorer.ui \
+    GUI_Options.ui \
+    GUI_Resize.ui \
+    GUI_CleanTexturesPath.ui
 
 # Change the paths here :
 LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\lib\Win32-gcc\libIrrlicht.a"

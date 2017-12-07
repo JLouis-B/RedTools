@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "Utils_Qt_Irr.h"
 
 QString PATH_TO_QSTRING(irr::io::path path)
 {

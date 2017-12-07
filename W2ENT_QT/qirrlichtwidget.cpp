@@ -1,4 +1,4 @@
-#include "qirrlichtwidget.h"
+#include "QIrrlichtWidget.h"
 #include <iostream>
 
 using namespace irr;
@@ -36,7 +36,7 @@ bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedback
         return false;
     }
 
-    scene::CW3ENTMeshFileLoader loader(_device->getSceneManager(), _device->getFileSystem());
+    scene::IO_MeshLoader_W3ENT loader(_device->getSceneManager(), _device->getFileSystem());
 
     scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), true);
 
@@ -68,14 +68,14 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
         return false;
     }
 
-    scene::CW3ENTMeshFileLoader loader(_device->getSceneManager(), _device->getFileSystem());
+    scene::IO_MeshLoader_W3ENT loader(_device->getSceneManager(), _device->getFileSystem());
     scene::IAnimatedMesh* mesh = loader.createMesh(file);
     file->drop();
 
     if (mesh)
         mesh->drop();
 
-    CSkeleton skeleton = loader.Skeleton;
+    TW3_CSkeleton skeleton = loader.Skeleton;
 
     scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), false);
 
@@ -86,8 +86,8 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
         feedbackMessage = "The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?";
 
     // Apply the skinning
-    W3_DataCache::_instance.setOwner(newMesh);
-    W3_DataCache::_instance.apply();
+    TW3_DataCache::_instance.setOwner(newMesh);
+    TW3_DataCache::_instance.apply();
 
     newMesh->setDirty();
     newMesh->finalize();
@@ -142,8 +142,8 @@ void QIrrlichtWidget::loadMeshPostProcess()
 {
     const scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
 
-    ReSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
-    ReSize::_dimensions = ReSize::_originalDimensions;
+    GUI_Resize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
+    GUI_Resize::_dimensions = GUI_Resize::_originalDimensions;
 
 
     // Save the path of normals/specular maps
@@ -183,7 +183,7 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLOD);
 
     // Clear the previous data
-    W3_DataCache::_instance.clear();
+    TW3_DataCache::_instance.clear();
 
 
     const io::path irrFilename = QSTRING_TO_PATH(filename);
@@ -330,12 +330,12 @@ void QIrrlichtWidget::init ()
         _camera->setPosition(vector3df (0,30,-40));
         _camera->setTarget(vector3df (0,0,0));
 
-        _reWriter = new CREMeshWriter(_device->getSceneManager(), _device->getFileSystem());
+        _reWriter = new IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
 
-        _device->getSceneManager()->addExternalMeshLoader(new CWitcherMDLMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new CREMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new CW2ENTMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new CW3ENTMeshFileLoader(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_WitcherMDL(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
 
         //_device->getSceneManager()->setAmbientLight(irr::video::SColor(255,255,255,255));
     }
@@ -595,8 +595,8 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (_currentLodData->_node)
         mesh = _currentLodData->_node->getMesh();
 
-    core::vector3df orDim = ReSize::_originalDimensions;
-    core::vector3df dim = ReSize::_dimensions;
+    core::vector3df orDim = GUI_Resize::_originalDimensions;
+    core::vector3df dim = GUI_Resize::_dimensions;
 
     if (_lod0Data._node)
     {
@@ -801,11 +801,11 @@ void QIrrlichtWidget::changeLOD(LOD newLOD)
 
     _currentLodData->_node->setVisible(true);
 
-    ReSize::_originalDimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
+    GUI_Resize::_originalDimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
     //if (ReSize::_unit == Unit_m)
     //    ReSize::_originalDimensions /= 100.0f;
 
-    ReSize::_dimensions = ReSize::_originalDimensions;
+    GUI_Resize::_dimensions = GUI_Resize::_originalDimensions;
 }
 
 void QIrrlichtWidget::clearLOD()

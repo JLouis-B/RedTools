@@ -1,4 +1,4 @@
-#include "translator.h"
+#include "Translator.h"
 
 QWidget* Translator::_parent = 0;
 QMap<QString, QString> Translator::_trad;

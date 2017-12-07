@@ -1,5 +1,5 @@
 #include "Extractor_TW1_BIF.h"
-#include "log.h"
+#include "Log.h"
 
 bool operator< (const ResourceId& a, const ResourceId& b)
 {

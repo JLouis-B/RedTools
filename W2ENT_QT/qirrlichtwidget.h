@@ -7,23 +7,23 @@
 #include <QDebug>
 #include <set>
 
-#include "translator.h"
-#include "resize.h"
-#include "options.h"
-#include "utils.h"
-#include "meshcombiner.h"
+#include "Translator.h"
+#include "GUI_Resize.h"
+#include "GUI_Options.h"
+#include "Utils_Qt_Irr.h"
+#include "MeshCombiner.h"
 
-#include "log.h"
+#include "Log.h"
 
 
 // QIrrlichtWidget from : http://labo-gamedev.com/news/9/
 
 
-#include "CW2ENTMeshFileLoader.h"
-#include "CW3ENTMeshFileLoader.h"
-#include "CREMeshFileLoader.h"
-#include "CREMeshWriter.h"
-#include "CWitcherMDLMeshFileLoader.h"
+#include "IO_MeshLoader_W2ENT.h"
+#include "IO_MeshLoader_W3ENT.h"
+#include "IO_MeshLoader_RE.h"
+#include "IO_MeshWriter_RE.h"
+#include "IO_MeshLoader_WitcherMDL.h"
 
 // Assimp is used to load many file formats. You can disable it with this define
 #define COMPILE_WITH_ASSIMP
@@ -123,7 +123,7 @@ class QIrrlichtWidget : public QWidget
 
         LOD _currentLOD;
 
-        scene::CREMeshWriter* _reWriter;
+        scene::IO_MeshWriter_RE* _reWriter;
 
         void copyTextures(scene::IMesh* mesh, QString exportFolder);
         void copyTextures(std::set<io::path> paths, QString exportFolder);

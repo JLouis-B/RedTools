@@ -1,4 +1,4 @@
-#include "meshcombiner.h"
+#include "MeshCombiner.h"
 
 scene::ISkinnedMesh* copySkinnedMesh(scene::ISceneManager* smgr, scene::IMesh* meshToCopy, bool preserveBones)
 {

@@ -1,4 +1,4 @@
-#include "settings.h"
+#include "Settings.h"
 
 
 QString Settings::_language = "";
@@ -106,9 +106,9 @@ void Settings::loadFromXML(QString filename)
         {
             QString unit = node.toElement().text();
             if (unit == "m")
-                ReSize::_unit = Unit_m;
+                GUI_Resize::_unit = Unit_m;
             else if (unit == "cm")
-                ReSize::_unit = Unit_cm;
+                GUI_Resize::_unit = Unit_cm;
         }
         else if(node.nodeName() == "debug")
         {
@@ -220,9 +220,9 @@ void Settings::saveToXML(QString filename)
 
     QDomElement unit_elem = dom.createElement("unit");
     QString unit;
-    if (ReSize::_unit == Unit_cm)
+    if (GUI_Resize::_unit == Unit_cm)
         unit = "cm";
-    else if (ReSize::_unit == Unit_m)
+    else if (GUI_Resize::_unit == Unit_m)
         unit = "m";
     config_elem.appendChild(unit_elem);
     unit_elem.appendChild(dom.createTextNode(unit));

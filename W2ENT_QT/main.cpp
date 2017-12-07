@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "GUI_MainWindow.h"
 #include <QApplication>
 #include <irrlicht.h>
 
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    MainWindow w;
+    GUI_MainWindow w;
     w.show();
     w.initIrrlicht();
 

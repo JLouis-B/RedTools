@@ -5,7 +5,7 @@
 #include <QtXml>
 #include <QMessageBox>
 
-#include "resize.h"
+#include "GUI_Resize.h"
 
 #define DEFAULT_CAM_ROT_SPEED 500
 #define DEFAULT_CAM_SPEED 500

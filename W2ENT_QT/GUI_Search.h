@@ -16,8 +16,8 @@ class SearchEngine : public QObject
     Q_OBJECT
 
 public:
-    SearchEngine(QString rootDir, QStringList keywords, QStringList extensions, bool searchFolders);
-    void scanFolder(QString repName, int level);
+    SearchEngine(QString rootDir, QStringList keywords, QStringList extensions, bool searchFolders, bool useFafSearch, QString &index);
+
 
 public slots:
     void run();
@@ -33,7 +33,14 @@ private:
     QStringList _extensions;
     QString _rootDir;
     bool _searchFolders;
+    bool _useFafSearch;
+    QString _fafSearchFilesIndex;
     bool _stopped;
+    int _fafSearchNextProgressionCap;
+
+    void scanFolder(QString repName, int level);
+    void isASearchedFile(QFileInfo& fileInfo);
+    void fafSearch();
 };
 
 class GUI_Search : public QDialog
@@ -63,7 +70,11 @@ private:
 
     QString _rootDir;
 
+    bool _useFafSearch;
+    QString _fafSearchFilesIndex;
+
     void killThread();
+    void updateFafSettings();
 
 signals:
     void loadPressed(QString);

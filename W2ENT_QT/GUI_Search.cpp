@@ -69,10 +69,14 @@ void GUI_Search::search()
     _ui->pushButton_load->setEnabled(false);
     _ui->listWidget_results->clear();
 
-    _rootDir = Settings::_pack0;
+    if (_rootDir != Settings::_pack0)
+    {
+        _rootDir = QDir::cleanPath(Settings::_pack0);
+        updateFafSettings();
+    }
 
     _thread = new QThread();
-    _searchEngine = new SearchEngine(_rootDir, keywords, extensions, _ui->checkBox_folder->isChecked());
+    _searchEngine = new SearchEngine(_rootDir, keywords, extensions, _ui->checkBox_folder->isChecked(), _useFafSearch, _fafSearchFilesIndex);
     _searchEngine->moveToThread(_thread);
 
     QObject::connect(_thread, SIGNAL(started()), _searchEngine, SLOT(run()));
@@ -81,6 +85,27 @@ void GUI_Search::search()
     QObject::connect(_searchEngine, SIGNAL(sendItem(QString)), this, SLOT(addResult(QString)));
 
     _thread->start();
+}
+
+void GUI_Search::updateFafSettings()
+{
+    // check if there is an index file
+    QString indexFilename = _rootDir + "/files.txt";
+    QFileInfo filesTxtInfos(indexFilename);
+    if (filesTxtInfos.exists() && filesTxtInfos.isFile())
+    {
+        QFile indexfile(indexFilename);
+        if (indexfile.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            _fafSearchFilesIndex = indexfile.readAll();
+            indexfile.close();
+            _useFafSearch = true;
+        }
+        else
+            _useFafSearch = false;
+    }
+    else
+        _useFafSearch = false;
 }
 
 void GUI_Search::killThread()
@@ -129,18 +154,85 @@ void GUI_Search::resetExtensionsFilter()
 
 
 // Search ------------------------
-SearchEngine::SearchEngine(QString rootDir, QStringList keywords, QStringList extensions, bool searchFolders)
-    : _rootDir(rootDir), _keywords(keywords), _extensions(extensions), _searchFolders(searchFolders), _stopped(false)
+SearchEngine::SearchEngine(QString rootDir, QStringList keywords, QStringList extensions, bool searchFolders, bool useFafSearch, QString &index)
+    : _rootDir(rootDir), _keywords(keywords), _extensions(extensions), _searchFolders(searchFolders), _useFafSearch(useFafSearch), _fafSearchFilesIndex(index), _stopped(false)
 {
 
 }
 
 void SearchEngine::run()
 {
-    _rootDir = QDir::cleanPath(_rootDir);
-    scanFolder(_rootDir, 0);
+    if (_useFafSearch)
+    {
+        // search from files.txt file
+        fafSearch();
+    }
+    else
+    {
+        // classic search
+        scanFolder(_rootDir, 0);
+    }
+
     emit finished();
 }
+
+
+void SearchEngine::isASearchedFile(QFileInfo& fileInfo)
+{
+    QString target = fileInfo.fileName();
+    if (_searchFolders)
+    {
+        target = fileInfo.absolutePath() + fileInfo.fileName();
+        target.remove(0, _rootDir.size());
+    }
+
+    bool ok = true;
+    for (int i = 0; i < _keywords.size(); i++)
+    {
+        if (!target.contains(_keywords[i], Qt::CaseInsensitive))
+        {
+            ok = false;
+            break;
+        }
+    }
+    if (ok)
+        emit sendItem("{Search dir}" + fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
+}
+
+void SearchEngine::fafSearch()
+{
+    _fafSearchNextProgressionCap = 10;
+
+    const qint64 fileSize = _fafSearchFilesIndex.size();
+    qint64 customPos = 0;
+
+    QTextStream in(&_fafSearchFilesIndex);
+    while (!in.atEnd())
+    {
+        if (_stopped)
+            break;
+
+        // read
+        QString line = in.readLine();
+        customPos += line.size()+1;
+
+        // test file
+        QFileInfo fileInfo(line);
+        if (_extensions.contains(QString("*.") + fileInfo.completeSuffix()))
+            isASearchedFile(fileInfo);
+
+        // update progression
+        //std::cout << line.toStdString().c_str() << std::endl;
+        int newProgression = (customPos * 100)/fileSize;
+        if (newProgression > _fafSearchNextProgressionCap)
+        {
+           _fafSearchNextProgressionCap = newProgression + 10;
+           emit onProgress(newProgression);
+        }
+    }
+    emit onProgress(100);
+}
+
 
 void SearchEngine::scanFolder(QString repName, int level)
 {   
@@ -156,25 +248,7 @@ void SearchEngine::scanFolder(QString repName, int level)
 
     foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
     {
-        QString target = fileInfo.fileName();
-
-        if (_searchFolders)
-        {
-            target = fileInfo.absolutePath() + fileInfo.fileName();
-            target.remove(0, _rootDir.size());
-        }
-
-        bool ok = true;
-        for (int i = 0; i < _keywords.size(); i++)
-        {
-            if (!target.contains(_keywords[i], Qt::CaseInsensitive))
-            {
-                ok = false;
-                break;
-            }
-        }
-        if (ok)
-            emit sendItem("{Search dir}" + fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
+        isASearchedFile(fileInfo);
     }
 
     // search in the subfolders

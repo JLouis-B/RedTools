@@ -40,7 +40,7 @@
      <item>
       <widget class="QLineEdit" name="lineEdit_destFolder">
        <property name="text">
-        <string>D:/TW2_files</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -65,7 +65,7 @@
      <item>
       <widget class="QLineEdit" name="lineEdit_dzipFile">
        <property name="text">
-        <string>D:/GalaxyGames/The Witcher 2/CookedPC/troll.dzip</string>
+        <string/>
        </property>
       </widget>
      </item>

@@ -1,0 +1,1 @@
+dir *.* /b /s >> files.txt

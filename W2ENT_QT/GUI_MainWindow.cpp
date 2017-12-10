@@ -11,7 +11,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 {
     // setup the UI
     _ui->setupUi(this);
-    this->setFixedSize(this->size());
+    //this->setFixedSize(this->size());
 
     _currentLOD = LOD_0;
 
@@ -257,8 +257,10 @@ GUI_MainWindow::~GUI_MainWindow()
 void GUI_MainWindow::initIrrlicht()
 {
     _irrWidget = new QIrrlichtWidget(this);
+    _ui->layout_irrlichtRender->addWidget(_irrWidget);
+
     _irrWidget->show();
-    _irrWidget->setGeometry(0, 40, 768, 432);
+    //_irrWidget->setGeometry(0, 40, 768, 432);
     _irrWidget->init();
     addToUILog(QString("The Witcher 3D models converter ") + Settings::_appVersion + "\n");
 }

@@ -57,6 +57,20 @@ void GUI_Search::search()
     QString name = _ui->lineEdit_name->text();
     QStringList keywords = name.split(" ", QString::SkipEmptyParts);
     QStringList extensions = _ui->lineEdit_extensionsFilter->text().split(" ", QString::SkipEmptyParts);
+    if (_ui->checkBox_searchMesh->isChecked())
+    {
+        extensions.push_back("w2mesh");
+        extensions.push_back("w2ent");
+    }
+    if (_ui->checkBox_searchRigs->isChecked())
+    {
+        extensions.push_back("w2rig");
+    }
+    if (_ui->checkBox_searchAnims->isChecked())
+    {
+        extensions.push_back("w2anims");
+    }
+
     for (QStringList::iterator it = extensions.begin(); it != extensions.end(); ++it)
     {
         *it = "*." + (*it);
@@ -172,7 +186,7 @@ void GUI_Search::enableButton()
 
 void GUI_Search::resetExtensionsFilter()
 {
-    _ui->lineEdit_extensionsFilter->setText("w2mesh w2ent w2rig w2anims");
+    _ui->lineEdit_extensionsFilter->setText("");
 }
 
 

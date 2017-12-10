@@ -144,7 +144,30 @@ void GUI_Search::load()
 
 void GUI_Search::enableButton()
 {
+    _ui->pushButton_load->setText("Load");
     _ui->pushButton_load->setEnabled(_ui->listWidget_results->currentRow() != -1);
+    if (_ui->listWidget_results->currentRow() == -1)
+        return;
+
+
+    QString selected = _ui->listWidget_results->currentItem()->text();
+    WitcherContentType type = getTWFileContentType(QSTRING_TO_PATH(selected));
+    if (type == WTC_ENTITY)
+    {
+        _ui->pushButton_load->setText("Load entity");
+    }
+    else if (type == WTC_MESH)
+    {
+        _ui->pushButton_load->setText("Load mesh");
+    }
+    else if (type == WTC_RIG)
+    {
+        _ui->pushButton_load->setText("Load rig");
+    }
+    else if (type == WTC_ANIMATIONS)
+    {
+        _ui->pushButton_load->setText("Load animations");
+    }
 }
 
 void GUI_Search::resetExtensionsFilter()

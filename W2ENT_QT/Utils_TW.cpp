@@ -1,11 +1,30 @@
 #include "Utils_TW.h"
 
-bool checkTWFileExtension(io::path filename)
+WitcherFileDesc getTWFileDescription(io::IReadFile* file, io::path filename)
 {
-    return core::hasFileExtension ( filename, "w2ent" ) || core::hasFileExtension ( filename, "w2mesh" ) || core::hasFileExtension ( filename, "w2rig" ) || core::hasFileExtension ( filename, "w2anims" );
+    WitcherFileDesc description;
+    description._contentType = getTWFileContentType(filename);
+    description._type = getTWFileFormatVersion(file);
+    return description;
 }
 
-WitcherFileType checkTWFileFormatVersion(io::IReadFile* file)
+WitcherContentType getTWFileContentType(io::path filename)
+{
+    if (core::hasFileExtension ( filename, "w2ent" ))
+        return WTC_ENTITY;
+    else if (core::hasFileExtension ( filename, "w2mesh" ))
+        return WTC_MESH;
+    else if (core::hasFileExtension ( filename, "w2rig" ))
+        return WTC_RIG;
+    else if (core::hasFileExtension ( filename, "w2anims" ))
+        return WTC_ANIMATIONS;
+    else if (core::hasFileExtension ( filename, "w2mi" ))
+        return WTC_MATERIAL;
+    else
+        return WTC_OTHER;
+}
+
+WitcherFileType getTWFileFormatVersion(io::IReadFile* file)
 {
     if (!file)
         return WFT_NOT_WITCHER;
@@ -26,8 +45,8 @@ WitcherFileType checkTWFileFormatVersion(io::IReadFile* file)
 
 WitcherFileType checkIsTWFile(io::IReadFile* file, io::path filename)
 {
-    WitcherFileType fileType = checkTWFileFormatVersion(file);
-    if (!checkTWFileExtension(filename))
+    WitcherFileType fileType = getTWFileFormatVersion(file);
+    if (getTWFileContentType(filename) == WTC_OTHER)
         fileType = WFT_NOT_WITCHER;
 
     return fileType;

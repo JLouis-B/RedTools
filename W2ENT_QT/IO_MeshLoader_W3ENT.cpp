@@ -49,7 +49,7 @@ bool IO_MeshLoader_W3ENT::isALoadableFileExtension(const io::path& filename) con
     if (!file)
         return false;
 
-    bool checkIsLoadable = (checkTWFileFormatVersion(file) == WFT_WITCHER_3) && checkTWFileExtension(filename);
+    bool checkIsLoadable = (getTWFileFormatVersion(file) == WFT_WITCHER_3) && getTWFileContentType(filename) != WTC_OTHER;
     file->drop();
 
     return checkIsLoadable;
@@ -1699,7 +1699,7 @@ bool IO_MeshLoader_W3ENT::load(io::IReadFile* file)
     const s32 fileFormatVersion = readS32(file);
     log->addLineAndFlush(formatString("File format version : %d", fileFormatVersion));
 
-    if (checkTWFileFormatVersion(file) == WFT_WITCHER_3)
+    if (getTWFileFormatVersion(file) == WFT_WITCHER_3)
     {
         return W3_load(file);
     }

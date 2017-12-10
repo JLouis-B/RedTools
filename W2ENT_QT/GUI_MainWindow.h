@@ -28,7 +28,7 @@ public:
     void initIrrlicht();
 
 public slots :
-    void selectFile();
+
     void convertir();
     void translate();
     void changeLanguage();
@@ -39,7 +39,7 @@ public slots :
     void options();
     void search();
     void matExplorer();
-    void loadFile(QString path);
+
     void changeOptions();
     void re_size();
     void changeLOD();
@@ -48,12 +48,22 @@ public slots :
     void checkConvertButton();
     void cleanTexturesPath();
     void extFiles();
-    void loadRig();
-    void loadAnimations();
+
+
     void addMesh();
     void bifExtractor();
     void dzipExtractor();
     void changeBaseDir(QString newDir);
+
+
+    void selectMeshFile();
+    void selectRigFile();
+    void selectAnimationsFile();
+
+    void loadFileGeneric(QString path);
+    void loadMesh(QString path);
+    void loadRig(QString path);
+    void loadAnimations(QString path);
 
 
 private:

@@ -62,7 +62,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     QObject::connect(_ui->actionQuitter, SIGNAL(triggered()), this, SLOT(close()));
     QObject::connect(_ui->actionWebpage, SIGNAL(triggered()), this, SLOT(openWebpage()));
-    QObject::connect(_ui->button_fileSelector, SIGNAL(clicked()), this, SLOT(selectFile()));
+    QObject::connect(_ui->button_fileSelector, SIGNAL(clicked()), this, SLOT(selectMeshFile()));
     QObject::connect(_ui->button_convert, SIGNAL(clicked()), this, SLOT(convertir()));
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectFolder()));
     QObject::connect(_ui->actionSearch, SIGNAL(triggered()), this, SLOT(search()));
@@ -83,8 +83,8 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
 
-    QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(loadRig()));
-    QObject::connect(_ui->actionSet_animations, SIGNAL(triggered(bool)), this, SLOT(loadAnimations()));
+    QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(selectRigFile()));
+    QObject::connect(_ui->actionSet_animations, SIGNAL(triggered(bool)), this, SLOT(selectAnimationsFile()));
     QObject::connect(_ui->actionMaterials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
     QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
     QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
@@ -157,39 +157,6 @@ void GUI_MainWindow::addMesh()
 
     updateWindowTitle();
 }
-
-void GUI_MainWindow::loadRig()
-{
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 3 rig (*.w2rig , *.w3fac)");
-
-    if (file == "")
-        return;
-
-    core::stringc feedback;
-    bool sucess = _irrWidget->loadRig(QSTRING_TO_PATH(file), feedback);
-
-    if (sucess)
-        QMessageBox::information(this, "Sucess", feedback.c_str());
-    else
-        QMessageBox::critical(this, "Error", feedback.c_str());
-
-    updateWindowTitle();
-}
-
-void GUI_MainWindow::loadAnimations()
-{
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to use", Settings::_pack0, "The Witcher 3 animations (*.w2anims)");
-
-    if (file == "")
-        return;
-
-    core::stringc feedback;
-    bool sucess = _irrWidget->loadAnims(QSTRING_TO_PATH(file), feedback);
-
-
-    updateWindowTitle();
-}
-
 
 void GUI_MainWindow::changeBaseDir(QString newPath)
 {
@@ -265,7 +232,7 @@ void GUI_MainWindow::initIrrlicht()
     addToUILog(QString("The Witcher 3D models converter ") + Settings::_appVersion + "\n");
 }
 
-void GUI_MainWindow::selectFile()
+void GUI_MainWindow::selectMeshFile()
 {
     QString param = _ui->lineEdit_ImportedFile->text();
     if (_firstSelection)
@@ -275,9 +242,26 @@ void GUI_MainWindow::selectFile()
 
     if (file != "")
     {
-        loadFile(file);
+        loadMesh(file);
     }
 }
+
+void GUI_MainWindow::selectRigFile()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 3 rig (*.w2rig , *.w3fac)");
+
+    if (file != "")
+        loadRig(file);
+}
+
+void GUI_MainWindow::selectAnimationsFile()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to use", Settings::_pack0, "The Witcher 3 animations (*.w2anims)");
+
+    if (file != "")
+        loadAnimations(file);
+}
+
 
 void GUI_MainWindow::convertir()
 {
@@ -386,7 +370,7 @@ void GUI_MainWindow::search()
 {
     GUI_Search* w = new GUI_Search (this);
     w->show();
-    QObject::connect(w, SIGNAL(loadPressed(QString)), this, SLOT(loadFile(QString)));
+    QObject::connect(w, SIGNAL(loadPressed(QString)), this, SLOT(loadFileGeneric(QString)));
     QObject::connect(this, SIGNAL(languageChanged()), w, SLOT(translate()));
 }
 
@@ -394,56 +378,6 @@ void GUI_MainWindow::matExplorer()
 {
     GUI_MaterialsExplorer* m = new GUI_MaterialsExplorer(this, _irrWidget, _ui->lineEdit_ImportedFile->text());
     m->show();
-}
-
-void GUI_MainWindow::loadFile(QString path)
-{
-    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
-    {
-        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
-        return;
-    }
-
-    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
-    _ui->lineEdit_ImportedFile->setText(path);
-    QCoreApplication::processEvents();
-
-    core::stringc feedbackMessage = "";
-    bool success = _irrWidget->setModel(path, feedbackMessage);
-    if (success)
-    {
-        _irrWidget->changeWireframe(_ui->actionWireframe->isChecked());
-        _irrWidget->changeRigging(_ui->actionRigging->isChecked());
-
-        _ui->button_convert->setEnabled(true);
-        _ui->actionSize->setEnabled(true);
-
-        const QFileInfo fileInfo (path);
-        const QString filename = fileInfo.fileName();
-        const QString extension = fileInfo.suffix();
-
-        _ui->actionShow_linked_files->setEnabled(extension == "w2ent" || extension == "w2mesh");
-
-        switch(_currentLOD)
-        {
-            case LOD_0:
-                _ui->actionLOD0->setText("LOD0");
-            break;
-            case LOD_1:
-                _ui->actionLOD1->setText("LOD1");
-            break;
-            case LOD_2:
-                _ui->actionLOD2->setText("LOD2");
-            break;
-            case Collision:
-                _ui->actionCollision_mesh->setText("Collision mesh");
-            break;
-        }
-        _firstSelection = false;
-    }
-
-    addToUILog(QString(feedbackMessage.c_str()) + "\n");
-    updateWindowTitle();
 }
 
 void GUI_MainWindow::changeOptions()
@@ -557,3 +491,116 @@ void GUI_MainWindow::dzipExtractor()
     dzip->show();
 }
 
+void GUI_MainWindow::loadFileGeneric(QString path)
+{
+    const io::path filenamePath = QSTRING_TO_PATH(path);
+    io::IReadFile* file = _irrWidget->getFileSystem()->createAndOpenFile(filenamePath);
+
+    WitcherFileDesc fileDesc = getTWFileDescription(file, filenamePath);
+    file->drop();
+    if (fileDesc._contentType == WTC_MESH || fileDesc._contentType == WTC_ENTITY)
+        loadMesh(path);
+    else if (fileDesc._contentType == WTC_RIG)
+    {
+        if (fileDesc._type == WFT_WITCHER_3)
+            loadRig(path);
+        else
+            QMessageBox::warning(0, "Load fail", "The Witcher 2 rig files not supported");
+    }
+    else if (fileDesc._contentType == WTC_ANIMATIONS)
+    {
+        if (fileDesc._type == WFT_WITCHER_3)
+            loadAnimations(path);
+        else
+            QMessageBox::warning(0, "Load fail", "The Witcher 2 animations files not supported");
+    }
+    else
+        loadMesh(path);
+}
+
+void GUI_MainWindow::loadMesh(QString path)
+{
+    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    {
+        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+        return;
+    }
+
+    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+    _ui->lineEdit_ImportedFile->setText(path);
+    QCoreApplication::processEvents();
+
+    core::stringc feedbackMessage = "";
+    bool success = _irrWidget->setModel(path, feedbackMessage);
+    if (success)
+    {
+        _irrWidget->changeWireframe(_ui->actionWireframe->isChecked());
+        _irrWidget->changeRigging(_ui->actionRigging->isChecked());
+
+        _ui->button_convert->setEnabled(true);
+        _ui->actionSize->setEnabled(true);
+
+        const QFileInfo fileInfo (path);
+        const QString filename = fileInfo.fileName();
+        const QString extension = fileInfo.suffix();
+
+        _ui->actionShow_linked_files->setEnabled(extension == "w2ent" || extension == "w2mesh");
+
+        switch(_currentLOD)
+        {
+            case LOD_0:
+                _ui->actionLOD0->setText("LOD0");
+            break;
+            case LOD_1:
+                _ui->actionLOD1->setText("LOD1");
+            break;
+            case LOD_2:
+                _ui->actionLOD2->setText("LOD2");
+            break;
+            case Collision:
+                _ui->actionCollision_mesh->setText("Collision mesh");
+            break;
+        }
+        _firstSelection = false;
+    }
+
+    addToUILog(QString(feedbackMessage.c_str()) + "\n");
+    updateWindowTitle();
+}
+
+void GUI_MainWindow::loadRig(QString path)
+{
+    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    {
+        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+        return;
+    }
+    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+
+    core::stringc feedback;
+    bool sucess = _irrWidget->loadRig(QSTRING_TO_PATH(path), feedback);
+
+    if (sucess)
+        QMessageBox::information(this, "Sucess", feedback.c_str());
+    else
+        QMessageBox::critical(this, "Error", feedback.c_str());
+
+    addToUILog(QString(feedback.c_str()) + "\n");
+    updateWindowTitle();
+}
+
+void GUI_MainWindow::loadAnimations(QString path)
+{
+    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    {
+        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+        return;
+    }
+    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+
+    core::stringc feedback;
+    bool sucess = _irrWidget->loadAnims(QSTRING_TO_PATH(path), feedback);
+
+    addToUILog(QString(feedback.c_str()) + "\n");
+    updateWindowTitle();
+}

@@ -14,8 +14,26 @@ enum WitcherFileType
     WFT_NOT_WITCHER
 };
 
-WitcherFileType checkTWFileFormatVersion(io::IReadFile* file);
-bool checkTWFileExtension(io::path filename);
+enum WitcherContentType
+{
+    WTC_ENTITY,
+    WTC_MESH,
+    WTC_RIG,
+    WTC_ANIMATIONS,
+    WTC_MATERIAL,
+    WTC_OTHER
+};
+
+struct WitcherFileDesc
+{
+    WitcherFileType _type;
+    WitcherContentType _contentType;
+};
+
+WitcherFileDesc getTWFileDescription(io::IReadFile* file, io::path filename);
+
+WitcherContentType getTWFileContentType(io::path filename);
+WitcherFileType getTWFileFormatVersion(io::IReadFile* file);
 WitcherFileType checkIsTWFile(io::IReadFile* file, io::path filename);
 void loadTWStringsAndFiles(io::IReadFile* file, WitcherFileType fileType, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes = false);
 void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes = false);

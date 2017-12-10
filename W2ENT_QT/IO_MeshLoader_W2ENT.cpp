@@ -45,7 +45,7 @@ bool IO_MeshLoader_W2ENT::isALoadableFileExtension(const io::path& filename) con
     if (!file)
         return false;
 
-    bool checkIsLoadable = (checkTWFileFormatVersion(file) == WFT_WITCHER_2) && checkTWFileExtension(filename);
+    bool checkIsLoadable = (getTWFileFormatVersion(file) == WFT_WITCHER_2) && getTWFileContentType(filename) != WTC_OTHER;
 
     file->drop();
     return checkIsLoadable;

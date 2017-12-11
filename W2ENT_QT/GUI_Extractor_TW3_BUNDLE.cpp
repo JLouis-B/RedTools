@@ -1,19 +1,16 @@
-#include "GUI_Extractor_TW1_BIF.h"
-#include "ui_GUI_Extractor_TW1_BIF.h"
+#include "GUI_Extractor_TW3_BUNDLE.h"
+#include "ui_GUI_Extractor_TW3_BUNDLE.h"
 
-
-#include <iostream>
-
-GUI_Extractor_TW1_BIF::GUI_Extractor_TW1_BIF(QWidget *parent) :
+GUI_Extractor_TW3_BUNDLE::GUI_Extractor_TW3_BUNDLE(QWidget *parent) :
     QDialog(parent),
-    _ui(new Ui::GUI_Extractor_TW1_BIF),
+    _ui(new Ui::GUI_Extractor_TW3_BUNDLE),
     _extractor(nullptr),
     _thread(nullptr)
 {
     _ui->setupUi(this);
 
-    QObject::connect(_ui->pushButton_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
-    QObject::connect(_ui->pushButton_selectFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
+    QObject::connect(_ui->pushButton_select_dzipFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
+    QObject::connect(_ui->pushButton_selectDestFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
     QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(extract()));
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
@@ -21,50 +18,50 @@ GUI_Extractor_TW1_BIF::GUI_Extractor_TW1_BIF(QWidget *parent) :
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
-GUI_Extractor_TW1_BIF::~GUI_Extractor_TW1_BIF()
+GUI_Extractor_TW3_BUNDLE::~GUI_Extractor_TW3_BUNDLE()
 {
     delete _ui;
 }
 
-void GUI_Extractor_TW1_BIF::destroyWindow()
+void GUI_Extractor_TW3_BUNDLE::destroyWindow()
 {
     if (_thread)
     {
         _extractor->quitThread();
-        while(_thread /*&& !_thread->isFinished()*/)
+        while(_thread)
             QCoreApplication::processEvents();
     }
     delete this;
 }
 
-void GUI_Extractor_TW1_BIF::selectFolder()
+void GUI_Extractor_TW3_BUNDLE::selectFolder()
 {
     QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
     if (dir != "")
-        _ui->lineEdit_exportFolder->setText(dir);
+        _ui->lineEdit_destFolder->setText(dir);
 }
 
-void GUI_Extractor_TW1_BIF::selectFile()
+void GUI_Extractor_TW3_BUNDLE::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a KEY file");
+    QString filename = QFileDialog::getOpenFileName(this, "Select a BUNDLE file");
     if (filename != "")
-        _ui->lineEdit_keyFile->setText(filename);
+        _ui->lineEdit_dzipFile->setText(filename);
 }
 
-void GUI_Extractor_TW1_BIF::extract()
+void GUI_Extractor_TW3_BUNDLE::extract()
 {
-    const QString file = _ui->lineEdit_keyFile->text();
-    const QString folder = _ui->lineEdit_exportFolder->text();
+    const QString file = _ui->lineEdit_dzipFile->text();
+    const QString folder = _ui->lineEdit_destFolder->text();
 
     QFileInfo fileInfo(file);
     if (!fileInfo.exists())
     {
-        _ui->label_state->setText("State : Error, the specified KEY file doesn't exists");
+        _ui->label_status->setText("State : Error, the specified BUNDLE file doesn't exists");
         return;
     }
 
     _thread = new QThread();
-    _extractor = new Extractor_TW1_BIF(file, folder);
+    _extractor = new Extractor_TW3_BUNDLE(file, folder);
     _extractor->moveToThread(_thread);
 
     QObject::connect(_thread, SIGNAL(started()), _extractor, SLOT(run()));
@@ -74,17 +71,17 @@ void GUI_Extractor_TW1_BIF::extract()
     QObject::connect(_extractor, SIGNAL(finished()), this, SLOT(extractEnd()));
 
     _ui->pushButton_extract->setEnabled(false);
-    _ui->label_state->setText("State : Working...");
+    _ui->label_status->setText("State : Working...");
+    extractSetProgress(0);
     _thread->start();
 }
 
-
-void GUI_Extractor_TW1_BIF::extractSetProgress(int value)
+void GUI_Extractor_TW3_BUNDLE::extractSetProgress(int value)
 {
     _ui->progressBar->setValue(value);
 }
 
-void GUI_Extractor_TW1_BIF::killExtractThread()
+void GUI_Extractor_TW3_BUNDLE::killExtractThread()
 {
     if (!_thread || !_extractor)
         return;
@@ -93,23 +90,23 @@ void GUI_Extractor_TW1_BIF::killExtractThread()
     _thread->deleteLater();
     _extractor->deleteLater();
 
-    _thread = 0;
-    _extractor = 0;
+    _thread = nullptr;
+    _extractor = nullptr;
 }
 
-void GUI_Extractor_TW1_BIF::extractEnd()
+void GUI_Extractor_TW3_BUNDLE::extractEnd()
 {
     _ui->progressBar->setValue(_ui->progressBar->maximum());
-    _ui->label_state->setText("State : End");
+    _ui->label_status->setText("State : End");
     _ui->pushButton_extract->setEnabled(true);
 
     killExtractThread();
 }
 
-void GUI_Extractor_TW1_BIF::extractFail()
+void GUI_Extractor_TW3_BUNDLE::extractFail()
 {
     _ui->progressBar->setValue(_ui->progressBar->maximum());
-    _ui->label_state->setText("State : Fatal error during the extraction.");
+    _ui->label_status->setText("State : Fatal error during the extraction.");
     _ui->pushButton_extract->setEnabled(true);
 
     killExtractThread();

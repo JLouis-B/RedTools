@@ -18,7 +18,7 @@
 #include <cmath>
 #include <cfloat>
 
-#include "Utils_Loaders.h"
+#include "Utils_Irr_Loaders.h"
 #include "Settings.h"
 #include "Utils_Qt_Irr.h"
 

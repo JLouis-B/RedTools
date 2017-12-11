@@ -42,8 +42,11 @@ SOURCES += main.cpp\
     IO_MeshLoader_WitcherMDL.cpp \
     IO_MeshLoader_RE.cpp \
     IO_MeshWriter_RE.cpp \
-    Utils_Loaders.cpp \
-    TW3_CSkeleton.cpp
+    TW3_CSkeleton.cpp \
+    Extractor_TW3_BUNDLE.cpp \
+    GUI_Extractor_TW3_BUNDLE.cpp \
+    Utils_Irr_Loaders.cpp \
+    Utils_Qt_Loaders.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -73,10 +76,13 @@ HEADERS  += \
     IO_MeshLoader_W2ENT.h \
     IO_MeshWriter_RE.h \
     IO_MeshLoader_RE.h \
-    Utils_Loaders.h \
     Utils_Qt_Irr.h \
     TW3_CSkeleton.h \
-    Utils_Halffloat.h
+    Utils_Halffloat.h \
+    Extractor_TW3_BUNDLE.h \
+    GUI_Extractor_TW3_BUNDLE.h \
+    Utils_Irr_Loaders.h \
+    Utils_Qt_Loaders.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \
@@ -87,7 +93,8 @@ FORMS    += \
     GUI_MaterialsExplorer.ui \
     GUI_Options.ui \
     GUI_Resize.ui \
-    GUI_CleanTexturesPath.ui
+    GUI_CleanTexturesPath.ui \
+    GUI_Extractor_TW3_BUNDLE.ui
 
 # Change the paths here :
 LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\lib\Win32-gcc\libIrrlicht.a"

@@ -3,7 +3,7 @@
 
 #include "QIrrlichtWidget.h"
 
-#include "Utils_Loaders.h"
+#include "Utils_Irr_Loaders.h"
 
 GUI_ExtFilesExplorer::GUI_ExtFilesExplorer(QIrrlichtWidget* irrlicht, QWidget *parent) :
     QDialog(parent), _irrlicht(irrlicht),

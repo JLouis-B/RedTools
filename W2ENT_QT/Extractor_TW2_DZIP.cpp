@@ -1,6 +1,5 @@
 #include "Extractor_TW2_DZIP.h"
 #include "Log.h"
-#include <iostream>
 
 Extractor_TW2_DZIP::Extractor_TW2_DZIP(QString file, QString folder) : _file(file), _folder(folder)
 {

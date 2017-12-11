@@ -286,6 +286,7 @@
     <addaction name="actionSet_rig"/>
     <addaction name="actionSet_animations"/>
     <addaction name="actionMaterials_explorer"/>
+    <addaction name="actionBUNDLE_extractor"/>
    </widget>
    <widget class="QMenu" name="menuThe_Witcher_1_tools">
     <property name="title">
@@ -460,6 +461,11 @@
   <action name="actionDZIP_extractor">
    <property name="text">
     <string>DZIP extractor</string>
+   </property>
+  </action>
+  <action name="actionBUNDLE_extractor">
+   <property name="text">
+    <string>BUNDLE extractor</string>
    </property>
   </action>
  </widget>

@@ -89,6 +89,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
     QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
     QObject::connect(_ui->actionDZIP_extractor, SIGNAL(triggered(bool)), this, SLOT(dzipExtractor()));
+    QObject::connect(_ui->actionBUNDLE_extractor, SIGNAL(triggered(bool)), this, SLOT(bundleExtractor()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
@@ -489,6 +490,12 @@ void GUI_MainWindow::dzipExtractor()
 {
     GUI_Extractor_TW2_DZIP* dzip = new GUI_Extractor_TW2_DZIP(this);
     dzip->show();
+}
+
+void GUI_MainWindow::bundleExtractor()
+{
+    GUI_Extractor_TW3_BUNDLE* bundle = new GUI_Extractor_TW3_BUNDLE(this);
+    bundle->show();
 }
 
 void GUI_MainWindow::loadFileGeneric(QString path)

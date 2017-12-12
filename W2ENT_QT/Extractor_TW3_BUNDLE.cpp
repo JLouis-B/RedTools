@@ -2,6 +2,8 @@
 #include "Log.h"
 #include "Utils_Qt_Loaders.h"
 
+#include <zlib.h>
+
 Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder) : _file(file), _folder(folder), _stopped(false)
 {
 
@@ -145,14 +147,32 @@ bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, 
 bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // Nothing to do, no compression
-    writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);
-    return true;
+    return writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);;
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileZLIB(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
-    // TODO
-    Log::Instance()->addLineAndFlush("BUNDLE: ZLIB decompression not implemented yet");
+    char* decompressedFileContent = new char[decompressedSize];
+
+    // STEP 2.
+    // inflate b into c
+    // zlib struct
+    z_stream infstream;
+    infstream.zalloc = Z_NULL;
+    infstream.zfree = Z_NULL;
+    infstream.opaque = Z_NULL;
+    // setup "b" as the input and "c" as the compressed output
+    infstream.avail_in = (uInt)compressedSize; // size of input
+    infstream.next_in = (Bytef *)fileContent; // input char array
+    infstream.avail_out = (uInt)decompressedSize; // size of output
+    infstream.next_out = (Bytef *)decompressedFileContent; // output char array
+
+    // the actual DE-compression work.
+    inflateInit(&infstream);
+    inflate(&infstream, Z_NO_FLUSH);
+    inflateEnd(&infstream);
+
+    return writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);;
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)

@@ -43,7 +43,7 @@ void GUI_Extractor_TW3_BUNDLE::selectFolder()
 
 void GUI_Extractor_TW3_BUNDLE::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a BUNDLE file");
+    QString filename = QFileDialog::getOpenFileName(this, "Select a BUNDLE file", "", "*.bundle");
     if (filename != "")
         _ui->lineEdit_dzipFile->setText(filename);
 }

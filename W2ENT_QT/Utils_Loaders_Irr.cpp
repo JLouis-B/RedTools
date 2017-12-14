@@ -1,4 +1,4 @@
-#include "Utils_Irr_Loaders.h"
+#include "Utils_Loaders_Irr.h"
 
 core::stringc readString(io::IReadFile* f, s32 nbLetters)
 {

@@ -45,8 +45,8 @@ SOURCES += main.cpp\
     TW3_CSkeleton.cpp \
     Extractor_TW3_BUNDLE.cpp \
     GUI_Extractor_TW3_BUNDLE.cpp \
-    Utils_Irr_Loaders.cpp \
-    Utils_Qt_Loaders.cpp
+    Utils_Loaders_Irr.cpp \
+    Utils_Loaders_Qt.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -81,8 +81,8 @@ HEADERS  += \
     Utils_Halffloat.h \
     Extractor_TW3_BUNDLE.h \
     GUI_Extractor_TW3_BUNDLE.h \
-    Utils_Irr_Loaders.h \
-    Utils_Qt_Loaders.h
+    Utils_Loaders_Irr.h \
+    Utils_Loaders_Qt.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \

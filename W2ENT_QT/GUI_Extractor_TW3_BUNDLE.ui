@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>TW2 DZIP extractor</string>
+   <string>TW3 BUNDLE extractor</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

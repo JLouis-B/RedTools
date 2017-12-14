@@ -16,8 +16,14 @@ T readData(QFile& f)
 #define readInt32 readData<qint32>
 #define readInt64 readData<qint64>
 
+#define readUInt8 readData<quint8>
+#define readUInt16 readData<quint16>
+#define readUInt32 readData<quint32>
+#define readUInt64 readData<quint64>
 
 
+QString readStringNoCheck(QFile& file, int nbLetters);
+QString readString(QFile& file, int nbLetters);
 QString readStringFixedSize(QFile& file, int count);
 
 #endif // UTILS_QT_LOADERS_H

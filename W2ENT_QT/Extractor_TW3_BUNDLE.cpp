@@ -1,6 +1,6 @@
 #include "Extractor_TW3_BUNDLE.h"
 #include "Log.h"
-#include "Utils_Qt_Loaders.h"
+#include "Utils_Loaders_Qt.h"
 
 #include <zlib.h>
 

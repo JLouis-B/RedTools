@@ -1,5 +1,6 @@
 #include "Extractor_TW2_DZIP.h"
 #include "Log.h"
+#include "Utils_Loaders_Qt.h"
 
 Extractor_TW2_DZIP::Extractor_TW2_DZIP(QString file, QString folder) : _file(file), _folder(folder)
 {
@@ -33,12 +34,10 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
     file.read(magic, 4);
     //std::cout << magic << std::endl;
 
-    int unk1, filesCount, unk2;
-    qint64 tableAdress;
-    file.read((char*)&unk1, 4);
-    file.read((char*)&filesCount, 4);
-    file.read((char*)&unk2, 4);
-    file.read((char*)&tableAdress, 8);
+    qint32 unk1        = readInt32(file);
+    qint32 filesCount  = readInt32(file);
+    qint32 unk2        = readInt32(file);
+    qint64 tableAdress = readInt64(file);
 
     qint64 tablePosition = tableAdress;
 
@@ -46,21 +45,16 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
     {
         file.seek(tablePosition);
 
-        unsigned short nsize;
-        file.read((char*)&nsize, 2);
-
-        char filename[nsize] = "\0";
-        file.read(filename, nsize);
+        quint16 nsize = readUInt16(file);
+        QString filename = readStringNoCheck(file, nsize);
         //std::cout << filename << std::endl;
 
-        int unk03, unk04;
-        qint64 compressedSize, offset, decompressedSize;
-        file.read((char*)&unk03, 4);
-        file.read((char*)&unk04, 4);
+        qint32 unk3        = readInt32(file);
+        qint32 unk4        = readInt32(file);
 
-        file.read((char*)&decompressedSize, 8);
-        file.read((char*)&offset, 8);
-        file.read((char*)&compressedSize, 8);
+        qint64 decompressedSize = readInt64(file);
+        qint64 offset           = readInt64(file);
+        qint64 compressedSize   = readInt64(file);
 
         tablePosition = file.pos();
 
@@ -70,8 +64,7 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
         //std::cout << "decompressedSize = " << decompressedSize << std::endl;
 
         file.seek(offset);
-        int offsetAdd;
-        file.read((char*)&offsetAdd, 4);
+        qint32 offsetAdd = readInt32(file);
         qint64 realOffset = file.pos() - 4 + offsetAdd;
         compressedSize -= offsetAdd;
 

@@ -16,7 +16,7 @@
 
 #include <sstream>
 
-#include "Utils_Irr_Loaders.h"
+#include "Utils_Loaders_Irr.h"
 
 //#define _DEBUG
 #ifdef _DEBUG

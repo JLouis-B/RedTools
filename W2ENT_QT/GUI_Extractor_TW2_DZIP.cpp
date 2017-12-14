@@ -43,7 +43,7 @@ void GUI_Extractor_TW2_DZIP::selectFolder()
 
 void GUI_Extractor_TW2_DZIP::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a DZIP file");
+    QString filename = QFileDialog::getOpenFileName(this, "Select a DZIP file", "", "*.dzip");
     if (filename != "")
         _ui->lineEdit_dzipFile->setText(filename);
 }

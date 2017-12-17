@@ -46,7 +46,10 @@ SOURCES += main.cpp\
     Extractor_TW3_BUNDLE.cpp \
     GUI_Extractor_TW3_BUNDLE.cpp \
     Utils_Loaders_Irr.cpp \
-    Utils_Loaders_Qt.cpp
+    Utils_Loaders_Qt.cpp \
+    DOBOZ/Compressor.cpp \
+    DOBOZ/Decompressor.cpp \
+    DOBOZ/Dictionary.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -82,7 +85,11 @@ HEADERS  += \
     Extractor_TW3_BUNDLE.h \
     GUI_Extractor_TW3_BUNDLE.h \
     Utils_Loaders_Irr.h \
-    Utils_Loaders_Qt.h
+    Utils_Loaders_Qt.h \
+    DOBOZ/Common.h \
+    DOBOZ/Compressor.h \
+    DOBOZ/Decompressor.h \
+    DOBOZ/Dictionary.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \

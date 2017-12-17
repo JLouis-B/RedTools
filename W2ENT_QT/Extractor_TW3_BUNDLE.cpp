@@ -4,6 +4,7 @@
 
 #include <zlib.h>
 #include "snappy-c.h"
+#include "DOBOZ/Decompressor.h"
 
 Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder) : _file(file), _folder(folder), _stopped(false)
 {
@@ -207,9 +208,28 @@ bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char *fileContent, qint64 compre
 
 bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
+    doboz::Decompressor decompressor;
+
+    // don't seem necessary
+    /*
+    doboz::CompressionInfo compressionInfo;
+    doboz::Result result = decompressor.getCompressionInfo(fileContent, compressedSize, compressionInfo);
+    if (result != doboz::RESULT_OK)
+        return false;
+    size_t outputSize = static_cast<size_t>(compressionInfo.uncompressedSize);
+    */
+
+    char* decompressedFileContent = new char[decompressedSize];
+    doboz::Result result = decompressor.decompress(fileContent, compressedSize, decompressedFileContent, decompressedSize);
+    if (result != doboz::RESULT_OK)
+        return false;
+
+    bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
+    delete[] decompressedFileContent;
+    return success;
     // TODO
-    Log::Instance()->addLineAndFlush("BUNDLE: DOBOZ decompression not implemented yet");
-    return false;
+    //Log::Instance()->addLineAndFlush("BUNDLE: DOBOZ decompression not implemented yet");
+    //return false;
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileLZ4(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)

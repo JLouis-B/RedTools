@@ -3,6 +3,7 @@
 #include "Utils_Loaders_Qt.h"
 
 #include <zlib.h>
+#include "snappy-c.h"
 
 Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder) : _file(file), _folder(folder), _stopped(false)
 {
@@ -52,18 +53,20 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         std::cout << file.pos() << std::endl;
         QString filename = readStringFixedSize(file, 256);
         QString hash = readStringFixedSize(file, 16);
-        std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
+        //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
         qint32 zero = readInt32(file);
         qint32 decompressedSize = readInt32(file);
         qint32 compressedSize = readInt32(file);
         qint32 offset = readInt32(file);
         qint64 timestamp = readInt64(file);
+        /*
         std::cout << "ZERO= " << zero
                   << ", decompressedSize= " << decompressedSize
                   << ", compressedSize= " << compressedSize
                   << ", OFFSET= " << offset
                   << ", TSAMP= " << timestamp << std::endl;
+                  */
         /*
         get ZERO long
         get SIZE long
@@ -147,7 +150,7 @@ bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, 
 bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // Nothing to do, no compression
-    return writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);;
+    return writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileZLIB(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
@@ -172,25 +175,48 @@ bool Extractor_TW3_BUNDLE::decompressFileZLIB(char *fileContent, qint64 compress
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
 
-    return writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);;
+    bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
+    delete[] decompressedFileContent;
+    return success;
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
-    // TODO
-    Log::Instance()->addLineAndFlush("BUNDLE: SNAPPY decompression not implemented yet");
+    // don't seem necessary
+    // size_t decompressedSnappySize;
+    // snappy_status status = snappy_uncompressed_length(fileContent, compressedSize, &decompressedSnappySize);
+
+    //std::cout << "decompressedSize= " << decompressedSize << std::endl;
+    //std::cout << "decompressedSnappySize= " << decompressedSnappySize << std::endl;
+
+    char* decompressedFileContent = new char[decompressedSize];
+    size_t decompressedSnappySize = decompressedSize;
+    snappy_status status = snappy_uncompress(fileContent, compressedSize, decompressedFileContent, &decompressedSnappySize);
+    if (status == SNAPPY_OK)
+    {
+        bool success = writeDecompressedFile(decompressedFileContent, decompressedSnappySize, exportFolder, filename);
+        delete[] decompressedFileContent;
+        return success;
+    }
+    else
+    {
+        delete[] decompressedFileContent;
+        return false;
+    }
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // TODO
     Log::Instance()->addLineAndFlush("BUNDLE: DOBOZ decompression not implemented yet");
+    return false;
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileLZ4(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // TODO
     Log::Instance()->addLineAndFlush("BUNDLE: LZ4 decompression not implemented yet");
+    return false;
 }
 
 void Extractor_TW3_BUNDLE::quitThread()

@@ -104,5 +104,8 @@ INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\includ
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\code\libassimp.dll.a
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
 
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\native\snappy32.lib
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\include" \
+
 DISTFILES += \
     app.rc

@@ -65,7 +65,7 @@
      <item>
       <widget class="QLineEdit" name="lineEdit_dzipFile">
        <property name="text">
-        <string>D:\GalaxyGames\The Witcher 3 Wild Hunt\content\content0\bundles\xml.bundle</string>
+        <string>D:/GalaxyGames/The Witcher 3 Wild Hunt/content/content0/bundles/r4gui.bundle</string>
        </property>
       </widget>
      </item>

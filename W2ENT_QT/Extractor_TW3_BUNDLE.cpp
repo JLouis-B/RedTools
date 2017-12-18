@@ -125,6 +125,15 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         }
         delete[] fileContent;
         file.seek(back);
+
+        int progression = (float)((file.pos()) * 100) / (float)dataPosition;
+        emit onProgress(progression);
+
+        if (_stopped)
+        {
+            Log::Instance()->addLineAndFlush("BUNDLE: Decompression stopped");
+            break;
+        }
     }
 
 }

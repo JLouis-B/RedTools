@@ -29,6 +29,7 @@ private:
     bool decompressFileLZ4(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
 
     bool writeDecompressedFile(char* decompressedFileContent, qint64 decompressedSize, QString exportFolder, QString filename);
+    int _lastProgression;
 
 
 public slots :

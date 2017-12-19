@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QtConcurrent>
+#include <QQueue>
 
 #include "Extractor_TW3_BUNDLE.h"
 
@@ -24,7 +25,7 @@ public slots:
     void destroyWindow();
     void selectFolder();
     void selectFile();
-    void extract();
+    void extract(QString file);
 
     void extractSetProgress(int value);
     void extractEnd();
@@ -36,6 +37,13 @@ private:
     Ui::GUI_Extractor_TW3_BUNDLE *_ui;
     QThread* _thread;
     Extractor_TW3_BUNDLE* _extractor;
+    QQueue<QString> _filesQueue;
+
+    int _nbFiles;
+    int _nbFilesProcessed;
+
+    void getFiles(QString file);
+    bool nextFile();
 };
 
 #endif // GUI_EXTRACTOR_TW3_BUNDLE_H

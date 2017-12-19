@@ -54,34 +54,9 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label_dzipFile">
-       <property name="text">
-        <string>BUNDLE File :</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_dzipFile">
-       <property name="text">
-        <string>D:/GalaxyGames/The Witcher 3 Wild Hunt/content/content0/bundles/r4gui.bundle</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_select_dzipFile">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <widget class="QPushButton" name="pushButton_extract">
      <property name="text">
-      <string>Extract</string>
+      <string>Select files/directories to extract</string>
      </property>
     </widget>
    </item>

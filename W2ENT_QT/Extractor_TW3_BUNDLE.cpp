@@ -36,6 +36,8 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
 // ref code : http://jlouisb.users.sourceforge.net/witcher3_bundleOnly.bms
 void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFolder)
 {
+    _lastProgression = 0;
+
     char magic[9] = "\0";
     file.read(magic, 8); // POTATO70
     Log::Instance()->addLineAndFlush(magic);
@@ -127,7 +129,11 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         file.seek(back);
 
         int progression = (float)((file.pos()) * 100) / (float)dataPosition;
-        emit onProgress(progression);
+        if (progression > _lastProgression + 2)
+        {
+            emit onProgress(progression);
+            _lastProgression = progression;
+        }
 
         if (_stopped)
         {

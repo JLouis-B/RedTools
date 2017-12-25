@@ -42,14 +42,11 @@ IO_MeshLoader_W3ENT::IO_MeshLoader_W3ENT(scene::ISceneManager* smgr, io::IFileSy
 //! based on the file extension (e.g. ".bsp")
 bool IO_MeshLoader_W3ENT::isALoadableFileExtension(const io::path& filename) const
 {
-    if (core::hasFileExtension ( filename, "w2ent_MEMORY" ))
-        return true;
-
     io::IReadFile* file = SceneManager->getFileSystem()->createAndOpenFile(filename);
     if (!file)
         return false;
 
-    bool checkIsLoadable = (getTWFileFormatVersion(file) == WFT_WITCHER_3) && getTWFileContentType(filename) != WTC_OTHER;
+    bool checkIsLoadable = (getTWFileType(file) == WFT_WITCHER_3);
     file->drop();
 
     return checkIsLoadable;
@@ -156,7 +153,7 @@ void checkMaterial(video::SMaterial mat)
 
 bool IO_MeshLoader_W3ENT::W3_load(io::IReadFile* file)
 {
-    loadTWStringsAndFiles(file, WFT_WITCHER_3, Strings, Files, false);
+    loadTW3StringsAndFiles(file, Strings, Files);
     log->addLineAndFlush("Read strings and files");
 
     file->seek(12);
@@ -1699,7 +1696,7 @@ bool IO_MeshLoader_W3ENT::load(io::IReadFile* file)
     const s32 fileFormatVersion = readS32(file);
     log->addLineAndFlush(formatString("File format version : %d", fileFormatVersion));
 
-    if (getTWFileFormatVersion(file) == WFT_WITCHER_3)
+    if (hasTWFileFormatVersion(file) == WFT_WITCHER_3)
     {
         return W3_load(file);
     }

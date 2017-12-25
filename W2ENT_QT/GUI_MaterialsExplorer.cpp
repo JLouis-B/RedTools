@@ -259,7 +259,7 @@ void GUI_MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
 {
     file->seek(0);
     core::array<core::stringc> strings, files;
-    loadTWStringsAndFiles(file, WFT_WITCHER_3, strings, files, false);
+    loadTW3StringsAndFiles(file, strings, files);
 
     file->seek(12);
     core::array<s32> headerData = readDataArray<s32>(file, 38);
@@ -303,10 +303,10 @@ void GUI_MaterialsExplorer::read(QString filename)
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
-    const WitcherFileType fileType = checkIsTWFile(file, filenamePath);
+    WitcherFileType fileType = getTWFileType(file);
     switch (fileType)
     {
-        case WFT_NOT_WITCHER:
+        case WFT_UNKNOWN:
             _ui->label_fileType->setText("File type : Not a witcher file");
             break;
 

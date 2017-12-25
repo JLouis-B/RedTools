@@ -36,10 +36,10 @@ void GUI_ExtFilesExplorer::read(QString filename)
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
-    const WitcherFileType fileType = checkIsTWFile(file, filenamePath);
+    WitcherFileType fileType = getTWFileType(file);
     switch (fileType)
     {
-        case WFT_NOT_WITCHER:
+        case WFT_UNKNOWN:
             _ui->label_fileType->setText("File type : Not a witcher file");
             return;
 
@@ -52,7 +52,7 @@ void GUI_ExtFilesExplorer::read(QString filename)
             break;
     }
 
-    loadTWStringsAndFiles(file, fileType, strings, files, true);
+    loadTWStringsAndFiles(file, strings, files, true);
     for (u32 i = 0; i < files.size(); ++i)
     {
         _ui->listWidget->addItem(QString(files[i].c_str()));

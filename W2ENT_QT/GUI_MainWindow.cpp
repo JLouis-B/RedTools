@@ -513,20 +513,23 @@ void GUI_MainWindow::loadFileGeneric(QString path)
     const io::path filenamePath = QSTRING_TO_PATH(path);
     io::IReadFile* file = _irrWidget->getFileSystem()->createAndOpenFile(filenamePath);
 
-    WitcherFileDesc fileDesc = getTWFileDescription(file, filenamePath);
-    file->drop();
-    if (fileDesc._contentType == WTC_MESH || fileDesc._contentType == WTC_ENTITY)
+    WitcherFileType type = getTWFileType(file);
+    WitcherContentType contentType = getTWFileContentType(filenamePath);
+    if (file)
+        file->drop();
+
+    if (type == WFT_UNKNOWN)
         loadMesh(path);
-    else if (fileDesc._contentType == WTC_RIG)
+    else if (contentType == WCT_WITCHER_RIG)
     {
-        if (fileDesc._type == WFT_WITCHER_3)
+        if (type == WFT_WITCHER_3)
             loadRig(path);
         else
             QMessageBox::warning(0, "Load fail", "The Witcher 2 rig files not supported");
     }
-    else if (fileDesc._contentType == WTC_ANIMATIONS)
+    else if (contentType == WCT_WITCHER_ANIMATIONS)
     {
-        if (fileDesc._type == WFT_WITCHER_3)
+        if (type == WFT_WITCHER_3)
             loadAnimations(path);
         else
             QMessageBox::warning(0, "Load fail", "The Witcher 2 animations files not supported");

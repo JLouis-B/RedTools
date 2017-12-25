@@ -166,19 +166,19 @@ void GUI_Search::enableButton()
 
     QString selected = _ui->listWidget_results->currentItem()->text();
     WitcherContentType type = getTWFileContentType(QSTRING_TO_PATH(selected));
-    if (type == WTC_ENTITY)
+    if (type == WCT_WITCHER_ENTITY)
     {
         _ui->pushButton_load->setText("Load entity");
     }
-    else if (type == WTC_MESH)
+    else if (type == WCT_WITCHER_MESH)
     {
         _ui->pushButton_load->setText("Load mesh");
     }
-    else if (type == WTC_RIG)
+    else if (type == WCT_WITCHER_RIG)
     {
         _ui->pushButton_load->setText("Load rig");
     }
-    else if (type == WTC_ANIMATIONS)
+    else if (type == WCT_WITCHER_ANIMATIONS)
     {
         _ui->pushButton_load->setText("Load animations");
     }

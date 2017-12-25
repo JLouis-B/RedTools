@@ -1,33 +1,36 @@
 #include "Utils_TW.h"
 
-WitcherFileDesc getTWFileDescription(io::IReadFile* file, io::path filename)
+WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename)
 {
     WitcherFileDesc description;
     description._contentType = getTWFileContentType(filename);
-    description._type = getTWFileFormatVersion(file);
+    description._version = hasTWFileFormatVersion(file);
+    description._hasWitcherMagicCode = hasWitcherMagicCode(file);
+
+    description._fileType = getTWFileType(file);
     return description;
 }
 
 WitcherContentType getTWFileContentType(io::path filename)
 {
     if (core::hasFileExtension ( filename, "w2ent" ))
-        return WTC_ENTITY;
+        return WCT_WITCHER_ENTITY;
     else if (core::hasFileExtension ( filename, "w2mesh" ))
-        return WTC_MESH;
+        return WCT_WITCHER_MESH;
     else if (core::hasFileExtension ( filename, "w2rig" ))
-        return WTC_RIG;
+        return WCT_WITCHER_RIG;
     else if (core::hasFileExtension ( filename, "w2anims" ))
-        return WTC_ANIMATIONS;
+        return WCT_WITCHER_ANIMATIONS;
     else if (core::hasFileExtension ( filename, "w2mi" ))
-        return WTC_MATERIAL;
+        return WCT_WITCHER_MATERIAL;
     else
-        return WTC_OTHER;
+        return WCT_WITCHER_OTHER;
 }
 
-WitcherFileType getTWFileFormatVersion(io::IReadFile* file)
+WitcherFileType hasTWFileFormatVersion(io::IReadFile* file)
 {
     if (!file)
-        return WFT_NOT_WITCHER;
+        return WFT_UNKNOWN;
 
     const long pos = file->getPos();
 
@@ -40,18 +43,28 @@ WitcherFileType getTWFileFormatVersion(io::IReadFile* file)
     else if (version >= 162)
         return WFT_WITCHER_3;
     else
-        return WFT_NOT_WITCHER;
+        return WFT_UNKNOWN;
 }
 
-WitcherFileType checkIsTWFile(io::IReadFile* file, io::path filename)
+bool hasWitcherMagicCode(io::IReadFile* file)
 {
-    WitcherFileType fileType = getTWFileFormatVersion(file);
-    if (getTWFileContentType(filename) == WTC_OTHER)
-        fileType = WFT_NOT_WITCHER;
+    if (!file)
+        return false;
 
-    return fileType;
+    const long pos = file->getPos();
+    core::stringc magic = readString(file, 4);
+    file->seek(pos);
+
+    return (magic == "CR2W");
 }
 
+WitcherFileType getTWFileType(io::IReadFile* file)
+{
+    if (!hasWitcherMagicCode(file))
+        return WFT_UNKNOWN;
+
+    return hasTWFileFormatVersion(file);
+}
 
 void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes)
 {
@@ -129,12 +142,17 @@ void loadTW3StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& str
     file->seek(initialPos);
 }
 
-void loadTWStringsAndFiles(io::IReadFile* file, WitcherFileType fileType, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes)
+void loadTWStringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes)
 {
     strings.clear();
     files.clear();
 
-    switch (fileType)
+    if (!hasWitcherMagicCode(file))
+        return;
+
+    WitcherFileType version = getTWFileType(file);
+
+    switch (version)
     {
         case WFT_WITCHER_2:
             loadTW2StringsAndFiles(file, strings, files, withTypes);

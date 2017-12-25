@@ -57,45 +57,53 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     }
 
     // Events
-    QObject::connect(_ui->actionWireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
-    QObject::connect(_ui->actionRigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
+    // Menu
+    QObject::connect(_ui->action_main_Search, SIGNAL(triggered()), this, SLOT(search()));
+    QObject::connect(_ui->action_main_Add_mesh, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
+    QObject::connect(_ui->action_main_Options, SIGNAL(triggered()), this, SLOT(options()));
+    QObject::connect(_ui->action_main_Quitter, SIGNAL(triggered()), this, SLOT(close()));
 
-    QObject::connect(_ui->actionQuitter, SIGNAL(triggered()), this, SLOT(close()));
-    QObject::connect(_ui->actionWebpage, SIGNAL(triggered()), this, SLOT(openWebpage()));
+    QObject::connect(_ui->action_redkit_Size, SIGNAL(triggered()), this, SLOT(re_size()));
+    QObject::connect(_ui->action_redkit_LOD0, SIGNAL(triggered()), this, SLOT(changeLOD()));
+    QObject::connect(_ui->action_redkit_LOD1, SIGNAL(triggered()), this, SLOT(changeLOD()));
+    QObject::connect(_ui->action_redkit_LOD2, SIGNAL(triggered()), this, SLOT(changeLOD()));
+    QObject::connect(_ui->action_redkit_Collision_mesh, SIGNAL(triggered()), this, SLOT(changeLOD()));
+    QObject::connect(_ui->action_redkit_Clear_current_LOD, SIGNAL(triggered()), this, SLOT(clearLOD()));
+    QObject::connect(_ui->action_redkit_Clear_all_LODs, SIGNAL(triggered()), this, SLOT(clearAllLODs()));
+
+    QObject::connect(_ui->action_TW1_BIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
+
+    QObject::connect(_ui->action_TW2_DZIP_extractor, SIGNAL(triggered(bool)), this, SLOT(dzipExtractor()));
+    QObject::connect(_ui->action_TW2_Materials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
+    QObject::connect(_ui->action_TW2_Show_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
+
+    QObject::connect(_ui->action_TW3_BUNDLE_extractor, SIGNAL(triggered(bool)), this, SLOT(bundleExtractor()));
+    QObject::connect(_ui->action_TW3_Load_rig, SIGNAL(triggered(bool)), this, SLOT(selectRigFile()));
+    QObject::connect(_ui->action_TW3_Load_animations, SIGNAL(triggered(bool)), this, SLOT(selectAnimationsFile()));
+    QObject::connect(_ui->action_TW3_Materials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
+    QObject::connect(_ui->action_TW3_Show_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
+    QObject::connect(_ui->action_TW3_LUA_utils_Clean_textures_path_depreciated, SIGNAL(triggered()), this, SLOT(cleanTexturesPath()));
+
+    QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
+    QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
+
+    QObject::connect(_ui->action_help_Webpage, SIGNAL(triggered()), this, SLOT(openWebpage()));
+
+
+    // UI
     QObject::connect(_ui->button_fileSelector, SIGNAL(clicked()), this, SLOT(selectMeshFile()));
     QObject::connect(_ui->button_convert, SIGNAL(clicked()), this, SLOT(convertir()));
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectFolder()));
-    QObject::connect(_ui->actionSearch, SIGNAL(triggered()), this, SLOT(search()));
-    QObject::connect(_ui->actionOptions, SIGNAL(triggered()), this, SLOT(options()));
-    QObject::connect(_ui->actionSize, SIGNAL(triggered()), this, SLOT(re_size()));
-    QObject::connect(_ui->comboBox_format, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
-
-    QObject::connect(_ui->actionClean_textures_path, SIGNAL(triggered()), this, SLOT(cleanTexturesPath()));
-
-    QObject::connect(_ui->actionLOD0, SIGNAL(triggered()), this, SLOT(changeLOD()));
-    QObject::connect(_ui->actionLOD1, SIGNAL(triggered()), this, SLOT(changeLOD()));
-    QObject::connect(_ui->actionLOD2, SIGNAL(triggered()), this, SLOT(changeLOD()));
-    QObject::connect(_ui->actionCollision_mesh, SIGNAL(triggered()), this, SLOT(changeLOD()));
-
-    QObject::connect(_ui->actionClear_current_LOD, SIGNAL(triggered()), this, SLOT(clearLOD()));
-    QObject::connect(_ui->actionClear_all_LODs, SIGNAL(triggered()), this, SLOT(clearAllLODs()));
-    QObject::connect(_ui->actionShow_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
-
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
-
-    QObject::connect(_ui->actionSet_rig, SIGNAL(triggered(bool)), this, SLOT(selectRigFile()));
-    QObject::connect(_ui->actionSet_animations, SIGNAL(triggered(bool)), this, SLOT(selectAnimationsFile()));
-    QObject::connect(_ui->actionMaterials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
-    QObject::connect(_ui->actionAdd_mesh_2, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
-    QObject::connect(_ui->actionBIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
-    QObject::connect(_ui->actionDZIP_extractor, SIGNAL(triggered(bool)), this, SLOT(dzipExtractor()));
-    QObject::connect(_ui->actionBUNDLE_extractor, SIGNAL(triggered(bool)), this, SLOT(bundleExtractor()));
+    QObject::connect(_ui->comboBox_format, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
 
     // Logs
     _ui->textEdit_log->setReadOnly (true);
+
+    enableTWFilesTools(false);
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -133,25 +141,25 @@ void GUI_MainWindow::addMesh()
 
     if (!_irrWidget->isEmpty(_currentLOD))
     {
-        _irrWidget->changeWireframe(_ui->actionWireframe->isChecked());
-        _irrWidget->changeRigging(_ui->actionRigging->isChecked());
+        _irrWidget->changeWireframe(_ui->action_display_Wireframe->isChecked());
+        _irrWidget->changeRigging(_ui->action_display_Rigging->isChecked());
 
         _ui->button_convert->setEnabled(true);
-        _ui->actionSize->setEnabled(true);
+        _ui->action_redkit_Size->setEnabled(true);
 
         switch(_currentLOD)
         {
             case LOD_0:
-                _ui->actionLOD0->setText("LOD0");
+                _ui->action_redkit_LOD0->setText("LOD0");
             break;
             case LOD_1:
-                _ui->actionLOD1->setText("LOD1");
+                _ui->action_redkit_LOD1->setText("LOD1");
             break;
             case LOD_2:
-                _ui->actionLOD2->setText("LOD2");
+                _ui->action_redkit_LOD2->setText("LOD2");
             break;
             case Collision:
-                _ui->actionCollision_mesh->setText("Collision mesh");
+                _ui->action_redkit_Collision_mesh->setText("Collision mesh");
             break;
         }
     }
@@ -298,40 +306,42 @@ void GUI_MainWindow::translate()
 
     // Menus
     _ui->menuMenu->setTitle(Translator::get("menu_menu"));
-    _ui->actionSearch->setText(Translator::get("menu_menu_search"));
-    _ui->actionOptions->setText(Translator::get("menu_menu_options"));
-    _ui->actionAdd_mesh_2->setText(Translator::get("menu_menu_addMesh"));
-    _ui->actionShow_linked_files->setText(Translator::get("menu_menu_linkedFiles"));
-    _ui->actionQuitter->setText(Translator::get("menu_menu_quit"));
+    _ui->action_main_Search->setText(Translator::get("menu_menu_search"));
+    _ui->action_main_Options->setText(Translator::get("menu_menu_options"));
+    _ui->action_main_Add_mesh->setText(Translator::get("menu_menu_addMesh"));
+    _ui->action_main_Quitter->setText(Translator::get("menu_menu_quit"));
 
     _ui->menu_RE_tools->setTitle(Translator::get("menu_re"));
-    _ui->actionClear_current_LOD->setText(Translator::get("menu_re_lod_clear"));
-    _ui->actionClear_all_LODs->setText(Translator::get("menu_re_lod_clear_all"));
-    _ui->actionSize->setText(Translator::get("menu_re_size"));
+    _ui->action_redkit_Clear_current_LOD->setText(Translator::get("menu_re_lod_clear"));
+    _ui->action_redkit_Clear_all_LODs->setText(Translator::get("menu_re_lod_clear_all"));
+    _ui->action_redkit_Size->setText(Translator::get("menu_re_size"));
 
-    _ui->menuThe_Witcher_1_tools->setTitle(Translator::get("menu_tw1"));
-    _ui->actionBIF_extractor->setText(Translator::get("menu_tw1_bif"));
+    _ui->action_TW1_BIF_extractor->setText(Translator::get("menu_tw1_bif"));
 
-    _ui->menuThe_Witcher_3_tools->setTitle(Translator::get("menu_tw3"));
-    _ui->actionSet_rig->setText(Translator::get("menu_tw3_setRig"));
-    _ui->actionSet_animations->setText(Translator::get("menu_tw3_setAnimation"));
-    _ui->actionClean_textures_path->setText(Translator::get("menu_tw3_tex_path"));
+    _ui->action_TW2_Show_linked_files->setText(Translator::get("menu_tw2_3_linkedFiles"));
+    _ui->action_TW2_Materials_explorer->setText(Translator::get("menu_tw2_3_materialsExplorer"));
+
+    _ui->action_TW3_Load_rig->setText(Translator::get("menu_tw3_setRig"));
+    _ui->action_TW3_Load_animations->setText(Translator::get("menu_tw3_setAnimation"));
+    _ui->action_TW3_Show_linked_files->setText(Translator::get("menu_tw2_3_linkedFiles"));
+    _ui->action_TW3_Materials_explorer->setText(Translator::get("menu_tw2_3_materialsExplorer"));
+    _ui->action_TW3_LUA_utils_Clean_textures_path_depreciated->setText(Translator::get("menu_tw3_tex_path"));
 
     _ui->menuLanguages->setTitle(Translator::get("menu_language"));
 
     _ui->menuDisplay->setTitle(Translator::get("menu_display"));
-    _ui->actionWireframe->setText(Translator::get("menu_display_wireframe"));
+    _ui->action_display_Wireframe->setText(Translator::get("menu_display_wireframe"));
 
     _ui->menuHelp->setTitle(Translator::get("menu_help"));
-    _ui->actionWebpage->setText(Translator::get("menu_help_webpage"));
+    _ui->action_help_Webpage->setText(Translator::get("menu_help_webpage"));
 
 
-    if (_ui->actionLOD0->text() != "LOD0")
-        _ui->actionLOD0->setText("LOD0 (" + Translator::get("menu_re_lod_empty") + ")");
-    if (_ui->actionLOD1->text() != "LOD1")
-        _ui->actionLOD1->setText("LOD1 (" + Translator::get("menu_re_lod_empty") + ")");
-    if (_ui->actionLOD2->text() != "LOD2")
-        _ui->actionLOD2->setText("LOD2 (" + Translator::get("menu_re_lod_empty") + ")");
+    if (_ui->action_redkit_LOD0->text() != "LOD0")
+        _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("menu_re_lod_empty") + ")");
+    if (_ui->action_redkit_LOD1->text() != "LOD1")
+        _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("menu_re_lod_empty") + ")");
+    if (_ui->action_redkit_LOD2->text() != "LOD2")
+        _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("menu_re_lod_empty") + ")");
 }
 
 void GUI_MainWindow::selectFolder()
@@ -401,13 +411,13 @@ void GUI_MainWindow::changeLOD()
     q->setChecked(true);
 
     LOD newlod = LOD_0;
-    if (q == _ui->actionLOD0)
+    if (q == _ui->action_redkit_LOD0)
         newlod = LOD_0;
-    else if (q == _ui->actionLOD1)
+    else if (q == _ui->action_redkit_LOD1)
         newlod = LOD_1;
-    else if (q == _ui->actionLOD2)
+    else if (q == _ui->action_redkit_LOD2)
         newlod = LOD_2;
-    else if (q == _ui->actionCollision_mesh)
+    else if (q == _ui->action_redkit_Collision_mesh)
         newlod = Collision;
 
     _irrWidget->changeLOD(newlod);
@@ -422,24 +432,24 @@ void GUI_MainWindow::clearLOD()
     switch(_currentLOD)
     {
         case LOD_0:
-            _ui->actionLOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
+            _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
         break;
         case LOD_1:
-            _ui->actionLOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
+            _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
         break;
         case LOD_2:
-            _ui->actionLOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
+            _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
         break;
         case Collision:
-            _ui->actionLOD2->setText("Collision mesh (" + Translator::get("re_lod_empty") + ")");
+            _ui->action_redkit_LOD2->setText("Collision mesh (" + Translator::get("re_lod_empty") + ")");
         break;
     }
 
     _irrWidget->clearLOD();
 
-    _ui->actionShow_linked_files->setEnabled(false);
+    enableTWFilesTools(false);
 
-    _ui->actionSize->setEnabled(false);
+    _ui->action_redkit_Size->setEnabled(false);
 
     checkConvertButton();
     updateWindowTitle();
@@ -447,15 +457,15 @@ void GUI_MainWindow::clearLOD()
 
 void GUI_MainWindow::clearAllLODs()
 {
-    _ui->actionLOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
-    _ui->actionLOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
-    _ui->actionLOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
+    _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
+    _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
+    _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
 
     _irrWidget->clearAllLODs();
 
-    _ui->actionShow_linked_files->setEnabled(false);
+    enableTWFilesTools(false);
 
-    _ui->actionSize->setEnabled(false);
+    _ui->action_redkit_Size->setEnabled(false);
 
     checkConvertButton();
     updateWindowTitle();
@@ -541,31 +551,31 @@ void GUI_MainWindow::loadMesh(QString path)
     bool success = _irrWidget->setModel(path, feedbackMessage);
     if (success)
     {
-        _irrWidget->changeWireframe(_ui->actionWireframe->isChecked());
-        _irrWidget->changeRigging(_ui->actionRigging->isChecked());
+        _irrWidget->changeWireframe(_ui->action_display_Wireframe->isChecked());
+        _irrWidget->changeRigging(_ui->action_display_Rigging->isChecked());
 
         _ui->button_convert->setEnabled(true);
-        _ui->actionSize->setEnabled(true);
+        _ui->action_redkit_Size->setEnabled(true);
 
         const QFileInfo fileInfo (path);
         const QString filename = fileInfo.fileName();
         const QString extension = fileInfo.suffix();
 
-        _ui->actionShow_linked_files->setEnabled(extension == "w2ent" || extension == "w2mesh");
+        enableTWFilesTools(extension == "w2ent" || extension == "w2mesh");
 
         switch(_currentLOD)
         {
             case LOD_0:
-                _ui->actionLOD0->setText("LOD0");
+                _ui->action_redkit_LOD0->setText("LOD0");
             break;
             case LOD_1:
-                _ui->actionLOD1->setText("LOD1");
+                _ui->action_redkit_LOD1->setText("LOD1");
             break;
             case LOD_2:
-                _ui->actionLOD2->setText("LOD2");
+                _ui->action_redkit_LOD2->setText("LOD2");
             break;
             case Collision:
-                _ui->actionCollision_mesh->setText("Collision mesh");
+                _ui->action_redkit_Collision_mesh->setText("Collision mesh");
             break;
         }
         _firstSelection = false;
@@ -610,4 +620,13 @@ void GUI_MainWindow::loadAnimations(QString path)
 
     addToUILog(QString(feedback.c_str()) + "\n");
     updateWindowTitle();
+}
+
+void GUI_MainWindow::enableTWFilesTools(bool enabled)
+{
+    _ui->action_TW2_Show_linked_files->setEnabled(enabled);
+    _ui->action_TW3_Show_linked_files->setEnabled(enabled);
+
+    _ui->action_TW2_Materials_explorer->setEnabled(enabled);
+    _ui->action_TW3_Materials_explorer->setEnabled(enabled);
 }

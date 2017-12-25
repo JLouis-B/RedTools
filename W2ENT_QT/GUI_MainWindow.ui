@@ -228,14 +228,13 @@
     <property name="title">
      <string>Menu</string>
     </property>
-    <addaction name="actionSearch"/>
-    <addaction name="actionShow_linked_files"/>
+    <addaction name="action_main_Search"/>
     <addaction name="separator"/>
-    <addaction name="actionOptions"/>
+    <addaction name="action_main_Options"/>
     <addaction name="separator"/>
-    <addaction name="actionAdd_mesh_2"/>
+    <addaction name="action_main_Add_mesh"/>
     <addaction name="separator"/>
-    <addaction name="actionQuitter"/>
+    <addaction name="action_main_Quitter"/>
    </widget>
    <widget class="QMenu" name="menuLanguages">
     <property name="title">
@@ -246,14 +245,14 @@
     <property name="title">
      <string>Display</string>
     </property>
-    <addaction name="actionWireframe"/>
-    <addaction name="actionRigging"/>
+    <addaction name="action_display_Wireframe"/>
+    <addaction name="action_display_Rigging"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionWebpage"/>
+    <addaction name="action_help_Webpage"/>
    </widget>
    <widget class="QMenu" name="menu_RE_tools">
     <property name="enabled">
@@ -266,55 +265,62 @@
      <property name="title">
       <string>LOD</string>
      </property>
-     <addaction name="actionLOD0"/>
-     <addaction name="actionLOD1"/>
-     <addaction name="actionLOD2"/>
+     <addaction name="action_redkit_LOD0"/>
+     <addaction name="action_redkit_LOD1"/>
+     <addaction name="action_redkit_LOD2"/>
      <addaction name="separator"/>
-     <addaction name="actionCollision_mesh"/>
+     <addaction name="action_redkit_Collision_mesh"/>
      <addaction name="separator"/>
-     <addaction name="actionClear_current_LOD"/>
-     <addaction name="actionClear_all_LODs"/>
+     <addaction name="action_redkit_Clear_current_LOD"/>
+     <addaction name="action_redkit_Clear_all_LODs"/>
     </widget>
-    <addaction name="actionSize"/>
+    <addaction name="action_redkit_Size"/>
     <addaction name="menuLOD"/>
-   </widget>
-   <widget class="QMenu" name="menuThe_Witcher_3_tools">
-    <property name="title">
-     <string>The Witcher 3 tools</string>
-    </property>
-    <addaction name="actionClean_textures_path"/>
-    <addaction name="actionSet_rig"/>
-    <addaction name="actionSet_animations"/>
-    <addaction name="actionMaterials_explorer"/>
-    <addaction name="actionBUNDLE_extractor"/>
    </widget>
    <widget class="QMenu" name="menuThe_Witcher_1_tools">
     <property name="title">
-     <string>The Witcher 1 tools</string>
+     <string>The Witcher tools</string>
     </property>
-    <addaction name="actionBIF_extractor"/>
-   </widget>
-   <widget class="QMenu" name="menuThe_Witcher_2_tools">
-    <property name="title">
-     <string>The Witcher 2 tools</string>
-    </property>
-    <addaction name="actionDZIP_extractor"/>
+    <widget class="QMenu" name="menuThe_Witcher_1">
+     <property name="title">
+      <string>The Witcher 1</string>
+     </property>
+     <addaction name="action_TW1_BIF_extractor"/>
+    </widget>
+    <widget class="QMenu" name="menuThe_Witcher_2">
+     <property name="title">
+      <string>The Witcher 2</string>
+     </property>
+     <addaction name="action_TW2_DZIP_extractor"/>
+     <addaction name="separator"/>
+     <addaction name="action_TW2_Materials_explorer"/>
+     <addaction name="action_TW2_Show_linked_files"/>
+    </widget>
+    <widget class="QMenu" name="menuThe_Witcher_3">
+     <property name="title">
+      <string>The Witcher 3</string>
+     </property>
+     <addaction name="action_TW3_BUNDLE_extractor"/>
+     <addaction name="separator"/>
+     <addaction name="action_TW3_Load_rig"/>
+     <addaction name="action_TW3_Load_animations"/>
+     <addaction name="separator"/>
+     <addaction name="action_TW3_Materials_explorer"/>
+     <addaction name="action_TW3_Show_linked_files"/>
+     <addaction name="action_TW3_LUA_utils_Clean_textures_path_depreciated"/>
+    </widget>
+    <addaction name="menuThe_Witcher_1"/>
+    <addaction name="menuThe_Witcher_2"/>
+    <addaction name="menuThe_Witcher_3"/>
    </widget>
    <addaction name="menuMenu"/>
-   <addaction name="menu_RE_tools"/>
    <addaction name="menuThe_Witcher_1_tools"/>
-   <addaction name="menuThe_Witcher_2_tools"/>
-   <addaction name="menuThe_Witcher_3_tools"/>
+   <addaction name="menu_RE_tools"/>
    <addaction name="menuDisplay"/>
    <addaction name="menuLanguages"/>
    <addaction name="menuHelp"/>
   </widget>
-  <action name="actionEnglish">
-   <property name="text">
-    <string>English</string>
-   </property>
-  </action>
-  <action name="actionQuitter">
+  <action name="action_main_Quitter">
    <property name="text">
     <string>Quit</string>
    </property>
@@ -322,7 +328,7 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionWireframe">
+  <action name="action_display_Wireframe">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -330,12 +336,12 @@
     <string>Wireframe</string>
    </property>
   </action>
-  <action name="actionWebpage">
+  <action name="action_help_Webpage">
    <property name="text">
     <string>Webpage</string>
    </property>
   </action>
-  <action name="actionSearch">
+  <action name="action_main_Search">
    <property name="text">
     <string>Search</string>
    </property>
@@ -343,12 +349,12 @@
     <string>Ctrl+F</string>
    </property>
   </action>
-  <action name="actionOptions">
+  <action name="action_main_Options">
    <property name="text">
     <string>Options</string>
    </property>
   </action>
-  <action name="actionSize">
+  <action name="action_redkit_Size">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -356,7 +362,7 @@
     <string>Size</string>
    </property>
   </action>
-  <action name="actionLOD0">
+  <action name="action_redkit_LOD0">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -367,7 +373,7 @@
     <string>LOD0 (empty)</string>
    </property>
   </action>
-  <action name="actionLOD1">
+  <action name="action_redkit_LOD1">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -375,7 +381,7 @@
     <string>LOD1 (empty)</string>
    </property>
   </action>
-  <action name="actionLOD2">
+  <action name="action_redkit_LOD2">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -383,7 +389,7 @@
     <string>LOD2 (empty)</string>
    </property>
   </action>
-  <action name="actionClear_current_LOD">
+  <action name="action_redkit_Clear_current_LOD">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -391,7 +397,7 @@
     <string>Clear current LOD</string>
    </property>
   </action>
-  <action name="actionRigging">
+  <action name="action_display_Rigging">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -399,12 +405,12 @@
     <string>Skeleton</string>
    </property>
   </action>
-  <action name="actionClear_all_LODs">
+  <action name="action_redkit_Clear_all_LODs">
    <property name="text">
     <string>Clear all LODs</string>
    </property>
   </action>
-  <action name="actionCollision_mesh">
+  <action name="action_redkit_Collision_mesh">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -412,60 +418,64 @@
     <string>Collision mesh (empty)</string>
    </property>
   </action>
-  <action name="actionClean_textures_path">
-   <property name="text">
-    <string>LUA utils : Clean textures path</string>
-   </property>
-  </action>
-  <action name="actionShow_linked_files">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Show linked files</string>
-   </property>
-  </action>
-  <action name="actionSet_rig">
-   <property name="text">
-    <string>Set rig</string>
-   </property>
-  </action>
-  <action name="actionAdd_mesh">
+  <action name="action_main_Add_mesh">
    <property name="text">
     <string>Add mesh(es)</string>
    </property>
   </action>
-  <action name="actionAdd_mesh_2">
+  <action name="actionCACHE">
    <property name="text">
-    <string>Add mesh(es)</string>
+    <string>CACHE</string>
    </property>
   </action>
-  <action name="actionBIF_extractor">
+  <action name="action_TW1_BIF_extractor">
    <property name="text">
     <string>BIF extractor</string>
    </property>
   </action>
-  <action name="actionSet_animations">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
+  <action name="action_TW2_DZIP_extractor">
    <property name="text">
-    <string>Set animations</string>
+    <string>DZIP Extractor</string>
    </property>
   </action>
-  <action name="actionMaterials_explorer">
+  <action name="action_TW2_Materials_explorer">
    <property name="text">
-    <string>Materials explorer</string>
+    <string>Materials explorer (TW 2 and 3)</string>
    </property>
   </action>
-  <action name="actionDZIP_extractor">
-   <property name="text">
-    <string>DZIP extractor</string>
-   </property>
-  </action>
-  <action name="actionBUNDLE_extractor">
+  <action name="action_TW3_BUNDLE_extractor">
    <property name="text">
     <string>BUNDLE extractor</string>
+   </property>
+  </action>
+  <action name="action_TW3_Load_rig">
+   <property name="text">
+    <string>Load rig</string>
+   </property>
+  </action>
+  <action name="action_TW3_Load_animations">
+   <property name="text">
+    <string>Load animations</string>
+   </property>
+  </action>
+  <action name="action_TW3_Materials_explorer">
+   <property name="text">
+    <string>Materials explorer (TW 2 and 3)</string>
+   </property>
+  </action>
+  <action name="action_TW3_LUA_utils_Clean_textures_path_depreciated">
+   <property name="text">
+    <string>LUA utils : Clean textures path (depreciated workflow)</string>
+   </property>
+  </action>
+  <action name="action_TW2_Show_linked_files">
+   <property name="text">
+    <string>Show linked files (TW 2 and 3)</string>
+   </property>
+  </action>
+  <action name="action_TW3_Show_linked_files">
+   <property name="text">
+    <string>Show linked files (TW 2 and 3)</string>
    </property>
   </action>
  </widget>

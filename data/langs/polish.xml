@@ -21,7 +21,6 @@
 	<element id="menu_menu_options" text="Opcje"/>
 	<element id="menu_menu_search" text="Szukaj"/>
 	<element id="menu_menu_addMesh" text="Ajouter d'autres meshes"/>
-	<element id="menu_menu_linkedFiles" text="Pokaż połączone pliki"/>
 	<element id="menu_menu_quit" text="Wyjście"/>
 	
 	<element id="menu_re" text="Narzędzia Redkit"/>
@@ -30,10 +29,12 @@
 	<element id="menu_re_lod_clear" text="Wyczyść obecny LOD"/>
 	<element id="menu_re_lod_clear_all" text="Wyczyść wszystkie LODy"/>
 	
-	<element id="menu_tw1" text="Narzędzia do Wiedźmin 1"/>
 	<element id="menu_tw1_bif" text="BIF extractor"/>
 	
-	<element id="menu_tw3" text="Narzędzia do Wiedźmin 3"/>
+	<element id="menu_tw2_dzipExtractor" text="DZIP extractor"/>
+	<element id="menu_tw2_3_linkedFiles" text="Pokaż połączone pliki (TW2 and TW3)"/>
+	<element id="menu_tw2_3_materialsExplorer" text="Materials explorer (TW2 and TW3)"/>
+	
 	<element id="menu_tw3_tex_path" text="Wyczyść Ścieżki tekstur"/>
 	<element id="menu_tw3_setRig" text="Set rig"/>
 	<element id="menu_tw3_setAnimation" text="Set animation (Coming soon...)"/>

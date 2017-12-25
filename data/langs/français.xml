@@ -21,7 +21,6 @@
 	<element id="menu_menu_options" text="Options"/>
 	<element id="menu_menu_search" text="Rechercher"/>
 	<element id="menu_menu_addMesh" text="Ajouter d'autres meshes"/>
-	<element id="menu_menu_linkedFiles" text="Montrer les fichiers liés"/>
 	<element id="menu_menu_quit" text="Quitter"/>
 	
 	<element id="menu_re" text="Outils Redkit"/>
@@ -30,13 +29,17 @@
 	<element id="menu_re_lod_clear" text="Supprimer le LOD séléctionné"/>
 	<element id="menu_re_lod_clear_all" text="Supprimer tous les LODs"/>
 	
-	<element id="menu_tw1" text="Outils The Witcher 1"/>
+	<element id="menu_tw" text="Outils The Witcher"/>
+	
 	<element id="menu_tw1_bif" text="Extracteur de .BIF"/>
 	
-	<element id="menu_tw3" text="Outils The Witcher 3"/>
+	<element id="menu_tw2_dzipExtractor" text="DZIP extractor"/>
+	<element id="menu_tw2_3_linkedFiles" text="Montrer les fichiers liés (TW2 et TW3)"/>
+	<element id="menu_tw2_3_materialsExplorer" text="Materials explorer (TW2 and TW3)"/>
+	
 	<element id="menu_tw3_tex_path" text="LUA utils : Corriger les paths des textures"/>
 	<element id="menu_tw3_setRig" text="Charger un rig"/>
-	<element id="menu_tw3_setAnimation" text="Charger une animation (à venir...)"/>
+	<element id="menu_tw3_setAnimation" text="Charger des animations"/>
 	
 	<element id="menu_display" text="Affichage"/>
 	<element id="menu_display_wireframe" text="Fil de fer"/>

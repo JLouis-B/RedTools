@@ -18,6 +18,8 @@ GUI_ExtFilesExplorer::GUI_ExtFilesExplorer(QIrrlichtWidget* irrlicht, QWidget *p
     QObject::connect(_ui->button_back, SIGNAL(clicked(bool)), this, SLOT(back()));
     QObject::connect(_ui->button_checkW2MI, SIGNAL(clicked(bool)), this, SLOT(checkW2MI()));
     QObject::connect(_ui->listWidget, SIGNAL(currentTextChanged(QString)), this, SLOT(changeSelection(QString)));
+
+    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GUI_ExtFilesExplorer::~GUI_ExtFilesExplorer()

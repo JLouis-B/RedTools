@@ -35,7 +35,6 @@ SOURCES += main.cpp\
     MeshCombiner.cpp \
     TW3_DataCache.cpp \
     GUI_CleanTexturesPath.cpp \
-    Utils.cpp \
     Utils_TW.cpp \
     IO_MeshLoader_W3ENT.cpp \
     IO_MeshLoader_W2ENT.cpp \
@@ -49,7 +48,10 @@ SOURCES += main.cpp\
     Utils_Loaders_Qt.cpp \
     DOBOZ/Compressor.cpp \
     DOBOZ/Decompressor.cpp \
-    DOBOZ/Dictionary.cpp
+    DOBOZ/Dictionary.cpp \
+    GUI_Extractor_TW3_CACHE.cpp \
+    Extractor_TW3_CACHE.cpp \
+    Utils_Qt_Irr.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -89,7 +91,9 @@ HEADERS  += \
     DOBOZ/Common.h \
     DOBOZ/Compressor.h \
     DOBOZ/Decompressor.h \
-    DOBOZ/Dictionary.h
+    DOBOZ/Dictionary.h \
+    GUI_Extractor_TW3_CACHE.h \
+    Extractor_TW3_CACHE.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \
@@ -101,7 +105,8 @@ FORMS    += \
     GUI_Options.ui \
     GUI_Resize.ui \
     GUI_CleanTexturesPath.ui \
-    GUI_Extractor_TW3_BUNDLE.ui
+    GUI_Extractor_TW3_BUNDLE.ui \
+    GUI_Extractor_TW3_CACHE.ui
 
 # Change the paths here :
 LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\lib\Win32-gcc\libIrrlicht.a"

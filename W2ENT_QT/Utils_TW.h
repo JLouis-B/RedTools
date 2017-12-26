@@ -25,6 +25,7 @@ enum WitcherContentType
 };
 
 // unused yet. remove ?
+/*
 struct WitcherFileDesc
 {
     WitcherFileType _version;
@@ -34,9 +35,10 @@ struct WitcherFileDesc
     // test _hasWitcherMagicCode + _version
     WitcherFileType _fileType;
 };
+*/
 
 // unused yet. remove ?
-WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename);
+//WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename);
 
 WitcherContentType getTWFileContentType(io::path filename);
 WitcherFileType hasTWFileFormatVersion(io::IReadFile* file);

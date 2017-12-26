@@ -71,7 +71,6 @@ public slots :
 private:
     void updateWindowTitle();
     void addToUILog(QString log);
-    void enableTWFilesTools(bool enabled);
 
     Ui::GUI_MainWindow *_ui;
     QIrrlichtWidget *_irrWidget;

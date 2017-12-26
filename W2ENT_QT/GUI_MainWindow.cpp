@@ -102,8 +102,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     // Logs
     _ui->textEdit_log->setReadOnly (true);
-
-    enableTWFilesTools(false);
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -447,8 +445,6 @@ void GUI_MainWindow::clearLOD()
 
     _irrWidget->clearLOD();
 
-    enableTWFilesTools(false);
-
     _ui->action_redkit_Size->setEnabled(false);
 
     checkConvertButton();
@@ -462,8 +458,6 @@ void GUI_MainWindow::clearAllLODs()
     _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
 
     _irrWidget->clearAllLODs();
-
-    enableTWFilesTools(false);
 
     _ui->action_redkit_Size->setEnabled(false);
 
@@ -560,12 +554,6 @@ void GUI_MainWindow::loadMesh(QString path)
         _ui->button_convert->setEnabled(true);
         _ui->action_redkit_Size->setEnabled(true);
 
-        const QFileInfo fileInfo (path);
-        const QString filename = fileInfo.fileName();
-        const QString extension = fileInfo.suffix();
-
-        enableTWFilesTools(extension == "w2ent" || extension == "w2mesh");
-
         switch(_currentLOD)
         {
             case LOD_0:
@@ -623,13 +611,4 @@ void GUI_MainWindow::loadAnimations(QString path)
 
     addToUILog(QString(feedback.c_str()) + "\n");
     updateWindowTitle();
-}
-
-void GUI_MainWindow::enableTWFilesTools(bool enabled)
-{
-    _ui->action_TW2_Show_linked_files->setEnabled(enabled);
-    _ui->action_TW3_Show_linked_files->setEnabled(enabled);
-
-    _ui->action_TW2_Materials_explorer->setEnabled(enabled);
-    _ui->action_TW3_Materials_explorer->setEnabled(enabled);
 }

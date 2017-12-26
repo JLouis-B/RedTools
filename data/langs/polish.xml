@@ -36,8 +36,8 @@
 	<element id="menu_tw2_3_materialsExplorer" text="Materials explorer (TW2 and TW3)"/>
 	
 	<element id="menu_tw3_tex_path" text="Wyczyść Ścieżki tekstur"/>
-	<element id="menu_tw3_setRig" text="Set rig"/>
-	<element id="menu_tw3_setAnimation" text="Set animation (Coming soon...)"/>
+	<element id="menu_tw3_setRig" text="Load rig"/>
+	<element id="menu_tw3_setAnimation" text="Load animations"/>
 	
 	<element id="menu_display" text="Ekran"/>
 	<element id="menu_display_wireframe" text="Szkielet"/>

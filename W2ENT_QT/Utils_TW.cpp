@@ -1,5 +1,7 @@
 #include "Utils_TW.h"
 
+// useless ?
+/*
 WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename)
 {
     WitcherFileDesc description;
@@ -10,6 +12,7 @@ WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename)
     description._fileType = getTWFileType(file);
     return description;
 }
+*/
 
 WitcherContentType getTWFileContentType(io::path filename)
 {

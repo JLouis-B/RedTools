@@ -116,7 +116,7 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString filename)
         bifFile.read(name, nameSize);
         name[nameSize] = 0x00;
         QString qname = name;
-        std::cout << name << std::endl;
+        //std::cout << name << std::endl;
 
         if (QFile::exists(bifFolder + qname))
             extractBIF(exportFolder, bifFolder + qname, i);
@@ -159,7 +159,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsig
 
     unsigned int nbFiles, offset;
     bifFile.read((char*)&nbFiles, 4);
-    std::cout << "nbFiles = " << nbFiles << std::endl;
+    //std::cout << "nbFiles = " << nbFiles << std::endl;
 
     // unknown
     relativeSeek(&bifFile, 4);

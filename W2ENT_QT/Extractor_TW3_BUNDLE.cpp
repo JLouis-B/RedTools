@@ -54,7 +54,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
     file.seek(infoOff);
     while (file.pos() < dataPosition)
     {
-        std::cout << file.pos() << std::endl;
+        //std::cout << file.pos() << std::endl;
         QString filename = readStringFixedSize(file, 256);
         QString hash = readStringFixedSize(file, 16);
         //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;

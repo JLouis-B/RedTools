@@ -1,5 +1,6 @@
 #include "Extractor_TW1_BIF.h"
 #include "Log.h"
+#include "Utils_Loaders_Qt.h"
 
 bool operator< (const ResourceId& a, const ResourceId& b)
 {
@@ -55,44 +56,27 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString filename)
     // magic word "BIFFV1.1"
     bifFile.seek(8);
 
-    unsigned int nbFiles, nbKeys;
-    unsigned int fileOffset, keysOffset;
-
-    bifFile.read((char*)&nbFiles, 4);
-    bifFile.read((char*)&nbKeys, 4);
+    quint32 nbFiles = readUInt32(bifFile);
+    quint32 nbKeys = readUInt32(bifFile);
 
     Log::Instance()->addLineAndFlush(formatString("nbFiles = %d", nbFiles));
 
     relativeSeek(&bifFile, 4);
 
-    bifFile.read((char*)&fileOffset, 4);
-    bifFile.read((char*)&keysOffset, 4);
-
+    quint32 fileOffset = readUInt32(bifFile);
+    quint32 keysOffset = readUInt32(bifFile);
 
     bifFile.seek(keysOffset);
-    for (unsigned int i = 0; i < nbKeys; ++i)
-    {
-        int back1 = bifFile.pos();
-        QString name = "";
-        for (int n = 0; n < 16; ++n)
-        {
-            char c;
-            bifFile.read(&c, 1);
-            if (c == 0x00)
-                break;
-            else
-                name.push_back(c);
-        }
-        bifFile.seek(back1 + 16);
-        //std::cout << qname.toStdString().c_str() << std::endl;
+    for (quint32 i = 0; i < nbKeys; ++i)
+    {       
+        QString name = readStringFixedSize(bifFile, 16);
+        //std::cout << name.toStdString().c_str() << std::endl;
 
-        unsigned short resourceType;
-        unsigned int resourceId, flags;
-        bifFile.read((char*)&resourceType, 2);
-        bifFile.read((char*)&resourceId, 4);
-        bifFile.read((char*)&flags, 4);
+        quint16 resourceType = readUInt16(bifFile);
+        quint32 resourceId = readUInt32(bifFile);
+        quint32 flags = readUInt32(bifFile);
 
-        unsigned int bifId = ((flags & 0xFFF00000) >> 20);
+        quint32 bifId = ((flags & 0xFFF00000) >> 20);
 
         ResourceId rId(bifId, resourceId);
 
@@ -102,21 +86,16 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString filename)
 
 
     bifFile.seek(fileOffset);
-    for (unsigned int i = 0; i < nbFiles; ++i)
+    for (quint32 i = 0; i < nbFiles; ++i)
     {
-        unsigned int filesize, nameOffset, nameSize;
-        bifFile.read((char*)&filesize, 4);
-        bifFile.read((char*)&nameOffset, 4);
-        bifFile.read((char*)&nameSize, 4);
+        quint32 filesize = readUInt32(bifFile);
+        quint32 nameOffset = readUInt32(bifFile);
+        quint32 nameSize = readUInt32(bifFile);
 
-        int back = bifFile.pos();
-
+        qint64 back = bifFile.pos();
         bifFile.seek(nameOffset);
-        char name[nameSize + 1];
-        bifFile.read(name, nameSize);
-        name[nameSize] = 0x00;
-        QString qname = name;
-        //std::cout << name << std::endl;
+        QString qname = readStringNoCheck(bifFile, nameSize);
+        //std::cout << qname.toStdString().c_str() << std::endl;
 
         if (QFile::exists(bifFolder + qname))
             extractBIF(exportFolder, bifFolder + qname, i);
@@ -157,29 +136,26 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsig
     // magic word "BIFFV1.1"
     bifFile.seek(8);
 
-    unsigned int nbFiles, offset;
-    bifFile.read((char*)&nbFiles, 4);
+    quint32 nbFiles = readUInt32(bifFile);
     //std::cout << "nbFiles = " << nbFiles << std::endl;
 
     // unknown
     relativeSeek(&bifFile, 4);
-    bifFile.read((char*)&offset, 4);
+    quint32 offset = readUInt32(bifFile);
 
     bifFile.seek(offset);
     for (unsigned int i = 0; i < nbFiles; ++i)
     {
-        unsigned short resourceType;
-        unsigned int adress, size, resourceId, flags;
-
-        bifFile.read((char*)&resourceId, 4);
-        bifFile.read((char*)&flags, 4);
+        quint32 resourceId = readUInt32(bifFile);
+        quint32 flags = readUInt32(bifFile);
 
         //unsigned int bifId = ((flags & 0xFFF00000) >> 20);
         //std::cout << "flags=" << flags << ", resourceId=" << resourceId << std::endl;
 
-        bifFile.read((char*)&adress, 4);
-        bifFile.read((char*)&size, 4);
-        bifFile.read((char*)&resourceType, 2);
+
+        quint32 adress = readUInt32(bifFile);
+        quint32 size = readUInt32(bifFile);
+        quint16 resourceType = readUInt16(bifFile);
 
         //std::cout << "adress = " << adress << std::endl;
         //std::cout << "size = " << size << std::endl;
@@ -193,7 +169,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsig
             continue;
         }
 
-        unsigned int back = bifFile.pos();
+        qint64 back = bifFile.pos();
         bifFile.seek(adress);
 
         ResourceId rId(bifId, resourceId);

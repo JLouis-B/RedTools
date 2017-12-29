@@ -1,18 +1,11 @@
 #include "Utils_Loaders_Irr.h"
 
-core::stringc readString(io::IReadFile* f, s32 nbLetters)
+core::stringc readString(io::IReadFile* file, s32 nbChars)
 {
-    core::stringc str;
-
-    char buf;
-    for (s32 i = 0; i < nbLetters; ++i)
-    {
-        f->read(&buf, 1);
-        if (buf != 0)
-            str.append(buf);
-    }
-
-    return str;
+    char returnedString[nbChars + 1];
+    file->read(returnedString, nbChars);
+    returnedString[nbChars] = '\0';
+    return returnedString;
 }
 
 core::stringc readStringUntilNull(io::IReadFile* file)
@@ -29,18 +22,11 @@ core::stringc readStringUntilNull(io::IReadFile* file)
     return returnedString;
 }
 
-core::stringc readStringFixedSize(io::IReadFile* file, int count)
+core::stringc readStringFixedSize(io::IReadFile* file, int nbChars)
 {
-    core::stringc returnedString;
-    char c;
-    while (1) {
-       file->read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
-
-    file->seek(count - (returnedString.size() + 1), true);
+    long back = file->getPos();
+    core::stringc returnedString = readString(file, nbChars);
+    file->seek(back + nbChars);
 
     return returnedString;
 }

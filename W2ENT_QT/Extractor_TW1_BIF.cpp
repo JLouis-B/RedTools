@@ -94,7 +94,7 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString filename)
 
         qint64 back = bifFile.pos();
         bifFile.seek(nameOffset);
-        QString qname = readStringNoCheck(bifFile, nameSize);
+        QString qname = readString(bifFile, nameSize);
         //std::cout << qname.toStdString().c_str() << std::endl;
 
         if (QFile::exists(bifFolder + qname))

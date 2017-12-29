@@ -22,8 +22,7 @@ T readData(QFile& f)
 #define readUInt64 readData<quint64>
 
 
-QString readStringNoCheck(QFile& file, int nbLetters);
-QString readString(QFile& file, int nbLetters);
-QString readStringFixedSize(QFile& file, int count);
+QString readString(QFile& file, int nbChars);
+QString readStringFixedSize(QFile& file, int nbChars);
 
 #endif // UTILS_QT_LOADERS_H

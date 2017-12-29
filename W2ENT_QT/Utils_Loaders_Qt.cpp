@@ -2,43 +2,19 @@
 
 
 
-QString readStringNoCheck(QFile& file, int nbLetters)
+QString readString(QFile& file, int nbChars)
 {
-    char str[nbLetters + 1];
-    file.read(str, nbLetters);
-    str[nbLetters] = '\0';
+    char str[nbChars + 1];
+    file.read(str, nbChars);
+    str[nbChars] = '\0';
     return str;
 }
 
-QString readString(QFile& file, int nbLetters)
-{
-    QString str;
-
-    char buf;
-    for (int i = 0; i < nbLetters; ++i)
-    {
-        file.read(&buf, 1);
-        if (buf != 0)
-            str.append(buf);
-    }
-
-    return str;
-}
-
-QString readStringFixedSize(QFile &file, int count)
+QString readStringFixedSize(QFile &file, int nbChars)
 {
     qint64 back = file.pos();
-    QString returnedString;
-    char c;
-    for (int i = 0; i < count; ++i)
-    {
-       file.read(&c, 1);
-       if (c == 0x00)
-           break;
-       returnedString.append(c);
-    }
+    QString str = readString(file, nbChars);
+    file.seek(back + nbChars);
 
-    file.seek(back + count);
-
-    return returnedString;
+    return str;
 }

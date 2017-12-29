@@ -46,7 +46,7 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
         file.seek(tablePosition);
 
         quint16 nsize = readUInt16(file);
-        QString filename = readStringNoCheck(file, nsize);
+        QString filename = readString(file, nsize);
         //std::cout << filename << std::endl;
 
         qint32 unk3        = readInt32(file);

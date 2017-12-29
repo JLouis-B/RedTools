@@ -31,9 +31,9 @@ core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
     return values;
 }
 
-core::stringc readString(io::IReadFile* f, s32 nbLetters);
+core::stringc readString(io::IReadFile* file, int nbChars);
 core::stringc readStringUntilNull(io::IReadFile* file);
-core::stringc readStringFixedSize(io::IReadFile* file, int count);
+core::stringc readStringFixedSize(io::IReadFile* file, int nbChars);
 
 
 

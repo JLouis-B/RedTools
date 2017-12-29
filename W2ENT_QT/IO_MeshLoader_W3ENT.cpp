@@ -1691,7 +1691,7 @@ video::SMaterial IO_MeshLoader_W3ENT::W3_CMaterialInstance(io::IReadFile* file, 
 // Check the file format version and load the mesh if it's ok
 bool IO_MeshLoader_W3ENT::load(io::IReadFile* file)
 {
-    readString(file,4); // CR2W
+    readString(file, 4); // CR2W
 
     const s32 fileFormatVersion = readS32(file);
     log->addLineAndFlush(formatString("File format version : %d", fileFormatVersion));

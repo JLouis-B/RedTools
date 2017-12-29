@@ -46,7 +46,7 @@ void GUI_Extractor_TW1_BIF::selectFolder()
 
 void GUI_Extractor_TW1_BIF::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a KEY file");
+    QString filename = QFileDialog::getOpenFileName(this, "Select a KEY file", QString(), "The Witcher key file (*.key)");
     if (filename != "")
         _ui->lineEdit_keyFile->setText(filename);
 }

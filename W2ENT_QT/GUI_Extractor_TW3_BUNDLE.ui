@@ -40,7 +40,7 @@
      <item>
       <widget class="QLineEdit" name="lineEdit_destFolder">
        <property name="text">
-        <string>D:\TW3_Test</string>
+        <string/>
        </property>
       </widget>
      </item>

@@ -111,8 +111,8 @@ QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     _currentLOD = LOD_0;
     _currentLodData = &_lod0Data;
 
-    _reWriter = 0;
-    _camera = 0;
+    _reWriter = nullptr;
+    _camera = nullptr;
 
     _inLoading = false;
 }
@@ -329,6 +329,8 @@ void QIrrlichtWidget::init ()
         _camera = _device->getSceneManager()->addCameraSceneNodeMaya(0, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
         _camera->setPosition(vector3df (0,30,-40));
         _camera->setTarget(vector3df (0,0,0));
+        const f32 aspectRatio = (float)width () / (float)height();
+        _camera->setAspectRatio(aspectRatio);
 
         _reWriter = new IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
 
@@ -412,6 +414,10 @@ void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
 
         // et on précise à Irrlicht la nouvelle taille.
         _device->getVideoDriver ()->OnResize (widgetSize);
+
+        // update aspect ratio
+        const f32 aspectRatio = (float)ev->size ().width () / (float)ev->size ().height();
+        _camera->setAspectRatio(aspectRatio);
      }
 
     QWidget::resizeEvent (ev);
@@ -419,7 +425,7 @@ void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
 
 void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
 {
-    if (_device == 0)
+    if (_device == nullptr)
         return;
 
     irr::SEvent irrEvent;

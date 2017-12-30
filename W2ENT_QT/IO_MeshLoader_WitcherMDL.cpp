@@ -139,7 +139,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     file->seek(8, true);
 
     core::stringc name = readStringFixedSize(file, 64);
-    //std::cout << "name = " << name.c_str() << std::endl;
+    std::cout << "model name = " << name.c_str() << std::endl;
     u32 offsetRootNode = readU32(file);
 
     file->seek(32, true);
@@ -154,15 +154,14 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     file->seek(16, true);
 
     core::stringc detailMap = readStringFixedSize(file, 64);
-    //std::cout << "map = " << detailMap.c_str() << std::endl;
+    std::cout << "detail map = " << detailMap.c_str() << std::endl;
 
     file->seek(4, true);
 
     f32 modelScale = readF32(file);
 
     core::stringc superModel = readStringFixedSize(file, 64);
-
-    //std::cout << "superModel = " << superModel.c_str() << std::endl;
+    std::cout << "superModel = " << superModel.c_str() << std::endl;
 
     file->seek(16, true);
 
@@ -172,13 +171,13 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     return true;
 }
 
-video::ITexture* IO_MeshLoader_WitcherMDL::getTexture(core::stringc texPath)
+bool IO_MeshLoader_WitcherMDL::hasTexture(core::stringc texPath)
 {
-    video::ITexture* texture = 0;
-
     core::array<io::path> texFolders;
     texFolders.push_back("textures00/");
     texFolders.push_back("textures01/");
+    texFolders.push_back("meshes00/");
+    texFolders.push_back("items00/");
 
     core::array<io::path> possibleExtensions;
     possibleExtensions.push_back(".dds");
@@ -193,11 +192,45 @@ video::ITexture* IO_MeshLoader_WitcherMDL::getTexture(core::stringc texPath)
         for (u32 j = 0; j < texFolders.size(); ++j)
         {
             core::stringc filename = GameTexturesPath + texFolders[j] + texPath + possibleExtensions[i];
-            std::cout << "test " << filename.c_str() << std::endl;
+            //std::cout << "get texture : " << filename.c_str() << std::endl;
 
             if (FileSystem->existFile(filename))
             {
-                std::cout << "file found" << std::endl;
+                //std::cout << "file found" << std::endl;
+                return true;
+            }
+         }
+    }
+}
+
+video::ITexture* IO_MeshLoader_WitcherMDL::getTexture(core::stringc texPath)
+{
+    video::ITexture* texture = nullptr;
+
+    core::array<io::path> texFolders;
+    texFolders.push_back("textures00/");
+    texFolders.push_back("textures01/");
+    texFolders.push_back("meshes00/");
+    texFolders.push_back("items00/");
+
+    core::array<io::path> possibleExtensions;
+    possibleExtensions.push_back(".dds");
+    possibleExtensions.push_back(".bmp");
+    possibleExtensions.push_back(".jpg");
+    possibleExtensions.push_back(".jpeg");
+    possibleExtensions.push_back(".tga");
+    possibleExtensions.push_back(".png");
+
+    for (u32 i = 0; i < possibleExtensions.size(); ++i)
+    {
+        for (u32 j = 0; j < texFolders.size(); ++j)
+        {
+            core::stringc filename = GameTexturesPath + texFolders[j] + texPath + possibleExtensions[i];
+            //std::cout << "get texture : " << filename.c_str() << std::endl;
+
+            if (FileSystem->existFile(filename))
+            {
+                //std::cout << "file found" << std::endl;
                 texture = SceneManager->getVideoDriver()->getTexture(filename);
             }
 
@@ -209,7 +242,7 @@ video::ITexture* IO_MeshLoader_WitcherMDL::getTexture(core::stringc texPath)
         }
     }
 
-    std::cout << "return 0" << std::endl;
+    std::cout << "return nullptr" << std::endl;
     return texture;
     
 }
@@ -282,7 +315,7 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, core::matri
     // bbox
     file->seek(24, true);
 
-    // textures
+    // diffuse & ambient colors
     file->seek(24, true);
 
     // many useless material options
@@ -324,8 +357,8 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, core::matri
     }
 
 
-    // TODO !!!!!!
-
+    // TODO
+    scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
     for (u32 i = 0; i < layersDef.nbUsedEntries; ++i)
     {
         file->seek(ModelInfos.offsetRawData + layersDef.firstElemOffest + i * 52);
@@ -338,16 +371,27 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, core::matri
 
         ArrayDef weightsDef = readArrayDef(file);
         core::array<f32> weights = readArray<f32>(file, weightsDef);
+        // All the texture layer have the same number of weights
+        // One weight per vertex
+        std::cout << "layer " << i << " has a texture : " << texture.c_str() << " with " << weights.size() << "weights" << std::endl;
+
+        // Material
+        // more complicated than that : need to make a splatting shader
+        video::SMaterial mat;
+        if (texture != "" && i == 0)
+        {
+            std::cout << "try to set texture : " << texture.c_str() << std::endl;
+            video::ITexture* tex = getTexture(texture);
+            if (tex)
+                mat.setTexture(0, tex);
+        }
+        buffer->Material = mat;
     }
 
-    core::array<core::stringc> textures;
-
-
-
     // Read vertices
-    scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
     buffer->VertexType = video::EVT_STANDARD;
 
+    //std::cout << "nb vertex = " << vertexDef.nbUsedEntries << std::endl;
     buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
@@ -359,6 +403,8 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, core::matri
         f32 z = readF32(file);
         core::vector3df pos(x, y, z);
         buffer->Vertices_Standard[i].Pos = pos;
+
+        // to see what's texture paint
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
     }
 
@@ -380,11 +426,11 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, core::matri
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
     }
 
-    for (u32 t = 0; t < textures.size(); t++)
+    for (u32 t = 0; t < 4; t++)
     {
         // TODO : TCoords2
-        if (t > 0)
-            break;
+        if (t != 0)
+            continue;
 
         file->seek(ModelInfos.offsetRawData + tVerts[t].firstElemOffest);
         for (u32 i = 0; i < tVerts[t].nbUsedEntries; i++)
@@ -443,7 +489,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
         if (texture[i] == "NULL")
             texture[i] = "";
 
-        std::cout << texture[i].c_str() << std::endl;
+        std::cout << "Mesh texture " << i << " : " << texture[i].c_str() << std::endl;
     }
 
     file->seek(7, true); // render settings
@@ -544,11 +590,11 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
     }
 
-    for (u32 t = 0; t < textures.size(); t++)
+    for (u32 t = 0; t < 4; t++)
     {
         // TODO : TCoords2
-        if (t > 0)
-            break;
+        if (t != 1)
+            continue;
 
         file->seek(ModelInfos.offsetRawData + tVerts[t].firstElemOffest);
         for (u32 i = 0; i < tVerts[t].nbUsedEntries; i++)
@@ -588,16 +634,29 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
 
     // Material
     video::SMaterial mat;
-    if (textures.size() > 0)
+
+
+    if (texture[1] != "")
     {
+        //std::cout << "try to set texture : " << texture[1].c_str() << std::endl;
+        video::ITexture* tex = getTexture(texture[1]);
+        if (tex)
+            mat.setTexture(0, tex);
+    }
+    else if (textures.size() > 0)
+    {
+        //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
         video::ITexture* tex = getTexture(textures[0]);
         if (tex)
             mat.setTexture(0, tex);
     }
-    buffer->Material = mat;
 
-    if (textures.size() > 0)
-        std::cout << textures[0].c_str() << std::endl;
+    if (mat.getTexture(0) == nullptr)
+    {
+        std::cout << "No texture !" << std::endl;
+    }
+
+    buffer->Material = mat;
 
     file->seek(endPos);
 }
@@ -625,7 +684,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file)
 
 
     core::stringc name = readStringFixedSize(file, 64);
-    //std::cout << "Name=" << name.c_str() << std::endl;
+    std::cout << "Node name=" << name.c_str() << std::endl;
 
     file->seek(8, true); // parent geometry + parent node
 

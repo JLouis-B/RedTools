@@ -62,6 +62,7 @@ private:
     core::matrix4 readNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
     void transformVertices(core::matrix4 mat);
 
+    bool hasTexture(core::stringc texPath);
     video::ITexture* getTexture(core::stringc texPath);
 
 

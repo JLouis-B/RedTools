@@ -35,6 +35,23 @@ struct ModelData
     u32 sizeTexData;
 };
 
+
+class TW1_MaterialParser
+{
+public :
+    TW1_MaterialParser(io::IFileSystem *fs);
+    void loadFile(core::stringc filename);
+    void loadFromString(core::stringc content);
+
+    core::stringc getShader();
+    core::stringc getTexture(u32 slot);
+
+private:
+    io::IFileSystem* FileSystem;
+    core::stringc _shader;
+    core::stringc _textures[_IRR_MATERIAL_MAX_TEXTURES_];
+}
+
 class IO_MeshLoader_WitcherMDL : public scene::IMeshLoader
 {
 public:

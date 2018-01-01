@@ -56,6 +56,62 @@ bool readBool(io::IReadFile* f)
     return valChar == 1 ? true : false;
 }
 
+TW1_MaterialParser::TW1_MaterialParser(io::IFileSystem* fs)
+    : FileSystem(fs),
+    _shader("")
+{
+    for (u32 i = 0; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
+        _textures[i] = "";
+}
+
+bool TW1_MaterialParser::loadFile(core::stringc filename)
+{
+    core::array<io::path> texFolders;
+    texFolders.push_back("materials00/");
+
+    core::stringc path = "";
+    for (u32 i = 0; i < texFolders.size(); ++i)
+    {
+        core::stringc filename = GameTexturesPath + texFolders[j] + texPath + possibleExtensions[i];
+        //std::cout << "get texture : " << filename.c_str() << std::endl;
+
+        if (FileSystem->existFile(filename))
+        {
+            //std::cout << "file found" << std::endl;
+            path = filename;
+        }
+    }
+    if (path == "")
+        return false;
+
+
+    io::IReadFile* file = FileSystem->createAndOpenFile(filename);
+    if (!file)
+        return false;
+
+    char content[file->getSize() + 1];
+    file->read(content, file->getSize());
+    return loadFromString(content);
+}
+
+void TW1_MaterialParser::loadFromString(core::stringc content)
+{
+
+}
+
+core::stringc TW1_MaterialParser::getShader()
+{
+    return _shader;
+}
+
+core::stringc TW1_MaterialParser::getTexture(u32 slot)
+{
+    if (slot < _IRR_MATERIAL_MAX_TEXTURES_)
+        return _textures[slot];
+    else
+        return "";
+}
+
 IO_MeshLoader_WitcherMDL::IO_MeshLoader_WitcherMDL(scene::ISceneManager* smgr, io::IFileSystem* fs)
 : SceneManager(smgr), FileSystem(fs)
 {
@@ -481,15 +537,15 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
     file->seek(20, true); // render settings
     file->seek(4, true); // Unknown
 
-    core::stringc texture[4];
+    core::stringc textureStrings[4];
     for (u32 i = 0; i < 4; ++i)
     {
-        texture[i] = readStringFixedSize(file, 64);
+        textureStrings[i] = readStringFixedSize(file, 64);
 
-        if (texture[i] == "NULL")
-            texture[i] = "";
+        if (textureStrings[i] == "NULL")
+            textureStrings[i] = "";
 
-        std::cout << "Mesh texture " << i << " : " << texture[i].c_str() << std::endl;
+        std::cout << "Mesh texture " << i << " : " << textureStrings[i].c_str() << std::endl;
     }
 
     file->seek(7, true); // render settings
@@ -570,6 +626,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
         core::vector3df pos(x, y, z);
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
+        buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
     }
 
     // Normals
@@ -582,34 +639,8 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
     }
 
-
-    // UV
-    // Some meshes has no TCoord
-    for (u32 i = 0; i < buffer->getVertexCount(); i++)
-    {
-        buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
-    }
-
-    for (u32 t = 0; t < 4; t++)
-    {
-        // TODO : TCoords2
-        if (t != 1)
-            continue;
-
-        file->seek(ModelInfos.offsetRawData + tVerts[t].firstElemOffest);
-        for (u32 i = 0; i < tVerts[t].nbUsedEntries; i++)
-        {
-            float u = 0.f, v = 0.f;
-            if (i < tVerts[t].nbUsedEntries)
-            {
-                u = readF32(file);
-                v = readF32(file);
-            }
-            buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
-        }
-    }
-
     // TODO : Binormals + tangents
+    // need FVF
 
 
     // Faces
@@ -633,30 +664,57 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
     }
 
     // Material
-    video::SMaterial mat;
+    video::SMaterial bufferMaterial;
 
-
-    if (texture[1] != "")
+    core::stringc textureDiffuse;
+    s32 uvSet = -1;
+    if (textureStrings[0] == "_shader_")
     {
-        //std::cout << "try to set texture : " << texture[1].c_str() << std::endl;
-        video::ITexture* tex = getTexture(texture[1]);
-        if (tex)
-            mat.setTexture(0, tex);
+        // TODO: implement .mat parser
+        // textureStrings[1] refers to a mat file
+        std::cout << "Shader : " << textureStrings[1].c_str() << std::endl;
+    }
+    else if (hasTexture(textureStrings[0]))
+    {
+        textureDiffuse = textureStrings[0];
+        uvSet = 0;
+    }
+    else if (hasTexture(textureStrings[1]))
+    {
+        textureDiffuse = textureStrings[1];
+        uvSet = 1;
     }
     else if (textures.size() > 0)
     {
+        // TODO: find the uvSet used
+        textureDiffuse = textures[0];
+
         //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
-        video::ITexture* tex = getTexture(textures[0]);
-        if (tex)
-            mat.setTexture(0, tex);
     }
 
-    if (mat.getTexture(0) == nullptr)
+
+    video::ITexture* texture = getTexture(textureDiffuse);
+    if (texture)
+        bufferMaterial.setTexture(0, texture);
+
+    if (bufferMaterial.getTexture(0) == nullptr)
     {
         std::cout << "No texture !" << std::endl;
     }
+    buffer->Material = bufferMaterial;
 
-    buffer->Material = mat;
+
+    // UV
+    if (uvSet != -1)
+    {
+        file->seek(ModelInfos.offsetRawData + tVerts[uvSet].firstElemOffest);
+        for (u32 i = 0; i < tVerts[uvSet].nbUsedEntries; i++)
+        {
+            f32 u = readF32(file);
+            f32 v = readF32(file);
+            buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
+        }
+    }
 
     file->seek(endPos);
 }
@@ -738,7 +796,8 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file)
     }
 }
 
-
+// TODO: understand this part of the code
+// similar to the mat parser ?
 void IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file, core::array<core::stringc> &textures)
 {
     u32 offset;

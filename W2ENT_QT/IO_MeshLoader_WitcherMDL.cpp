@@ -236,7 +236,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     file->seek(16, true);
 
     file->seek(ModelInfos.offsetModelData + offsetRootNode);
-    loadNode(file);
+    loadNode(file, core::matrix4());
 
     return true;
 }
@@ -324,7 +324,7 @@ core::matrix4 IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* file,
     core::matrix4 pos, rot, scale;
     core::matrix4 transform;
 
-    core::array<float> controllerData = readArray<float>(file, data);
+    core::array<f32> controllerData = readArray<f32>(file, data);
 
     const long back = file->getPos();
     file->seek(ModelInfos.offsetModelData + key.firstElemOffest);
@@ -353,11 +353,11 @@ core::matrix4 IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* file,
             f32 y = controllerData[firstValueIndex + 1];
             f32 z = controllerData[firstValueIndex + 2];
             f32 w = controllerData[firstValueIndex + 3];
-            w = core::RADTODEG * (acos(w) * 2.f);
+            //w = core::RADTODEG * (acos(w) * 2.f);
             core::quaternion quat (x, y, z, w);
             core::vector3df euler;
             quat.toEuler(euler);
-            rot.setRotationDegrees(euler);
+            rot.setRotationRadians(euler);
         }
         if (controllerType == ControllerScale)
         {
@@ -366,8 +366,7 @@ core::matrix4 IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* file,
             scale.setScale(scaleVect);
         }
     }
-    transform = scale * rot * pos;
-
+    transform = pos * rot * scale;
 
     file->seek(back);
     return transform;
@@ -473,7 +472,13 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, core::matri
         f32 x = readF32(file);
         f32 y = readF32(file);
         f32 z = readF32(file);
-        core::vector3df pos(x, y, z);
+
+
+        f32 vectIn[3] = {x, y, z};
+        f32 vectOut[3];
+        transform.transformVec3(vectOut, vectIn);
+        core::vector3df pos(vectOut[0], vectOut[1], vectOut[2]);
+
         buffer->Vertices_Standard[i].Pos = pos;
 
         // to see what's texture paint
@@ -639,7 +644,12 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
         float x = readF32(file);
         float y = readF32(file);
         float z = readF32(file);
-        core::vector3df pos(x, y, z);
+
+        f32 vectIn[3] = {x, y, z};
+        f32 vectOut[3];
+        transform.transformVec3(vectOut, vectIn);
+        core::vector3df pos(vectOut[0], vectOut[1], vectOut[2]);
+
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
@@ -752,7 +762,7 @@ core::array<T> IO_MeshLoader_WitcherMDL::readArray(io::IReadFile* file, ArrayDef
     return array;
 }
 
-void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file)
+void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, core::matrix4 parentMatrix)
 {
     file->seek(24, true); // Function pointers
     file->seek(8, true); // inherit color flag + id
@@ -773,8 +783,10 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file)
     // Controllers
     ArrayDef controllerKeyDef = readArrayDef(file);
     ArrayDef controllerDataDef = readArrayDef(file);
-    //core::matrix4 transform = readNodeControllers(file, controllerKeyDef, controllerDataDef);
+
     core::matrix4 transform;
+    transform = parentMatrix * readNodeControllers(file, controllerKeyDef, controllerDataDef);
+    //
 
 
     file->seek(4, true); // node flags/type
@@ -809,7 +821,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file)
     for (u32 i = 0; i < children.size(); ++i)
     {
         file->seek(ModelInfos.offsetModelData + children[i]);
-        loadNode(file);
+        loadNode(file, transform);
     }
 }
 

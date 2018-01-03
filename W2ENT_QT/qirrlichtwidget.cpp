@@ -331,6 +331,7 @@ void QIrrlichtWidget::init ()
         _camera->setTarget(vector3df (0,0,0));
         const f32 aspectRatio = (float)width () / (float)height();
         _camera->setAspectRatio(aspectRatio);
+        _camera->setFarValue(10000.f);
 
         _reWriter = new IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
 

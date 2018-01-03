@@ -69,7 +69,7 @@ public:
 
 private:
     bool load(io::IReadFile* file);
-    void loadNode(io::IReadFile* file);
+    void loadNode(io::IReadFile* file, core::matrix4 parentMatrix);
     void readMesh(io::IReadFile* file, core::matrix4 transform);
     void readTexturePaint(io::IReadFile* file, core::matrix4 transform);
     void readTextures(io::IReadFile *file, core::array<core::stringc> &textures);

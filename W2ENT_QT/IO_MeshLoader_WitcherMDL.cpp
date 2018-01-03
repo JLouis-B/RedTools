@@ -5,10 +5,12 @@
 #include "ISceneManager.h"
 #include "IVideoDriver.h"
 #include "IWriteFile.h"
+#include "Settings.h"
 
 #include <iostream>
 
 #include "Utils_Loaders_Irr.h"
+#include "Utils_Qt_Irr.h"
 
 
 enum NodeType
@@ -72,7 +74,7 @@ bool TW1_MaterialParser::loadFile(core::stringc filename)
     core::stringc path = "";
     for (u32 i = 0; i < texFolders.size(); ++i)
     {
-        core::stringc filename = GameTexturesPath + texFolders[j] + texPath + possibleExtensions[i];
+        core::stringc filename = QSTRING_TO_PATH(Settings::_pack0) + texFolders[i] + filename + ".mat";
         //std::cout << "get texture : " << filename.c_str() << std::endl;
 
         if (FileSystem->existFile(filename))
@@ -94,9 +96,21 @@ bool TW1_MaterialParser::loadFile(core::stringc filename)
     return loadFromString(content);
 }
 
-void TW1_MaterialParser::loadFromString(core::stringc content)
+bool TW1_MaterialParser::loadFromString(core::stringc content)
 {
+    core::array<core::stringc> contentData;
+    content.split(contentData, " \n", 2);
 
+    for (int i = 0; i < contentData.size(); ++i)
+    {
+        core::stringc data = contentData[i];
+        if (data == "shader")
+        {
+            ++i;
+            _shader = contentData[i];
+            continue;
+        }
+    }
 }
 
 core::stringc TW1_MaterialParser::getShader()
@@ -257,6 +271,8 @@ bool IO_MeshLoader_WitcherMDL::hasTexture(core::stringc texPath)
             }
          }
     }
+
+    return false;
 }
 
 video::ITexture* IO_MeshLoader_WitcherMDL::getTexture(core::stringc texPath)
@@ -665,6 +681,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
 
     // Material
     video::SMaterial bufferMaterial;
+    bufferMaterial.MaterialType = video::EMT_SOLID;
 
     core::stringc textureDiffuse;
     s32 uvSet = -1;
@@ -686,8 +703,8 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
     }
     else if (textures.size() > 0)
     {
-        // TODO: find the uvSet used
         textureDiffuse = textures[0];
+        uvSet = 1;
 
         //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
     }

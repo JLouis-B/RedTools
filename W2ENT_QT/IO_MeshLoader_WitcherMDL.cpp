@@ -62,8 +62,6 @@ TW1_MaterialParser::TW1_MaterialParser(io::IFileSystem* fs)
     : FileSystem(fs),
     _shader("")
 {
-    for (u32 i = 0; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
-        _textures[i] = "";
 }
 
 bool TW1_MaterialParser::loadFile(core::stringc filename)
@@ -74,7 +72,7 @@ bool TW1_MaterialParser::loadFile(core::stringc filename)
     core::stringc path = "";
     for (u32 i = 0; i < texFolders.size(); ++i)
     {
-        core::stringc filename = QSTRING_TO_PATH(Settings::_pack0) + texFolders[i] + filename + ".mat";
+        core::stringc filename = core::stringc(Settings::_pack0.toStdString().c_str()) + texFolders[i] + filename + core::stringc(".mat");
         //std::cout << "get texture : " << filename.c_str() << std::endl;
 
         if (FileSystem->existFile(filename))
@@ -98,17 +96,25 @@ bool TW1_MaterialParser::loadFile(core::stringc filename)
 
 bool TW1_MaterialParser::loadFromString(core::stringc content)
 {
+    if (content.empty())
+        return true;
+
     core::array<core::stringc> contentData;
     content.split(contentData, " \n", 2);
 
     for (int i = 0; i < contentData.size(); ++i)
     {
         core::stringc data = contentData[i];
+        std::cout << "data = " << data.c_str() << std::endl;
         if (data == "shader")
         {
-            ++i;
-            _shader = contentData[i];
-            continue;
+            _shader = contentData[++i];
+        }
+        else if (data == "texture")
+        {
+            core::stringc texId = contentData[++i];
+            core::stringc texName = contentData[++i];
+            _textures.insert(std::make_pair(texId, texName));
         }
     }
 }
@@ -120,10 +126,24 @@ core::stringc TW1_MaterialParser::getShader()
 
 core::stringc TW1_MaterialParser::getTexture(u32 slot)
 {
-    if (slot < _IRR_MATERIAL_MAX_TEXTURES_)
-        return _textures[slot];
-    else
+    if (slot != 0 || _textures.size() == 0)
         return "";
+
+    if (slot < _IRR_MATERIAL_MAX_TEXTURES_)
+    {
+        auto it = _textures.find("tex");
+        if (it != _textures.end())
+            return it->second;
+
+        it = _textures.find("texture0");
+        if (it != _textures.end())
+            return it->second;
+
+        it = _textures.find("diffuse_texture");
+        if (it != _textures.end())
+            return it->second;
+    }
+    return "";
 }
 
 IO_MeshLoader_WitcherMDL::IO_MeshLoader_WitcherMDL(scene::ISceneManager* smgr, io::IFileSystem* fs)
@@ -697,9 +717,15 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, core::matrix4 trans
     s32 uvSet = -1;
     if (textureStrings[0] == "_shader_")
     {
-        // TODO: implement .mat parser
         // textureStrings[1] refers to a mat file
         std::cout << "Shader : " << textureStrings[1].c_str() << std::endl;
+
+        TW1_MaterialParser parser(FileSystem);
+        parser.loadFile(textureStrings[1]);
+        textureDiffuse = parser.getTexture(0);
+
+        // TODO : test if uvSet is good
+        uvSet = 0;
     }
     else if (hasTexture(textureStrings[0]))
     {
@@ -840,68 +866,17 @@ void IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file, core::array<cor
     u32 textureCount = readU32(file);
     u32 offTexture = readU32(file);
 
-    core::array<core::stringc> textureLine;
+    core::stringc materialContent;
     for (u32 i = 0; i < textureCount; ++i)
     {
         core::stringc line = readStringUntilNull(file);
-        file->seek(1, true);
-        line.trim();
 
-        textureLine.push_back(line);
+        materialContent += line;
+        materialContent += "\n";
     }
 
-    int hasShaderTex = false;
-
-    for (u32 i = 0; i < textureCount; ++i)
-    {
-        int s = -1;
-        int n = 0;
-
-        core::stringc texture = textureLine[i];
-        //std::cout << "texture= " << texture.c_str() <<  std::endl;
-
-        if (stringBeginWith(texture, "texture texture0 "))
-        {
-            s = 17;
-            n =  0 + (hasShaderTex ? 1 : 0);
-        }
-        if (stringBeginWith(texture, "texture texture1 "))
-        {
-            s = 17;
-            n =  1 + (hasShaderTex ? 1 : 0);
-        }
-        if (stringBeginWith(texture, "texture texture2 "))
-        {
-            s = 17;
-            n =  2 + (hasShaderTex ? 1 : 0);
-        }
-        if (stringBeginWith(texture, "texture texture3 "))
-        {
-            s = 17;
-            n =  3;
-        }
-        if (stringBeginWith(texture, "texture tex "))
-        {
-            s = 12;
-            n =  0 + (hasShaderTex ? 1 : 0);
-        }
-        if (stringBeginWith(texture, "shader "))
-        {
-            hasShaderTex = true;
-
-            core::stringc shader = texture.subString(7, texture.size() - 7);
-            if ((shader == "dadd_al_mul_alp") ||
-                (shader == "corona") ||
-                (shader == "normalmap") ||
-                (shader == "norm_env_rim_ao") ||
-                (shader == "transparency_2ps") ||
-                (shader == "skin_n_rim_ao"))
-                hasShaderTex = false;
-        }
-
-        if (s != -1)
-        {
-            textures.push_back(texture.subString(s, texture.size() - s));
-        }
-    }
+    TW1_MaterialParser parser(FileSystem);
+    parser.loadFromString(materialContent);
+    if (parser.getTexture(0) != "")
+        textures.push_back(parser.getTexture(0));
 }

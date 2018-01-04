@@ -10,6 +10,8 @@
 #include "IFileSystem.h"
 #include "IReadFile.h"
 
+#include <map>
+
 using namespace irr;
 
 struct ArrayDef
@@ -49,7 +51,7 @@ public :
 private:
     io::IFileSystem* FileSystem;
     core::stringc _shader;
-    core::stringc _textures[_IRR_MATERIAL_MAX_TEXTURES_];
+    std::map<core::stringc, core::stringc> _textures;
 };
 
 class IO_MeshLoader_WitcherMDL : public scene::IMeshLoader

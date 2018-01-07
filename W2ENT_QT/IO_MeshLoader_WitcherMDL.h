@@ -58,6 +58,7 @@ public :
     bool loadFile(core::stringc filename);
     bool loadFromString(core::stringc content);
     bool hasMaterial();
+    void debugPrint();
 
     core::stringc getShader();
     core::stringc getTexture(u32 slot);
@@ -67,6 +68,10 @@ private:
     io::IFileSystem* FileSystem;
     core::stringc _shader;
     std::map<core::stringc, core::stringc> _textures;
+    std::map<core::stringc, core::stringc> _strings;
+    // TODO: vector4 ?
+    std::map<core::stringc, core::vector3df> _vectors;
+    std::map<core::stringc, f32> _floats;
 };
 
 class IO_MeshLoader_WitcherMDL : public scene::IMeshLoader

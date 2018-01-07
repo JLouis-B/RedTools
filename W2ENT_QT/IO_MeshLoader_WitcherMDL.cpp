@@ -86,6 +86,57 @@ bool TW1_MaterialParser::loadFile(core::stringc filename)
     return loadFromString(contentString);
 }
 
+void TW1_MaterialParser::debugPrint()
+{
+    std::cout << std::endl << "Shader = " << _shader.c_str() << std::endl << std::endl;
+    if (_textures.size() > 0)
+    {
+        std::cout << "TEXTURES" << std::endl;
+        std::cout << "--------" << std::endl;
+        auto it = _textures.begin();
+        for (; it != _textures.end(); it++)
+        {
+            std::cout << it->first.c_str() << " : " << it->second.c_str() << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    if (_strings.size() > 0)
+    {
+        std::cout << "STRINGS" << std::endl;
+        std::cout << "-------" << std::endl;
+        auto it = _strings.begin();
+        for (; it != _strings.end(); it++)
+        {
+            std::cout << it->first.c_str() << " : " << it->second.c_str() << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    if (_floats.size() > 0)
+    {
+        std::cout << "FLOAT" << std::endl;
+        std::cout << "-----" << std::endl;
+        auto it = _floats.begin();
+        for (; it != _floats.end(); it++)
+        {
+            std::cout << it->first.c_str() << " : " << core::stringc(it->second).c_str() << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    if (_vectors.size() > 0)
+    {
+        std::cout << "VECTORS" << std::endl;
+        std::cout << "-------" << std::endl;
+        auto it = _vectors.begin();
+        for (; it != _vectors.end(); it++)
+        {
+            std::cout << it->first.c_str() << " : " << core::stringc(it->second.X).c_str()
+                                           << " , " << core::stringc(it->second.Y).c_str()
+                                           << " , " << core::stringc(it->second.Z).c_str() << std::endl;
+        }
+        std::cout << std::endl;
+    }
+}
+
 bool TW1_MaterialParser::loadFromString(core::stringc content)
 {
     if (content.empty())
@@ -94,10 +145,10 @@ bool TW1_MaterialParser::loadFromString(core::stringc content)
     core::array<core::stringc> contentData;
     content.split(contentData, " \t\r\n", 4);
 
-    for (int i = 0; i < contentData.size(); ++i)
+    for (u32 i = 0; i < contentData.size(); ++i)
     {
         core::stringc data = contentData[i];
-        std::cout << "data = " << data.c_str() << std::endl;
+        //std::cout << "data = " << data.c_str() << std::endl;
         if (data == "shader")
         {
             _shader = contentData[++i];
@@ -108,13 +159,49 @@ bool TW1_MaterialParser::loadFromString(core::stringc content)
             core::stringc texName = contentData[++i];
             _textures.insert(std::make_pair(texId, texName));
         }
+        else if (data == "string")
+        {
+            core::stringc stringId = contentData[++i];
+            core::stringc string = contentData[++i];
+            _textures.insert(std::make_pair(stringId, string));
+        }
+        else if (data == "float")
+        {
+            core::stringc floatId = contentData[++i];
+            core::stringc floatStr = contentData[++i];
+            f32 floatValue = strtof(floatStr.c_str(), nullptr);
+            _floats.insert(std::make_pair(floatId, floatValue));
+        }
+        else if (data == "vector")
+        {
+            core::stringc vectorId = contentData[++i];
+            core::stringc xStr = contentData[++i];
+            core::stringc yStr = contentData[++i];
+            core::stringc zStr = contentData[++i];
+            core::stringc wStr = contentData[++i];
+
+            float x = strtof(xStr.c_str(), nullptr);
+            float y = strtof(yStr.c_str(), nullptr);
+            float z = strtof(zStr.c_str(), nullptr);
+            float w = strtof(wStr.c_str(), nullptr);
+            // TODO: change for a vector4
+            core::vector3df vect(x, y, z);
+
+            _vectors.insert(std::make_pair(vectorId, vect));
+        }
+        else
+        {
+            std::cout << "Unknown data type : " << data.c_str() << std::endl;
+        }
     }
+    return true;
 }
 
 video::E_MATERIAL_TYPE TW1_MaterialParser::getMaterialTypeFromShader()
 {
     if (_shader == "leaves_lm_bill"
-     || _shader == "dblsided_atest")
+     || _shader == "dblsided_atest"
+     || _shader == "leaves")
         return video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
 
     return video::EMT_SOLID;
@@ -141,6 +228,10 @@ core::stringc TW1_MaterialParser::getTexture(u32 slot)
             return it->second;
 
         it = _textures.find("diffuse_texture");
+        if (it != _textures.end())
+            return it->second;
+
+        it = _textures.find("diffuse_map");
         if (it != _textures.end())
             return it->second;
     }
@@ -761,9 +852,9 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
         parser.loadFile(materialFile);
         textureDiffuse = parser.getTexture(0);
         bufferMaterial.MaterialType = parser.getMaterialTypeFromShader();
+        parser.debugPrint();
 
-        // TODO : test if uvSet is good
-        uvSet = 0;
+        uvSet = 1;
     }
     else if (hasTexture(textureStrings[0]))
     {
@@ -781,6 +872,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
         uvSet = 1;
         bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
         //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
+        materialParser.debugPrint();
     }
 
 

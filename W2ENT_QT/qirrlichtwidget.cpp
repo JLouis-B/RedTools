@@ -20,11 +20,11 @@ bool QIrrlichtWidget::isLoadableByIrrlicht(io::path filename)
 void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
 {
     node->setMaterialFlag(EMF_LIGHTING, false);
-    node->setMaterialType(EMT_SOLID);
+    //node->setMaterialType(EMT_SOLID);
     node->setMaterialFlag(EMF_BACK_FACE_CULLING, false);
 
     for (u32 i = 1; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
-        node->setMaterialTexture(i, 0);
+        node->setMaterialTexture(i, nullptr);
 }
 
 bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedbackMessage)

@@ -20,7 +20,7 @@ T readData(io::IReadFile* f)
 #define readU8 readData<u8>
 #define readS8 readData<s8>
 #define readF32 readData<f32>
-
+bool readBool(io::IReadFile* file);
 
 template <class T>
 core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)

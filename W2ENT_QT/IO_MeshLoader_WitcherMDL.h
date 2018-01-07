@@ -12,6 +12,9 @@
 
 #include <map>
 
+// Based on the loader and spec of the Xoreos engine
+// https://github.com/xoreos/xoreos/blob/master/src/graphics/aurora/model_witcher.cpp
+
 using namespace irr;
 
 struct ArrayDef
@@ -37,6 +40,16 @@ struct ModelData
     u32 sizeTexData;
 };
 
+struct ControllersData
+{
+    core::matrix4 localTransform;
+    core::matrix4 globalTransform;
+    f32 alpha;
+    video::SColor selphIllumColor;
+
+    ControllersData() : alpha(1.f) {}
+};
+
 
 class TW1_MaterialParser
 {
@@ -44,9 +57,11 @@ public :
     TW1_MaterialParser(io::IFileSystem *fs);
     bool loadFile(core::stringc filename);
     bool loadFromString(core::stringc content);
+    bool hasMaterial();
 
     core::stringc getShader();
     core::stringc getTexture(u32 slot);
+    video::E_MATERIAL_TYPE getMaterialTypeFromShader();
 
 private:
     io::IFileSystem* FileSystem;
@@ -72,13 +87,13 @@ public:
 private:
     bool load(io::IReadFile* file);
     void loadNode(io::IReadFile* file, core::matrix4 parentMatrix);
-    void readMesh(io::IReadFile* file, core::matrix4 transform);
-    void readTexturePaint(io::IReadFile* file, core::matrix4 transform);
-    void readTextures(io::IReadFile *file, core::array<core::stringc> &textures);
+    void readMesh(io::IReadFile* file, ControllersData controllers);
+    void readTexturePaint(io::IReadFile* file, ControllersData controllers);
+    TW1_MaterialParser readTextures(io::IReadFile *file);
 
     template <class T> core::array<T> readArray(io::IReadFile* file, ArrayDef def);
 
-    core::matrix4 readNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
+    ControllersData readNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
     void transformVertices(core::matrix4 mat);
 
     bool hasTexture(core::stringc texPath);

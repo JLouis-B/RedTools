@@ -53,6 +53,7 @@ TW1_MaterialParser::TW1_MaterialParser(io::IFileSystem* fs)
 
 bool TW1_MaterialParser::loadFile(core::stringc filename)
 {
+    std::cout << "load file " << filename.c_str() << std::endl;
     core::array<io::path> texFolders;
     texFolders.push_back("materials00/");
 
@@ -787,9 +788,9 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     file->seek(ModelInfos.offsetRawData + vertexDef.firstElemOffest);
     for (u32 i = 0; i < vertexDef.nbUsedEntries; ++i)
     {
-        float x = readF32(file);
-        float y = readF32(file);
-        float z = readF32(file);
+        f32 x = readF32(file);
+        f32 y = readF32(file);
+        f32 z = readF32(file);
 
         f32 vectIn[3] = {x, y, z};
         f32 vectOut[3];
@@ -805,9 +806,9 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
     for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
     {
-        float x = readF32(file);
-        float y = readF32(file);
-        float z = readF32(file);
+        f32 x = readF32(file);
+        f32 y = readF32(file);
+        f32 z = readF32(file);
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
     }
 
@@ -902,6 +903,197 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     file->seek(endPos);
 }
 
+void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData controllers)
+{
+    std::cout << "Skin POS = " << file->getPos() << std::endl;
+    file->seek(72, true);
+    file->seek(16, true); // 0xFFFFFFFFFFFFFFFFFFF...
+
+    file->seek(60, true);
+    core::stringc textureStrings[4];
+    for (u32 i = 0; i < 4; ++i)
+    {
+        textureStrings[i] = readStringFixedSize(file, 64);
+
+        if (textureStrings[i] == "NULL")
+            textureStrings[i] = "";
+
+        std::cout << "Mesh texture " << i << " : " << textureStrings[i].c_str() << std::endl;
+    }
+    file->seek(61, true);
+
+    core::stringc dayNightTransition = readStringFixedSize(file, 200);
+
+    file->seek(2, true);
+
+    // Unknown
+    file->seek(1, true);
+    file->seek(12, true);
+    file->seek(8, true);
+
+    core::stringc lightMapName = readStringFixedSize(file, 64);
+
+    file->seek(32, true);
+
+
+    ArrayDef vertexDef = readArrayDef(file);
+    ArrayDef normalsDef = readArrayDef(file);
+
+    ArrayDef tangentsDef = readArrayDef(file);
+    ArrayDef binormalsDef = readArrayDef(file);
+
+    ArrayDef tVerts[4];
+    for (u32 t = 0; t < 4; t++)
+        tVerts[t] = readArrayDef(file);
+
+
+    ArrayDef unknownDef = readArrayDef(file);
+    ArrayDef facesDef = readArrayDef(file);
+    u32 facesCount = facesDef.nbUsedEntries;
+
+    if (ModelInfos.fileVersion == 133)
+        ModelInfos.offsetTexData = readU32(file);
+
+
+    if ((vertexDef.nbUsedEntries == 0) || (facesDef.nbUsedEntries == 0))
+    {
+        //file->seek(endPos);
+        return;
+    }
+
+    file->seek(32, true);
+    ArrayDef weightingDef = readArrayDef(file);
+    ArrayDef bonesDef = readArrayDef(file);
+
+
+    TW1_MaterialParser materialParser = readTextures(file);
+
+    // Vertices
+    scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+    buffer->VertexType = video::EVT_STANDARD;
+
+    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
+    buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
+
+    core::matrix4 transform = controllers.globalTransform;
+    file->seek(ModelInfos.offsetRawData + vertexDef.firstElemOffest);
+    for (u32 i = 0; i < vertexDef.nbUsedEntries; ++i)
+    {
+        f32 x = readF32(file);
+        f32 y = readF32(file);
+        f32 z = readF32(file);
+
+        f32 vectIn[3] = {x, y, z};
+        f32 vectOut[3];
+        transform.transformVec3(vectOut, vectIn);
+        core::vector3df pos(vectOut[0], vectOut[1], vectOut[2]);
+
+        buffer->Vertices_Standard[i].Pos = pos;
+        buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
+        buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
+    }
+
+    // Normals
+    file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
+    for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
+    {
+        f32 x = readF32(file);
+        f32 y = readF32(file);
+        f32 z = readF32(file);
+        buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
+    }
+
+    // TODO : Binormals + tangents
+    // need FVF
+
+
+    // Faces
+    buffer->Indices.reallocate(facesCount * 3);
+    buffer->Indices.set_used(facesCount * 3);
+
+    file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);
+    for (u32 i = 0; i < facesCount; ++i)
+    {
+        file->seek(4 * 4 + 4, true);
+
+        if (ModelInfos.fileVersion == 133)
+            file->seek(3 * 4, true);
+
+        buffer->Indices[i * 3 + 0] = readU32(file);
+        buffer->Indices[i * 3 + 1] = readU32(file);
+        buffer->Indices[i * 3 + 2] = readU32(file);
+
+        if (ModelInfos.fileVersion == 133)
+            file->seek(4, true);
+    }
+
+    // Material
+    video::SMaterial bufferMaterial;
+    bufferMaterial.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+    bufferMaterial.MaterialTypeParam = 0.5f;
+
+    core::stringc textureDiffuse;
+    s32 uvSet = -1;
+    if (textureStrings[0] == "_shader_")
+    {
+        // textureStrings[1] refers to a mat file
+        core::stringc materialFile = textureStrings[1];
+        std::cout << "materialFile : " << materialFile.c_str() << std::endl;
+
+        TW1_MaterialParser parser(FileSystem);
+        parser.loadFile(materialFile);
+        textureDiffuse = parser.getTexture(0);
+        bufferMaterial.MaterialType = parser.getMaterialTypeFromShader();
+        parser.debugPrint();
+
+        uvSet = 1;
+    }
+    else if (hasTexture(textureStrings[0]))
+    {
+        textureDiffuse = textureStrings[0];
+        uvSet = 0;
+    }
+    else if (hasTexture(textureStrings[1]))
+    {
+        textureDiffuse = textureStrings[1];
+        uvSet = 1;
+    }
+    else if (materialParser.hasMaterial())
+    {
+        textureDiffuse = materialParser.getTexture(0);
+        uvSet = 1;
+        bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
+        //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
+        materialParser.debugPrint();
+    }
+
+
+    video::ITexture* texture = getTexture(textureDiffuse);
+    if (texture)
+        bufferMaterial.setTexture(0, texture);
+
+    if (bufferMaterial.getTexture(0) == nullptr)
+    {
+        std::cout << "No texture !" << std::endl;
+    }
+    buffer->Material = bufferMaterial;
+
+
+    // UV
+    if (uvSet != -1)
+    {
+        file->seek(ModelInfos.offsetRawData + tVerts[uvSet].firstElemOffest);
+        for (u32 i = 0; i < tVerts[uvSet].nbUsedEntries; i++)
+        {
+            f32 u = readF32(file);
+            f32 v = readF32(file);
+            buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
+        }
+    }
+
+    //file->seek(endPos);
+}
+
 template <class T>
 core::array<T> IO_MeshLoader_WitcherMDL::readArray(io::IReadFile* file, ArrayDef def)
 {
@@ -970,6 +1162,11 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, core::matrix4 paren
             readTexturePaint(file, controllers);
             break;
 
+        case kNodeTypeSkin:
+            std::cout << "Skin node" << std::endl;
+            readSkin(file, controllers);
+            break;
+
         default:
             break;
     }
@@ -997,6 +1194,10 @@ TW1_MaterialParser IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file)
 
     u32 textureCount = readU32(file);
     u32 offTexture = readU32(file);
+    if (offTexture != 0)
+    {
+        std::cout << "offTexture != 0" << std::endl;
+    }
 
     core::stringc materialContent;
     for (u32 i = 0; i < textureCount; ++i)
@@ -1006,6 +1207,7 @@ TW1_MaterialParser IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file)
         materialContent += line;
         materialContent += "\n";
     }
+    std::cout << "mat content : " << materialContent.c_str() << std::endl;
 
     TW1_MaterialParser parser(FileSystem);
     parser.loadFromString(materialContent);

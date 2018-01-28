@@ -94,6 +94,7 @@ private:
     void loadNode(io::IReadFile* file, core::matrix4 parentMatrix);
     void readMesh(io::IReadFile* file, ControllersData controllers);
     void readTexturePaint(io::IReadFile* file, ControllersData controllers);
+    void readSkin(io::IReadFile* file, ControllersData controllers);
     TW1_MaterialParser readTextures(io::IReadFile *file);
 
     template <class T> core::array<T> readArray(io::IReadFile* file, ArrayDef def);

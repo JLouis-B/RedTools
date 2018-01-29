@@ -112,6 +112,17 @@ void TW1_MaterialParser::debugPrint()
         }
         std::cout << std::endl;
     }
+    if (_bumpmaps.size() > 0)
+    {
+        std::cout << "BUMPMAPS" << std::endl;
+        std::cout << "--------" << std::endl;
+        auto it = _bumpmaps.begin();
+        for (; it != _bumpmaps.end(); it++)
+        {
+            std::cout << it->first.c_str() << " : " << it->second.c_str() << std::endl;
+        }
+        std::cout << std::endl;
+    }
     if (_floats.size() > 0)
     {
         std::cout << "FLOAT" << std::endl;
@@ -159,6 +170,12 @@ bool TW1_MaterialParser::loadFromString(core::stringc content)
             core::stringc texId = contentData[++i];
             core::stringc texName = contentData[++i];
             _textures.insert(std::make_pair(texId, texName));
+        }
+        else if (data == "bumpmap")
+        {
+            core::stringc texId = contentData[++i];
+            core::stringc texName = contentData[++i];
+            _bumpmaps.insert(std::make_pair(texId, texName));
         }
         else if (data == "string")
         {
@@ -356,7 +373,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     file->seek(16, true);
 
     file->seek(ModelInfos.offsetModelData + offsetRootNode);
-    loadNode(file, core::matrix4());
+    loadNode(file, nullptr, core::matrix4());
 
     return true;
 }
@@ -464,8 +481,8 @@ ControllersData IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* fil
             f32 x = controllerData[firstValueIndex];
             f32 y = controllerData[firstValueIndex + 1];
             f32 z = controllerData[firstValueIndex + 2];
-            core::vector3df position(x, y, z);
-            pos.setTranslation(position);
+            controllers.position = core::vector3df(x, y, z);
+            pos.setTranslation(controllers.position);
         }
         else if (controllerType == ControllerOrientation)
         {
@@ -473,16 +490,16 @@ ControllersData IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* fil
             f32 y = controllerData[firstValueIndex + 1];
             f32 z = controllerData[firstValueIndex + 2];
             f32 w = controllerData[firstValueIndex + 3];
-            core::quaternion quat (x, y, z, w);
+            controllers.rotation = core::quaternion(x, y, z, w);
             core::vector3df euler;
-            quat.toEuler(euler);
+            controllers.rotation.toEuler(euler);
             rot.setRotationRadians(euler);
         }
         else if (controllerType == ControllerScale)
         {
             f32 scaleValue = controllerData[firstValueIndex];
-            core::vector3df scaleVect(scaleValue, scaleValue, scaleValue);
-            scale.setScale(scaleVect);
+            controllers.scale = core::vector3df(scaleValue, scaleValue, scaleValue);
+            scale.setScale(controllers.scale);
         }
         else if (controllerType == kNodeTrimeshControllerTypeAlpha)
         {
@@ -870,7 +887,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     else if (materialParser.hasMaterial())
     {
         textureDiffuse = materialParser.getTexture(0);
-        uvSet = 1;
+        uvSet = 1; // 0 in some case, 1 in some other cases : TODO find the rule to get the good uvSet
         bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
         //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
         materialParser.debugPrint();
@@ -933,8 +950,9 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
 
     core::stringc lightMapName = readStringFixedSize(file, 64);
 
-    file->seek(32, true);
-
+    file->seek(8, true);
+    ModelInfos.offsetTextureInfo = readU32(file);
+    file->seek(20, true);
 
     ArrayDef vertexDef = readArrayDef(file);
     ArrayDef normalsDef = readArrayDef(file);
@@ -961,9 +979,13 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
         return;
     }
 
-    file->seek(32, true);
+    file->seek(24, true);
+    file->seek(12, true);
     ArrayDef weightingDef = readArrayDef(file);
+    core::array<f32> weights = readArray<f32>(file, weightingDef);
+
     ArrayDef bonesDef = readArrayDef(file);
+    core::array<u8> bones = readArray<u8>(file, bonesDef);
 
 
     TW1_MaterialParser materialParser = readTextures(file);
@@ -975,6 +997,8 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
     buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
+    u32 skinningIndex = 0;
+    u32 minBone = 1000, maxBone = 0;
     core::matrix4 transform = controllers.globalTransform;
     file->seek(ModelInfos.offsetRawData + vertexDef.firstElemOffest);
     for (u32 i = 0; i < vertexDef.nbUsedEntries; ++i)
@@ -991,7 +1015,32 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
+
+        // Skinning of the vertex
+        for (int j = 0; j < 4; ++j)
+        {
+            u32 currentSkinningIndex = skinningIndex++;
+            s8 boneId = bones[currentSkinningIndex];
+            if (boneId == -1)
+                continue;
+            if (boneId >= AnimatedMesh->getJointCount())
+            {
+                std::cout << "boneId " << (s32)boneId << " >= boneCount " << AnimatedMesh->getJointCount() << std::endl;
+            }
+
+            f32 weight = weights[currentSkinningIndex];
+            scene::ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(AnimatedMesh->getAllJoints()[boneId]);//[boneId]);
+            w->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
+            w->vertex_id = i;
+            w->strength = weight;
+
+            if (boneId > maxBone)
+                maxBone = boneId;
+            if (boneId < minBone)
+                minBone = boneId;
+        }
     }
+    std::cout << "minBone=" << minBone << ", maxBone=" << maxBone << std::endl;
 
     // Normals
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
@@ -1061,9 +1110,9 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
     else if (materialParser.hasMaterial())
     {
         textureDiffuse = materialParser.getTexture(0);
-        uvSet = 1;
+        uvSet = 0; // 0 in some case, 1 in some other cases : TODO find the rule to get the good uvSet
         bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
-        //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
+        std::cout << "SKIN : try to set texture : " << textureDiffuse.c_str() << std::endl;
         materialParser.debugPrint();
     }
 
@@ -1110,10 +1159,13 @@ core::array<T> IO_MeshLoader_WitcherMDL::readArray(io::IReadFile* file, ArrayDef
     return array;
 }
 
-void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, core::matrix4 parentMatrix)
+void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh::SJoint* parentJoint, core::matrix4 parentMatrix)
 {
     file->seek(24, true); // Function pointers
-    file->seek(8, true); // inherit color flag + id
+    //file->seek(8, true); // inherit color flag + id
+    file->seek(4, true); // inherit color flag
+    u32 id = readU32(file);
+
 
 
     core::stringc name = readStringFixedSize(file, 64);
@@ -1170,6 +1222,16 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, core::matrix4 paren
         default:
             break;
     }
+
+    scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint(parentJoint);
+    joint->LocalMatrix = controllers.localTransform;
+    joint->GlobalMatrix= controllers.globalTransform;
+    joint->Name = name.c_str();
+    joint->Animatedposition = controllers.position;
+    joint->Animatedrotation = controllers.rotation.makeInverse();
+    joint->Animatedscale = controllers.scale;
+    //BonesId.insert(std::make_pair(id & 0x00FF, joint));
+    std::cout << "ID = " << (int)(id & 0x00FF) << ", @=" << file->getPos() << std::endl;
     std::cout << "Node END" << std::endl;
 
 
@@ -1177,7 +1239,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, core::matrix4 paren
     for (u32 i = 0; i < children.size(); ++i)
     {
         file->seek(ModelInfos.offsetModelData + children[i]);
-        loadNode(file, controllers.globalTransform);
+        loadNode(file, joint, controllers.globalTransform);
     }
 }
 

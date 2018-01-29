@@ -42,8 +42,14 @@ struct ModelData
 
 struct ControllersData
 {
+    // transform
+    core::vector3df position;
+    core::quaternion rotation;
+    core::vector3df scale;
     core::matrix4 localTransform;
     core::matrix4 globalTransform;
+
+    // others
     f32 alpha;
     video::SColor selphIllumColor;
 
@@ -68,6 +74,7 @@ private:
     io::IFileSystem* FileSystem;
     core::stringc _shader;
     std::map<core::stringc, core::stringc> _textures;
+    std::map<core::stringc, core::stringc> _bumpmaps;
     std::map<core::stringc, core::stringc> _strings;
     // TODO: vector4 ?
     std::map<core::stringc, core::vector3df> _vectors;
@@ -91,7 +98,7 @@ public:
 
 private:
     bool load(io::IReadFile* file);
-    void loadNode(io::IReadFile* file, core::matrix4 parentMatrix);
+    void loadNode(io::IReadFile* file, scene::ISkinnedMesh::SJoint *parentJoint, core::matrix4 parentMatrix);
     void readMesh(io::IReadFile* file, ControllersData controllers);
     void readTexturePaint(io::IReadFile* file, ControllersData controllers);
     void readSkin(io::IReadFile* file, ControllersData controllers);
@@ -113,6 +120,8 @@ private:
     ModelData ModelInfos;
     
     core::stringc GameTexturesPath;
+
+    std::map<u8, scene::ISkinnedMesh::SJoint*> BonesId;
 };
 
 #endif // CWITCHERMDLMESHFILELOADER_H

@@ -1143,6 +1143,14 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
     //file->seek(endPos);
 }
 
+void IO_MeshLoader_WitcherMDL::readSpeedtree(io::IReadFile* file, ControllersData controllers)
+{
+    std::cout << "SpeedTree POS = " << file->getPos() << std::endl;
+    core::stringc filename = readStringFixedSize(file, 32);
+    std::cout << "filename: " << filename.c_str() << std::endl;
+}
+
+
 template <class T>
 core::array<T> IO_MeshLoader_WitcherMDL::readArray(io::IReadFile* file, ArrayDef def)
 {
@@ -1218,6 +1226,11 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
             std::cout << "Skin node" << std::endl;
             readSkin(file, controllers);
             break;
+
+        case kNodeTypeSpeedTree:
+            std::cout << "Speed tree" << std::endl;
+            readSpeedtree(file, controllers);
+        break;
 
         default:
             break;

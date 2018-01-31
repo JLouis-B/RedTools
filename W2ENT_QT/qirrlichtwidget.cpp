@@ -424,13 +424,44 @@ void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
     QWidget::resizeEvent (ev);
 }
 
+void QIrrlichtWidget::keyPressEvent(QKeyEvent * event)
+{
+    if (_device == nullptr)
+        return;
+
+    SEvent irrEvent;
+    irrEvent.EventType = EET_KEY_INPUT_EVENT;
+
+    irrEvent.KeyInput.PressedDown = true;
+    irrEvent.KeyInput.Key = (EKEY_CODE)event->key();
+    std::cout << "key= " << event->key() << std::endl;
+
+    if (_device->postEventFromUser( irrEvent ))
+        event->accept();
+}
+
+void QIrrlichtWidget::keyReleaseEvent(QKeyEvent * event)
+{
+    if (_device == nullptr)
+        return;
+
+    SEvent irrEvent;
+    irrEvent.EventType = EET_KEY_INPUT_EVENT;
+
+    irrEvent.KeyInput.PressedDown = false;
+    irrEvent.KeyInput.Key = (EKEY_CODE)event->key();
+
+    if (_device->postEventFromUser( irrEvent ))
+        event->accept();
+}
+
 void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
 {
     if (_device == nullptr)
         return;
 
-    irr::SEvent irrEvent;
-    irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
+    SEvent irrEvent;
+    irrEvent.EventType = EET_MOUSE_INPUT_EVENT;
 
     irrEvent.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
     irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;

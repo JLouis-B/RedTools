@@ -113,6 +113,8 @@ class QIrrlichtWidget : public QWidget
         virtual void paintEvent (QPaintEvent *ev);
         virtual void timerEvent (QTimerEvent *ev);
         virtual void resizeEvent (QResizeEvent *ev);
+        void keyPressEvent(QKeyEvent * event);
+        void keyReleaseEvent(QKeyEvent * event);
         void mousePressEvent( QMouseEvent* event );
         void mouseReleaseEvent( QMouseEvent* event );
         void mouseMoveEvent(QMouseEvent * event);

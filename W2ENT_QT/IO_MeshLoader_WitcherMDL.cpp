@@ -1145,9 +1145,12 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
 
 void IO_MeshLoader_WitcherMDL::readSpeedtree(io::IReadFile* file, ControllersData controllers)
 {
-    std::cout << "SpeedTree POS = " << file->getPos() << std::endl;
+    //std::cout << "SpeedTree POS = " << file->getPos() << std::endl;
+
+    // Refer to a .spt file to describe the tree
+    // seems complicated to use now
     core::stringc filename = readStringFixedSize(file, 32);
-    std::cout << "filename: " << filename.c_str() << std::endl;
+    //std::cout << "filename: " << filename.c_str() << std::endl;
 }
 
 

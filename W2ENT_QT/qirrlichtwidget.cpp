@@ -629,7 +629,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
 
     //std::cout << filename.toStdString().c_str() << std::endl;
 
-    IMesh* mesh = 0;
+    IMesh* mesh = nullptr;
     if (_currentLodData->_node)
         mesh = _currentLodData->_node->getMesh();
 
@@ -654,6 +654,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     if (_collisionsLodData._node)
     {
         _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), dim/orDim);
+        scaleSkeleton(_collisionsLodData._node->getMesh(), (dim/orDim).X);
     }
 
     if ((extension == ".obj" || extension == ".stl" || extension == ".ply" || extension == ".dae" || extension == ".irrmesh" || extension == ".b3d") && mesh)
@@ -716,7 +717,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         //std::cout << "nb output=" << assimp.getExportFormats().size() << std::endl;
 
         file->drop();
-        file = 0;
+        file = nullptr;
 
         assimp.exportMesh(mesh, extensionFlag, exportPath);
     }
@@ -726,24 +727,24 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     float scaleFactor = 1.0f / (dim.X/orDim.X);
     if (_lod0Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
         scaleSkeleton(_lod0Data._node->getMesh(), scaleFactor);
     }
 
     if (_lod1Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
         scaleSkeleton(_lod1Data._node->getMesh(), scaleFactor);
     }
 
     if (_lod2Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
         scaleSkeleton(_lod2Data._node->getMesh(), scaleFactor);
     }
     if (_collisionsLodData._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), irr::core::vector3df(scaleFactor, scaleFactor, scaleFactor));
+        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
         scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactor);
     }
 
@@ -851,7 +852,7 @@ void QIrrlichtWidget::clearLOD()
     // Delete the current w2ent/w2mesh
     _currentLodData->clearLodData();
 
-    _device->getSceneManager()->getMeshCache()->clearUnusedMeshes();//->clear();
+    _device->getSceneManager()->getMeshCache()->clearUnusedMeshes();
 
     if (!_lod0Data._node && !_lod1Data._node && !_lod2Data._node && !_collisionsLodData._node)
     {
@@ -985,16 +986,16 @@ bool QIrrlichtWidget::isEmpty(LOD lod)
     switch (lod)
     {
         case LOD_0:
-            return (_lod0Data._node == 0);
+            return (_lod0Data._node == nullptr);
         break;
         case LOD_1:
-            return (_lod1Data._node == 0);
+            return (_lod1Data._node == nullptr);
         break;
         case LOD_2:
-            return (_lod2Data._node == 0);
+            return (_lod2Data._node == nullptr);
         break;
         case Collision:
-            return (_collisionsLodData._node == 0);
+            return (_collisionsLodData._node == nullptr);
         break;
     }
     return false;

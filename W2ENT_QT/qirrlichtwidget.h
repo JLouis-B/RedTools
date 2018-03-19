@@ -41,7 +41,7 @@ enum LOD
 
 struct LOD_data
 {
-    LOD_data() : _node(0)
+    LOD_data() : _node(nullptr)
     {
         clearLodData();
     }
@@ -51,7 +51,7 @@ struct LOD_data
         if (_node)
         {
             _node->remove();
-            _node = 0;
+            _node = nullptr;
         }
 
         _additionalTextures.clear();
@@ -120,8 +120,8 @@ class QIrrlichtWidget : public QWidget
         void mouseMoveEvent(QMouseEvent * event);
 
     private:
-        IrrlichtDevice *_device;
-        scene::ICameraSceneNode *_camera;
+        IrrlichtDevice* _device;
+        scene::ICameraSceneNode* _camera;
 
         LOD _currentLOD;
 

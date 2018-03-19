@@ -3,8 +3,8 @@
 
 #include "IrrCompileConfig.h"
 
-#define _IRR_COMPILE_WITH_W2ENT_LOADER_
-#ifdef _IRR_COMPILE_WITH_W2ENT_LOADER_
+#define _IRR_COMPILE_WITH_W3ENT_LOADER_
+#ifdef _IRR_COMPILE_WITH_W3ENT_LOADER_
 
 #include "IO_MeshLoader_W3ENT.h"
 
@@ -13,14 +13,13 @@
 #include "IFileSystem.h"
 #include "IReadFile.h"
 #include "IWriteFile.h"
+
 #include "Utils_Halffloat.h"
-
-#include <cmath>
-#include <cfloat>
-
 #include "Utils_Loaders_Irr.h"
-#include "Settings.h"
 #include "Utils_Qt_Irr.h"
+
+#include "Settings.h"
+
 
 
 namespace irr
@@ -1773,5 +1772,5 @@ s32 IO_MeshLoader_W3ENT::getTextureLayerFromTextureType(core::stringc textureTyp
 
 
 
-#endif // _IRR_COMPILE_WITH_W2ENT_LOADER_
+#endif // _IRR_COMPILE_WITH_W3ENT_LOADER_
 

@@ -60,8 +60,8 @@ namespace scene
         void writeCollisionMesh(io::IWriteFile* file);
 
 
-		scene::ISceneManager* SceneManager;
-		io::IFileSystem* FileSystem;
+        ISceneManager* SceneManager;
+        io::IFileSystem* FileSystem;
 
         IMesh* MeshLOD1;
         IMesh* MeshLOD2;

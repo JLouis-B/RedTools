@@ -18,11 +18,6 @@
 
 #include "Utils_Loaders_Irr.h"
 
-//#define _DEBUG
-#ifdef _DEBUG
-#define _REREADER_DEBUG
-#endif
-
 namespace irr
 {
 namespace scene

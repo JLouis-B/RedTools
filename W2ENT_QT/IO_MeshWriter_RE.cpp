@@ -192,15 +192,6 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
     u32 nbLOD2 = nbLOD + 1;
 	file->write(&nbLOD2, 4);
 
-    /*
-	if (nbLOD == 1)
-        file->write("rdeh\x00\x00\x00\x00\x24\x00\x00\x00", 12);
-    else if (nbLOD == 2)
-        file->write("rdeh\x00\x00\x00\x00\x34\x00\x00\x00", 12);
-    else if (nbLOD == 3)
-        file->write("rdeh\x00\x00\x00\x00\x44\x00\x00\x00", 12);
-    */
-
     file->write("rdeh\x00\x00\x00\x00", 8);
     u32 headerSize = 20 + nbLOD * 16;
     file->write(&headerSize, 4);
@@ -329,7 +320,7 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
 
 void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
 {
-    irr::core::vector3df meshCenter = ((CollisionMesh->getBoundingBox().MaxEdge - CollisionMesh->getBoundingBox().MinEdge)/2) - CollisionMesh->getBoundingBox().MaxEdge;
+    core::vector3df meshCenter = ((CollisionMesh->getBoundingBox().MaxEdge - CollisionMesh->getBoundingBox().MinEdge)/2) - CollisionMesh->getBoundingBox().MaxEdge;
     meshCenter.Y = 0.0f;
 
 
@@ -337,7 +328,7 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
 
     for (u32 i = 0; i < CollisionMesh->getMeshBufferCount(); ++i)
     {
-        irr::core::vector3df meshBufferCenter = ((CollisionMesh->getMeshBuffer(i)->getBoundingBox().MaxEdge - CollisionMesh->getMeshBuffer(i)->getBoundingBox().MinEdge)/2) - CollisionMesh->getBoundingBox().MaxEdge;
+        core::vector3df meshBufferCenter = ((CollisionMesh->getMeshBuffer(i)->getBoundingBox().MaxEdge - CollisionMesh->getMeshBuffer(i)->getBoundingBox().MinEdge)/2) - CollisionMesh->getBoundingBox().MaxEdge;
         meshBufferCenter.Y = 0.0f;
 
         core::vector3df center = meshBufferCenter - meshCenter;
@@ -396,7 +387,7 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
 void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMesh* lodMesh, bool skinned)
 {
     // In the .re format, the mesh need tangents
-    irr::scene::IMesh* tangentMesh = lodMesh;
+    scene::IMesh* tangentMesh = lodMesh;
     for (u32 i = 0; i < lodMesh->getMeshBufferCount(); ++i)
     {
         if (lodMesh->getMeshBuffer(i)->getVertexType() != video::EVT_TANGENTS)
@@ -427,7 +418,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     //file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00", 36);
 
     // the decalage between the center of the mesh and (0, 0, 0)
-    irr::core::vector3df meshCenter = ((lodMesh->getBoundingBox().MaxEdge - lodMesh->getBoundingBox().MinEdge)/2) - lodMesh->getBoundingBox().MaxEdge;
+    core::vector3df meshCenter = ((lodMesh->getBoundingBox().MaxEdge - lodMesh->getBoundingBox().MinEdge)/2) - lodMesh->getBoundingBox().MaxEdge;
     meshCenter.Y = 0.0f;
 
     f32 Xcenter, Ycenter, Zcenter;
@@ -537,13 +528,13 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
 
 
             // Binormals and tangeants ?
-            float v2x = (verts)[n].Tangent.X;
-            float v2y = (verts)[n].Tangent.Y;
-            float v2z = (verts)[n].Tangent.Z;
+            f32 v2x = (verts)[n].Tangent.X;
+            f32 v2y = (verts)[n].Tangent.Y;
+            f32 v2z = (verts)[n].Tangent.Z;
 
-            float v3x = (verts)[n].Binormal.X;
-            float v3y = (verts)[n].Binormal.Y;
-            float v3z = (verts)[n].Binormal.Z;
+            f32 v3x = (verts)[n].Binormal.X;
+            f32 v3y = (verts)[n].Binormal.Y;
+            f32 v3z = (verts)[n].Binormal.Z;
 
             file->write(&v2x, 4);
             file->write(&v2z, 4);
@@ -559,7 +550,6 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
                 vector<Weight> ws = _table[i][n];
 
 
-                //file->write("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 48);
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 16);
 
                 for(u32 m = 0; m < ws.size(); ++m)
@@ -670,30 +660,30 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
         core::stringc jointName = skinMesh->getAllJoints()[i]->Name;
         file->write(jointName.c_str(), jointSizeName);
 
-        irr::core::matrix4 transformations = skinMesh->getAllJoints()[i]->GlobalMatrix;
+        core::matrix4 transformations = skinMesh->getAllJoints()[i]->GlobalMatrix;
 
 
 
 
 
-        irr::core::matrix4 posMat;
-        irr::core::vector3df pos = skinMesh->getAllJoints()[i]->Animatedposition;
+        core::matrix4 posMat;
+        core::vector3df pos = skinMesh->getAllJoints()[i]->Animatedposition;
         pos -= meshCenter;
         double tmp = pos.Y;
         pos.Y = pos.Z;
         pos.Z = tmp;
         posMat.setTranslation(pos);
 
-        irr::core::matrix4 rotMat;
-        irr::core::vector3df rot;
+        core::matrix4 rotMat;
+        core::vector3df rot;
         skinMesh->getAllJoints()[i]->Animatedrotation.toEuler(rot);
         tmp = rot.Y;
         rot.Y = rot.Z;
         rot.Z = tmp;
         rotMat.setRotationDegrees(rot);
 
-        irr::core::matrix4 scaleMat;
-        irr::core::vector3df scale = skinMesh->getAllJoints()[i]->Animatedscale;
+        core::matrix4 scaleMat;
+        core::vector3df scale = skinMesh->getAllJoints()[i]->Animatedscale;
         tmp = scale.Y;
         scale.Y = scale.Z;
         scale.Z = tmp;
@@ -749,7 +739,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
 
 
 
-void IO_MeshWriter_RE::setLOD1(IMesh *lod1)
+void IO_MeshWriter_RE::setLOD1(IMesh* lod1)
 {
     MeshLOD1 = lod1;
 }
@@ -766,9 +756,9 @@ void IO_MeshWriter_RE::setCollisionMesh(IMesh *mesh)
 
 void IO_MeshWriter_RE::clearLODS()
 {
-    MeshLOD1 = 0;
-    MeshLOD2 = 0;
-    CollisionMesh = 0;
+    MeshLOD1 = nullptr;
+    MeshLOD2 = nullptr;
+    CollisionMesh = nullptr;
 }
 
 bool IO_MeshWriter_RE::writeMesh(io::IWriteFile* file, scene::IMesh* mesh, s32 flags)

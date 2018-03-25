@@ -203,7 +203,7 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
 
 	file->write("hsem", 4);
     u32 LODid = 0;
-    file->write(&LODid, 4); // LOD_ID = 0
+    file->write(&LODid, 4);
 
 	// The adress of the LOD0
 	s32 adress = 44 + user.size() + path.size();
@@ -397,16 +397,16 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
         }
     }
 
-
-    // Probably the size of the tring "LOD0"
+    // name of the LOD
     u32 lodNameSize = lodName.size();
 	file->write(&lodNameSize, 4);
-
-	// LOD0
 	file->write(lodName.c_str(), lodNameSize);
+
+    // nb mesh buffer
     u32 nbMeshBuffer = lodMesh->getMeshBufferCount();
     file->write(&nbMeshBuffer, 4);
 
+    // nb joints
     u32 nbJoints = 0;
     if (skinned)
         nbJoints = ((ISkinnedMesh*)lodMesh)->getJointCount();
@@ -415,7 +415,6 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
 
     // maybe the 3 Axis
     file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
-    //file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00", 36);
 
     // the decalage between the center of the mesh and (0, 0, 0)
     core::vector3df meshCenter = ((lodMesh->getBoundingBox().MaxEdge - lodMesh->getBoundingBox().MinEdge)/2) - lodMesh->getBoundingBox().MaxEdge;
@@ -437,17 +436,16 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
         createWeightsTable((ISkinnedMesh*)lodMesh);
 
 
-    // The material;
+    // The material
     // file->write("\x06\x00\x00\x00noname\x04\x00\x00\x00\x64iff\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 32);
     for (u32 i=0; i<lodMesh->getMeshBufferCount(); ++i)
 	{
-        irr::core::stringc matName = "noname";
-        irr::core::stringc diffuseTexture = "diff";
+        core::stringc matName = "noname";
+        core::stringc diffuseTexture = "diff";
         if (lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0))
         {
             diffuseTexture = FileSystem->getFileBasename(lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), true);
             diffuseTexture = diffuseTexture.make_lower();
-            //irr::core::stringc mat = mesh->getMeshBuffer(0)->getMaterial().getTexture(0).getName().getPath();
             matName = FileSystem->getFileBasename(lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), false);
             matName = matName.make_lower();
 
@@ -602,7 +600,6 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
             file->write(&v, 4);
 
             // The second UV layer
-
             if (lodMesh->getMeshBuffer(i)->getVertexType() != video::EVT_2TCOORDS)
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00", 8);
             else

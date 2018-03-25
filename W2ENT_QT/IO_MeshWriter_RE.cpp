@@ -282,7 +282,8 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
             file->write(&adress, 4);
             nbVertices = CollisionMesh->getMeshBuffer(i)->getVertexCount();
             nbFaces = CollisionMesh->getMeshBuffer(i)->getIndexCount()/3;
-            LODsize = nbVertices * 12 + nbFaces * 16 + 81 + 4;
+            // name + geomcount + vertex + faces + "dafault" + center + axis
+            LODsize = 23 + 12 + (nbVertices * 12) + (nbFaces * 16) + 11 + 12 + 36;
             if (i > 9)
                 LODsize++;
             if (i > 99)
@@ -357,11 +358,15 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
             file->write(&vertexPos.Z, 4);
             file->write(&vertexPos.Y, 4);
         }
-        for (u32 n = 0; n < nbTriangles; n = n+3)
+        for (u32 n = 0; n < nbTriangles; ++n)
         {
-            file->write(&CollisionMesh->getMeshBuffer(i)->getIndices()[n], 4);
-            file->write(&CollisionMesh->getMeshBuffer(i)->getIndices()[n + 1], 4);
-            file->write(&CollisionMesh->getMeshBuffer(i)->getIndices()[n + 2], 4);
+            u32 index1 = CollisionMesh->getMeshBuffer(i)->getIndices()[n*3];
+            u32 index2 = CollisionMesh->getMeshBuffer(i)->getIndices()[n*3 + 1];
+            u32 index3 = CollisionMesh->getMeshBuffer(i)->getIndices()[n*3 + 2];
+
+            file->write(&index1, 4);
+            file->write(&index2, 4);
+            file->write(&index3, 4);
             file->write("\x00\x00\x00\x00", 4); // smothing group ?
         }
         core::stringc str = "dafault";
@@ -375,7 +380,6 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
 
         // TODO : 3 floats.
         //Maybe the mesh center
-
         float f1 = center.X, f2 = center.Z, f3 = center.Y;
         file->write(&f1, 4);
         file->write(&f2, 4);
@@ -627,14 +631,12 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
             file->write("\x00\x00", 2);
             file->write(&index2, 2);
             file->write("\x00\x00", 2);
-
             file->write("\x00\x00\x00\x00", 4);*/
 
-            // s32 version. The fist implementation
-
-            s32 index1 = lodMesh->getMeshBuffer(i)->getIndices()[n*3];
-            s32 index2 = lodMesh->getMeshBuffer(i)->getIndices()[n*3 + 1];
-            s32 index3 = lodMesh->getMeshBuffer(i)->getIndices()[n*3 + 2];
+            // u32 version
+            u32 index1 = lodMesh->getMeshBuffer(i)->getIndices()[n*3];
+            u32 index2 = lodMesh->getMeshBuffer(i)->getIndices()[n*3 + 1];
+            u32 index3 = lodMesh->getMeshBuffer(i)->getIndices()[n*3 + 2];
 
             file->write(&index1, 4);
             file->write(&index3, 4);

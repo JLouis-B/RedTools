@@ -265,7 +265,7 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
                 nbFaces += MeshLOD2->getMeshBuffer(i)->getIndexCount()/3;
             }
 
-        LODsize = nbVertices * 12 + nbFaces * 16 + 64 + getMaterialsSize(MeshLOD2);
+        LODsize = nbVertices * 112 + nbFaces * 16 + 64 + getMaterialsSize(MeshLOD2);
         if(skinned)
                LODsize += getJointsSize((scene::ISkinnedMesh*)MeshLOD2);
         //LODsize -=4;

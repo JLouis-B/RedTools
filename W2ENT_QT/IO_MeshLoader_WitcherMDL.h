@@ -9,6 +9,7 @@
 #include "ISkinnedMesh.h"
 #include "IFileSystem.h"
 #include "IReadFile.h"
+#include "Log.h"
 
 #include <map>
 
@@ -71,6 +72,7 @@ public :
     video::E_MATERIAL_TYPE getMaterialTypeFromShader();
 
 private:
+    Log* _log;
     io::IFileSystem* FileSystem;
     core::stringc _shader;
     std::map<core::stringc, core::stringc> _textures;
@@ -123,6 +125,8 @@ private:
     core::stringc GameTexturesPath;
 
     std::map<u8, scene::ISkinnedMesh::SJoint*> BonesId;
+
+    Log* _log;
 };
 
 #endif // CWITCHERMDLMESHFILELOADER_H

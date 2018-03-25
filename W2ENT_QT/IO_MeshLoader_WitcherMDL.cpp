@@ -49,11 +49,12 @@ TW1_MaterialParser::TW1_MaterialParser(io::IFileSystem* fs)
     : FileSystem(fs),
     _shader("")
 {
+    _log = Log::Instance();
 }
 
 bool TW1_MaterialParser::loadFile(core::stringc filename)
 {
-    std::cout << "load file " << filename.c_str() << std::endl;
+    _log->addLineAndFlush(formatString("load file %s", filename.c_str()));
     core::array<io::path> texFolders;
     texFolders.push_back("materials00/");
 
@@ -290,6 +291,12 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
     if (!file)
         return nullptr;
 
+    _log = Log::Instance();
+    _log->addLine("");
+    _log->addLine(formatString("-> File : %s", file->getFileName().c_str()));
+    _log->add("_________________________________________________________\n\n\n");
+    _log->addLineAndFlush("Start loading");
+
     AnimatedMesh = SceneManager->createSkinnedMesh();
     if (load(file))
     {
@@ -301,6 +308,7 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
         AnimatedMesh->drop();
         AnimatedMesh = nullptr;
     }
+    _log->addLineAndFlush("Loading finished");
     return AnimatedMesh;
 }
 
@@ -310,7 +318,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     
     if (readU8(file) != 0) // 0 = binary file
     {
-        std::cout << "Error : not a binary file" << std::endl;
+        _log->addLineAndFlush("Error : not a binary file");
         return false;
     }
     file->seek(4);
@@ -319,7 +327,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     u32 modelCount = readU32(file); // should be 1 ?
     if (modelCount != 1)
     {
-        std::cout << "Error : modelCount != 1 isn't handled" << std::endl;
+        _log->addLineAndFlush("Error : modelCount != 1 isn't handled");
         return false;
     }
 
@@ -346,7 +354,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     file->seek(8, true);
 
     core::stringc name = readStringFixedSize(file, 64);
-    std::cout << "model name = " << name.c_str() << std::endl;
+    _log->addLineAndFlush(formatString("model name = %s", name.c_str()));
     u32 offsetRootNode = readU32(file);
 
     file->seek(32, true);
@@ -361,14 +369,14 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
     file->seek(16, true);
 
     core::stringc detailMap = readStringFixedSize(file, 64);
-    std::cout << "detail map = " << detailMap.c_str() << std::endl;
+    _log->addLineAndFlush(formatString("detail map = %s", detailMap.c_str()));
 
     file->seek(4, true);
 
     f32 modelScale = readF32(file);
 
     core::stringc superModel = readStringFixedSize(file, 64);
-    std::cout << "superModel = " << superModel.c_str() << std::endl;
+    _log->addLineAndFlush(formatString("superModel = %s", superModel.c_str()));
 
     file->seek(16, true);
 
@@ -445,15 +453,14 @@ video::ITexture* IO_MeshLoader_WitcherMDL::getTexture(core::stringc texPath)
 
             if (texture)
             {
-                std::cout << "return valid tex" << std::endl;
+                _log->addLineAndFlush("return valid tex");
                 return texture;
             }
         }
     }
 
-    std::cout << "return nullptr" << std::endl;
-    return texture;
-    
+    _log->addLineAndFlush("return nullptr");
+    return texture; 
 }
 
 ControllersData IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data)
@@ -505,7 +512,7 @@ ControllersData IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* fil
         {
             f32 alpha = controllerData[firstValueIndex];
             if (alpha != 1.f)
-                std::cout << "alpha != 1" << std::endl;
+                _log->addLineAndFlush("alpha != 1");
             controllers.alpha = alpha;
         }
         else if (controllerType == kNodeTrimeshControllerTypeSelfIllumColor)
@@ -518,7 +525,7 @@ ControllersData IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* fil
         }
         else
         {
-            std::cout << "Unknown controller type=" << controllerType << std::endl;
+            _log->addLineAndFlush(formatString("Unknown controller type=%d", controllerType));
         }
     }
     controllers.localTransform = pos * rot * scale;
@@ -599,14 +606,14 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, Controllers
         core::array<f32> weights = readArray<f32>(file, weightsDef);
         // All the texture layer have the same number of weights
         // One weight per vertex
-        std::cout << "layer " << i << " has a texture : " << texture.c_str() << " with " << weights.size() << "weights" << std::endl;
+        _log->addLineAndFlush(formatString("layer %d has a texture : %s with %d weights", i, texture.c_str(), weights.size()));
 
         // Material
         // more complicated than that : need to make a splatting shader
         video::SMaterial mat;
         if (texture != "" && i == 0)
         {
-            std::cout << "try to set texture : " << texture.c_str() << std::endl;
+            _log->addLineAndFlush(formatString("try to set texture : %s", texture.c_str()));
             video::ITexture* tex = getTexture(texture);
             if (tex)
                 mat.setTexture(0, tex);
@@ -712,7 +719,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     // don't know what is it
     u32 transparencyHint = readU32(file) == 1;
     if (transparencyHint != 0)
-        std::cout << "transparencyHint != 0" << std::endl;
+        _log->addLineAndFlush("transparencyHint != 0");
 
     file->seek(4, true); // Unknown
 
@@ -724,7 +731,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
         if (textureStrings[i] == "NULL")
             textureStrings[i] = "";
 
-        std::cout << "Mesh texture " << i << " : " << textureStrings[i].c_str() << std::endl;
+        _log->addLineAndFlush(formatString("Mesh texture %d : %s", i, textureStrings[i].c_str()));
     }
 
     file->seek(7, true); // render settings
@@ -735,7 +742,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     // don't know what is it
     f32 transparencyShift = readF32(file);
     if (transparencyShift != 0)
-        std::cout << "transparencyShift=" << transparencyShift << std::endl;
+        _log->addLineAndFlush(formatString("transparencyShift=", transparencyShift));
 
     file->seek(12, true); // render settings
     file->seek(4, true); // Unknown
@@ -864,13 +871,13 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     {
         // textureStrings[1] refers to a mat file
         core::stringc materialFile = textureStrings[1];
-        std::cout << "materialFile : " << materialFile.c_str() << std::endl;
+        _log->addLineAndFlush(formatString("materialFile : %s", materialFile.c_str()));
 
         TW1_MaterialParser parser(FileSystem);
         parser.loadFile(materialFile);
         textureDiffuse = parser.getTexture(0);
         bufferMaterial.MaterialType = parser.getMaterialTypeFromShader();
-        parser.debugPrint();
+        //parser.debugPrint();
 
         uvSet = 1;
     }
@@ -890,7 +897,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
         uvSet = 1; // 0 in some case, 1 in some other cases : TODO find the rule to get the good uvSet
         bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
         //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
-        materialParser.debugPrint();
+        //materialParser.debugPrint();
     }
 
 
@@ -900,7 +907,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
 
     if (bufferMaterial.getTexture(0) == nullptr)
     {
-        std::cout << "No texture !" << std::endl;
+        _log->addLineAndFlush("No texture !");
     }
     buffer->Material = bufferMaterial;
 
@@ -922,7 +929,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
 
 void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData controllers)
 {
-    std::cout << "Skin POS = " << file->getPos() << std::endl;
+    _log->addLineAndFlush(formatString("Skin POS = %d", file->getPos()));
     file->seek(72, true);
     file->seek(16, true); // 0xFFFFFFFFFFFFFFFFFFF...
 
@@ -935,7 +942,7 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
         if (textureStrings[i] == "NULL")
             textureStrings[i] = "";
 
-        std::cout << "Mesh texture " << i << " : " << textureStrings[i].c_str() << std::endl;
+        _log->addLineAndFlush(formatString("Mesh texture %d : %s", i, textureStrings[i].c_str()));
     }
     file->seek(61, true);
 
@@ -1025,7 +1032,7 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
                 continue;
             if (boneId >= AnimatedMesh->getJointCount())
             {
-                std::cout << "boneId " << (s32)boneId << " >= boneCount " << AnimatedMesh->getJointCount() << std::endl;
+                //std::cout << "boneId " << (s32)boneId << " >= boneCount " << AnimatedMesh->getJointCount() << std::endl;
             }
 
             f32 weight = weights[currentSkinningIndex];
@@ -1040,7 +1047,7 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
                 minBone = boneId;
         }
     }
-    std::cout << "minBone=" << minBone << ", maxBone=" << maxBone << std::endl;
+    _log->addLineAndFlush(formatString("minBone=%d, maxBone=%d", minBone, maxBone));
 
     // Normals
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
@@ -1087,13 +1094,13 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
     {
         // textureStrings[1] refers to a mat file
         core::stringc materialFile = textureStrings[1];
-        std::cout << "materialFile : " << materialFile.c_str() << std::endl;
+        _log->addLineAndFlush(formatString("materialFile : %s", materialFile.c_str()));
 
         TW1_MaterialParser parser(FileSystem);
         parser.loadFile(materialFile);
         textureDiffuse = parser.getTexture(0);
         bufferMaterial.MaterialType = parser.getMaterialTypeFromShader();
-        parser.debugPrint();
+        //parser.debugPrint();
 
         uvSet = 1;
     }
@@ -1112,8 +1119,8 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
         textureDiffuse = materialParser.getTexture(0);
         uvSet = 0; // 0 in some case, 1 in some other cases : TODO find the rule to get the good uvSet
         bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
-        std::cout << "SKIN : try to set texture : " << textureDiffuse.c_str() << std::endl;
-        materialParser.debugPrint();
+        _log->addLineAndFlush(formatString("SKIN : try to set texture : %s", textureDiffuse.c_str()));
+        //materialParser.debugPrint();
     }
 
 
@@ -1123,7 +1130,7 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
 
     if (bufferMaterial.getTexture(0) == nullptr)
     {
-        std::cout << "No texture !" << std::endl;
+        _log->addLineAndFlush("No texture !");
     }
     buffer->Material = bufferMaterial;
 
@@ -1180,7 +1187,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
 
 
     core::stringc name = readStringFixedSize(file, 64);
-    std::cout << "Node name=" << name.c_str() << std::endl;
+    _log->addLineAndFlush(formatString("Node name=%s", name.c_str()));
 
     file->seek(8, true); // parent geometry + parent node
 
@@ -1216,22 +1223,22 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     switch (type)
     {
         case kNodeTypeTrimesh:
-            std::cout << "Trimesh node" << std::endl;
+            _log->addLineAndFlush("Trimesh node");
             readMesh(file, controllers);
             break;
 
         case kNodeTypeTexturePaint:
-            std::cout << "Texture paint node" << std::endl;
+            _log->addLineAndFlush("Texture paint node");
             readTexturePaint(file, controllers);
             break;
 
         case kNodeTypeSkin:
-            std::cout << "Skin node" << std::endl;
+            _log->addLineAndFlush("Skin node");
             readSkin(file, controllers);
             break;
 
         case kNodeTypeSpeedTree:
-            std::cout << "Speed tree" << std::endl;
+            _log->addLineAndFlush("Speed tree");
             readSpeedtree(file, controllers);
         break;
 
@@ -1247,8 +1254,8 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     joint->Animatedrotation = controllers.rotation.makeInverse();
     joint->Animatedscale = controllers.scale;
     //BonesId.insert(std::make_pair(id & 0x00FF, joint));
-    std::cout << "ID = " << (int)(id & 0x00FF) << ", @=" << file->getPos() << std::endl;
-    std::cout << "Node END" << std::endl;
+    _log->addLineAndFlush(formatString("ID = %d, @=%d", (int)(id & 0x00FF), file->getPos()));
+    _log->addLineAndFlush("Node END");
 
 
     // Load the children
@@ -1274,7 +1281,7 @@ TW1_MaterialParser IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file)
     u32 offTexture = readU32(file);
     if (offTexture != 0)
     {
-        std::cout << "offTexture != 0" << std::endl;
+        _log->addLineAndFlush("offTexture != 0");
     }
 
     core::stringc materialContent;
@@ -1285,7 +1292,7 @@ TW1_MaterialParser IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file)
         materialContent += line;
         materialContent += "\n";
     }
-    std::cout << "mat content : " << materialContent.c_str() << std::endl;
+    //_log->addLineAndFlush(formatString("mat content : %s", materialContent.c_str()));
 
     TW1_MaterialParser parser(FileSystem);
     parser.loadFromString(materialContent);

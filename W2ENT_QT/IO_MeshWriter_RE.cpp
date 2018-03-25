@@ -321,18 +321,15 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
 
 void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
 {
-    core::vector3df meshCenter = ((CollisionMesh->getBoundingBox().MaxEdge - CollisionMesh->getBoundingBox().MinEdge)/2) - CollisionMesh->getBoundingBox().MaxEdge;
-    meshCenter.Y = 0.0f;
-
-
-
+    const core::vector3df meshCenter = CollisionMesh->getBoundingBox().getCenter();
+    //meshCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
 
     for (u32 i = 0; i < CollisionMesh->getMeshBufferCount(); ++i)
     {
-        core::vector3df meshBufferCenter = ((CollisionMesh->getMeshBuffer(i)->getBoundingBox().MaxEdge - CollisionMesh->getMeshBuffer(i)->getBoundingBox().MinEdge)/2) - CollisionMesh->getBoundingBox().MaxEdge;
-        meshBufferCenter.Y = 0.0f;
+        const core::vector3df meshBufferCenter = CollisionMesh->getMeshBuffer(i)->getBoundingBox().getCenter();
+        //meshBufferCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
 
-        core::vector3df center = meshBufferCenter - meshCenter;
+        const core::vector3df center = meshBufferCenter - meshCenter;
 
         core::stringc objectName = "collisionMesh";
         objectName += i;
@@ -421,20 +418,11 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
 
     // the decalage between the center of the mesh and (0, 0, 0)
-    core::vector3df meshCenter = ((lodMesh->getBoundingBox().MaxEdge - lodMesh->getBoundingBox().MinEdge)/2) - lodMesh->getBoundingBox().MaxEdge;
-    meshCenter.Y = 0.0f;
-
-    f32 Xcenter, Ycenter, Zcenter;
-    Xcenter = meshCenter.X;
-    Ycenter = meshCenter.Y;
-    Zcenter = meshCenter.Z;
-
-    // Write it in the file
-    file->write(&Xcenter, 4);
-    /*file->write(&Ycenter, 4);
-    file->write(&Zcenter, 4);*/
-    file->write(&Zcenter, 4);
-    file->write(&Ycenter, 4);
+    const core::vector3df meshCenter = CollisionMesh->getBoundingBox().getCenter();
+    //meshCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
+    file->write(&meshCenter.X, 4);
+    file->write(&meshCenter.Z, 4);
+    file->write(&meshCenter.Y, 4);
 
     if (skinned)
         createWeightsTable((ISkinnedMesh*)lodMesh);
@@ -444,6 +432,9 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     // file->write("\x06\x00\x00\x00noname\x04\x00\x00\x00\x64iff\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 32);
     for (u32 i=0; i<lodMesh->getMeshBufferCount(); ++i)
 	{
+        const core::vector3df meshBufferCenter = CollisionMesh->getMeshBuffer(i)->getBoundingBox().getCenter();
+        const core::vector3df center = meshBufferCenter - meshCenter;
+
         core::stringc matName = "noname";
         core::stringc diffuseTexture = "diff";
         if (lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0))
@@ -480,38 +471,23 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
         for(u32 n=0; n<lodMesh->getMeshBuffer(i)->getVertexCount(); ++n)
         {
             // The vertex positions are relatives to the mesh center
-            irr::core::vector3df relativePos = lodMesh->getMeshBuffer(i)->getPosition(n) - meshCenter;
-
-            f32 x = relativePos.X;
-            f32 y = relativePos.Y;
-            f32 z = relativePos.Z;
-
-            file->write(&x, 4);
-            /*file->write(&y, 4);
-            file->write(&z, 4);*/
-            file->write(&z, 4);
-            file->write(&y, 4);
+            const core::vector3df relativePos = lodMesh->getMeshBuffer(i)->getPosition(n) - center;
+            file->write(&relativePos.X, 4);
+            file->write(&relativePos.Z, 4);
+            file->write(&relativePos.Y, 4);
             // Y and Z axis seem don't be the same that the Irrlicht axis
 
-
-            f32 u = lodMesh->getMeshBuffer(i)->getTCoords(n).X;
-            f32 v = lodMesh->getMeshBuffer(i)->getTCoords(n).Y;
-
-
-            f32 nx = lodMesh->getMeshBuffer(i)->getNormal(n).X;
-            f32 ny = lodMesh->getMeshBuffer(i)->getNormal(n).Y;
-            f32 nz = lodMesh->getMeshBuffer(i)->getNormal(n).Z;
-
-            file->write(&nx, 4);
-            file->write(&nz, 4);
-            file->write(&ny, 4);
+            const core::vector3df normal = lodMesh->getMeshBuffer(i)->getNormal(n);
+            file->write(&normal.X, 4);
+            file->write(&normal.Z, 4);
+            file->write(&normal.Y, 4);
 
 
             /*
-            irr::core::vector3df vect2 = mesh->getMeshBuffer(i)->getNormal(n);
-            irr::core::vector3df vect3 = mesh->getMeshBuffer(i)->getNormal(n);
+            core::vector3df vect2 = mesh->getMeshBuffer(i)->getNormal(n);
+            core::vector3df vect3 = mesh->getMeshBuffer(i)->getNormal(n);
 
-            irr::core::matrix4 m;
+            core::matrix4 m;
             m.setRotationDegrees(irr::core::vector3df(0, 0, -90));
             m.rotateVect(vect2);
 
@@ -526,31 +502,20 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
             float v3y = vect3.Y;
             float v3z = vect3.Z;
             */
-
-
-
             // Binormals and tangeants ?
-            f32 v2x = (verts)[n].Tangent.X;
-            f32 v2y = (verts)[n].Tangent.Y;
-            f32 v2z = (verts)[n].Tangent.Z;
+            const core::vector3df tangent = (verts)[n].Tangent;
+            file->write(&tangent.X, 4);
+            file->write(&tangent.Z, 4);
+            file->write(&tangent.Y, 4);
 
-            f32 v3x = (verts)[n].Binormal.X;
-            f32 v3y = (verts)[n].Binormal.Y;
-            f32 v3z = (verts)[n].Binormal.Z;
-
-            file->write(&v2x, 4);
-            file->write(&v2z, 4);
-            file->write(&v2y, 4);
-
-            file->write(&v3x, 4);
-            file->write(&v3z, 4);
-            file->write(&v3y, 4);
+            const core::vector3df binormal = (verts)[n].Binormal;
+            file->write(&binormal.X, 4);
+            file->write(&binormal.Z, 4);
+            file->write(&binormal.Y, 4);
 
             if (skinned)
             {
-                //core::array<Weight> ws =  getWeightForVertex((ISkinnedMesh*)lodMesh, i, n);
                 vector<Weight> ws = _table[i][n];
-
 
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 16);
 
@@ -589,19 +554,10 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
             else
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 48);
 
-            /* Older versions
 
-            file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 72);
-
-            file->write("\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 84);
-
-            \x00\x00\x80\xbf\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-            file->write("\x00\x00\x80\xbf\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 84);
-            */
-
-
-            file->write(&u, 4);
-            file->write(&v, 4);
+            const core::vector2df uv = lodMesh->getMeshBuffer(i)->getTCoords(n);
+            file->write(&uv.X, 4);
+            file->write(&uv.Y, 4);
 
             // The second UV layer
             if (lodMesh->getMeshBuffer(i)->getVertexType() != video::EVT_2TCOORDS)

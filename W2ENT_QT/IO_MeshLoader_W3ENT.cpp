@@ -1513,7 +1513,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
     for (char i = 0; i < nbBones; ++i)
     {
         u16 jointName = readU16(file);
-        log->addLineAndFlush(core::stringc("string id = %d", jointName));
+        log->addLineAndFlush(formatString("string id = %d", jointName));
 
         scene::ISkinnedMesh::SJoint* joint = 0;
         //if (!AnimatedMesh->getJointCount())

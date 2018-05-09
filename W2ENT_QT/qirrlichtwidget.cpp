@@ -170,10 +170,10 @@ void QIrrlichtWidget::loadMeshPostProcess()
 
 IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMessage)
 {
-    if (Settings::_pack0[Settings::_pack0.size() - 1] != '/')
+    if (Settings::_pack0.size() > 0 && Settings::_pack0[Settings::_pack0.size() - 1] != '/')
         Settings::_pack0.push_back('/');
 
-    if (Settings::_TW3TexPath[Settings::_TW3TexPath.size() - 1] != '/')
+    if (Settings::_TW3TexPath.size() > 0 && Settings::_TW3TexPath[Settings::_TW3TexPath.size() - 1] != '/')
         Settings::_TW3TexPath.push_back('/');
 
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);

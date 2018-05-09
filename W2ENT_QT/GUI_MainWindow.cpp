@@ -234,9 +234,8 @@ void GUI_MainWindow::initIrrlicht()
     _ui->layout_irrlichtRender->addWidget(_irrWidget);
 
     _irrWidget->show();
-    //_irrWidget->setGeometry(0, 40, 768, 432);
     _irrWidget->init();
-    addToUILog(QString("The Witcher 3D models converter ") + Settings::_appVersion + "\n");
+    addToUILog(QString("The Witcher 3D models converter ") + Settings::getAppVersion() + "\n");
 }
 
 void GUI_MainWindow::selectMeshFile()

@@ -7,6 +7,8 @@
 
 #include "GUI_Resize.h"
 
+#define IS_A_DEVELOPMENT_BUILD
+
 #define DEFAULT_CAM_ROT_SPEED 500
 #define DEFAULT_CAM_SPEED 500
 
@@ -18,6 +20,9 @@ enum Export_Mode
 
 class Settings
 {
+private:
+    static QString _appVersion;
+
 public:
     static double _camSpeed;
     static double _camRotSpeed;
@@ -50,8 +55,7 @@ public:
 
     static bool _firstUse;
 
-    static QString _appVersion;
-
+    static QString getAppVersion();
     static QString getExportFolder();
 
     static void loadFromXML(QString filename);

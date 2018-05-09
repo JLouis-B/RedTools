@@ -356,8 +356,9 @@ void QIrrlichtWidget::init ()
     if (Settings::_debugLog)
         Log::Instance()->addOutput(LOG_FILE);
 
-    // debug only !
-    //Log::Instance()->addOutput(LOG_CONSOLE);
+#ifdef IS_A_DEVELOPMENT_BUILD
+    Log::Instance()->addOutput(LOG_CONSOLE);
+#endif
 
     Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"));
 }

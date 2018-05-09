@@ -42,6 +42,16 @@ QString Settings::getExportFolder()
         return Settings::_exportDest;
 }
 
+QString Settings::getAppVersion()
+{
+#ifdef IS_A_DEVELOPMENT_BUILD
+    QString appVersion = _appVersion + " - DEV BUILD";
+    return appVersion;
+#else
+    return _appVersion;
+#endif
+}
+
 void Settings::loadFromXML(QString filename)
 {
 

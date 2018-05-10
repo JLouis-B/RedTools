@@ -31,7 +31,7 @@ public:
 
 public slots :
 
-    void convertir();
+    void convert();
     void translate();
     void changeLanguage();
     void selectFolder();
@@ -72,6 +72,7 @@ public slots :
 private:
     void updateWindowTitle();
     void addToUILog(QString log);
+    void fillComboBoxFormats();
 
     Ui::GUI_MainWindow *_ui;
     QIrrlichtWidget *_irrWidget;
@@ -80,6 +81,8 @@ private:
 
     bool _firstSelection;
     LOD _currentLOD;
+
+    int _nbNoAssimpExport;
 
 signals:
     void languageChanged();

@@ -571,9 +571,9 @@ void scaleSkeleton(scene::IMesh* mesh, float factor)
     }
 }
 
-void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString extension, core::stringc &feedbackMessage)
+void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage)
 {
-    if (!_currentLodData->_node && extension != ".re")
+    if (!_currentLodData->_node && exporter._exporter != Exporter_Redkit)
         return;
 
 
@@ -585,7 +585,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         dir.mkdir(exportFolder);
     }
 
-    const io::path exportPath = QSTRING_TO_PATH(exportFolder + "/" + filename + extension);
+    const io::path exportPath = QSTRING_TO_PATH(exportFolder + "/" + filename + exporter._extension);
     IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportPath);
     if (!file)
     {
@@ -593,7 +593,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         return;
     }
 
-    if (extension != ".re")
+    if (exporter._exporter != Exporter_Redkit)
     {
         copyTextures(_currentLodData->_node->getMesh(), exportFolder);
         if(Settings::_nm)
@@ -659,23 +659,24 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         scaleSkeleton(_collisionsLodData._node->getMesh(), (dim/orDim).X);
     }
 
-    if ((extension == ".obj" || extension == ".stl" || extension == ".ply" || extension == ".dae" || extension == ".irrmesh" || extension == ".b3d") && mesh)
+    if (exporter._exporter == Exporter_Irrlicht && mesh)
     {
-        irr::scene::EMESH_WRITER_TYPE type = EMWT_OBJ;
+        QString extension = exporter._extension;
+        scene::EMESH_WRITER_TYPE type = EMWT_OBJ;
         if (extension == ".irrmesh")
-            type = irr::scene::EMWT_IRR_MESH;
+            type = scene::EMWT_IRR_MESH;
         else if (extension == ".dae")
-            type = irr::scene::EMWT_COLLADA;
+            type = scene::EMWT_COLLADA;
         else if (extension == ".stl")
-            type = irr::scene::EMWT_STL;
+            type = scene::EMWT_STL;
         else if (extension == ".obj")
-            type = irr::scene::EMWT_OBJ;
+            type = scene::EMWT_OBJ;
         else if (extension == ".ply")
-            type = irr::scene::EMWT_PLY;
+            type = scene::EMWT_PLY;
         else if (extension == ".b3d")
-            type = irr::scene::EMWT_B3D;
+            type = scene::EMWT_B3D;
 
-        IMeshWriter* mw = 0;
+        IMeshWriter* mw = nullptr;
         mw = _device->getSceneManager()->createMeshWriter(type);
 
         if (mw)
@@ -684,7 +685,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
             mw->drop();
         }
     }
-    else if (extension == ".re")
+    else if (exporter._exporter == Exporter_Redkit)
     {
         _reWriter->clearLODS();
         if (_lod1Data._node)
@@ -701,23 +702,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     {
 #ifdef COMPILE_WITH_ASSIMP
         IrrAssimp assimp(_device->getSceneManager());
-        core::stringc extensionFlag;
-        if (extension == ".x")
-            extensionFlag = "x";
-        else if (extension == ".3ds")
-            extensionFlag = "3ds";
-        else if (extension == ".assbin")
-            extensionFlag = "assbin";
-        else if (extension == ".assxml")
-            extensionFlag = "assxml";
-        else if (extension == ".stp")
-            extensionFlag = "stp";
-        else if (extension == ".gltf")
-            extensionFlag = "gltf";
-        else if (extension == ".glb")
-            extensionFlag = "glb";
-
-        assimp.exportMesh(mesh, extensionFlag, exportPath);
+        assimp.exportMesh(mesh, exporter._assimpExporter.toStdString().c_str(), exportPath);
 #else
         QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");
 #endif

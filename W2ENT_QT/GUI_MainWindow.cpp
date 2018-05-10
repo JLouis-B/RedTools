@@ -92,7 +92,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     // UI
     QObject::connect(_ui->button_fileSelector, SIGNAL(clicked()), this, SLOT(selectMeshFile()));
-    QObject::connect(_ui->button_convert, SIGNAL(clicked()), this, SLOT(convertir()));
+    QObject::connect(_ui->button_convert, SIGNAL(clicked()), this, SLOT(convert()));
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectFolder()));
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
     QObject::connect(_ui->comboBox_format, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
@@ -102,6 +102,10 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     // Logs
     _ui->textEdit_log->setReadOnly (true);
+
+    // add assimp exporters to the list
+    _nbNoAssimpExport = _ui->comboBox_format->count();
+    fillComboBoxFormats();
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -238,6 +242,17 @@ void GUI_MainWindow::initIrrlicht()
     addToUILog(QString("The Witcher 3D models converter ") + Settings::getAppVersion() + "\n");
 }
 
+void GUI_MainWindow::fillComboBoxFormats()
+{
+    core::array<ExportFormat> formats = IrrAssimp::getExportFormats();
+    for (u32 i = 0; i < formats.size(); ++i)
+    {
+        ExportFormat format = formats[i];
+        QString exportString = QString(".") + format.FileExtension.c_str() + " by Assimp library (" + format.Description.c_str() + ")";
+        _ui->comboBox_format->addItem(exportString.toStdString().c_str());
+    }
+}
+
 void GUI_MainWindow::selectMeshFile()
 {
     QString param = _ui->lineEdit_ImportedFile->text();
@@ -269,7 +284,7 @@ void GUI_MainWindow::selectAnimationsFile()
 }
 
 
-void GUI_MainWindow::convertir()
+void GUI_MainWindow::convert()
 {
     // Warning if no filename specified
     if (_ui->lineEdit_exportedFilename->text() == "")
@@ -283,7 +298,24 @@ void GUI_MainWindow::convertir()
     // Check if the destination folder exist
     QDir dir(Settings::getExportFolder());
     if (dir.exists())
-        _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')), feedback);
+    {
+        int currentIndex = _ui->comboBox_format->currentIndex();
+        int assimpExporterIndex = currentIndex - _nbNoAssimpExport;
+
+        ExporterInfos infos;
+        infos._extension = _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' '));
+        if (infos._extension == ".re")
+            infos._exporter = Exporter_Redkit;
+        else if (assimpExporterIndex >= 0)
+        {
+            infos._exporter = Exporter_Assimp;
+            infos._assimpExporter = IrrAssimp::getExportFormats()[assimpExporterIndex].Id.c_str();
+        }
+        else
+            infos._exporter = Exporter_Irrlicht;
+
+        _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
+    }
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");

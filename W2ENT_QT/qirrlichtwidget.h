@@ -60,6 +60,19 @@ struct LOD_data
     QVector<std::set<io::path> > _additionalTextures;
 };
 
+enum ExportType
+{
+    Exporter_Irrlicht,
+    Exporter_Redkit,
+    Exporter_Assimp
+};
+
+struct ExporterInfos
+{
+    ExportType _exporter;
+    QString _extension;
+    QString _assimpExporter;
+};
 
 class QIrrlichtWidget : public QWidget
 {
@@ -73,7 +86,7 @@ class QIrrlichtWidget : public QWidget
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
         void init ();
-        void writeFile (QString exportFolder, QString filename, QString extension, core::stringc &feedbackMessage);
+        void writeFile (QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
         void changeWireframe(bool state);
         void changeRigging(bool state);
 

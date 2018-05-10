@@ -120,41 +120,6 @@
             <string>.re (Red Engine)</string>
            </property>
           </item>
-          <item>
-           <property name="text">
-            <string>.x (DirectX)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.3ds (Autodesk 3DS)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.assbin (Assimp binary)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.assxml (Assimp XML)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.stp (Step files)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.gltf (GL Transmission Format)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.glb (GL Transmission Format - Binary)</string>
-           </property>
-          </item>
          </widget>
         </item>
         <item row="1" column="0">

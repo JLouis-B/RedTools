@@ -76,13 +76,12 @@ private:
 
     Ui::GUI_MainWindow *_ui;
     QIrrlichtWidget *_irrWidget;
-    QString _formats;
-
 
     bool _firstSelection;
     LOD _currentLOD;
 
     int _nbNoAssimpExport;
+    QVector<QString> _assimpExportersId;
 
 signals:
     void languageChanged();

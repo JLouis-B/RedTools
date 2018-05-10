@@ -11,7 +11,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 {
     // setup the UI
     _ui->setupUi(this);
-    //this->setFixedSize(this->size());
 
     _currentLOD = LOD_0;
 
@@ -244,12 +243,25 @@ void GUI_MainWindow::initIrrlicht()
 
 void GUI_MainWindow::fillComboBoxFormats()
 {
+    QVector<QString> noAssimpExportExtensions;
+    for (int i = 0; i < _ui->comboBox_format->count(); ++i)
+    {
+        const QString extension = _ui->comboBox_format->itemText(i).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' '));
+        noAssimpExportExtensions.push_back(extension);
+    }
+
+    _assimpExportersId.clear();
     core::array<ExportFormat> formats = IrrAssimp::getExportFormats();
     for (u32 i = 0; i < formats.size(); ++i)
     {
-        ExportFormat format = formats[i];
-        QString exportString = QString(".") + format.FileExtension.c_str() + " by Assimp library (" + format.Description.c_str() + ")";
-        _ui->comboBox_format->addItem(exportString.toStdString().c_str());
+        const ExportFormat format = formats[i];
+        const QString extension = QString(".") + format.FileExtension.c_str();
+        if (noAssimpExportExtensions.indexOf(extension) == -1)
+        {
+            const QString exportString = extension + " by Assimp library (" + format.Description.c_str() + ")";
+            _ui->comboBox_format->addItem(exportString.toStdString().c_str());
+            _assimpExportersId.push_back(format.Id.c_str());
+        }
     }
 }
 
@@ -309,7 +321,7 @@ void GUI_MainWindow::convert()
         else if (assimpExporterIndex >= 0)
         {
             infos._exporter = Exporter_Assimp;
-            infos._assimpExporter = IrrAssimp::getExportFormats()[assimpExporterIndex].Id.c_str();
+            infos._assimpExporter = _assimpExportersId[assimpExporterIndex];
         }
         else
             infos._exporter = Exporter_Irrlicht;

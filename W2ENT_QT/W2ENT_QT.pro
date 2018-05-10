@@ -109,20 +109,21 @@ FORMS    += \
     GUI_Extractor_TW3_CACHE.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5355-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5605-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5605-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\code\libassimp.dll.a
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\code\libassimp.dll.a
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\include" \
 
 # SNAPPY
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\native\snappy32.lib
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\include" \
 
 # LZ4
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_0_win32\dll\liblz4.lib
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_0_win32\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_1_win32\dll\liblz4.lib
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_1_win32\include" \
 
 DISTFILES += \
     app.rc

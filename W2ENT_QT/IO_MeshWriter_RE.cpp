@@ -364,7 +364,7 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
             file->write(&index1, 4);
             file->write(&index2, 4);
             file->write(&index3, 4);
-            file->write("\x00\x00\x00\x00", 4); // smothing group ?
+            file->write("\x00\x00\x00\x00", 4); // smoothing group ?
         }
         core::stringc str = "dafault";
         s32 strSize = str.size();
@@ -375,12 +375,10 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
         // maybe the 3 Axis
         file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
 
-        // TODO : 3 floats.
-        //Maybe the mesh center
-        float f1 = center.X, f2 = center.Z, f3 = center.Y;
-        file->write(&f1, 4);
-        file->write(&f2, 4);
-        file->write(&f3, 4);
+        // probably the mesh center
+        file->write(&center.X, 4);
+        file->write(&center.Z, 4);
+        file->write(&center.Y, 4);
     }
 
 }
@@ -418,7 +416,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
 
     // the decalage between the center of the mesh and (0, 0, 0)
-    const core::vector3df meshCenter = CollisionMesh->getBoundingBox().getCenter();
+    const core::vector3df meshCenter = lodMesh->getBoundingBox().getCenter();
     //meshCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
     file->write(&meshCenter.X, 4);
     file->write(&meshCenter.Z, 4);
@@ -432,7 +430,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     // file->write("\x06\x00\x00\x00noname\x04\x00\x00\x00\x64iff\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 32);
     for (u32 i=0; i<lodMesh->getMeshBufferCount(); ++i)
 	{
-        const core::vector3df meshBufferCenter = CollisionMesh->getMeshBuffer(i)->getBoundingBox().getCenter();
+        const core::vector3df meshBufferCenter = lodMesh->getMeshBuffer(i)->getBoundingBox().getCenter();
         const core::vector3df center = meshBufferCenter - meshCenter;
 
         core::stringc matName = "noname";

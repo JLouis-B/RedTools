@@ -190,22 +190,21 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
     io::path extension;
     core::getFileNameExtension(extension, irrFilename);
 
-    IAnimatedMesh* mesh = 0;
+    IAnimatedMesh* mesh = nullptr;
+
+#ifdef COMPILE_WITH_ASSIMP
     IrrAssimp assimp(_device->getSceneManager());
-    //l.addAndFlush("irrassimp loaded\n");
+#endif
+
     if (isLoadableByIrrlicht(irrFilename))
     {
-        //l.addAndFlush("irr loader\n");
         mesh = _device->getSceneManager()->getMesh(irrFilename);
-        //l.addAndFlush("getMesh\n");
 
         // Witcher feedback
         if (extension == ".w2mesh" || extension == ".w2ent" || extension == ".w2rig")
         {
             feedbackMessage = _device->getSceneManager()->getParameters()->getAttributeAsString("TW_FEEDBACK");
             _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
-            //l.addAndFlush("feedback is ");
-            //l.addAndFlush(feedbackMessage.c_str());
         }
 
         if (!mesh && feedbackMessage == "")
@@ -213,6 +212,7 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
             feedbackMessage = "\nError : loading of the mesh failed for unknown reason.";
         }
     }
+#ifdef COMPILE_WITH_ASSIMP
     else if (assimp.isLoadable(irrFilename))
     {
         mesh = assimp.getMesh(irrFilename);
@@ -220,6 +220,7 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
         if (!mesh)
             feedbackMessage = assimp.getError();
     }
+#endif
     else        // no mesh loader for this file
     {
         feedbackMessage = "\nError : No mesh loader found for this file. Are you sure that this file has an extension loadable by the software ? Check the website for more information.";
@@ -698,6 +699,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
     }
     else
     {
+#ifdef COMPILE_WITH_ASSIMP
         IrrAssimp assimp(_device->getSceneManager());
         core::stringc extensionFlag;
         if (extension == ".x")
@@ -715,12 +717,12 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, QString
         else if (extension == ".glb")
             extensionFlag = "glb";
 
-        //std::cout << "nb output=" << assimp.getExportFormats().size() << std::endl;
-
+        assimp.exportMesh(mesh, extensionFlag, exportPath);
+#else
+        QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");
+#endif
         file->drop();
         file = nullptr;
-
-        assimp.exportMesh(mesh, extensionFlag, exportPath);
     }
 
 

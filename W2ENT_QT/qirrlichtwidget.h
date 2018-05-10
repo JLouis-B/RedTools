@@ -25,8 +25,6 @@
 #include "IO_MeshWriter_RE.h"
 #include "IO_MeshLoader_WitcherMDL.h"
 
-// Assimp is used to load many file formats. You can disable it with this define
-#define COMPILE_WITH_ASSIMP
 #ifdef COMPILE_WITH_ASSIMP
     #include "IrrAssimp/IrrAssimp.h"
 #endif

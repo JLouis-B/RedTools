@@ -71,7 +71,12 @@ struct ExporterInfos
 {
     ExportType _exporter;
     QString _extension;
+
+    // Assimp specifics
     QString _assimpExporter;
+
+    // Irrlicht specifics
+    int _irrlichtFlags;
 };
 
 class QIrrlichtWidget : public QWidget

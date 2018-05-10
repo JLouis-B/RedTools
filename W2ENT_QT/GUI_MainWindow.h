@@ -80,7 +80,7 @@ private:
     bool _firstSelection;
     LOD _currentLOD;
 
-    int _nbNoAssimpExport;
+    QVector<int> _noAssimpExportFlags;
     QVector<QString> _assimpExportersId;
 
 signals:

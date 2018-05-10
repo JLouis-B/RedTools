@@ -103,7 +103,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     _ui->textEdit_log->setReadOnly (true);
 
     // add assimp exporters to the list
-    _nbNoAssimpExport = _ui->comboBox_format->count();
     fillComboBoxFormats();
 }
 
@@ -248,6 +247,12 @@ void GUI_MainWindow::fillComboBoxFormats()
     {
         const QString extension = _ui->comboBox_format->itemText(i).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' '));
         noAssimpExportExtensions.push_back(extension);
+
+        s32 flags = scene::EMWF_NONE;
+        if (_ui->comboBox_format->itemText(i).contains("binary"))
+            flags = scene::EMWF_WRITE_COMPRESSED;
+
+        _noAssimpExportFlags.push_back(flags);
     }
 
     _assimpExportersId.clear();
@@ -312,7 +317,7 @@ void GUI_MainWindow::convert()
     if (dir.exists())
     {
         int currentIndex = _ui->comboBox_format->currentIndex();
-        int assimpExporterIndex = currentIndex - _nbNoAssimpExport;
+        int assimpExporterIndex = currentIndex - _noAssimpExportFlags.size();
 
         ExporterInfos infos;
         infos._extension = _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' '));
@@ -324,7 +329,10 @@ void GUI_MainWindow::convert()
             infos._assimpExporter = _assimpExportersId[assimpExporterIndex];
         }
         else
+        {
             infos._exporter = Exporter_Irrlicht;
+            infos._irrlichtFlags = _noAssimpExportFlags[_ui->comboBox_format->currentIndex()];
+        }
 
         _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
     }

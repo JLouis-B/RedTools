@@ -102,7 +102,12 @@
           </item>
           <item>
            <property name="text">
-            <string>.stl (STereoLithography)</string>
+            <string>.stl (STereoLithography (ascii))</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>.stl (STereoLithography (binary))</string>
            </property>
           </item>
           <item>

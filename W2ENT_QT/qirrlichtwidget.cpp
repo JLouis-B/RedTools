@@ -586,7 +586,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
     }
 
     const io::path exportPath = QSTRING_TO_PATH(exportFolder + "/" + filename + exporter._extension);
-    IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportPath);
+    io::IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportPath);
     if (!file)
     {
         feedbackMessage = "fail. Can't create the exported file";
@@ -631,7 +631,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
 
     //std::cout << filename.toStdString().c_str() << std::endl;
 
-    IMesh* mesh = nullptr;
+    scene::IMesh* mesh = nullptr;
     if (_currentLodData->_node)
         mesh = _currentLodData->_node->getMesh();
 
@@ -676,12 +676,12 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
         else if (extension == ".b3d")
             type = scene::EMWT_B3D;
 
-        IMeshWriter* mw = nullptr;
+        scene::IMeshWriter* mw = nullptr;
         mw = _device->getSceneManager()->createMeshWriter(type);
 
         if (mw)
         {
-            mw->writeMesh(file, mesh);
+            mw->writeMesh(file, mesh, exporter._irrlichtFlags);
             mw->drop();
         }
     }
@@ -706,8 +706,6 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
 #else
         QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");
 #endif
-        file->drop();
-        file = nullptr;
     }
 
 

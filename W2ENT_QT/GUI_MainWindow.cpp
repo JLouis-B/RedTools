@@ -250,7 +250,7 @@ void GUI_MainWindow::fillComboBoxFormats()
 
         s32 flags = scene::EMWF_NONE;
         if (_ui->comboBox_format->itemText(i).contains("binary"))
-            flags = scene::EMWF_WRITE_COMPRESSED;
+            flags = scene::EMWF_WRITE_COMPRESSED | scene::EMWF_WRITE_BINARY; // currently stl exporter use EMWF_WRITE_COMPRESSED and ply exporter use EMWF_WRITE_BINARY
 
         _noAssimpExportFlags.push_back(flags);
     }

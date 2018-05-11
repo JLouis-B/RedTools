@@ -97,7 +97,12 @@
           </item>
           <item>
            <property name="text">
-            <string>.ply (Polygon File Format)</string>
+            <string>.ply (Polygon File Format (ascii))</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>.ply (Polygon File Format (binary))</string>
            </property>
           </item>
           <item>

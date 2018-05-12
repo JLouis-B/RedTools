@@ -80,8 +80,7 @@ private:
     bool _firstSelection;
     LOD _currentLOD;
 
-    QVector<int> _noAssimpExportFlags;
-    QVector<QString> _assimpExportersId;
+    QVector<ExporterInfos> _exporters;
 
 signals:
     void languageChanged();

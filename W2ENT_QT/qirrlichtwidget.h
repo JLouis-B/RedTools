@@ -60,6 +60,17 @@ struct LOD_data
     QVector<std::set<io::path> > _additionalTextures;
 };
 
+struct IrrlichtExporterInfos
+{
+    IrrlichtExporterInfos(scene::EMESH_WRITER_TYPE irrExporter = scene::EMWT_OBJ, s32 irrFlags = scene::EMWF_NONE)
+        : _irrExporter(irrExporter)
+        , _irrFlags(irrFlags)
+    {}
+
+    scene::EMESH_WRITER_TYPE _irrExporter;
+    s32 _irrFlags;
+};
+
 enum ExportType
 {
     Exporter_Irrlicht,
@@ -69,14 +80,15 @@ enum ExportType
 
 struct ExporterInfos
 {
-    ExportType _exporter;
+    ExportType _exporterType;
+    QString _exporterName;
     QString _extension;
 
     // Assimp specifics
-    QString _assimpExporter;
+    QString _assimpExporterId;
 
     // Irrlicht specifics
-    int _irrlichtFlags;
+    IrrlichtExporterInfos _irrlichtInfos;
 };
 
 class QIrrlichtWidget : public QWidget

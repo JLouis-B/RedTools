@@ -242,20 +242,32 @@ void GUI_MainWindow::initIrrlicht()
 
 void GUI_MainWindow::fillComboBoxFormats()
 {
-    QVector<QString> noAssimpExportExtensions;
-    for (int i = 0; i < _ui->comboBox_format->count(); ++i)
+    _exporters.clear();
+
+    _exporters.push_back({ Exporter_Irrlicht, ".obj (Wavefront OBJ)"                , ".obj"     , ""    , IrrlichtExporterInfos(scene::EMWT_OBJ       , scene::EMWF_NONE)});
+    _exporters.push_back({ Exporter_Irrlicht, ".dae (Collada)"                      , ".dae"     , ""    , IrrlichtExporterInfos(scene::EMWT_COLLADA   , scene::EMWF_NONE)});
+    _exporters.push_back({ Exporter_Irrlicht, ".ply (Polygon File Format (ascii))"  , ".ply"     , ""    , IrrlichtExporterInfos(scene::EMWT_PLY       , scene::EMWF_NONE)});
+    _exporters.push_back({ Exporter_Irrlicht, ".ply (Polygon File Format (binary))" , ".ply"     , ""    , IrrlichtExporterInfos(scene::EMWT_PLY       , scene::EMWF_WRITE_BINARY)});
+    _exporters.push_back({ Exporter_Irrlicht, ".stl (STereoLithography (ascii))"    , ".stl"     , ""    , IrrlichtExporterInfos(scene::EMWT_STL       , scene::EMWF_NONE)});
+    _exporters.push_back({ Exporter_Irrlicht, ".stl (STereoLithography (binary))"   , ".stl"     , ""    , IrrlichtExporterInfos(scene::EMWT_STL       , scene::EMWF_WRITE_BINARY)});
+    _exporters.push_back({ Exporter_Irrlicht, ".irrmesh (Irrlicht mesh)"            , ".irrmesh" , ""    , IrrlichtExporterInfos(scene::EMWT_IRR_MESH  , scene::EMWF_NONE)});
+    _exporters.push_back({ Exporter_Irrlicht, ".b3d (Blitz3D)"                      , ".b3d"     , ""    , IrrlichtExporterInfos(scene::EMWT_B3D       , scene::EMWF_NONE)});
+    _exporters.push_back({ Exporter_Redkit  , ".re (Red Engine)"                    , ".re"      , ""    , IrrlichtExporterInfos(scene::EMWT_OBJ       , scene::EMWF_NONE)});
+
+
+    for (int i = 0; i < _exporters.size(); ++i)
     {
-        const QString extension = _ui->comboBox_format->itemText(i).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' '));
-        noAssimpExportExtensions.push_back(extension);
-
-        s32 flags = scene::EMWF_NONE;
-        if (_ui->comboBox_format->itemText(i).contains("binary"))
-            flags = scene::EMWF_WRITE_COMPRESSED | scene::EMWF_WRITE_BINARY; // currently stl exporter use EMWF_WRITE_COMPRESSED and ply exporter use EMWF_WRITE_BINARY
-
-        _noAssimpExportFlags.push_back(flags);
+        _ui->comboBox_format->addItem(_exporters[i]._exporterName);
     }
 
-    _assimpExportersId.clear();
+
+    QVector<QString> noAssimpExportExtensions;
+    for (int i = 0; i < _exporters.size(); ++i)
+    {
+        const QString extension = _exporters[i]._extension;
+        noAssimpExportExtensions.push_back(extension);
+    }
+
     core::array<ExportFormat> formats = IrrAssimp::getExportFormats();
     for (u32 i = 0; i < formats.size(); ++i)
     {
@@ -265,7 +277,7 @@ void GUI_MainWindow::fillComboBoxFormats()
         {
             const QString exportString = extension + " by Assimp library (" + format.Description.c_str() + ")";
             _ui->comboBox_format->addItem(exportString.toStdString().c_str());
-            _assimpExportersId.push_back(format.Id.c_str());
+            _exporters.push_back({ Exporter_Assimp, exportString, extension, format.Id.c_str(), IrrlichtExporterInfos()});
         }
     }
 }
@@ -276,7 +288,7 @@ void GUI_MainWindow::selectMeshFile()
     if (_firstSelection)
         param = _ui->lineEdit_folder->text();
 
-    QString file = QFileDialog::getOpenFileName(this, Translator::get("dialogue_file"), param, Settings::_formats);
+    QString file = QFileDialog::getOpenFileName(this, Translator::get("dialogue_file"), param);//, Settings::_formats);
 
     if (file != "")
     {
@@ -317,23 +329,7 @@ void GUI_MainWindow::convert()
     if (dir.exists())
     {
         int currentIndex = _ui->comboBox_format->currentIndex();
-        int assimpExporterIndex = currentIndex - _noAssimpExportFlags.size();
-
-        ExporterInfos infos;
-        infos._extension = _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' '));
-        if (infos._extension == ".re")
-            infos._exporter = Exporter_Redkit;
-        else if (assimpExporterIndex >= 0)
-        {
-            infos._exporter = Exporter_Assimp;
-            infos._assimpExporter = _assimpExportersId[assimpExporterIndex];
-        }
-        else
-        {
-            infos._exporter = Exporter_Irrlicht;
-            infos._irrlichtFlags = _noAssimpExportFlags[_ui->comboBox_format->currentIndex()];
-        }
-
+        const ExporterInfos infos = _exporters[currentIndex];
         _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
     }
     else

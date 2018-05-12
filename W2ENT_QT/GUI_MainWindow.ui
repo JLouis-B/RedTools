@@ -84,53 +84,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="comboBox_format">
-          <item>
-           <property name="text">
-            <string>.obj (Wavefront OBJ)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.dae (Collada)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.ply (Polygon File Format (ascii))</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.ply (Polygon File Format (binary))</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.stl (STereoLithography (ascii))</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.stl (STereoLithography (binary))</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.irrmesh (Irrlicht mesh)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.b3d (Blitz3D)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.re (Red Engine)</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="comboBox_format"/>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_format">

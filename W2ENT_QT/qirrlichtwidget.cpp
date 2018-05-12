@@ -573,7 +573,7 @@ void scaleSkeleton(scene::IMesh* mesh, float factor)
 
 void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage)
 {
-    if (!_currentLodData->_node && exporter._exporter != Exporter_Redkit)
+    if (!_currentLodData->_node && exporter._exporterType != Exporter_Redkit)
         return;
 
 
@@ -593,7 +593,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
         return;
     }
 
-    if (exporter._exporter != Exporter_Redkit)
+    if (exporter._exporterType != Exporter_Redkit)
     {
         copyTextures(_currentLodData->_node->getMesh(), exportFolder);
         if(Settings::_nm)
@@ -659,33 +659,18 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
         scaleSkeleton(_collisionsLodData._node->getMesh(), (dim/orDim).X);
     }
 
-    if (exporter._exporter == Exporter_Irrlicht && mesh)
+    if (exporter._exporterType == Exporter_Irrlicht && mesh)
     {
-        QString extension = exporter._extension;
-        scene::EMESH_WRITER_TYPE type = EMWT_OBJ;
-        if (extension == ".irrmesh")
-            type = scene::EMWT_IRR_MESH;
-        else if (extension == ".dae")
-            type = scene::EMWT_COLLADA;
-        else if (extension == ".stl")
-            type = scene::EMWT_STL;
-        else if (extension == ".obj")
-            type = scene::EMWT_OBJ;
-        else if (extension == ".ply")
-            type = scene::EMWT_PLY;
-        else if (extension == ".b3d")
-            type = scene::EMWT_B3D;
-
         scene::IMeshWriter* mw = nullptr;
-        mw = _device->getSceneManager()->createMeshWriter(type);
+        mw = _device->getSceneManager()->createMeshWriter(exporter._irrlichtInfos._irrExporter);
 
         if (mw)
         {
-            mw->writeMesh(file, mesh, exporter._irrlichtFlags);
+            mw->writeMesh(file, mesh, exporter._irrlichtInfos._irrFlags);
             mw->drop();
         }
     }
-    else if (exporter._exporter == Exporter_Redkit)
+    else if (exporter._exporterType == Exporter_Redkit)
     {
         _reWriter->clearLODS();
         if (_lod1Data._node)
@@ -702,7 +687,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
     {
 #ifdef COMPILE_WITH_ASSIMP
         IrrAssimp assimp(_device->getSceneManager());
-        assimp.exportMesh(mesh, exporter._assimpExporter.toStdString().c_str(), exportPath);
+        assimp.exportMesh(mesh, exporter._assimpExporterId.toStdString().c_str(), exportPath);
 #else
         QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");
 #endif

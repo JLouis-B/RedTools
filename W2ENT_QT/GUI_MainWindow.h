@@ -72,7 +72,7 @@ public slots :
 private:
     void updateWindowTitle();
     void addToUILog(QString log);
-    void fillComboBoxFormats();
+    void registerExporters();
 
     Ui::GUI_MainWindow *_ui;
     QIrrlichtWidget *_irrWidget;

@@ -102,8 +102,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     // Logs
     _ui->textEdit_log->setReadOnly (true);
 
-    // add assimp exporters to the list
-    fillComboBoxFormats();
+    registerExporters();
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -240,7 +239,7 @@ void GUI_MainWindow::initIrrlicht()
     addToUILog(QString("The Witcher 3D models converter ") + Settings::getAppVersion() + "\n");
 }
 
-void GUI_MainWindow::fillComboBoxFormats()
+void GUI_MainWindow::registerExporters()
 {
     _ui->comboBox_format->clear();
     _exporters.clear();

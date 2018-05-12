@@ -99,11 +99,11 @@ class QIrrlichtWidget : public QWidget
         explicit QIrrlichtWidget (QWidget *parent = 0);
         ~QIrrlichtWidget ();
 
-        bool setModel(QString filename, core::stringc &feedbackMessage);
+        bool setMesh(QString filename, core::stringc &feedbackMessage);
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
         void init ();
-        void writeFile (QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
+        void exportMesh(QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
         void changeWireframe(bool state);
         void changeRigging(bool state);
 

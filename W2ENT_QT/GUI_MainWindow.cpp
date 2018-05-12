@@ -132,7 +132,7 @@ void GUI_MainWindow::addMesh()
         core::stringc feedbackMessage;
 
         if (_irrWidget->isEmpty(_currentLOD))
-            _irrWidget->setModel(file, feedbackMessage);
+            _irrWidget->setMesh(file, feedbackMessage);
         else
             _irrWidget->addMesh(file, feedbackMessage);
 
@@ -242,6 +242,7 @@ void GUI_MainWindow::initIrrlicht()
 
 void GUI_MainWindow::fillComboBoxFormats()
 {
+    _ui->comboBox_format->clear();
     _exporters.clear();
 
     _exporters.push_back({ Exporter_Irrlicht, ".obj (Wavefront OBJ)"                , ".obj"     , ""    , IrrlichtExporterInfos(scene::EMWT_OBJ       , scene::EMWF_NONE)});
@@ -330,7 +331,7 @@ void GUI_MainWindow::convert()
     {
         int currentIndex = _ui->comboBox_format->currentIndex();
         const ExporterInfos infos = _exporters[currentIndex];
-        _irrWidget->writeFile(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
+        _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
     }
     else
     {
@@ -592,7 +593,7 @@ void GUI_MainWindow::loadMesh(QString path)
     QCoreApplication::processEvents();
 
     core::stringc feedbackMessage = "";
-    bool success = _irrWidget->setModel(path, feedbackMessage);
+    bool success = _irrWidget->setMesh(path, feedbackMessage);
     if (success)
     {
         _irrWidget->changeWireframe(_ui->action_display_Wireframe->isChecked());

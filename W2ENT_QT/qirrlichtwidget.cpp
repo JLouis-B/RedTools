@@ -257,7 +257,7 @@ bool QIrrlichtWidget::addMesh(QString filename, stringc &feedbackMessage)
     return true;
 }
 
-bool QIrrlichtWidget::setModel(QString filename, stringc &feedbackMessage)
+bool QIrrlichtWidget::setMesh(QString filename, stringc &feedbackMessage)
 {
     _inLoading = true;
 
@@ -571,10 +571,13 @@ void scaleSkeleton(scene::IMesh* mesh, float factor)
     }
 }
 
-void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage)
+void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage)
 {
-    if (!_currentLodData->_node && exporter._exporterType != Exporter_Redkit)
+    if (exporter._exporterType != Exporter_Redkit && (!_currentLodData->_node || !_currentLodData->_node->getMesh()))
+    {
+        QMessageBox::critical(this, "Export error", "QIrrlichtWidget::writeFile : node or mesh in null");
         return;
+    }
 
 
     if (Settings::_copyTextures)
@@ -631,10 +634,6 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
 
     //std::cout << filename.toStdString().c_str() << std::endl;
 
-    scene::IMesh* mesh = nullptr;
-    if (_currentLodData->_node)
-        mesh = _currentLodData->_node->getMesh();
-
     core::vector3df orDim = GUI_Resize::_originalDimensions;
     core::vector3df dim = GUI_Resize::_dimensions;
 
@@ -659,14 +658,14 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
         scaleSkeleton(_collisionsLodData._node->getMesh(), (dim/orDim).X);
     }
 
-    if (exporter._exporterType == Exporter_Irrlicht && mesh)
+    if (exporter._exporterType == Exporter_Irrlicht)
     {
         scene::IMeshWriter* mw = nullptr;
         mw = _device->getSceneManager()->createMeshWriter(exporter._irrlichtInfos._irrExporter);
 
         if (mw)
         {
-            mw->writeMesh(file, mesh, exporter._irrlichtInfos._irrFlags);
+            mw->writeMesh(file, _currentLodData->_node->getMesh(), exporter._irrlichtInfos._irrFlags);
             mw->drop();
         }
     }
@@ -687,7 +686,7 @@ void QIrrlichtWidget::writeFile (QString exportFolder, QString filename, Exporte
     {
 #ifdef COMPILE_WITH_ASSIMP
         IrrAssimp assimp(_device->getSceneManager());
-        assimp.exportMesh(mesh, exporter._assimpExporterId.toStdString().c_str(), exportPath);
+        assimp.exportMesh(_currentLodData->_node->getMesh(), exporter._assimpExporterId.toStdString().c_str(), exportPath);
 #else
         QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");
 #endif

@@ -114,7 +114,7 @@ void GUI_MainWindow::addToUILog(QString log)
 
 void GUI_MainWindow::addMesh()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file to load", Settings::_pack0, Settings::_formats);
+    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_pack0, Settings::_formats);
 
     for (int i = 0; i < files.size(); ++i)
     {
@@ -253,13 +253,6 @@ void GUI_MainWindow::registerExporters()
     _exporters.push_back({ Exporter_Irrlicht, ".b3d (Blitz3D)"                      , ".b3d"     , ""    , IrrlichtExporterInfos(scene::EMWT_B3D       , scene::EMWF_NONE)});
     _exporters.push_back({ Exporter_Redkit  , ".re (Red Engine)"                    , ".re"      , ""    , IrrlichtExporterInfos(scene::EMWT_OBJ       , scene::EMWF_NONE)});
 
-
-    for (int i = 0; i < _exporters.size(); ++i)
-    {
-        _ui->comboBox_exportFormat->addItem(_exporters[i]._exporterName);
-    }
-
-
     QVector<QString> noAssimpExportExtensions;
     for (int i = 0; i < _exporters.size(); ++i)
     {
@@ -275,9 +268,13 @@ void GUI_MainWindow::registerExporters()
         if (noAssimpExportExtensions.indexOf(extension) == -1)
         {
             const QString exportString = extension + " by Assimp library (" + format.Description.c_str() + ")";
-            _ui->comboBox_exportFormat->addItem(exportString.toStdString().c_str());
             _exporters.push_back({ Exporter_Assimp, exportString, extension, format.Id.c_str(), IrrlichtExporterInfos()});
         }
+    }
+
+    for (int i = 0; i < _exporters.size(); ++i)
+    {
+        _ui->comboBox_exportFormat->addItem(_exporters[i]._exporterName);
     }
 }
 

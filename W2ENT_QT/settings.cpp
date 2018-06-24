@@ -28,7 +28,7 @@ QString Settings::_TW3TexPath = "";
 bool Settings::_TW3LoadSkel = false;
 bool Settings::_TW3LoadBestLOD = false;
 
-QString Settings::_formats = "The Witcher 2 3D models (*.w2ent , *.w2mesh)";
+QString Settings::_formats = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*);; The Witcher 2 3D models (*.w2ent , *.w2mesh);; The Witcher 1 3D models (*.mdb)";
 
 bool Settings::_firstUse = true;
 
@@ -107,10 +107,6 @@ void Settings::loadFromXML(QString filename)
             Settings::_copyTextures = node.firstChildElement("move_textures").text().toInt();
             Settings::_nm = node.firstChildElement("move_normals_map").text().toInt();
             Settings::_sm = node.firstChildElement("move_specular_map").text().toInt();
-        }
-        else if(node.nodeName() == "formats_in")
-        {
-            _formats = node.toElement().text();
         }
         else if(node.nodeName() == "unit")
         {
@@ -222,11 +218,6 @@ void Settings::saveToXML(QString filename)
     QDomElement export_move_sm_elem = dom.createElement("move_specular_map");
     export_elem.appendChild(export_move_sm_elem);
     export_move_sm_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_sm)));
-
-
-    QDomElement formats_elem = dom.createElement("formats_in");
-    config_elem.appendChild(formats_elem);
-    formats_elem.appendChild(dom.createTextNode(Settings::_formats));
 
     QDomElement unit_elem = dom.createElement("unit");
     QString unit;

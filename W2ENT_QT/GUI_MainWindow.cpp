@@ -114,7 +114,7 @@ void GUI_MainWindow::addToUILog(QString log)
 
 void GUI_MainWindow::addMesh()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, "Select the meshes to load", Settings::_pack0, Settings::_formats);
+    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file to load", Settings::_pack0, Settings::_formats);
 
     for (int i = 0; i < files.size(); ++i)
     {
@@ -283,30 +283,25 @@ void GUI_MainWindow::registerExporters()
 
 void GUI_MainWindow::selectMeshFile()
 {
-    QString param = _ui->lineEdit_ImportedFile->text();
+    QString defaultFolder = _ui->lineEdit_ImportedFile->text();
     if (_firstSelection)
-        param = _ui->lineEdit_folder->text();
+        defaultFolder = _ui->lineEdit_folder->text();
 
-    QString file = QFileDialog::getOpenFileName(this, Translator::get("dialogue_file"), param);//, Settings::_formats);
-
+    QString file = QFileDialog::getOpenFileName(this, "Select the file to load", defaultFolder, Settings::_formats);
     if (file != "")
-    {
         loadMesh(file);
-    }
 }
 
 void GUI_MainWindow::selectRigFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to use", Settings::_pack0, "The Witcher 3 rig (*.w2rig , *.w3fac)");
-
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to load", Settings::_pack0, "The Witcher 3 rig (*.w2rig , *.w3fac)");
     if (file != "")
         loadRig(file);
 }
 
 void GUI_MainWindow::selectAnimationsFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to use", Settings::_pack0, "The Witcher 3 animations (*.w2anims)");
-
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to load", Settings::_pack0, "The Witcher 3 animations (*.w2anims)");
     if (file != "")
         loadAnimations(file);
 }

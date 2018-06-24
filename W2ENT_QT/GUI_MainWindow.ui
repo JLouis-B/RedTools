@@ -84,7 +84,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="comboBox_format"/>
+         <widget class="QComboBox" name="comboBox_exportFormat"/>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_format">

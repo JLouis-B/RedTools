@@ -11,6 +11,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 {
     // setup the UI
     _ui->setupUi(this);
+    registerExporters();
 
     _currentLOD = LOD_0;
 
@@ -94,15 +95,13 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->button_convert, SIGNAL(clicked()), this, SLOT(convert()));
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectFolder()));
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
-    QObject::connect(_ui->comboBox_format, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
+    QObject::connect(_ui->comboBox_exportFormat, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
 
     // Logs
     _ui->textEdit_log->setReadOnly (true);
-
-    registerExporters();
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -241,7 +240,7 @@ void GUI_MainWindow::initIrrlicht()
 
 void GUI_MainWindow::registerExporters()
 {
-    _ui->comboBox_format->clear();
+    _ui->comboBox_exportFormat->clear();
     _exporters.clear();
 
     _exporters.push_back({ Exporter_Irrlicht, ".obj (Wavefront OBJ)"                , ".obj"     , ""    , IrrlichtExporterInfos(scene::EMWT_OBJ       , scene::EMWF_NONE)});
@@ -257,7 +256,7 @@ void GUI_MainWindow::registerExporters()
 
     for (int i = 0; i < _exporters.size(); ++i)
     {
-        _ui->comboBox_format->addItem(_exporters[i]._exporterName);
+        _ui->comboBox_exportFormat->addItem(_exporters[i]._exporterName);
     }
 
 
@@ -276,7 +275,7 @@ void GUI_MainWindow::registerExporters()
         if (noAssimpExportExtensions.indexOf(extension) == -1)
         {
             const QString exportString = extension + " by Assimp library (" + format.Description.c_str() + ")";
-            _ui->comboBox_format->addItem(exportString.toStdString().c_str());
+            _ui->comboBox_exportFormat->addItem(exportString.toStdString().c_str());
             _exporters.push_back({ Exporter_Assimp, exportString, extension, format.Id.c_str(), IrrlichtExporterInfos()});
         }
     }
@@ -319,7 +318,7 @@ void GUI_MainWindow::convert()
     if (_ui->lineEdit_exportedFilename->text() == "")
         addToUILog(Translator::get("log_warning_empty") + "\n");
 
-    addToUILog(Translator::get("log_writingFile") + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) + "'... ");
+    addToUILog(Translator::get("log_writingFile") + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_exportFormat->itemText(_ui->comboBox_exportFormat->currentIndex()).left(_ui->comboBox_exportFormat->itemText(_ui->comboBox_exportFormat->currentIndex()).indexOf(' ')) + "'... ");
     QCoreApplication::processEvents();
 
     core::stringc feedback = "";
@@ -328,7 +327,7 @@ void GUI_MainWindow::convert()
     QDir dir(Settings::getExportFolder());
     if (dir.exists())
     {
-        int currentIndex = _ui->comboBox_format->currentIndex();
+        int currentIndex = _ui->comboBox_exportFormat->currentIndex();
         const ExporterInfos infos = _exporters[currentIndex];
         _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
     }
@@ -514,7 +513,15 @@ void GUI_MainWindow::clearAllLODs()
 
 void GUI_MainWindow::checkConvertButton()
 {
-    if (_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).left(_ui->comboBox_format->itemText(_ui->comboBox_format->currentIndex()).indexOf(' ')) == ".re")
+    const int currentIndex = _ui->comboBox_exportFormat->currentIndex();
+    if (currentIndex == -1) // not supposed to happen
+    {
+        _ui->button_convert->setEnabled(false);
+        return;
+    }
+
+    const ExporterInfos infos = _exporters[currentIndex];
+    if (infos._extension == ".re")
     {
         _ui->button_convert->setEnabled(!_irrWidget->isEmpty(LOD_0) || !_irrWidget->isEmpty(LOD_1) || !_irrWidget->isEmpty(LOD_2) || !_irrWidget->isEmpty(Collision));
     }

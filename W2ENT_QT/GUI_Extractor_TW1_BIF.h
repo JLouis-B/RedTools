@@ -4,7 +4,7 @@
 #include "Extractor_TW1_BIF.h"
 #include <QDialog>
 #include <QFileDialog>
-#include <QtConcurrent>
+#include <QThread>
 
 namespace Ui {
 class GUI_Extractor_TW1_BIF;

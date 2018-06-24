@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml concurrent
+QT       += core gui xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -109,8 +109,8 @@ FORMS    += \
     GUI_Extractor_TW3_CACHE.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5605-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-5605-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\code\libassimp.dll.a
@@ -122,8 +122,8 @@ LIBS += C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\native\snappy32.
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\include" \
 
 # LZ4
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_1_win32\dll\liblz4.lib
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_1_win32\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_2_win32\dll\liblz4.lib
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_2_win32\include" \
 
 DISTFILES += \
     app.rc

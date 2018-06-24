@@ -3,8 +3,8 @@
 
 #include <QDialog>
 #include <QFileDialog>
-#include <QtConcurrent>
 #include <QQueue>
+#include <QThread>
 
 #include "Extractor_TW3_BUNDLE.h"
 

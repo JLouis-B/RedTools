@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QFileDialog>
-#include <QtConcurrent>
+#include <QThread>
 
 #include "Extractor_TW2_DZIP.h"
 

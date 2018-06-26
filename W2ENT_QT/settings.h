@@ -63,6 +63,8 @@ public:
 
     static bool _firstUse;
 
+    static QString _exporter;
+
     static QString getAppVersion();
     static QString getExportFolder();
 

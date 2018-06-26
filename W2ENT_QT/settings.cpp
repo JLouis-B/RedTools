@@ -34,6 +34,8 @@ bool Settings::_firstUse = true;
 
 QString Settings::_appVersion = "2.9";
 
+QString Settings::_exporter = "";
+
 QString Settings::getExportFolder()
 {
     if (Settings::_mode == Export_Pack0)
@@ -73,29 +75,31 @@ void Settings::loadFromXML(QString filename)
     QDomNode node = dom_element.firstChildElement();
     while (!node.isNull())
     {
-        if(node.nodeName() == "language")
+        const QString nodeName = node.nodeName();
+
+        if(nodeName == "language")
             Settings::_language = node.toElement().text();
-        else if(node.nodeName() == "pack0")
+        else if(nodeName == "pack0")
         {
             Settings::_pack0 = node.toElement().text();
         }
-        else if(node.nodeName() == "camera")
+        else if(nodeName == "camera")
         {
             Settings::_camSpeed = node.firstChildElement("speed").text().toDouble();
             Settings::_camRotSpeed = node.firstChildElement("rotation_speed").text().toDouble();
         }
-        else if(node.nodeName() == "background_color")
+        else if(nodeName == "background_color")
         {
             Settings::_r = node.firstChildElement("r").text().toInt();
             Settings::_g = node.firstChildElement("g").text().toInt();
             Settings::_b = node.firstChildElement("b").text().toInt();
         }
-        else if(node.nodeName() == "textures_conversion")
+        else if(nodeName == "textures_conversion")
         {
             Settings::_convertTextures = node.firstChildElement("enabled").text().toInt();
             Settings::_texFormat = node.firstChildElement("format").text();
         }
-        else if(node.nodeName() == "export")
+        else if(nodeName == "export")
         {
             if (node.firstChildElement("type").text() == "pack0")
                 Settings::_mode = Export_Pack0;
@@ -108,7 +112,7 @@ void Settings::loadFromXML(QString filename)
             Settings::_nm = node.firstChildElement("move_normals_map").text().toInt();
             Settings::_sm = node.firstChildElement("move_specular_map").text().toInt();
         }
-        else if(node.nodeName() == "unit")
+        else if(nodeName == "unit")
         {
             QString unit = node.toElement().text();
             if (unit == "m")
@@ -116,19 +120,23 @@ void Settings::loadFromXML(QString filename)
             else if (unit == "cm")
                 GUI_Resize::_unit = Unit_cm;
         }
-        else if(node.nodeName() == "debug")
+        else if(nodeName == "debug")
         {
             Settings::_debugLog = node.toElement().text().toInt();
         }
-        else if(node.nodeName() == "TW3")
+        else if(nodeName == "TW3")
         {
             Settings::_TW3TexPath = node.firstChildElement("TW3_textures").text();
             Settings::_TW3LoadSkel = node.firstChildElement("TW3_loadSkel").text().toInt();
             Settings::_TW3LoadBestLOD = node.firstChildElement("TW3_loadBestLOD").text().toInt();
         }
-        else if (node.nodeName() == "first_use")
+        else if (nodeName == "first_use")
         {
             Settings::_firstUse = node.toElement().text().toInt();
+        }
+        else if (nodeName == "exporter")
+        {
+            Settings::_exporter = node.toElement().text();
         }
 
         node = node.nextSibling();
@@ -218,6 +226,10 @@ void Settings::saveToXML(QString filename)
     QDomElement export_move_sm_elem = dom.createElement("move_specular_map");
     export_elem.appendChild(export_move_sm_elem);
     export_move_sm_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_sm)));
+
+    QDomElement exporter_elem = dom.createElement("exporter");
+    config_elem.appendChild(exporter_elem);
+    exporter_elem.appendChild(dom.createTextNode(Settings::_exporter));
 
     QDomElement unit_elem = dom.createElement("unit");
     QString unit;

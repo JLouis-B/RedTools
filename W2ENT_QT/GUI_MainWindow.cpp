@@ -11,15 +11,22 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 {
     // setup the UI
     _ui->setupUi(this);
-    registerExporters();
+    _ui->textEdit_log->setReadOnly (true);
 
-    _currentLOD = LOD_0;
-
-    Settings::_pack0 = _ui->lineEdit_folder->text();
+    // Load setting.xml
     Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");
     _ui->lineEdit_folder->setText(Settings::_pack0);
 
+    // Register and set current exporter
+    registerExporters();
+    if (!Settings::_exporter.isEmpty())
+    {
+        _ui->comboBox_exportFormat->setCurrentText(Settings::_exporter);
+    }
+
+    // Other settings
     _firstSelection = true;
+    _currentLOD = LOD_0;
 
     // Search the translations files
     QDir dir(QCoreApplication::applicationDirPath() + "/langs/");
@@ -38,13 +45,12 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
         _ui->menuLanguages->addAction(menuitem);
     }
 
-    // The parent widget if the translator has to popup an error message box
+    // Translator
     Translator::setParentWidget(this);
     Translator::loadCurrentLanguage();
-
-    // Translate the UI
     translate();
 
+    // First use message
     if (Settings::_firstUse)
     {
         QMessageBox msgBox(QMessageBox::Information, "First usage", "This is your first usage of the software. The first step to extract The Witcher assets is to configure the software by giving the path to the game folder, the textures, checking the export options...<br/> You can find all the informations about this on the <a href=\"http://jlouisb.users.sourceforge.net/\">website</a> of the software, and it's highly recommended to read them before to start to use the software.");
@@ -99,9 +105,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
-
-    // Logs
-    _ui->textEdit_log->setReadOnly (true);
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -217,6 +220,9 @@ void GUI_MainWindow::cleanTexturesPath()
 
 GUI_MainWindow::~GUI_MainWindow()
 {
+    if (_ui->comboBox_exportFormat->currentIndex() != -1)
+        Settings::_exporter = _ui->comboBox_exportFormat->currentText();
+
     Settings::saveToXML(QCoreApplication::applicationDirPath() + "/config.xml");
 
     // Delete UI

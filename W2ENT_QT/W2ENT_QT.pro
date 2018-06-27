@@ -51,7 +51,8 @@ SOURCES += main.cpp\
     DOBOZ/Dictionary.cpp \
     GUI_Extractor_TW3_CACHE.cpp \
     Extractor_TW3_CACHE.cpp \
-    Utils_Qt_Irr.cpp
+    Utils_Qt_Irr.cpp \
+    GUI_About.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -93,7 +94,8 @@ HEADERS  += \
     DOBOZ/Decompressor.h \
     DOBOZ/Dictionary.h \
     GUI_Extractor_TW3_CACHE.h \
-    Extractor_TW3_CACHE.h
+    Extractor_TW3_CACHE.h \
+    GUI_About.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \
@@ -106,7 +108,8 @@ FORMS    += \
     GUI_Resize.ui \
     GUI_CleanTexturesPath.ui \
     GUI_Extractor_TW3_BUNDLE.ui \
-    GUI_Extractor_TW3_CACHE.ui
+    GUI_Extractor_TW3_CACHE.ui \
+    GUI_About.ui
 
 # Change the paths here :
 LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\lib\Win32-gcc\libIrrlicht.a"

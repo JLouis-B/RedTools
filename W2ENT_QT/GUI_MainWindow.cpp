@@ -93,7 +93,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
     QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
 
-    QObject::connect(_ui->action_help_Webpage, SIGNAL(triggered()), this, SLOT(openWebpage()));
+    QObject::connect(_ui->action_help_About, SIGNAL(triggered()), this, SLOT(openAbout()));
 
 
     // UI
@@ -375,7 +375,6 @@ void GUI_MainWindow::translate()
     _ui->action_display_Wireframe->setText(Translator::get("menu_display_wireframe"));
 
     _ui->menuHelp->setTitle(Translator::get("menu_help"));
-    _ui->action_help_Webpage->setText(Translator::get("menu_help_webpage"));
 
 
     if (_ui->action_redkit_LOD0->text() != "LOD0")
@@ -406,10 +405,10 @@ void GUI_MainWindow::changeRigging(bool enable)
     _irrWidget->changeRigging(enable);
 }
 
-void GUI_MainWindow::openWebpage()
+void GUI_MainWindow::openAbout()
 {
-    QString link = "http://jlouisb.users.sourceforge.net/";
-    QDesktopServices::openUrl(QUrl(link));
+    GUI_About* about = new GUI_About(this);
+    about->show();
 }
 
 void GUI_MainWindow::options()

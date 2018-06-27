@@ -11,6 +11,7 @@
 #include "GUI_Extractor_TW3_CACHE.h"
 #include "GUI_Extractor_TW3_BUNDLE.h"
 #include "GUI_MaterialsExplorer.h"
+#include "GUI_About.h"
 
 #include <iostream>
 #include <QDesktopServices>
@@ -37,7 +38,7 @@ public slots :
     void selectFolder();
     void changeWireframe(bool enable);
     void changeRigging(bool enable);
-    void openWebpage();
+    void openAbout();
     void options();
     void search();
     void matExplorer();

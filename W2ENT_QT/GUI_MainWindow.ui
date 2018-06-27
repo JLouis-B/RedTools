@@ -181,7 +181,7 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="action_help_Webpage"/>
+    <addaction name="action_help_About"/>
    </widget>
    <widget class="QMenu" name="menu_RE_tools">
     <property name="enabled">
@@ -265,9 +265,9 @@
     <string>Wireframe</string>
    </property>
   </action>
-  <action name="action_help_Webpage">
+  <action name="action_help_About">
    <property name="text">
-    <string>Webpage</string>
+    <string>About</string>
    </property>
   </action>
   <action name="action_main_Search">

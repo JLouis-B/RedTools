@@ -745,7 +745,7 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadIMaterialProperty(io::IReadFile* file)
         if (propId >= Strings.size())
             break;
 
-        //std::cout << "The property is " << Strings[propId].c_str() << " of the type " << Strings[propTypeId].c_str() << std::endl;
+        log->addAndFlush(formatString("The property is %s of the type %s", Strings[propId].c_str(), Strings[propTypeId].c_str()));
 
         const s32 textureLayer = getTextureLayerFromTextureType(Strings[propId]);
         if (textureLayer != -1)
@@ -755,7 +755,7 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadIMaterialProperty(io::IReadFile* file)
 
             if (texId < Files.size())
             {
-                video::ITexture* texture = 0;
+                video::ITexture* texture = nullptr;
                 texture = getTexture(Files[texId]);
 
                 if (texture)
@@ -769,13 +769,13 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadIMaterialProperty(io::IReadFile* file)
                 else
                 {
                     Feedback += "Some textures havn't been found, have you correctly set your textures directory ?\n";
-                    log->addLineAndFlush(formatString("Error : the file %s can't be opened.", Files[texId]));
+                    log->addLineAndFlush(formatString("Error : the file %s can't be opened.", Files[texId].c_str()));
                 }
             }
         }
 
         file->seek(back + propSize);
-        log->addLineAndFlush("OK");
+        log->addLineAndFlush("...OK");
     }
 
     log->addLineAndFlush("IMaterial OK");

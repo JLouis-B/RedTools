@@ -19,8 +19,28 @@ bool QIrrlichtWidget::isLoadableByIrrlicht(io::path filename)
 
 void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
 {
+    // materials with normal maps are not handled
+    for (u32 i = 0; i < node->getMaterialCount(); ++i)
+    {
+        video::SMaterial& material = node->getMaterial(i);
+        if (    material.MaterialType == EMT_NORMAL_MAP_SOLID
+            ||  material.MaterialType == EMT_PARALLAX_MAP_SOLID)
+        {
+            material.MaterialType = EMT_SOLID;
+        }
+        else if (material.MaterialType == EMT_NORMAL_MAP_TRANSPARENT_ADD_COLOR
+            ||   material.MaterialType == EMT_PARALLAX_MAP_TRANSPARENT_ADD_COLOR)
+        {
+            material.MaterialType = EMT_TRANSPARENT_ADD_COLOR;
+        }
+        else if (material.MaterialType == EMT_NORMAL_MAP_TRANSPARENT_VERTEX_ALPHA
+            ||   material.MaterialType == EMT_PARALLAX_MAP_TRANSPARENT_VERTEX_ALPHA)
+        {
+            material.MaterialType = EMT_TRANSPARENT_VERTEX_ALPHA;
+        }
+    }
+
     node->setMaterialFlag(EMF_LIGHTING, false);
-    //node->setMaterialType(EMT_SOLID);
     node->setMaterialFlag(EMF_BACK_FACE_CULLING, false);
 
     for (u32 i = 1; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)

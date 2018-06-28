@@ -760,7 +760,7 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadIMaterialProperty(io::IReadFile* file)
 
                 if (texture)
                 {
-                    log->addAndFlush(formatString(" %s ", Strings[propId].c_str()));
+                    log->addAndFlush(formatString("load %s ", Files[texId].c_str()));
                     mat.setTexture(textureLayer, texture);
 
                     if (textureLayer == 1)  // normal map
@@ -1718,7 +1718,7 @@ video::ITexture* IO_MeshLoader_W3ENT::getTexture(io::path filename)
     else
         return SceneManager->getVideoDriver()->getTexture(filename);
 
-    video::ITexture* texture = 0;
+    video::ITexture* texture = nullptr;
 
     // Check for textures extracted with the LUA tools
     filename = baseFilename + core::stringc(".dds");

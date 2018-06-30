@@ -22,11 +22,6 @@ set foldername-plugin=%foldername%/plugins
 mkdir "%foldername-plugin%"
 copy "%qt-plugin-dir%\platforms\qwindows.dll" "%foldername-plugin%"
 
-::copy tools
-set foldername-tools=%foldername%/tools
-mkdir "%foldername-tools%"
-xcopy "%tools-dir%" "%foldername-tools%"
-
 :: copy dll and exe
 cd "%release-dir%"
 copy *.dll "%~dp0/%foldername%"
@@ -35,9 +30,7 @@ cd %~dp0
 
 :: copy data folder
 cd "%data-dir%"
-copy * "%~dp0/%foldername%"
-mkdir "%~dp0%foldername%/langs"
-xcopy langs "%~dp0%foldername%/langs"
+xcopy /s * "%~dp0%foldername%"
 cd %~dp0
 
 set command=7z.exe a %filename% %foldername%

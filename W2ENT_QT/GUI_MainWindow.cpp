@@ -314,29 +314,32 @@ void GUI_MainWindow::convert()
 {
     // Warning if no filename specified
     if (_ui->lineEdit_exportedFilename->text() == "")
-        addToUILog(Translator::get("log_warning_empty") + "\n");
+        addToUILog("Warning : The name of the exported file is empty\n");
 
-    addToUILog(Translator::get("log_writingFile") + " '" + _ui->lineEdit_exportedFilename->text()+ _ui->comboBox_exportFormat->itemText(_ui->comboBox_exportFormat->currentIndex()).left(_ui->comboBox_exportFormat->itemText(_ui->comboBox_exportFormat->currentIndex()).indexOf(' ')) + "'... ");
+    // Get the exporter and log the infos
+    int currentIndex = _ui->comboBox_exportFormat->currentIndex();
+    if (currentIndex == -1) // not supposed to happen
+    {
+        addToUILog("Invalid exporter\n");
+        return;
+    }
+    const ExporterInfos infos = _exporters[currentIndex];
+    addToUILog("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... ");
     QCoreApplication::processEvents();
-
-    core::stringc feedback = "";
 
     // Check if the destination folder exist
     QDir dir(Settings::getExportFolder());
     if (dir.exists())
     {
-        int currentIndex = _ui->comboBox_exportFormat->currentIndex();
-        const ExporterInfos infos = _exporters[currentIndex];
+        core::stringc feedback = "";
         _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
+        addToUILog(QString(feedback.c_str()) + "\n");
     }
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
-        addToUILog("\n" + Translator::get("log_abort") + "\n");
-        return;
+        addToUILog("\nAbort : Destination folder doesn't exist\n");
     }
-
-    addToUILog(QString(feedback.c_str()) + "\n");
 }
 
 void GUI_MainWindow::translate()

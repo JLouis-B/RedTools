@@ -13,7 +13,7 @@ set filename=%prefix%_%version%.zip
 echo %filename%
 
 
-:: create folder
+:: create build dir
 rmdir "%foldername%"
 mkdir "%foldername%"
 
@@ -34,6 +34,9 @@ xcopy /s * "%~dp0%foldername%"
 cd %~dp0
 
 set command=7z.exe a %filename% %foldername%
-echo %command%
 %command%
+
+:: delete build dir
+rmdir "%foldername%"
+
 pause

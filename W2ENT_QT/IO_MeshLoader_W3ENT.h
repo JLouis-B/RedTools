@@ -240,6 +240,7 @@ private:
     void ReadRenderLODSProperty(io::IReadFile* file);
 
     // read external files
+    video::SMaterial ReadMaterialFile(core::stringc filename);
     video::SMaterial ReadW2MIFile(core::stringc filename);
     ISkinnedMesh* ReadW2MESHFile(core::stringc filename);
 

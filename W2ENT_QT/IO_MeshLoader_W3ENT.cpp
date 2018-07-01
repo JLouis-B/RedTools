@@ -553,19 +553,18 @@ void IO_MeshLoader_W3ENT::ReadMaterialsProperty(io::IReadFile* file)
 
     for (u32 i = 0; i < nbChunks; ++i)
     {
-        u8 matFileID = readU8(file);
-        matFileID = 255 - matFileID;
+        u32 matValue = readU32(file);
+        u32 matFileID = 0xFFFFFFFF - matValue;
 
         if (matFileID < Files.size()) // Refer to a w2mi file
         {
             //std::cout << "w2mi file = " << Files[matFileID].c_str() << std::endl;
-            matMats.push_back(ReadW2MIFile(ConfigGamePath + Files[matFileID]));
-            file->seek(3, true);
+            matMats.push_back(ReadMaterialFile(ConfigGamePath + Files[matFileID]));
+            //file->seek(3, true);
         }
         else
         {
-            file->seek(-1, true);
-            u32 value = readU32(file);
+            u32 value = matValue;
             //std::cout << "val = " << value << std::endl;
             //Materials.push_back(Materials[value-1]);
         }
@@ -1295,9 +1294,8 @@ void IO_MeshLoader_W3ENT::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos in
 
         if (propHeader.propName == "mesh")
         {
-            u8 fileId = readU8(file);
-            fileId = 255 - fileId;
-            file->seek(3, true);
+            u32 meshComponentValue = readU32(file);
+            u32 fileId = 0xFFFFFFFF - meshComponentValue;
             TW3_DataCache::_instance._bufferID += AnimatedMesh->getMeshBufferCount();
             scene::ISkinnedMesh* mesh = ReadW2MESHFile(ConfigGamePath + Files[fileId]);
             TW3_DataCache::_instance._bufferID -= AnimatedMesh->getMeshBufferCount();
@@ -1309,7 +1307,7 @@ void IO_MeshLoader_W3ENT::W3_CMeshComponent(io::IReadFile* file, W3_DataInfos in
             }
             else
             {
-                log->addLineAndFlush(formatString("Fail to load %s", Files[fileId]));
+                log->addLineAndFlush(formatString("Fail to load %s", Files[fileId].c_str()));
             }
         }
 
@@ -1337,7 +1335,7 @@ void IO_MeshLoader_W3ENT::W3_CEntityTemplate(io::IReadFile* file, W3_DataInfos i
             s32 arraySize = readS32(file);
             arraySize -= 4;
 
-            //std::cout << file->getPos() << std::endl;
+            std::cout << file->getPos() << std::endl;
 
             u8 data[arraySize];
             file->read(data, arraySize);
@@ -1612,8 +1610,24 @@ ISkinnedMesh* IO_MeshLoader_W3ENT::ReadW2MESHFile(core::stringc filename)
     return mesh;
 }
 
+// In the materials, file can be w2mi (material) or w2mg (shader)
+// We check that and load the material in the case of a w2mi file
+video::SMaterial IO_MeshLoader_W3ENT::ReadMaterialFile(core::stringc filename)
+{
+    if (core::hasFileExtension(filename, "w2mi"))
+        return ReadW2MIFile(filename);
+    else if (core::hasFileExtension(filename, "w2mg"))
+        ; // shader, not handled
+    else
+        log->addLineAndFlush(formatString("Unknown type of file for a material : %s", filename.c_str()));
+
+    video::SMaterial material;
+    return material;
+}
+
 video::SMaterial IO_MeshLoader_W3ENT::ReadW2MIFile(core::stringc filename)
 {
+    log->addLineAndFlush(formatString("Read W2MI : %s", filename.c_str()));
     video::SMaterial material;
     io::IReadFile* matFile = FileSystem->createAndOpenFile(filename);
     if (!matFile)
@@ -1630,7 +1644,14 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadW2MIFile(core::stringc filename)
         else
             log->addLineAndFlush(formatString("Fail to load the w2mi file : %s", filename.c_str()));
 
-        material = w2miLoader.Materials[0];
+        // Get the material from the w2mi file loaded
+        if (w2miLoader.Materials.size() == 1)
+            material = w2miLoader.Materials[0];
+        else if (w2miLoader.Materials.size() > 1)
+            log->addLineAndFlush(formatString("%s has more than 1 material", filename.c_str()));
+        else
+            log->addLineAndFlush(formatString("%s has no material", filename.c_str()));
+
         matFile->drop();
     }
 
@@ -1659,31 +1680,18 @@ video::SMaterial IO_MeshLoader_W3ENT::W3_CMaterialInstance(io::IReadFile* file, 
         // material in a w2mi file
         if (propHeader.propName == "baseMaterial")
         {
-            u8 fileId = readU8(file);
-            fileId = 255 - fileId;
-            file->seek(3, true);
+            u32 fileId = readU32(file);
+            fileId = 0xFFFFFFFF - fileId;
 
             log->addAndFlush("baseMat find");
-
             log->addLineAndFlush(formatString("base material : %s", Files[fileId].c_str()));
-            if (core::hasFileExtension(Files[fileId], "w2mi"))
-            {
-                log->addAndFlush("Is a W2MI");
-                mat = ReadW2MIFile(ConfigGamePath + Files[fileId]);
-                return mat;
-            }
-            else
-            {
-                log->addAndFlush("Not a W2MI");
-                // can be a w2mg (shader) file
-            }
+            mat = ReadMaterialFile(ConfigGamePath + Files[fileId]);
         }
 
         file->seek(propHeader.endPos);
-
         log->addAndFlush("Done");
     }
-    //checkMaterial(mat);
+
     return mat;
 }
 

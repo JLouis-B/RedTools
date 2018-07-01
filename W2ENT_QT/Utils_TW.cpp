@@ -125,22 +125,41 @@ void loadTW3StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& str
     file->seek(12);
 
     core::array<s32> headerData = readDataArray<s32>(file, 38);
+    // debug
+    /*
+    for (int i = 0; i < 38; ++i)
+    {
+        std::cout << "Header data [" << i << "]: " << headerData[i] << std::endl;
+    }
+    */
 
     s32 stringChunkStart = headerData[7];
     s32 stringChunkSize = headerData[8];
+    s32 calculatedStringChunkSize = stringChunkStart + stringChunkSize;
+
+    s32 stringChunkEnd = headerData[10]; // or the adress of a new chunk ?
+    s32 nbStrings = headerData[11];
+
+    // in many case seem similar to file count, but no
+    //s32 nbFiles = headerData[14];
+
+    int nbStringsRead = 0;
     file->seek(stringChunkStart);
-    while (file->getPos() - stringChunkStart < stringChunkSize)
+    while (file->getPos() < calculatedStringChunkSize)
     {
         core::stringc str = readStringUntilNull(file);
-        strings.push_back(str);
+        if (nbStringsRead < nbStrings)
+        {
+            strings.push_back(str);
+            std::cout << "-->" << str.c_str() << std::endl;
+            nbStringsRead++;
+        }
+        else
+        {
+            files.push_back(str);
+            std::cout << "--> FILE: " << str.c_str() << std::endl;
+        }
     }
-
-    s32 nbFiles = headerData[14];
-    for (s32 i = 0; i < nbFiles; ++i)
-    {
-        files.push_back(strings[strings.size() - nbFiles + i]);
-    }
-
 
     file->seek(initialPos);
 }

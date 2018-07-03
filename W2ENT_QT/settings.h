@@ -64,12 +64,15 @@ public:
     static bool _firstUse;
 
     static QString _exporter;
+    static QString _selectedFilter;
 
     static QString getAppVersion();
     static QString getExportFolder();
 
     static void loadFromXML(QString filename);
     static void saveToXML(QString filename);
+
+    static QString getFilters();
 
 };
 

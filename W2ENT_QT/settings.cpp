@@ -28,13 +28,14 @@ QString Settings::_TW3TexPath = "";
 bool Settings::_TW3LoadSkel = false;
 bool Settings::_TW3LoadBestLOD = false;
 
-QString Settings::_formats = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*);; The Witcher 2 3D models (*.w2ent , *.w2mesh);; The Witcher 1 3D models (*.mdb)";
+QString Settings::_formats = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*);;The Witcher 2/3 3D models (*.w2ent , *.w2mesh);;The Witcher 1 3D models (*.mdb)";
 
 bool Settings::_firstUse = true;
 
 QString Settings::_appVersion = "2.9";
 
 QString Settings::_exporter = "";
+QString Settings::_selectedFilter = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*)";
 
 QString Settings::getExportFolder()
 {
@@ -52,6 +53,36 @@ QString Settings::getAppVersion()
 #else
     return _appVersion;
 #endif
+}
+
+QString Settings::getFilters()
+{
+    QRegExp rx("(\\;;)");
+    QStringList filters = Settings::_formats.split(rx);
+
+    QString filter = "";
+
+    bool selectedFilterFound = false;
+    foreach (QString filterPart, filters)
+    {
+        if (filterPart != Settings::_selectedFilter)
+        {
+            filter += ";;";
+            filter += filterPart;
+        }
+        else
+            selectedFilterFound = true;
+    }
+
+    if (selectedFilterFound)
+        filter = Settings::_selectedFilter + filter;
+    else
+    {
+        Settings::_selectedFilter = filters[0];
+        filter = filter.remove(0, 2);
+    }
+
+    return filter;
 }
 
 void Settings::loadFromXML(QString filename)
@@ -137,6 +168,10 @@ void Settings::loadFromXML(QString filename)
         else if (nodeName == "exporter")
         {
             Settings::_exporter = node.toElement().text();
+        }
+        else if (nodeName == "selected_filter")
+        {
+            Settings::_selectedFilter = node.toElement().text();
         }
 
         node = node.nextSibling();
@@ -230,6 +265,10 @@ void Settings::saveToXML(QString filename)
     QDomElement exporter_elem = dom.createElement("exporter");
     config_elem.appendChild(exporter_elem);
     exporter_elem.appendChild(dom.createTextNode(Settings::_exporter));
+
+    QDomElement selectedFilter_elem = dom.createElement("selected_filter");
+    config_elem.appendChild(selectedFilter_elem);
+    selectedFilter_elem.appendChild(dom.createTextNode(Settings::_selectedFilter));
 
     QDomElement unit_elem = dom.createElement("unit");
     QString unit;

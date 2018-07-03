@@ -117,7 +117,7 @@ void GUI_MainWindow::addToUILog(QString log)
 
 void GUI_MainWindow::addMesh()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_pack0, Settings::_formats);
+    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_pack0, Settings::getFilters(), &Settings::_selectedFilter);
 
     for (int i = 0; i < files.size(); ++i)
     {
@@ -128,7 +128,7 @@ void GUI_MainWindow::addMesh()
             continue;
         }
 
-        addToUILog(Translator::get("log_readingFile") + " '" + file + "'... ");
+        addToUILog(QString("Read '") + file + "'... ");
 
         core::stringc feedbackMessage;
 
@@ -290,7 +290,7 @@ void GUI_MainWindow::selectMeshFile()
     if (_firstSelection)
         defaultFolder = _ui->lineEdit_folder->text();
 
-    QString file = QFileDialog::getOpenFileName(this, "Select the file to load", defaultFolder, Settings::_formats);
+    QString file = QFileDialog::getOpenFileName(this, "Select the file to load", defaultFolder, Settings::getFilters(), &Settings::_selectedFilter);
     if (file != "")
         loadMesh(file);
 }

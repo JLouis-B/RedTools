@@ -7,7 +7,7 @@
 
 #include "GUI_Resize.h"
 
-#define IS_A_DEVELOPMENT_BUILD
+//#define IS_A_DEVELOPMENT_BUILD
 
 // Assimp is used to import and export many file formats. You can disable it with this define
 #define COMPILE_WITH_ASSIMP

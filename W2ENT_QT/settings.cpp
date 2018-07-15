@@ -32,7 +32,7 @@ QString Settings::_formats = "All files/The witcher 1/2/3, Irrlicht and Assimp s
 
 bool Settings::_firstUse = true;
 
-QString Settings::_appVersion = "2.9";
+QString Settings::_appVersion = "2.10";
 
 QString Settings::_exporter = "";
 QString Settings::_selectedFilter = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*)";

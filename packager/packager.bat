@@ -27,10 +27,10 @@ mkdir "%foldername%"
 
 ::copy qwindows.dll
 @echo off
-set foldername-plugin=%foldername%/plugins
+set foldername-platforms=%foldername%/platforms
 @echo on
-mkdir "%foldername-plugin%"
-copy "%qt-plugin-dir%\platforms\qwindows.dll" "%foldername-plugin%"
+mkdir "%foldername-platforms%"
+copy "%qt-plugin-dir%\platforms\qwindows.dll" "%foldername-platforms%"
 
 :: copy dll and exe
 cd "%release-dir%"

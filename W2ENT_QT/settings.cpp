@@ -94,13 +94,13 @@ void Settings::loadFromXML(QString filename)
 
     if(!xml_doc.open(QIODevice::ReadOnly))
     {
-         QMessageBox::warning(0, "Erreur", "Erreur XML");
+         QMessageBox::warning(nullptr, "Erreur", "Erreur XML");
     }
 
     if (!dom->setContent(&xml_doc))
     {
         xml_doc.close();
-        QMessageBox::warning(0, "Erreur", "Erreur XML");
+        QMessageBox::warning(nullptr, "Erreur", "Erreur XML");
     }
     QDomElement dom_element = dom->documentElement();
     QDomNode node = dom_element.firstChildElement();

@@ -49,7 +49,7 @@ scene::ISkinnedMesh::SJoint* getRealParent(const scene::ISkinnedMesh* mesh, scen
        }
     }
 
-    return 0;
+    return nullptr;
 }
 
 
@@ -92,9 +92,9 @@ scene::ISkinnedMesh::SJoint* getJointByName(scene::ISkinnedMesh* mesh, core::str
 
     s32 jointID = mesh->getJointNumber(name.c_str());
     if (jointID == -1)
-        return 0;
+        return nullptr;
 
-    return mesh->getAllJoints()[jointID];
+    return mesh->getAllJoints()[static_cast<u32>(jointID)];
 }
 
 

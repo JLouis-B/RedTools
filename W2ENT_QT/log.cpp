@@ -26,7 +26,7 @@ core::stringc formatString(core::stringc baseString, ...)
                 }
                 case 'f':
                 {
-                    float floatValue = va_arg(va, double);
+                    float floatValue = static_cast<float>(va_arg(va, double));
                     newString += toStr(floatValue);
                     break;
                 }

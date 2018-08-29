@@ -126,7 +126,7 @@ QString parseData(core::array<core::stringc>& strings, core::array<core::stringc
     }
     else
     {
-        return "Type not implemented. Adress : " + file->getPos();
+        return QString("Type not implemented. Adress : ") + QString::number(file->getPos());
     }
 }
 

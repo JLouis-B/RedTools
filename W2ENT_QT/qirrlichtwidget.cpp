@@ -120,7 +120,7 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
 
 QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     QWidget (parent),
-    _device (NULL)
+    _device (nullptr)
 {
     // on écrit directement dans al mémoire vidéo du widget
     //setAttribute (Qt::WA_PaintOnScreen);

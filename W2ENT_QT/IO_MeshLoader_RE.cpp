@@ -48,7 +48,7 @@ bool IO_MeshLoader_RE::isALoadableFileExtension(const io::path& filename) const
 IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
 {
 	if (!f)
-		return 0;
+        return nullptr;
 
     log = Log::Instance();
 
@@ -72,7 +72,7 @@ IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
 	else
 	{
 		AnimatedMesh->drop();
-		AnimatedMesh = 0;
+        AnimatedMesh = nullptr;
 	}
 
     log->addLineAndFlush("Loaded");
@@ -86,8 +86,8 @@ IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
 
 bool IO_MeshLoader_RE::load(io::IReadFile* f)
 {
-    _lod1 = 0;
-    _lod2 = 0;
+    _lod1 = nullptr;
+    _lod2 = nullptr;
 
     u32 nbLOD = readU32(f);
     nbLOD--;

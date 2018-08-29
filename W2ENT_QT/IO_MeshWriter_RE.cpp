@@ -113,15 +113,15 @@ core::array<Weight> getWeightForVertex(scene::ISkinnedMesh* mesh, u32 meshBuffer
 
 int IO_MeshWriter_RE::getJointsSize(ISkinnedMesh* mesh)
 {
-    // matrix = 4*12 + 4 for the name size
-    int size = mesh->getJointCount() * 52;
+    // matrix = 4*12 + 4 for the name size = 52
+    u32 size = mesh->getJointCount() * 52;
 
-    for (unsigned int i = 0; i < mesh->getJointCount(); i++)
+    for (u32 i = 0; i < mesh->getJointCount(); i++)
     {
         size += mesh->getAllJoints()[i]->Name.size();
     }
 
-    return size;
+    return static_cast<int>(size);
 }
 
 int IO_MeshWriter_RE::getMaterialsSize(IMesh* mesh)

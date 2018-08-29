@@ -4,8 +4,8 @@
 GUI_Extractor_TW2_DZIP::GUI_Extractor_TW2_DZIP(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TW2_DZIP),
-    _extractor(nullptr),
-    _thread(nullptr)
+    _thread(nullptr),
+    _extractor(nullptr)
 {
     _ui->setupUi(this);
 

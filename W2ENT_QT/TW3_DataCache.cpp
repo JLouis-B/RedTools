@@ -4,7 +4,7 @@
 
 TW3_DataCache TW3_DataCache::_instance = TW3_DataCache();
 
-TW3_DataCache::TW3_DataCache() : _owner(0), _bufferID(0)
+TW3_DataCache::TW3_DataCache() : _owner(nullptr), _bufferID(0)
 {
 
 }
@@ -16,7 +16,7 @@ void TW3_DataCache::setOwner(scene::ISkinnedMesh* owner)
 
 void TW3_DataCache::clear()
 {
-    _owner = 0;
+    _owner = nullptr;
     _bones.clear();
     _vertices.clear();
 }
@@ -33,7 +33,7 @@ void TW3_DataCache::addVertexEntry(u32 boneID, u16 meshBufferID, u32 vertexID, f
 
 void TW3_DataCache::apply()
 {
-    if (_owner == 0)
+    if (!_owner)
         return;
 
     for (u32 i = 0; i < _vertices.size(); ++i)
@@ -76,7 +76,7 @@ void TW3_DataCache::skin()
         BoneEntry bone = _bones[i];
 
         scene::ISkinnedMesh::SJoint* joint = _owner->getAllJoints()[_owner->getJointNumber(bone._name.c_str())];
-        if (joint == 0)
+        if (joint == nullptr)
         {
             std::cout << "Error, no joint" << std::endl;
             continue;

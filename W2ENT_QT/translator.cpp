@@ -1,6 +1,6 @@
 #include "Translator.h"
 
-QWidget* Translator::_parent = 0;
+QWidget* Translator::_parent = nullptr;
 QMap<QString, QString> Translator::_trad;
 
 void Translator::setParentWidget(QWidget* parent)

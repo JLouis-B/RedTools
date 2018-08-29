@@ -128,7 +128,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         delete[] fileContent;
         file.seek(back);
 
-        int progression = (float)((file.pos()) * 100) / (float)dataPosition;
+        int progression = static_cast<int>(static_cast<float>((file.pos()) * 100) / dataPosition);
         if (progression > _lastProgression + 2)
         {
             emit onProgress(progression);

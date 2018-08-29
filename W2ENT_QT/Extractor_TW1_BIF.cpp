@@ -197,7 +197,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsig
         bifFile.seek(back);
 
         _nbProgress++;
-        int progression = (float)_nbProgress / (float)_resources.size() * 100.f;
+        int progression = static_cast<int>(static_cast<float>(_nbProgress) / _resources.size() * 100.f);
         if (progression > _lastProgression)
         {
             _lastProgression = progression;

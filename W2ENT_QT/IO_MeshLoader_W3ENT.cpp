@@ -29,7 +29,7 @@ namespace scene
 
 //! Constructor
 IO_MeshLoader_W3ENT::IO_MeshLoader_W3ENT(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0), meshToAnimate(0), frameOffset(0)
+: SceneManager(smgr), FileSystem(fs), AnimatedMesh(nullptr), log(nullptr), meshToAnimate(nullptr), frameOffset(0)
 {
 	#ifdef _DEBUG
     setDebugName("CW3ENTMeshFileLoader");
@@ -60,7 +60,7 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
 {
     Feedback = "";
 	if (!f)
-		return 0;
+        return nullptr;
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         ConfigGamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");
@@ -84,7 +84,7 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
     if (log->isEnabled() && !log->works())
     {
         Feedback += "\nError : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)\n";
-        return 0;
+        return nullptr;
     }
 
     writeLogHeader(f);
@@ -112,7 +112,7 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
 	else
 	{
 		AnimatedMesh->drop();
-		AnimatedMesh = 0;
+        AnimatedMesh = nullptr;
 	}
 
     log->addLineAndFlush("LOADING FINISHED");

@@ -131,8 +131,8 @@ void GUI_Search::killThread()
     _thread->deleteLater();
     _searchEngine->deleteLater();
 
-    _thread = 0;
-    _searchEngine = 0;
+    _thread = nullptr;
+    _searchEngine = nullptr;
 }
 
 void GUI_Search::setProgress(int progress)

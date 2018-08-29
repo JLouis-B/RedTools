@@ -3,7 +3,7 @@
 scene::ISkinnedMesh* copySkinnedMesh(scene::ISceneManager* smgr, scene::IMesh* meshToCopy, bool preserveBones)
 {
     if (!meshToCopy)
-        return 0;
+        return nullptr;
 
     scene::ISkinnedMesh* clone = smgr->createSkinnedMesh();
     combineMeshes(clone, meshToCopy, preserveBones);

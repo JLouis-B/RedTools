@@ -7,8 +7,8 @@
 GUI_Extractor_TW1_BIF::GUI_Extractor_TW1_BIF(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TW1_BIF),
-    _extractor(nullptr),
-    _thread(nullptr)
+    _thread(nullptr),
+    _extractor(nullptr)
 {
     _ui->setupUi(this);
 
@@ -93,8 +93,8 @@ void GUI_Extractor_TW1_BIF::killExtractThread()
     _thread->deleteLater();
     _extractor->deleteLater();
 
-    _thread = 0;
-    _extractor = 0;
+    _thread = nullptr;
+    _extractor = nullptr;
 }
 
 void GUI_Extractor_TW1_BIF::extractEnd()

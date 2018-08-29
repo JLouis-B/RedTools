@@ -29,7 +29,7 @@ namespace scene
 
 //! Constructor
 IO_MeshLoader_W2ENT::IO_MeshLoader_W2ENT(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs), AnimatedMesh(0), log(0)
+: SceneManager(smgr), FileSystem(fs), AnimatedMesh(nullptr), log(nullptr)
 {
 	#ifdef _DEBUG
 	setDebugName("CW2ENTMeshFileLoader");
@@ -59,7 +59,7 @@ bool IO_MeshLoader_W2ENT::isALoadableFileExtension(const io::path& filename) con
 IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
 {
 	if (!f)
-		return 0;
+        return nullptr;
 
     log = Log::Instance();
 
@@ -88,7 +88,7 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
 	else
 	{
 		AnimatedMesh->drop();
-		AnimatedMesh = 0;
+        AnimatedMesh = nullptr;
     }
 
 	//Clear up
@@ -123,7 +123,7 @@ void IO_MeshLoader_W2ENT::make_vertex_group(Submesh_data dataSubMesh, core::arra
                 unsigned short gr = vertex_groups[data[id_1]];
                 core::stringc grName = bonenames[gr];
 
-                ISkinnedMesh::SJoint* bone = 0;
+                ISkinnedMesh::SJoint* bone = nullptr;
                 // Loop to find the bone with the bonename
                 for (unsigned int i = 0; i < AnimatedMesh->getJointCount(); i++)
                 {

@@ -72,9 +72,9 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
         //std::cout << "seek to  = " << realOffset << std::endl;
 
         if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, QString(filename)))
-            Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename));
+            Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename.toStdString().c_str()));
 
-        int progression = (float)((i+1) * 100) / (float)filesCount;
+        int progression = static_cast<int>(static_cast<float>((i+1) * 100) / filesCount);
         emit onProgress(progression);
 
         if (_stopped)

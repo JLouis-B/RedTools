@@ -17,7 +17,7 @@ class GUI_Extractor_TW3_BUNDLE : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Extractor_TW3_BUNDLE(QWidget *parent = 0);
+    explicit GUI_Extractor_TW3_BUNDLE(QWidget *parent = nullptr);
     ~GUI_Extractor_TW3_BUNDLE();
 
 

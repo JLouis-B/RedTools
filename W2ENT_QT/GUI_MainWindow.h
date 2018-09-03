@@ -26,7 +26,7 @@ class GUI_MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit GUI_MainWindow(QWidget *parent = 0);
+    explicit GUI_MainWindow(QWidget *parent = nullptr);
     ~GUI_MainWindow();
     void initIrrlicht();
 

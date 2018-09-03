@@ -12,7 +12,7 @@ class GUI_About : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_About(QWidget *parent = 0);
+    explicit GUI_About(QWidget *parent = nullptr);
     ~GUI_About();
 
 private:

@@ -16,7 +16,7 @@ class GUI_Extractor_TW2_DZIP : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Extractor_TW2_DZIP(QWidget *parent = 0);
+    explicit GUI_Extractor_TW2_DZIP(QWidget *parent = nullptr);
     ~GUI_Extractor_TW2_DZIP();
 
 public slots:

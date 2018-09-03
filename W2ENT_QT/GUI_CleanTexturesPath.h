@@ -14,7 +14,7 @@ class GUI_CleanTexturesPath : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_CleanTexturesPath(QString texPath, QWidget *parent = 0);
+    explicit GUI_CleanTexturesPath(QString texPath, QWidget *parent = nullptr);
     ~GUI_CleanTexturesPath();
 
     void clean();

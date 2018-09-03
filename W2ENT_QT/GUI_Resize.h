@@ -22,7 +22,7 @@ class GUI_Resize : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Resize(QWidget *parent = 0);
+    explicit GUI_Resize(QWidget *parent = nullptr);
     ~GUI_Resize();
 
     static core::vector3df _originalDimensions;    // original size in cm

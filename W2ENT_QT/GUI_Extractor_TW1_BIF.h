@@ -15,7 +15,7 @@ class GUI_Extractor_TW1_BIF : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Extractor_TW1_BIF(QWidget *parent = 0);
+    explicit GUI_Extractor_TW1_BIF(QWidget *parent = nullptr);
     ~GUI_Extractor_TW1_BIF();
 
 private:

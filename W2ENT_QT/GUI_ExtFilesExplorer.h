@@ -24,7 +24,7 @@ class GUI_ExtFilesExplorer : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_ExtFilesExplorer(QIrrlichtWidget* irrlicht, QWidget *parent = 0);
+    explicit GUI_ExtFilesExplorer(QIrrlichtWidget* irrlicht, QWidget *parent = nullptr);
     ~GUI_ExtFilesExplorer();
 
     void read(QString filename);

@@ -23,7 +23,7 @@ using namespace irr;
 class RichTextDelegate: public QItemDelegate
 {
 public:
-    RichTextDelegate(QObject *parent = 0);
+    RichTextDelegate(QObject *parent = nullptr);
 
     void paint( QPainter *painter,
                             const QStyleOptionViewItem &option,
@@ -44,7 +44,7 @@ class GUI_MaterialsExplorer : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_MaterialsExplorer(QWidget *parent = 0, QIrrlichtWidget* irrlicht = 0, QString filename = "");
+    explicit GUI_MaterialsExplorer(QWidget *parent = nullptr, QIrrlichtWidget* irrlicht = nullptr, QString filename = "");
     ~GUI_MaterialsExplorer();
     void read(QString filename);
 

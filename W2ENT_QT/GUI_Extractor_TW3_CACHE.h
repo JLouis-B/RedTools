@@ -17,7 +17,7 @@ class GUI_Extractor_TW3_CACHE : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Extractor_TW3_CACHE(QWidget *parent = 0);
+    explicit GUI_Extractor_TW3_CACHE(QWidget *parent = nullptr);
     ~GUI_Extractor_TW3_CACHE();
 
 

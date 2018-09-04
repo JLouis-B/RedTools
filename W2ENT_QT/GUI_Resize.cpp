@@ -1,8 +1,8 @@
 #include "GUI_Resize.h"
 #include "ui_GUI_Resize.h"
 
-core::vector3df GUI_Resize::_originalDimensions = irr::core::vector3df(0, 0, 0);
-core::vector3df GUI_Resize::_dimensions = irr::core::vector3df(0, 0, 0);
+core::vector3df GUI_Resize::_originalDimensions = core::vector3df(0, 0, 0);
+core::vector3df GUI_Resize::_dimensions = core::vector3df(0, 0, 0);
 Unit GUI_Resize::_unit = Unit_m;
 
 GUI_Resize::GUI_Resize(QWidget *parent) :

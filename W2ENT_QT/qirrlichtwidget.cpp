@@ -654,28 +654,31 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
 
     //std::cout << filename.toStdString().c_str() << std::endl;
 
-    core::vector3df orDim = GUI_Resize::_originalDimensions;
-    core::vector3df dim = GUI_Resize::_dimensions;
+    const core::vector3df orDim = GUI_Resize::_originalDimensions;
+    const core::vector3df dim = GUI_Resize::_dimensions;
+
+    const f32 scaleFactor = (dim/orDim).X;
+    const core::vector3df scaleFactorVector = core::vector3df(scaleFactor, scaleFactor, scaleFactor);
 
     if (_lod0Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), dim/orDim);
-        scaleSkeleton(_lod0Data._node->getMesh(), (dim/orDim).X);
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), scaleFactorVector);
+        scaleSkeleton(_lod0Data._node->getMesh(), scaleFactor);
     }
     if (_lod1Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), dim/orDim);
-        scaleSkeleton(_lod1Data._node->getMesh(), (dim/orDim).X);
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), scaleFactorVector);
+        scaleSkeleton(_lod1Data._node->getMesh(), scaleFactor);
     }
     if (_lod2Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), dim/orDim);
-        scaleSkeleton(_lod2Data._node->getMesh(), (dim/orDim).X);
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), scaleFactorVector);
+        scaleSkeleton(_lod2Data._node->getMesh(), scaleFactor);
     }
     if (_collisionsLodData._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), dim/orDim);
-        scaleSkeleton(_collisionsLodData._node->getMesh(), (dim/orDim).X);
+        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), scaleFactorVector);
+        scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactor);
     }
 
     if (exporter._exporterType == Exporter_Irrlicht)
@@ -713,29 +716,29 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
     }
 
 
-
-    float scaleFactor = 1.0f / (dim.X/orDim.X);
+    const f32 scaleFactorInverse = 1.0f / scaleFactor;
+    const core::vector3df scaleVectorInverseVector = core::vector3df(scaleFactorInverse, scaleFactorInverse, scaleFactorInverse);
     if (_lod0Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        scaleSkeleton(_lod0Data._node->getMesh(), scaleFactor);
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), scaleVectorInverseVector);
+        scaleSkeleton(_lod0Data._node->getMesh(), scaleFactorInverse);
     }
 
     if (_lod1Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        scaleSkeleton(_lod1Data._node->getMesh(), scaleFactor);
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), scaleVectorInverseVector);
+        scaleSkeleton(_lod1Data._node->getMesh(), scaleFactorInverse);
     }
 
     if (_lod2Data._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        scaleSkeleton(_lod2Data._node->getMesh(), scaleFactor);
+        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), scaleVectorInverseVector);
+        scaleSkeleton(_lod2Data._node->getMesh(), scaleFactorInverse);
     }
     if (_collisionsLodData._node)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), core::vector3df(scaleFactor, scaleFactor, scaleFactor));
-        scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactor);
+        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), scaleVectorInverseVector);
+        scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactorInverse);
     }
 
     if (file)

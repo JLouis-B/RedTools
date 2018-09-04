@@ -10,7 +10,9 @@
 #include "IFileSystem.h"
 #include "IReadFile.h"
 #include "Log.h"
+#include "IO_SpeedTreeLoader.h"
 
+#include <vector>
 #include <map>
 
 // Based on the loader and spec of the Xoreos engine
@@ -83,6 +85,12 @@ private:
     std::map<core::stringc, f32> _floats;
 };
 
+struct SkinMeshToLoadEntry
+{
+    long Seek;
+    ControllersData Controller;
+};
+
 class IO_MeshLoader_WitcherMDL : public scene::IMeshLoader
 {
 public:
@@ -99,6 +107,8 @@ public:
     virtual scene::IAnimatedMesh* createMesh(io::IReadFile* file);
 
 private:
+    std::map<u32, core::stringc> NodeTypeNames;
+
     bool load(io::IReadFile* file);
     void loadNode(io::IReadFile* file, scene::ISkinnedMesh::SJoint *parentJoint, core::matrix4 parentMatrix);
     void readMesh(io::IReadFile* file, ControllersData controllers);
@@ -124,9 +134,10 @@ private:
     
     core::stringc GameTexturesPath;
 
-    std::map<u8, scene::ISkinnedMesh::SJoint*> BonesId;
+    core::array<SkinMeshToLoadEntry> SkinMeshToLoad;
 
     Log* _log;
+    u32 _depth;
 };
 
 #endif // CWITCHERMDLMESHFILELOADER_H

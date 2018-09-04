@@ -10,6 +10,7 @@
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 
+#include "TW3_CSkeleton.h"
 
 enum NodeType
 {
@@ -267,7 +268,22 @@ bool TW1_MaterialParser::hasMaterial()
 IO_MeshLoader_WitcherMDL::IO_MeshLoader_WitcherMDL(scene::ISceneManager* smgr, io::IFileSystem* fs)
 : SceneManager(smgr), FileSystem(fs)
 {
-
+    NodeTypeNames.insert(std::make_pair(kNodeTypeNode, "kNodeTypeNode"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeLight, "kNodeTypeLight"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeEmitter, "kNodeTypeEmitter"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeCamera, "kNodeTypeCamera"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeReference, "kNodeTypeReference"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeTrimesh, "kNodeTypeTrimesh"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeSkin, "kNodeTypeSkin"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeAABB, "kNodeTypeAABB"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeTrigger, "kNodeTypeTrigger"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeSectorInfo, "kNodeTypeSectorInfo"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeWalkmesh, "kNodeTypeWalkmesh"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeDanglyNode, "kNodeTypeDanglyNode"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeTexturePaint, "kNodeTypeTexturePaint"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeSpeedTree, "kNodeTypeSpeedTree"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeChain, "kNodeTypeChain"));
+    NodeTypeNames.insert(std::make_pair(kNodeTypeCloth, "kNodeTypeCloth"));
 }
 
 bool IO_MeshLoader_WitcherMDL::isALoadableFileExtension(const io::path& filename) const
@@ -291,6 +307,8 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
     if (!file)
         return nullptr;
 
+    _depth = 0;
+
     _log = Log::Instance();
     _log->addLine("");
     _log->addLine(formatString("-> File : %s", file->getFileName().c_str()));
@@ -300,6 +318,15 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
     AnimatedMesh = SceneManager->createSkinnedMesh();
     if (load(file))
     {
+        // because we need to have loaded all the node before the skinning
+        for (int i = 0; i < SkinMeshToLoad.size(); ++i)
+        {
+            long back = file->getPos();
+            file->seek(SkinMeshToLoad[i].Seek);
+            readSkin(file, SkinMeshToLoad[i].Controller);
+            file->seek(back);
+        }
+
         SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         AnimatedMesh->finalize();
     }
@@ -309,6 +336,9 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
         AnimatedMesh = nullptr;
     }
     _log->addLineAndFlush("Loading finished");
+
+    SkinMeshToLoad.clear();
+
     return AnimatedMesh;
 }
 
@@ -959,13 +989,35 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
 
     file->seek(8, true);
     ModelInfos.offsetTextureInfo = readU32(file);
-    file->seek(20, true);
+
+    file->seek(4, true);
+
+    ArrayDef bonesInfos = readArrayDef(file);
+
+    const long back = file->getPos();
+    core::array<scene::ISkinnedMesh::SJoint*> bones;
+    file->seek(ModelInfos.offsetTexData + bonesInfos.firstElemOffest);
+    for (u32 i = 0; i < bonesInfos.nbUsedEntries; ++i)
+    {
+        u32 boneId = readU32(file);
+        core::stringc boneName = readStringFixedSize(file, 92);
+        _log->addLineAndFlush(formatString("Add Bone : %s", boneName.c_str()));
+        scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, boneName);
+        bones.push_back(joint);
+    }
+    file->seek(back);
+
+    file->seek(4, true);
 
     ArrayDef vertexDef = readArrayDef(file);
     ArrayDef normalsDef = readArrayDef(file);
 
     ArrayDef tangentsDef = readArrayDef(file);
     ArrayDef binormalsDef = readArrayDef(file);
+    //std::cout << "vertexDef size : " << vertexDef.nbUsedEntries <<", adress = " << ModelInfos.offsetModelData + vertexDef.firstElemOffest << std::endl;
+    //std::cout << "normalsDef size : " << normalsDef.nbUsedEntries <<", adress = " << ModelInfos.offsetModelData + normalsDef.firstElemOffest << std::endl;
+    //std::cout << "tangentsDef size : " << tangentsDef.nbUsedEntries <<", adress = " << ModelInfos.offsetModelData + tangentsDef.firstElemOffest << std::endl;
+    //std::cout << "binormalsDef size : " << binormalsDef.nbUsedEntries <<", adress = " << ModelInfos.offsetModelData + binormalsDef.firstElemOffest << std::endl;
 
     ArrayDef tVerts[4];
     for (u32 t = 0; t < 4; t++)
@@ -992,20 +1044,20 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
     core::array<f32> weights = readArray<f32>(file, weightingDef);
 
     ArrayDef bonesDef = readArrayDef(file);
-    core::array<u8> bones = readArray<u8>(file, bonesDef);
+    core::array<u8> bonesId = readArray<u8>(file, bonesDef);
 
 
     TW1_MaterialParser materialParser = readTextures(file);
 
     // Vertices
     scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+    const u16 bufferId = AnimatedMesh->getMeshBufferCount() - 1;
     buffer->VertexType = video::EVT_STANDARD;
 
     buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     u32 skinningIndex = 0;
-    u32 minBone = 1000, maxBone = 0;
     core::matrix4 transform = controllers.globalTransform;
     file->seek(ModelInfos.offsetRawData + vertexDef.firstElemOffest);
     for (u32 i = 0; i < vertexDef.nbUsedEntries; ++i)
@@ -1027,27 +1079,22 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
         for (int j = 0; j < 4; ++j)
         {
             u32 currentSkinningIndex = skinningIndex++;
-            s8 boneId = bones[currentSkinningIndex];
-            if (boneId == -1)
+            u8 boneId = bonesId[currentSkinningIndex];
+            if (boneId == 255)
                 continue;
-            if (boneId >= AnimatedMesh->getJointCount())
+
+            if (boneId < bones.size()) // supposed to be always true
             {
-                //std::cout << "boneId " << (s32)boneId << " >= boneCount " << AnimatedMesh->getJointCount() << std::endl;
+                f32 weight = weights[currentSkinningIndex];
+                scene::ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(bones[boneId]);
+                w->buffer_id = bufferId;
+                w->vertex_id = i;
+                w->strength = weight;
             }
-
-            f32 weight = weights[currentSkinningIndex];
-            scene::ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(AnimatedMesh->getAllJoints()[boneId]);//[boneId]);
-            w->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
-            w->vertex_id = i;
-            w->strength = weight;
-
-            if (boneId > maxBone)
-                maxBone = boneId;
-            if (boneId < minBone)
-                minBone = boneId;
+            else
+                _log->addLineAndFlush("Error: boneId >= bones.size()");
         }
     }
-    _log->addLineAndFlush(formatString("minBone=%d, maxBone=%d", minBone, maxBone));
 
     // Normals
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
@@ -1156,8 +1203,11 @@ void IO_MeshLoader_WitcherMDL::readSpeedtree(io::IReadFile* file, ControllersDat
 
     // Refer to a .spt file to describe the tree
     // seems complicated to use now
-    core::stringc filename = readStringFixedSize(file, 32);
+    core::stringc filename = GameTexturesPath + readStringFixedSize(file, 32);
     //std::cout << "filename: " << filename.c_str() << std::endl;
+
+    IO_SpeedTreeLoader loader(FileSystem);
+    //loader.readSpeedTreeFile(filename);
 }
 
 
@@ -1180,14 +1230,14 @@ core::array<T> IO_MeshLoader_WitcherMDL::readArray(io::IReadFile* file, ArrayDef
 void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh::SJoint* parentJoint, core::matrix4 parentMatrix)
 {
     file->seek(24, true); // Function pointers
-    //file->seek(8, true); // inherit color flag + id
     file->seek(4, true); // inherit color flag
     u32 id = readU32(file);
 
-
-
     core::stringc name = readStringFixedSize(file, 64);
-    _log->addLineAndFlush(formatString("Node name=%s", name.c_str()));
+    for (u32 i = 0; i < _depth; ++i)
+        _log->add("--");
+
+    _log->addLineAndFlush(formatString("> Node name=%s, id=%d", name.c_str(), id));
 
     file->seek(8, true); // parent geometry + parent node
 
@@ -1217,33 +1267,39 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     s32 maxLOD = readS32(file);
 
     NodeType type = (NodeType) readU32(file);
-    //std::cout << "type = " << type << std::endl;
 
+    if (NodeTypeNames.find(type) != NodeTypeNames.end())
+    {
+        _log->addLineAndFlush(formatString("type=%s", NodeTypeNames.at(type).c_str()));
+    }
 
     switch (type)
     {
         case kNodeTypeTrimesh:
-            _log->addLineAndFlush("Trimesh node");
             readMesh(file, controllers);
-            break;
+        break;
 
         case kNodeTypeTexturePaint:
-            _log->addLineAndFlush("Texture paint node");
             readTexturePaint(file, controllers);
-            break;
+        break;
 
         case kNodeTypeSkin:
-            _log->addLineAndFlush("Skin node");
-            readSkin(file, controllers);
-            break;
+        {
+            SkinMeshToLoadEntry skinMesh;
+            skinMesh.Seek = file->getPos();
+            skinMesh.Controller = controllers;
+            SkinMeshToLoad.push_back(skinMesh);
+        }
+            //readSkin(file, controllers);
+        break;
+
 
         case kNodeTypeSpeedTree:
-            _log->addLineAndFlush("Speed tree");
             readSpeedtree(file, controllers);
         break;
 
         default:
-            break;
+        break;
     }
 
     scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint(parentJoint);
@@ -1253,7 +1309,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     joint->Animatedposition = controllers.position;
     joint->Animatedrotation = controllers.rotation.makeInverse();
     joint->Animatedscale = controllers.scale;
-    //BonesId.insert(std::make_pair(id & 0x00FF, joint));
+
     _log->addLineAndFlush(formatString("ID = %d, @=%d", (int)(id & 0x00FF), file->getPos()));
     _log->addLineAndFlush("Node END");
 
@@ -1261,8 +1317,10 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     // Load the children
     for (u32 i = 0; i < children.size(); ++i)
     {
+        _depth++;
         file->seek(ModelInfos.offsetModelData + children[i]);
         loadNode(file, joint, controllers.globalTransform);
+        _depth--;
     }
 }
 

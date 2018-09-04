@@ -52,7 +52,8 @@ SOURCES += main.cpp\
     GUI_Extractor_TW3_CACHE.cpp \
     Extractor_TW3_CACHE.cpp \
     Utils_Qt_Irr.cpp \
-    GUI_About.cpp
+    GUI_About.cpp \
+    IO_SpeedTreeLoader.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -95,7 +96,8 @@ HEADERS  += \
     DOBOZ/Dictionary.h \
     GUI_Extractor_TW3_CACHE.h \
     Extractor_TW3_CACHE.h \
-    GUI_About.h
+    GUI_About.h \
+    IO_SpeedTreeLoader.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \

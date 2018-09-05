@@ -319,7 +319,7 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
     if (load(file))
     {
         // because we need to have loaded all the node before the skinning
-        for (int i = 0; i < SkinMeshToLoad.size(); ++i)
+        for (u32 i = 0; i < SkinMeshToLoad.size(); ++i)
         {
             long back = file->getPos();
             file->seek(SkinMeshToLoad[i].Seek);
@@ -405,8 +405,9 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
 
     f32 modelScale = readF32(file);
 
-    core::stringc superModel = readStringFixedSize(file, 64);
+    core::stringc superModel = readStringFixedSize(file, 60);
     _log->addLineAndFlush(formatString("superModel = %s", superModel.c_str()));
+    file->seek(4, true); // float "1.0"
 
     file->seek(16, true);
 

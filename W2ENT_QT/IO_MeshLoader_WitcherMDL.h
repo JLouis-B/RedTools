@@ -43,7 +43,7 @@ struct ModelData
     u32 sizeTexData;
 };
 
-struct ControllersData
+struct StaticControllersData
 {
     // transform
     core::vector3df position;
@@ -56,10 +56,27 @@ struct ControllersData
     f32 alpha;
     video::SColor selphIllumColor;
 
-    ControllersData() : alpha(1.f) {}
+    StaticControllersData():
+        position(core::vector3df(0.f, 0.f, 0.f)),
+        rotation(core::quaternion(0.f, 0.f, 0.f, 1.f)),
+        scale(core::vector3df(1.f, 1.f, 1.f)),
+        alpha(1.f)
+        {}
+
+    void computeLocalTransform()
+    {
+        core::matrix4 qPos, qRot, qScale;
+        qPos.setTranslation(position);
+        core::vector3df euler;
+        rotation.toEuler(euler);
+        qRot.setRotationRadians(euler);
+        qScale.setScale(scale);
+
+        localTransform = qPos * qRot * qScale;
+    }
 };
 
-struct AnimationControllersData
+struct ControllersData
 {
     core::array<f32> positionTime;
     core::array<core::vector3df> position;
@@ -69,6 +86,13 @@ struct AnimationControllersData
 
     core::array<f32> scaleTime;
     core::array<core::vector3df> scale;
+
+    // not supported for the animations
+    core::array<f32> alphaTime;
+    core::array<f32> alpha;
+
+    core::array<f32> selphIllumColorTime;
+    core::array<video::SColor> selphIllumColor;
 };
 
 
@@ -100,7 +124,7 @@ private:
 struct SkinMeshToLoadEntry
 {
     long Seek;
-    ControllersData Controller;
+    StaticControllersData ControllersData;
 };
 
 class IO_MeshLoader_WitcherMDL : public scene::IMeshLoader
@@ -125,20 +149,20 @@ private:
 
     bool load(io::IReadFile* file);
     void loadNode(io::IReadFile* file, scene::ISkinnedMesh::SJoint *parentJoint, core::matrix4 parentMatrix);
-    void readMeshNode(io::IReadFile* file, ControllersData controllers);
-    void readTexturePaintNode(io::IReadFile* file, ControllersData controllers);
-    void readSkinNode(io::IReadFile* file, ControllersData controllers);
-    void readSpeedtreeNode(io::IReadFile* file, ControllersData controllers);
+    void readMeshNode(io::IReadFile* file, StaticControllersData controllers);
+    void readTexturePaintNode(io::IReadFile* file, StaticControllersData controllers);
+    void readSkinNode(io::IReadFile* file, StaticControllersData controllers);
+    void readSpeedtreeNode(io::IReadFile* file, StaticControllersData controllers);
     TW1_MaterialParser readTextures(io::IReadFile *file);
 
     // Animations
     void readAnimations(io::IReadFile* file);
     void loadAnimationNode(io::IReadFile* file, f32 timeOffset);
-    AnimationControllersData readNodeAnimControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
+    ControllersData readNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
 
     template <class T> core::array<T> readArray(io::IReadFile* file, ArrayDef def);
 
-    ControllersData readNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
+    StaticControllersData getStaticNodeControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
     void transformVertices(core::matrix4 mat);
 
     bool hasTexture(core::stringc texPath);

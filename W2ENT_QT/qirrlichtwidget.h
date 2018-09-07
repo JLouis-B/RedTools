@@ -16,9 +16,6 @@
 #include "Log.h"
 
 
-// QIrrlichtWidget from : http://labo-gamedev.com/news/9/
-
-
 #include "IO_MeshLoader_W2ENT.h"
 #include "IO_MeshLoader_W3ENT.h"
 #include "IO_MeshLoader_RE.h"
@@ -128,6 +125,8 @@ class QIrrlichtWidget : public QWidget
         bool loadRig(const io::path filename, core::stringc &feedbackMessage);
         bool loadAnims(const io::path filename, core::stringc &feedbackMessage);
         bool fileIsOpenableByIrrlicht(QString filename);
+
+        bool loadTW1Anims(const io::path filename, core::stringc &feedbackMessage);
 
 
     signals:

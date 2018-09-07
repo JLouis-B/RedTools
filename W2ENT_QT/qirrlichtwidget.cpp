@@ -79,6 +79,32 @@ bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedback
 
 }
 
+bool QIrrlichtWidget::loadTW1Anims(const io::path filename, core::stringc &feedbackMessage)
+{
+    io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
+    if (!file)
+    {
+        feedbackMessage = "Error : The file can't be opened.";
+        return false;
+    }
+
+
+    IO_MeshLoader_WitcherMDL loader(_device->getSceneManager(), _device->getFileSystem());
+
+    scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), true);
+
+    // use the loader to add the animation to the new model
+    loader.meshToAnimate = newMesh;
+    scene::IAnimatedMesh* mesh = loader.createMesh(file);
+    file->drop();
+
+    _currentLodData->_node->setMesh(newMesh);
+
+    setMaterialsSettings(_currentLodData->_node);
+
+    return true;
+}
+
 bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMessage)
 {
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);

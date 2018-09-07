@@ -118,6 +118,8 @@ public:
     //! See IReferenceCounted::drop() for more information.
     virtual scene::IAnimatedMesh* createMesh(io::IReadFile* file);
 
+    scene::ISkinnedMesh* meshToAnimate;
+
 private:
     std::map<u32, core::stringc> NodeTypeNames;
 

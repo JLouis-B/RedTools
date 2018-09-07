@@ -266,7 +266,7 @@ bool TW1_MaterialParser::hasMaterial()
 // -------------------------------------------------------
 
 IO_MeshLoader_WitcherMDL::IO_MeshLoader_WitcherMDL(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs)
+: meshToAnimate(nullptr), SceneManager(smgr), FileSystem(fs)
 {
     NodeTypeNames.insert(std::make_pair(kNodeTypeNode, "kNodeTypeNode"));
     NodeTypeNames.insert(std::make_pair(kNodeTypeLight, "kNodeTypeLight"));
@@ -316,7 +316,12 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
     _log->add("_________________________________________________________\n\n\n");
     _log->addLineAndFlush("Start loading");
 
-    AnimatedMesh = SceneManager->createSkinnedMesh();
+    // if we want to add animations to an existing mesh
+    if (meshToAnimate)
+        AnimatedMesh = meshToAnimate;
+    else
+        AnimatedMesh = SceneManager->createSkinnedMesh();
+
     if (load(file))
     {
         // because we need to have loaded all the node before the skinning
@@ -1306,13 +1311,17 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
         break;
     }
 
-    scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint(parentJoint);
-    joint->LocalMatrix = controllers.localTransform;
-    joint->GlobalMatrix= controllers.globalTransform;
-    joint->Name = name.c_str();
-    joint->Animatedposition = controllers.position;
-    joint->Animatedrotation = controllers.rotation.makeInverse();
-    joint->Animatedscale = controllers.scale;
+    scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, name);
+    if (!joint) // when we load a MBA file on the top of a MDL files, joints already exist
+    {
+        joint = AnimatedMesh->addJoint(parentJoint);
+        joint->LocalMatrix = controllers.localTransform;
+        joint->GlobalMatrix= controllers.globalTransform;
+        joint->Name = name.c_str();
+        joint->Animatedposition = controllers.position;
+        joint->Animatedrotation = controllers.rotation.makeInverse();
+        joint->Animatedscale = controllers.scale;
+    }
 
     _log->addLineAndFlush(formatString("ID = %d, @=%d", (int)(id & 0x00FF), file->getPos()));
     _log->addLineAndFlush("Node END");

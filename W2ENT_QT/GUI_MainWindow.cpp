@@ -78,6 +78,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_redkit_Clear_all_LODs, SIGNAL(triggered()), this, SLOT(clearAllLODs()));
 
     QObject::connect(_ui->action_TW1_BIF_extractor, SIGNAL(triggered(bool)), this, SLOT(bifExtractor()));
+    QObject::connect(_ui->action_TW1_Load_animations, SIGNAL(triggered(bool)), this, SLOT(selectTW1AnimationsFile()));
 
     QObject::connect(_ui->action_TW2_DZIP_extractor, SIGNAL(triggered(bool)), this, SLOT(dzipExtractor()));
     QObject::connect(_ui->action_TW2_Materials_explorer, SIGNAL(triggered(bool)), this, SLOT(matExplorer()));
@@ -309,6 +310,12 @@ void GUI_MainWindow::selectAnimationsFile()
         loadAnimations(file);
 }
 
+void GUI_MainWindow::selectTW1AnimationsFile()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select the MBA file to load", Settings::_pack0, "The Witcher 1 animations (*.mba)");
+    if (file != "")
+        loadTW1Animations(file);
+}
 
 void GUI_MainWindow::convert()
 {
@@ -662,6 +669,22 @@ void GUI_MainWindow::loadAnimations(QString path)
 
     core::stringc feedback;
     bool sucess = _irrWidget->loadAnims(QSTRING_TO_PATH(path), feedback);
+
+    addToUILog(QString(feedback.c_str()) + "\n");
+    updateWindowTitle();
+}
+
+void GUI_MainWindow::loadTW1Animations(QString path)
+{
+    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    {
+        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+        return;
+    }
+    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+
+    core::stringc feedback;
+    bool sucess = _irrWidget->loadTW1Anims(QSTRING_TO_PATH(path), feedback);
 
     addToUILog(QString(feedback.c_str()) + "\n");
     updateWindowTitle();

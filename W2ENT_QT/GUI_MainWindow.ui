@@ -215,6 +215,7 @@
       <string>The Witcher 1</string>
      </property>
      <addaction name="action_TW1_BIF_extractor"/>
+     <addaction name="action_TW1_Load_animations"/>
     </widget>
     <widget class="QMenu" name="menuThe_Witcher_2">
      <property name="title">
@@ -405,6 +406,11 @@
   <action name="action_TW3_Show_linked_files">
    <property name="text">
     <string>Show linked files (TW 2 and 3)</string>
+   </property>
+  </action>
+  <action name="action_TW1_Load_animations">
+   <property name="text">
+    <string>Load animations</string>
    </property>
   </action>
  </widget>

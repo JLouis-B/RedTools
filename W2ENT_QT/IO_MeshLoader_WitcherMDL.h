@@ -59,6 +59,18 @@ struct ControllersData
     ControllersData() : alpha(1.f) {}
 };
 
+struct AnimationControllersData
+{
+    core::array<f32> positionTime;
+    core::array<core::vector3df> position;
+
+    core::array<f32> rotationTime;
+    core::array<core::quaternion> rotation;
+
+    core::array<f32> scaleTime;
+    core::array<core::vector3df> scale;
+};
+
 
 class TW1_MaterialParser
 {
@@ -111,11 +123,16 @@ private:
 
     bool load(io::IReadFile* file);
     void loadNode(io::IReadFile* file, scene::ISkinnedMesh::SJoint *parentJoint, core::matrix4 parentMatrix);
-    void readMesh(io::IReadFile* file, ControllersData controllers);
-    void readTexturePaint(io::IReadFile* file, ControllersData controllers);
-    void readSkin(io::IReadFile* file, ControllersData controllers);
-    void readSpeedtree(io::IReadFile* file, ControllersData controllers);
+    void readMeshNode(io::IReadFile* file, ControllersData controllers);
+    void readTexturePaintNode(io::IReadFile* file, ControllersData controllers);
+    void readSkinNode(io::IReadFile* file, ControllersData controllers);
+    void readSpeedtreeNode(io::IReadFile* file, ControllersData controllers);
     TW1_MaterialParser readTextures(io::IReadFile *file);
+
+    // Animations
+    void readAnimations(io::IReadFile* file);
+    void loadAnimationNode(io::IReadFile* file, f32 timeOffset);
+    AnimationControllersData readNodeAnimControllers(io::IReadFile* file, ArrayDef key, ArrayDef data);
 
     template <class T> core::array<T> readArray(io::IReadFile* file, ArrayDef def);
 

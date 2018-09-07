@@ -288,7 +288,8 @@ IO_MeshLoader_WitcherMDL::IO_MeshLoader_WitcherMDL(scene::ISceneManager* smgr, i
 
 bool IO_MeshLoader_WitcherMDL::isALoadableFileExtension(const io::path& filename) const
 {
-    return core::hasFileExtension ( filename, "mdb" );
+    // MBA (model binary animation) seem to be basically the same file format
+    return core::hasFileExtension ( filename, "mdb" ) || core::hasFileExtension ( filename, "mba" );
 }
 
 ArrayDef readArrayDef(io::IReadFile* file)
@@ -323,7 +324,7 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
         {
             long back = file->getPos();
             file->seek(SkinMeshToLoad[i].Seek);
-            readSkin(file, SkinMeshToLoad[i].Controller);
+            readSkinNode(file, SkinMeshToLoad[i].Controller);
             file->seek(back);
         }
 
@@ -407,12 +408,14 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
 
     core::stringc superModel = readStringFixedSize(file, 60);
     _log->addLineAndFlush(formatString("superModel = %s", superModel.c_str()));
-    file->seek(4, true); // float "1.0"
+    file->seek(4, true); // animaion scale, float
 
     file->seek(16, true);
 
     file->seek(ModelInfos.offsetModelData + offsetRootNode);
     loadNode(file, nullptr, core::matrix4());
+
+    readAnimations(file);
 
     return true;
 }
@@ -565,7 +568,7 @@ ControllersData IO_MeshLoader_WitcherMDL::readNodeControllers(io::IReadFile* fil
     return controllers;
 }
 
-void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, ControllersData controllers)
+void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, ControllersData controllers)
 {
     ArrayDef layersDef = readArrayDef(file);
 
@@ -731,7 +734,7 @@ void IO_MeshLoader_WitcherMDL::readTexturePaint(io::IReadFile* file, Controllers
     file->seek(endPos);
 }
 
-void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData controllers)
+void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, ControllersData controllers)
 {
     file->seek(8, true); // Function pointer
 
@@ -958,7 +961,7 @@ void IO_MeshLoader_WitcherMDL::readMesh(io::IReadFile* file, ControllersData con
     file->seek(endPos);
 }
 
-void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData controllers)
+void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, ControllersData controllers)
 {
     _log->addLineAndFlush(formatString("Skin POS = %d", file->getPos()));
     file->seek(72, true);
@@ -1198,7 +1201,7 @@ void IO_MeshLoader_WitcherMDL::readSkin(io::IReadFile* file, ControllersData con
     //file->seek(endPos);
 }
 
-void IO_MeshLoader_WitcherMDL::readSpeedtree(io::IReadFile* file, ControllersData controllers)
+void IO_MeshLoader_WitcherMDL::readSpeedtreeNode(io::IReadFile* file, ControllersData controllers)
 {
     //std::cout << "SpeedTree POS = " << file->getPos() << std::endl;
 
@@ -1277,11 +1280,11 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     switch (type)
     {
         case kNodeTypeTrimesh:
-            readMesh(file, controllers);
+            readMeshNode(file, controllers);
         break;
 
         case kNodeTypeTexturePaint:
-            readTexturePaint(file, controllers);
+            readTexturePaintNode(file, controllers);
         break;
 
         case kNodeTypeSkin:
@@ -1296,7 +1299,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
 
 
         case kNodeTypeSpeedTree:
-            readSpeedtree(file, controllers);
+            readSpeedtreeNode(file, controllers);
         break;
 
         default:
@@ -1356,4 +1359,218 @@ TW1_MaterialParser IO_MeshLoader_WitcherMDL::readTextures(io::IReadFile* file)
     TW1_MaterialParser parser(FileSystem);
     parser.loadFromString(materialContent);
     return parser;
+}
+
+void IO_MeshLoader_WitcherMDL::readAnimations(io::IReadFile* file)
+{
+    f32 timeOffset = 0.f;
+    if (ModelInfos.fileVersion == 133)
+        file->seek(ModelInfos.offsetModelData + ModelInfos.offsetRawData);
+    else
+        file->seek(ModelInfos.offsetTexData);
+
+    const long chunkStart = file->getPos();
+
+    file->seek(4, true);
+    std::cout << "ADRESS = " << file->getPos() << std::endl;
+
+    ArrayDef animArrayDef = readArrayDef(file);
+    file->seek(chunkStart + animArrayDef.firstElemOffest);
+    for (u32 i = 0; i < animArrayDef.nbUsedEntries; ++i)
+    {
+        u32 animOffset = readU32(file);
+        const long back = file->getPos();
+
+        file->seek(ModelInfos.offsetModelData + animOffset);
+        // Geom header
+        file->seek(8, true);
+        core::stringc animationName = readStringFixedSize(file, 64);
+        u32 offsetRootNode = readU32(file);
+        std::cout << "offsetRootNode : " << offsetRootNode << std::endl;
+        file->seek(32, true);
+        u8 geometryType = readU8(file);
+        file->seek(3, true);
+
+        // Anim header
+        f32 animationLength = readF32(file);
+        std::cout << "animationLength : " << animationLength << std::endl;
+        f32 transitionTime = readF32(file);
+        core::stringc animationRootName = readStringFixedSize(file, 64);
+        ArrayDef eventArrayDef = readArrayDef(file);
+        file->seek(6 * 4, true); // animBox
+        file->seek(4 * 4, true); // animSphere
+        file->seek(4, true); //unknown
+
+        // Load the root node
+        file->seek(ModelInfos.offsetModelData + offsetRootNode);
+        loadAnimationNode(file, timeOffset);
+
+        // Next animation
+        file->seek(back);
+        timeOffset += animationLength;
+    }
+    AnimatedMesh->setAnimationSpeed(1);
+}
+
+void IO_MeshLoader_WitcherMDL::loadAnimationNode(io::IReadFile* file, f32 timeOffset)
+{
+    file->seek(24, true); // Function pointers
+    file->seek(4, true); // inherit color flag
+    u32 id = readU32(file);
+
+    core::stringc name = readStringFixedSize(file, 64);
+    for (u32 i = 0; i < _depth; ++i)
+        _log->add("--");
+
+    _log->addLineAndFlush(formatString("> Node name=%s, id=%d", name.c_str(), id));
+
+    file->seek(8, true); // parent geometry + parent node
+
+    // Children nodes
+    ArrayDef def = readArrayDef(file);
+    //std::cout << "def count = " << def.nbUsedEntries << ", allocated = " << def.nbAllocatedEntries << ", offset = " << def.firstElemOffest << std::endl;
+    core::array<u32> children = readArray<u32>(file, def);
+    //std::cout << "child count = " << children.size() << std::endl;
+
+
+    // Controllers
+    ArrayDef controllerKeyDef = readArrayDef(file);
+    ArrayDef controllerDataDef = readArrayDef(file);
+
+    AnimationControllersData controllers = readNodeAnimControllers(file, controllerKeyDef, controllerDataDef);
+
+
+    //controllers.globalTransform = parentMatrix * controllers.localTransform;
+    //
+
+
+    file->seek(4, true); // node flags/type
+
+    file->seek(8, true); // fixed rot + imposter group ?
+
+    s32 minLOD = readS32(file);
+    s32 maxLOD = readS32(file);
+
+    NodeType type = (NodeType) readU32(file);
+
+    if (NodeTypeNames.find(type) != NodeTypeNames.end())
+    {
+        _log->addLineAndFlush(formatString("type=%s", NodeTypeNames.at(type).c_str()));
+    }
+
+    scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, name);
+    if (!joint)
+    {
+        std::cout << "joint not found" << std::endl;
+    }
+    else
+    {
+        for (u32 i = 0; i < controllers.position.size(); ++i)
+        {
+            scene::ISkinnedMesh::SPositionKey* key = AnimatedMesh->addPositionKey(joint);
+            key->frame = timeOffset + controllers.positionTime[i];
+            key->position = controllers.position[i];
+        }
+        for (u32 i = 0; i < controllers.rotation.size(); ++i)
+        {
+            scene::ISkinnedMesh::SRotationKey* key = AnimatedMesh->addRotationKey(joint);
+            key->frame = timeOffset + controllers.rotationTime[i];
+            key->rotation = controllers.rotation[i].makeInverse();
+            //std::cout << "key->frame:" << key->frame << " and key->rotation: " << key->rotation.X << ", " << key->rotation.Y << ", " << key->rotation.Z << ", " << key->rotation.W << std::endl;
+        }
+        for (u32 i = 0; i < controllers.scale.size(); ++i)
+        {
+            scene::ISkinnedMesh::SScaleKey* key = AnimatedMesh->addScaleKey(joint);
+            key->frame = timeOffset + controllers.scaleTime[i];
+            key->scale = controllers.scale[i];
+        }
+    }
+
+
+    _log->addLineAndFlush(formatString("ID = %d, @=%d", (int)(id & 0x00FF), file->getPos()));
+    _log->addLineAndFlush("Node END");
+
+
+    // Load the children
+    for (u32 i = 0; i < children.size(); ++i)
+    {
+        _depth++;
+        file->seek(ModelInfos.offsetModelData + children[i]);
+        loadAnimationNode(file, timeOffset);
+        _depth--;
+    }
+}
+
+AnimationControllersData IO_MeshLoader_WitcherMDL::readNodeAnimControllers(io::IReadFile* file, ArrayDef key, ArrayDef data)
+{
+    AnimationControllersData controllers;
+
+    core::array<f32> controllerData = readArray<f32>(file, data);
+
+    const long back = file->getPos();
+    file->seek(ModelInfos.offsetModelData + key.firstElemOffest);
+
+    for (u32 i = 0; i < key.nbUsedEntries; ++i)
+    {
+        s32 controllerType = readS32(file);
+        s16 nbRows = readS16(file);
+        s16 firstKeyIndex = readS16(file);
+        s16 firstValueIndex = readS16(file);
+        s8 nbColumns = readS8(file);
+        file->seek(1, true); // Pad, not used
+
+
+        if (controllerType == ControllerPosition)
+        {
+            for (u32 j = 0; j < nbRows; ++j)
+            {
+                const f32 offset = j * nbColumns;
+
+                f32 time = controllerData[firstKeyIndex + j];
+                controllers.positionTime.push_back(time);
+
+                f32 x = controllerData[offset + firstValueIndex];
+                f32 y = controllerData[offset + firstValueIndex + 1];
+                f32 z = controllerData[offset + firstValueIndex + 2];
+                controllers.position.push_back(core::vector3df(x, y, z));
+                //std::cout << "Position: " << x << ", " << y << ", " << z << std::endl;
+            }
+        }
+        else if (controllerType == ControllerOrientation)
+        {
+            for (u32 j = 0; j < nbRows; ++j)
+            {
+                const f32 offset = j * nbColumns;
+
+                f32 time = controllerData[firstKeyIndex + j];
+                controllers.rotationTime.push_back(time);
+
+                f32 x = controllerData[offset + firstValueIndex];
+                f32 y = controllerData[offset + firstValueIndex + 1];
+                f32 z = controllerData[offset + firstValueIndex + 2];
+                f32 w = controllerData[offset + firstValueIndex + 3];
+                controllers.rotation.push_back(core::quaternion(x, y, z, w));
+            }
+        }
+        else if (controllerType == ControllerScale)
+        {
+            for (u32 j = 0; j < nbRows; ++j)
+            {
+                const f32 offset = j * nbColumns;
+
+                f32 time = controllerData[firstKeyIndex + j];
+                controllers.rotationTime.push_back(time);
+
+                f32 scaleValue = controllerData[offset + firstValueIndex];
+                controllers.scale.push_back(core::vector3df(scaleValue, scaleValue, scaleValue));
+            }
+        }
+        else
+        {
+            _log->addLineAndFlush(formatString("Unknown controller type=%d", controllerType));
+        }
+    }
+
+    file->seek(back);
+    return controllers;
 }

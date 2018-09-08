@@ -559,7 +559,7 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
 
     file->seek(3, true);
 
-    u32 endPos = file->seek(ModelInfos.offsetRawData + offMeshArrays);
+    file->seek(ModelInfos.offsetRawData + offMeshArrays);
     file->seek(4, true);
 
 
@@ -580,7 +580,6 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
 
     if ((vertexDef.nbUsedEntries == 0) || (facesDef.nbUsedEntries == 0))
     {
-        file->seek(endPos);
         return;
     }
 
@@ -691,8 +690,6 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
 
         file->seek(68, true);
     }
-
-    file->seek(endPos);
 }
 
 void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControllersData controllers)
@@ -764,7 +761,7 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
 
     ModelInfos.offsetTextureInfo = readU32(file);
 
-    u32 endPos = file->seek(ModelInfos.offsetRawData + offMeshArrays);
+    file->seek(ModelInfos.offsetRawData + offMeshArrays);
 
     file->seek(4, true);
 
@@ -790,7 +787,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
 
     if ((vertexDef.nbUsedEntries == 0) || (facesDef.nbUsedEntries == 0))
     {
-        file->seek(endPos);
         return;
     }
 
@@ -1003,7 +999,6 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
 
     if ((vertexDef.nbUsedEntries == 0) || (facesDef.nbUsedEntries == 0))
     {
-        //file->seek(endPos);
         return;
     }
 
@@ -1162,8 +1157,6 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
     }
-
-    //file->seek(endPos);
 }
 
 void IO_MeshLoader_WitcherMDL::readSpeedtreeNode(io::IReadFile* file, StaticControllersData controllers)

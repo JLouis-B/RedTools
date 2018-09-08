@@ -221,7 +221,8 @@ video::E_MATERIAL_TYPE TW1_MaterialParser::getMaterialTypeFromShader()
 {
     if (_shader == "leaves_lm_bill"
      || _shader == "dblsided_atest"
-     || _shader == "leaves")
+     || _shader == "leaves"
+     || _shader == "leaves_lm")
         return video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
 
     return video::EMT_SOLID;
@@ -871,7 +872,9 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
         parser.loadFile(materialFile);
         textureDiffuse = parser.getTexture(0);
         bufferMaterial.MaterialType = parser.getMaterialTypeFromShader();
-        //parser.debugPrint();
+#ifdef IS_A_DEVELOPMENT_BUILD
+        parser.debugPrint();
+#endif
 
         uvSet = 1;
     }
@@ -891,7 +894,9 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
         uvSet = 1; // 0 in some case, 1 in some other cases : TODO find the rule to get the good uvSet
         bufferMaterial.MaterialType = materialParser.getMaterialTypeFromShader();
         //std::cout << "try to set texture : " << textures[0].c_str() << std::endl;
-        //materialParser.debugPrint();
+#ifdef IS_A_DEVELOPMENT_BUILD
+        materialParser.debugPrint();
+#endif
     }
 
 

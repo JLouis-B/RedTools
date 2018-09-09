@@ -15,6 +15,9 @@
 #include <vector>
 #include <map>
 
+// it's the right solution to keep a good hirerachy for animations, but it currently poses problems with the exporters
+//#define TW1_ATTACH_MESHES_TO_NODES
+
 // Based on the loader and spec of the Xoreos engine
 // https://github.com/xoreos/xoreos/blob/master/src/graphics/aurora/model_witcher.cpp
 
@@ -125,6 +128,7 @@ struct SkinMeshToLoadEntry
 {
     long Seek;
     StaticControllersData ControllersData;
+    scene::ISkinnedMesh::SJoint* Joint;
 };
 
 class IO_MeshLoader_WitcherMDL : public scene::IMeshLoader

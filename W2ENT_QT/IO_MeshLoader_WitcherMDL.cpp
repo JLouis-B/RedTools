@@ -331,6 +331,9 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
             long back = file->getPos();
             file->seek(SkinMeshToLoad[i].Seek);
             readSkinNode(file, SkinMeshToLoad[i].ControllersData);
+#ifdef TW1_ATTACH_MESHES_TO_NODES
+            SkinMeshToLoad[i].Joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
+#endif
             file->seek(back);
         }
 
@@ -630,12 +633,14 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
         f32 y = readF32(file);
         f32 z = readF32(file);
 
-
+#ifdef TW1_ATTACH_MESHES_TO_NODES
+        core::vector3df pos(x, y, z);
+#else
         f32 vectIn[3] = {x, y, z};
         f32 vectOut[3];
         transform.transformVec3(vectOut, vectIn);
         core::vector3df pos(vectOut[0], vectOut[1], vectOut[2]);
-
+#endif
         buffer->Vertices_Standard[i].Pos = pos;
 
         // to see what's texture paint
@@ -807,10 +812,14 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
         f32 y = readF32(file);
         f32 z = readF32(file);
 
+#ifdef TW1_ATTACH_MESHES_TO_NODES
+        core::vector3df pos(x, y, z);
+#else
         f32 vectIn[3] = {x, y, z};
         f32 vectOut[3];
         transform.transformVec3(vectOut, vectIn);
         core::vector3df pos(vectOut[0], vectOut[1], vectOut[2]);
+#endif
 
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
@@ -1030,10 +1039,14 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
         f32 y = readF32(file);
         f32 z = readF32(file);
 
+#ifdef TW1_ATTACH_MESHES_TO_NODES
+        core::vector3df pos(x, y, z);
+#else
         f32 vectIn[3] = {x, y, z};
         f32 vectOut[3];
         transform.transformVec3(vectOut, vectIn);
         core::vector3df pos(vectOut[0], vectOut[1], vectOut[2]);
+#endif
 
         buffer->Vertices_Standard[i].Pos = pos;
         buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
@@ -1235,14 +1248,32 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
         _log->addLineAndFlush(formatString("type=%s", NodeTypeNames.at(type).c_str()));
     }
 
+    scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, name);
+    if (!joint) // when we load a MBA file on the top of a MDL files, joints already exist
+    {
+        joint = AnimatedMesh->addJoint(parentJoint);
+        joint->LocalMatrix = controllersData.localTransform;
+        joint->GlobalMatrix= controllersData.globalTransform;
+        joint->Name = name.c_str();
+        joint->Animatedposition = controllersData.position;
+        joint->Animatedrotation = controllersData.rotation.makeInverse();
+        joint->Animatedscale = controllersData.scale;
+    }
+
     switch (type)
     {
         case kNodeTypeTrimesh:
             readMeshNode(file, controllersData);
+#ifdef TW1_ATTACH_MESHES_TO_NODES
+            joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
+#endif
         break;
 
         case kNodeTypeTexturePaint:
             readTexturePaintNode(file, controllersData);
+#ifdef TW1_ATTACH_MESHES_TO_NODES
+            joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
+#endif
         break;
 
         case kNodeTypeSkin:
@@ -1250,6 +1281,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
             SkinMeshToLoadEntry skinMesh;
             skinMesh.Seek = file->getPos();
             skinMesh.ControllersData = controllersData;
+            skinMesh.Joint = joint;
             SkinMeshToLoad.push_back(skinMesh);
         }
         break;
@@ -1261,18 +1293,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
 
         default:
         break;
-    }
 
-    scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, name);
-    if (!joint) // when we load a MBA file on the top of a MDL files, joints already exist
-    {
-        joint = AnimatedMesh->addJoint(parentJoint);
-        joint->LocalMatrix = controllersData.localTransform;
-        joint->GlobalMatrix= controllersData.globalTransform;
-        joint->Name = name.c_str();
-        joint->Animatedposition = controllersData.position;
-        joint->Animatedrotation = controllersData.rotation.makeInverse();
-        joint->Animatedscale = controllersData.scale;
     }
 
     _log->addLineAndFlush(formatString("ID = %d, @=%d", (int)(id & 0x00FF), file->getPos()));

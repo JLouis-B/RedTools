@@ -2,10 +2,6 @@
 #include <iostream>
 
 using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
 
 bool QIrrlichtWidget::isLoadableByIrrlicht(io::path filename)
 {
@@ -23,25 +19,25 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
     for (u32 i = 0; i < node->getMaterialCount(); ++i)
     {
         video::SMaterial& material = node->getMaterial(i);
-        if (    material.MaterialType == EMT_NORMAL_MAP_SOLID
-            ||  material.MaterialType == EMT_PARALLAX_MAP_SOLID)
+        if (    material.MaterialType == video::EMT_NORMAL_MAP_SOLID
+            ||  material.MaterialType == video::EMT_PARALLAX_MAP_SOLID)
         {
-            material.MaterialType = EMT_SOLID;
+            material.MaterialType = video::EMT_SOLID;
         }
-        else if (material.MaterialType == EMT_NORMAL_MAP_TRANSPARENT_ADD_COLOR
-            ||   material.MaterialType == EMT_PARALLAX_MAP_TRANSPARENT_ADD_COLOR)
+        else if (material.MaterialType == video::EMT_NORMAL_MAP_TRANSPARENT_ADD_COLOR
+            ||   material.MaterialType == video::EMT_PARALLAX_MAP_TRANSPARENT_ADD_COLOR)
         {
-            material.MaterialType = EMT_TRANSPARENT_ADD_COLOR;
+            material.MaterialType = video::EMT_TRANSPARENT_ADD_COLOR;
         }
-        else if (material.MaterialType == EMT_NORMAL_MAP_TRANSPARENT_VERTEX_ALPHA
-            ||   material.MaterialType == EMT_PARALLAX_MAP_TRANSPARENT_VERTEX_ALPHA)
+        else if (material.MaterialType == video::EMT_NORMAL_MAP_TRANSPARENT_VERTEX_ALPHA
+            ||   material.MaterialType == video::EMT_PARALLAX_MAP_TRANSPARENT_VERTEX_ALPHA)
         {
-            material.MaterialType = EMT_TRANSPARENT_VERTEX_ALPHA;
+            material.MaterialType = video::EMT_TRANSPARENT_VERTEX_ALPHA;
         }
     }
 
-    node->setMaterialFlag(EMF_LIGHTING, false);
-    node->setMaterialFlag(EMF_BACK_FACE_CULLING, false);
+    node->setMaterialFlag(video::EMF_LIGHTING, false);
+    node->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
 
     for (u32 i = 1; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
         node->setMaterialTexture(i, nullptr);
@@ -214,7 +210,7 @@ void QIrrlichtWidget::loadMeshPostProcess()
     */
 }
 
-IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMessage)
+scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc &feedbackMessage)
 {
     if (Settings::_pack0.size() > 0 && Settings::_pack0[Settings::_pack0.size() - 1] != '/')
         Settings::_pack0.push_back('/');
@@ -236,7 +232,7 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
     io::path extension;
     core::getFileNameExtension(extension, irrFilename);
 
-    IAnimatedMesh* mesh = nullptr;
+    scene::IAnimatedMesh* mesh = nullptr;
 
 #ifdef COMPILE_WITH_ASSIMP
     IrrAssimp assimp(_device->getSceneManager());
@@ -275,11 +271,11 @@ IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, stringc &feedbackMess
     return mesh;
 }
 
-bool QIrrlichtWidget::addMesh(QString filename, stringc &feedbackMessage)
+bool QIrrlichtWidget::addMesh(QString filename, core::stringc &feedbackMessage)
 {
     _inLoading = true;
 
-    IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
+    scene::IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
 
     // Leave here if there was a problem during the loading
     if (!mesh)
@@ -303,14 +299,14 @@ bool QIrrlichtWidget::addMesh(QString filename, stringc &feedbackMessage)
     return true;
 }
 
-bool QIrrlichtWidget::setMesh(QString filename, stringc &feedbackMessage)
+bool QIrrlichtWidget::setMesh(QString filename, core::stringc &feedbackMessage)
 {
     _inLoading = true;
 
     // Delete the current mesh
     clearLOD();
 
-    IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
+    scene::IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
 
     // Leave here if there was a problem during the loading
     if (!mesh)
@@ -320,8 +316,8 @@ bool QIrrlichtWidget::setMesh(QString filename, stringc &feedbackMessage)
     }
 
     _currentLodData->_node = _device->getSceneManager()->addAnimatedMeshSceneNode(mesh);
-    _currentLodData->_node->setScale(irr::core::vector3df(20, 20, 20));
-    _currentLodData->_node->setRotation(irr::core::vector3df(_currentLodData->_node->getRotation().X, _currentLodData->_node->getRotation().Y - 90, _currentLodData->_node->getRotation().Z));
+    _currentLodData->_node->setScale(core::vector3df(20, 20, 20));
+    _currentLodData->_node->setRotation(core::vector3df(_currentLodData->_node->getRotation().X, _currentLodData->_node->getRotation().Y - 90, _currentLodData->_node->getRotation().Z));
 
     // for debug only
     // loadedNode->setDebugDataVisible(EDS_BBOX_ALL);
@@ -342,7 +338,7 @@ void QIrrlichtWidget::init ()
     SIrrlichtCreationParameters params;
 
     // on utilise OpenGL, et on lui donne l'identifiant de la fenêtre de notre widget
-    params.DriverType        = EDT_OPENGL;
+    params.DriverType        = video::EDT_OPENGL;
     params.WindowId          = reinterpret_cast<void*> (winId ());
 
     // ainsi que la taille de notre widget
@@ -373,21 +369,21 @@ void QIrrlichtWidget::init ()
     {
         // on créé une caméra pour visualiser la scène
 
-        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(0, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
-        _camera->setPosition(vector3df (0,30,-40));
-        _camera->setTarget(vector3df (0,0,0));
-        const f32 aspectRatio = (float)width () / (float)height();
+        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(nullptr, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
+        _camera->setPosition(core::vector3df (0,30,-40));
+        _camera->setTarget(core::vector3df (0,0,0));
+        const f32 aspectRatio = static_cast<float>(width ()) / height();
         _camera->setAspectRatio(aspectRatio);
         _camera->setFarValue(10000.f);
 
-        _reWriter = new IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
+        _reWriter = new scene::IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
 
         _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_WitcherMDL(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
 
-        //_device->getSceneManager()->setAmbientLight(irr::video::SColor(255,255,255,255));
+        //_device->getSceneManager()->setAmbientLight(video::SColor(255,255,255,255));
     }
 
     /* puis on connecte notre slot updateIrrlicht (), qui s'occupe du rendu
@@ -419,13 +415,13 @@ void QIrrlichtWidget::updateIrrlicht (QIrrlichtWidget *irrWidget)
     {
         // le rendu est donc fait ici même
 
-        _device->getTimer ()->tick ();
+        _device->getTimer()->tick ();
 
-        SColor color  (255, Settings::_r, Settings::_g, Settings::_b);
+        video::SColor color (255, Settings::_r, Settings::_g, Settings::_b);
 
-        _device->getVideoDriver ()->beginScene (true, true, color);
-        _device->getSceneManager ()->drawAll ();
-        _device->getVideoDriver ()->endScene ();
+        _device->getVideoDriver()->beginScene (true, true, color);
+        _device->getSceneManager()->drawAll ();
+        _device->getVideoDriver()->endScene ();
     }
 }
 
@@ -456,7 +452,7 @@ void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
     if (_device)
     {
         // lors d'un redimensionnement, on récupe la nouvelle taille du widget
-        dimension2d<u32> widgetSize;
+        core::dimension2d<u32> widgetSize;
 
         widgetSize.Width  = ev->size ().width ();
         widgetSize.Height = ev->size ().height ();
@@ -465,7 +461,7 @@ void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
         _device->getVideoDriver ()->OnResize (widgetSize);
 
         // update aspect ratio
-        const f32 aspectRatio = (float)ev->size ().width () / (float)ev->size ().height();
+        const f32 aspectRatio = static_cast<float>(ev->size ().width ()) / ev->size ().height();
         _camera->setAspectRatio(aspectRatio);
      }
 
@@ -537,7 +533,7 @@ void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
 
 void QIrrlichtWidget::mousePressEvent( QMouseEvent* event )
 {
-    if (_device == 0)
+    if (!_device)
         return;
 
     // If there is a mouse event, we should report it to Irrlicht for the Maya camera
@@ -561,7 +557,7 @@ void QIrrlichtWidget::mousePressEvent( QMouseEvent* event )
 
 void QIrrlichtWidget::mouseReleaseEvent( QMouseEvent* event )
 {
-    if (_device == 0)
+    if (!_device)
         return;
 
     // If there is a mouse event, we should report it to Irrlicht for the Maya camera
@@ -594,7 +590,7 @@ QString QIrrlichtWidget::convertTexture(QString filename, QString destDir)
     }
 
 
-    IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(filename));
+    video::IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(filename));
     if (image)
     {
         _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_PATH(destDir));
@@ -612,7 +608,7 @@ void scaleSkeleton(scene::IMesh* mesh, float factor)
     const u32 nbJoints = skinnedMesh->getJointCount();
     for (u32 i = 0; i < nbJoints; ++i)
     {
-        ISkinnedMesh::SJoint* joint = skinnedMesh->getAllJoints()[i];
+        scene::ISkinnedMesh::SJoint* joint = skinnedMesh->getAllJoints()[i];
         joint->Animatedposition *= factor;
     }
 }
@@ -795,7 +791,7 @@ void QIrrlichtWidget::changeRigging(bool state)
 unsigned int QIrrlichtWidget::getPolysCount()
 {
     if (_currentLodData->_node)
-        return _device->getSceneManager()->getMeshManipulator()->getPolyCount(static_cast<IMesh*>(_currentLodData->_node->getMesh()));
+        return _device->getSceneManager()->getMeshManipulator()->getPolyCount(static_cast<scene::IMesh*>(_currentLodData->_node->getMesh()));
     return 0;
 }
 
@@ -806,7 +802,7 @@ unsigned int QIrrlichtWidget::getJointsCount()
     return 0;
 }
 
-irr::core::vector3df QIrrlichtWidget::getMeshDimensions()
+core::vector3df QIrrlichtWidget::getMeshDimensions()
 {
     if (_currentLodData->_node)
         return _currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge;
@@ -815,16 +811,16 @@ irr::core::vector3df QIrrlichtWidget::getMeshDimensions()
 
 void QIrrlichtWidget::changeOptions()
 {
-    core::list< ISceneNodeAnimator * > anims = _camera->getAnimators();
-    core::list< ISceneNodeAnimator * >::Iterator it;
+    core::list<scene::ISceneNodeAnimator*> anims = _camera->getAnimators();
+    core::list<scene::ISceneNodeAnimator*>::Iterator it;
     for (it = anims.begin(); it != anims.end(); it++)
     {
-        if ((*it)->getType() == ESNAT_CAMERA_MAYA)
+        if ((*it)->getType() == scene::ESNAT_CAMERA_MAYA)
         {
             break;
         }
     }
-    irr::scene::ISceneNodeAnimatorCameraMaya* anim = (irr::scene::ISceneNodeAnimatorCameraMaya*)(*it);
+    scene::ISceneNodeAnimatorCameraMaya* anim = (scene::ISceneNodeAnimatorCameraMaya*)(*it);
     anim->setMoveSpeed(Settings::_camSpeed);
     anim->setRotateSpeed(Settings::_camRotSpeed);
 }
@@ -897,7 +893,7 @@ void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 {
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
     {
-        IMeshBuffer* buf = mesh->getMeshBuffer(i);
+        scene::IMeshBuffer* buf = mesh->getMeshBuffer(i);
 
         if (buf->getMaterial().getTexture(0))
         {
@@ -944,7 +940,7 @@ void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 }
 
 
-void QIrrlichtWidget::copyTextures(std::set<path> paths, QString exportFolder)
+void QIrrlichtWidget::copyTextures(std::set<io::path> paths, QString exportFolder)
 {
     std::set<io::path>::iterator it;
     for (it = paths.begin(); it != paths.end(); ++it)
@@ -1024,7 +1020,7 @@ bool QIrrlichtWidget::isEmpty(LOD lod)
 
 
 
-IFileSystem *QIrrlichtWidget::getFileSystem()
+io::IFileSystem *QIrrlichtWidget::getFileSystem()
 {
     return _device->getFileSystem();
 }

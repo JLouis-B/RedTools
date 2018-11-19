@@ -927,8 +927,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
     }
-
-    file->seek(endPos);
 }
 
 void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControllersData controllers)

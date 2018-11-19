@@ -91,6 +91,8 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_TW3_Show_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
     QObject::connect(_ui->action_TW3_LUA_utils_Clean_textures_path_depreciated, SIGNAL(triggered()), this, SLOT(cleanTexturesPath()));
 
+    QObject::connect(_ui->actionThe_Council_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
+
     QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
     QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
 
@@ -561,6 +563,12 @@ void GUI_MainWindow::bundleExtractor()
 {
     GUI_Extractor_TW3_BUNDLE* bundle = new GUI_Extractor_TW3_BUNDLE(this);
     bundle->show();
+}
+
+void GUI_MainWindow::thecouncilExtractor()
+{
+    GUI_Extractor_TheCouncil* CPK = new GUI_Extractor_TheCouncil(this);
+    CPK->show();
 }
 
 void GUI_MainWindow::loadFileGeneric(QString path)

@@ -10,6 +10,7 @@
 #include "GUI_Extractor_TW2_DZIP.h"
 #include "GUI_Extractor_TW3_CACHE.h"
 #include "GUI_Extractor_TW3_BUNDLE.h"
+#include "GUI_Extractor_TheCouncil.h"
 #include "GUI_MaterialsExplorer.h"
 #include "GUI_About.h"
 
@@ -57,6 +58,7 @@ public slots :
     void bifExtractor();
     void dzipExtractor();
     void bundleExtractor();
+    void thecouncilExtractor();
     void changeBaseDir(QString newDir);
 
 

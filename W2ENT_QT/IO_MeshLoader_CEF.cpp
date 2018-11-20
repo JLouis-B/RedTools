@@ -137,16 +137,20 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         chunkSize = readU32(file);
         file->seek(10, true);
         nbSet = readU32(file);
-        /*
-        for (u32 i = 0; i < nVertices; ++i)
+
+        for (u32 i = 0; i < nbVertices; ++i)
         {
+            file->seek(16, true);
+
             f32 u = readF32(file);
             f32 v = readF32(file);
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
-        */
+
         // TODO !
-        file->seek(chunkSize, true);
+        std::cout << "nbSet = " << nbSet << std::endl;
+        std::cout << "chunkSize = " << chunkSize << std::endl;
+        //file->seek(chunkSize, true);
         file->seek(24, true);
 
         file->seek(44, true);

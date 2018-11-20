@@ -622,7 +622,6 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
     buffer->VertexType = video::EVT_STANDARD;
 
     //std::cout << "nb vertex = " << vertexDef.nbUsedEntries << std::endl;
-    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     core::matrix4 transform = controllers.globalTransform;
@@ -683,7 +682,6 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
 
 
     // Faces
-    buffer->Indices.reallocate(facesCount * 3);
     buffer->Indices.set_used(facesCount * 3);
 
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);
@@ -801,7 +799,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
     scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
     buffer->VertexType = video::EVT_STANDARD;
 
-    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     core::matrix4 transform = controllers.globalTransform;
@@ -841,7 +838,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
 
 
     // Faces
-    buffer->Indices.reallocate(facesCount * 3);
     buffer->Indices.set_used(facesCount * 3);
 
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);
@@ -1025,7 +1021,6 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     const u16 bufferId = AnimatedMesh->getMeshBufferCount() - 1;
     buffer->VertexType = video::EVT_STANDARD;
 
-    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     u32 skinningIndex = 0;
@@ -1086,7 +1081,6 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
 
 
     // Faces
-    buffer->Indices.reallocate(facesCount * 3);
     buffer->Indices.set_used(facesCount * 3);
 
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);

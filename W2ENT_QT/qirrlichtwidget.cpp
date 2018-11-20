@@ -382,6 +382,7 @@ void QIrrlichtWidget::init ()
         _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_CEF(_device->getSceneManager(), _device->getFileSystem()));
 
         //_device->getSceneManager()->setAmbientLight(video::SColor(255,255,255,255));
     }

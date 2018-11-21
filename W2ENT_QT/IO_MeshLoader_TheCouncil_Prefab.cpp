@@ -53,24 +53,23 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
 
     QJsonDocument document = QJsonDocument::fromJson(qFileContent);
 
-    QJsonObject sett2 = document.object();
-    QJsonValue meshValue = sett2.value(QString("Mesh"));
-    QJsonObject mesh = meshValue.toObject();
+    QJsonObject root = document.object();
 
-    QJsonValue assetRefValue = mesh["AssetRef"];
-    QJsonObject assetRef = assetRefValue.toObject();
-    QJsonValue filepathValue = assetRef["FilePath"];
+    QJsonObject mesh = root["Mesh"].toObject();
+    QJsonObject assetRef = mesh["AssetRef"].toObject();
+    QString meshFilepath = assetRef["FilePath"].toString();
 
-    std::cout << "filepath=" << filepathValue.toString().toStdString().c_str() << std::endl;
-    QString meshPath = QString(ConfigGamePath.c_str()) + filepathValue.toString();
+    _log->addLineAndFlush(formatString("filepath = %s", meshFilepath.toStdString().c_str()));
 
-    int lastPoint = meshPath.lastIndexOf(".");
-    meshPath = meshPath.left(lastPoint);
-    meshPath += "_3205126866.cef";
+    QString fullMeshFilepath = QString(ConfigGamePath.c_str()) + meshFilepath;
 
-    std::cout << "new filepath=" << meshPath.toStdString().c_str() << std::endl;
+    int lastPoint = fullMeshFilepath.lastIndexOf(".");
+    fullMeshFilepath = fullMeshFilepath.left(lastPoint);
+    fullMeshFilepath += "_3205126866.cef";
 
-    io::IReadFile* meshFile = FileSystem->createAndOpenFile(meshPath.toStdString().c_str());
+    _log->addLineAndFlush(formatString("new filepath = %s", fullMeshFilepath.toStdString().c_str()));
+
+    io::IReadFile* meshFile = FileSystem->createAndOpenFile(fullMeshFilepath.toStdString().c_str());
     if (meshFile)
     {
         IO_MeshLoader_CEF cefLoader(SceneManager, FileSystem);
@@ -79,16 +78,15 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
         meshFile->drop();
     }
     else
-        std::cout << "File " << meshPath.toStdString().c_str() << " not found !" << std::endl;
+        std::cout << "File " << fullMeshFilepath.toStdString().c_str() << " not found !" << std::endl;
 
     // stop here if no mesh loaded, else we continue with the materials
     if (!AnimatedMesh)
         return AnimatedMesh;
 
-    // material node list
-    QJsonValue materialNodeListValue = sett2.value(QString("MaterialNodeList"));
-    QJsonArray materialNodeList = materialNodeListValue.toArray();
 
+    // material node list
+    QJsonArray materialNodeList = root.value(QString("MaterialNodeList")).toArray();
     foreach (const QJsonValue& materialNodeValue, materialNodeList)
     {
         QJsonObject materialNode = materialNodeValue.toObject();
@@ -96,11 +94,8 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
     }
 
 
-
     // node list
-    QJsonValue nodeListValue = sett2.value(QString("NodeList"));
-    QJsonArray nodeList = nodeListValue.toArray();
-
+    QJsonArray nodeList = root.value(QString("NodeList")).toArray();
     foreach (const QJsonValue& nodeValue, nodeList)
     {
         QJsonObject node = nodeValue.toObject();
@@ -111,7 +106,17 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
         {
             QJsonObject materialAsset = materialValue.toObject()["AssetRef"].toObject();
             QString materialFilepath = materialAsset["FilePath"].toString();
-            std::cout << "materialFilepath=" << materialFilepath.toStdString().c_str() << std::endl;
+            _log->addLineAndFlush(formatString("filepath = %s", materialFilepath.toStdString().c_str()));
+
+            QString materialPath = QString(ConfigGamePath.c_str()) + materialFilepath;
+
+            int lastPoint = materialPath.lastIndexOf(".");
+            materialPath = materialPath.left(lastPoint);
+            materialPath += "_0.mat";
+
+            _log->addLineAndFlush(formatString("new filepath = %s", materialPath.toStdString().c_str()));
+
+            video::SMaterial mat = readMaterialFile(materialPath);
         }
     }
 
@@ -119,7 +124,56 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
     return AnimatedMesh;
 }
 
-bool IO_MeshLoader_TheCouncil_Prefab::load(io::IReadFile* file)
+video::SMaterial IO_MeshLoader_TheCouncil_Prefab::readMaterialFile(QString path)
 {
+    video::SMaterial mat;
 
+    QString fileContent;
+    QFile file;
+    file.setFileName(path);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    fileContent = file.readAll();
+    file.close();
+
+    QJsonDocument d = QJsonDocument::fromJson(fileContent.toUtf8());
+    QJsonObject sett2 = d.object();
+
+    QJsonObject materialData = sett2.value(QString("Data")).toObject();
+    QJsonArray materialTextures = materialData["Textures"].toArray();
+    foreach (const QJsonValue& materialTexture, materialTextures)
+    {
+        QString UID = materialTexture["UID"].toString();
+        if (UID == "tTexture_Albedo")
+        {
+            QJsonObject texObjectAssetRef = materialTexture["Value"].toObject()["AssetRef"].toObject();
+            QString textureFilePath = texObjectAssetRef["FilePath"].toString();
+
+            _log->addLineAndFlush(formatString("filepath = %s", textureFilePath.toStdString().c_str()));
+
+            QString texturePath = QString(ConfigGamePath.c_str()) + textureFilePath;
+
+            int lastPoint = texturePath.lastIndexOf(".");
+            texturePath = texturePath.left(lastPoint);
+            texturePath += "_0.texture.dds";
+
+            _log->addLineAndFlush(formatString("new filepath = %s", texturePath.toStdString().c_str()));
+
+            video::ITexture* texture = nullptr;
+            if (FileSystem->existFile(texturePath.toStdString().c_str()))
+                texture = SceneManager->getVideoDriver()->getTexture(texturePath.toStdString().c_str());
+            else
+                _log->addLineAndFlush("Texture not found !");
+
+            if (texture)
+            {
+                mat.setTexture(0, texture);
+                _log->addLineAndFlush("Texture OK !");
+            }
+            else
+                _log->addLineAndFlush("Texture not supported !");
+        }
+    }
+
+
+    return mat;
 }

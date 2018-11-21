@@ -11,6 +11,7 @@
 #include "IReadFile.h"
 #include "Log.h"
 
+#include <QString>
 
 class IO_MeshLoader_TheCouncil_Prefab : public scene::IMeshLoader
 {
@@ -28,7 +29,7 @@ public:
     virtual scene::IAnimatedMesh* createMesh(io::IReadFile* file);
 
 private:
-    bool load(io::IReadFile* file);
+    video::SMaterial readMaterialFile(QString path);
 
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;

@@ -56,7 +56,8 @@ SOURCES += main.cpp\
     IO_SpeedTreeLoader.cpp \
     GUI_Extractor_TheCouncil.cpp \
     Extractor_TheCouncil.cpp \
-    IO_MeshLoader_CEF.cpp
+    IO_MeshLoader_CEF.cpp \
+    IO_MeshLoader_TheCouncil_Prefab.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -103,7 +104,8 @@ HEADERS  += \
     IO_SpeedTreeLoader.h \
     GUI_Extractor_TheCouncil.h \
     Extractor_TheCouncil.h \
-    IO_MeshLoader_CEF.h
+    IO_MeshLoader_CEF.h \
+    IO_MeshLoader_TheCouncil_Prefab.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \

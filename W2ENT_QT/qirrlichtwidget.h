@@ -22,6 +22,7 @@
 #include "IO_MeshWriter_RE.h"
 #include "IO_MeshLoader_WitcherMDL.h"
 #include "IO_MeshLoader_CEF.h"
+#include "IO_MeshLoader_TheCouncil_Prefab.h"
 
 #ifdef COMPILE_WITH_ASSIMP
     #include "IrrAssimp/IrrAssimp.h"

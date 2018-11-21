@@ -40,6 +40,8 @@ public:
     //! See IReferenceCounted::drop() for more information.
     virtual scene::IAnimatedMesh* createMesh(io::IReadFile* file);
 
+    core::array<core::stringc> bufferNames;
+
 private:
     bool load(io::IReadFile* file);
 

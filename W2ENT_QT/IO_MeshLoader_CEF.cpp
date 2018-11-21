@@ -109,6 +109,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         std::cout << "ADRESS = " << file->getPos() << std::endl;
         file->seek(80, true);
         core::stringc modelName = readStringUntilNull(file);
+        bufferNames.push_back(modelName);
         file->seek(120, true);
 
         u32 vertexSize = 0;

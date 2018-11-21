@@ -70,10 +70,12 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
     _log->addLineAndFlush(formatString("new filepath = %s", fullMeshFilepath.toStdString().c_str()));
 
     io::IReadFile* meshFile = FileSystem->createAndOpenFile(fullMeshFilepath.toStdString().c_str());
+    core::array<core::stringc> bufferNames;
     if (meshFile)
     {
         IO_MeshLoader_CEF cefLoader(SceneManager, FileSystem);
         AnimatedMesh = (scene::ISkinnedMesh*)cefLoader.createMesh(meshFile);
+        bufferNames = cefLoader.bufferNames;
 
         meshFile->drop();
     }
@@ -117,6 +119,16 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
             _log->addLineAndFlush(formatString("new filepath = %s", materialPath.toStdString().c_str()));
 
             video::SMaterial mat = readMaterialFile(materialPath);
+
+
+            for (u32 i = 0; i < bufferNames.size(); ++i)
+            {
+                if (QString(bufferNames[i].c_str()) == nodeName)
+                {
+                    AnimatedMesh->getMeshBuffer(i)->getMaterial() = mat;
+                    break;
+                }
+            }
         }
     }
 

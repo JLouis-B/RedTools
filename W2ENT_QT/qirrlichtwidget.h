@@ -23,6 +23,7 @@
 #include "IO_MeshLoader_WitcherMDL.h"
 #include "IO_MeshLoader_CEF.h"
 #include "IO_MeshLoader_TheCouncil_Prefab.h"
+#include "IO_SceneLoader_TheCouncil.h"
 
 #ifdef COMPILE_WITH_ASSIMP
     #include "IrrAssimp/IrrAssimp.h"
@@ -130,6 +131,7 @@ class QIrrlichtWidget : public QWidget
 
         bool loadTW1Anims(const io::path filename, core::stringc &feedbackMessage);
 
+        bool loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage);
 
     signals:
         void onInit (QIrrlichtWidget *irrWidget);

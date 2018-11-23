@@ -68,12 +68,16 @@ public slots :
 
     void selectTW1AnimationsFile();
 
+    void selectTheCouncilTemplate();
+
     void loadFileGeneric(QString path);
     void loadMesh(QString path);
     void loadRig(QString path);
     void loadAnimations(QString path);
 
     void loadTW1Animations(QString path);
+
+    void loadTheCouncilTemplate(QString path);
 
 
 private:

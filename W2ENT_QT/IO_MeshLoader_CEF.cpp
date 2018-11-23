@@ -101,6 +101,7 @@ u32 getComponentSize(VertexComponent component)
 // a starting point : http://forum.xentax.com/viewtopic.php?f=16&t=13367
 bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 {
+    // 7 bytes always the same + timestanp of the file (4 bytes)
     file->seek(11);
     u32 nbBuffer = readU32(file);
 

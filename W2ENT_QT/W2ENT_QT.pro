@@ -57,7 +57,9 @@ SOURCES += main.cpp\
     GUI_Extractor_TheCouncil.cpp \
     Extractor_TheCouncil.cpp \
     IO_MeshLoader_CEF.cpp \
-    IO_MeshLoader_TheCouncil_Prefab.cpp
+    IO_MeshLoader_TheCouncil_Prefab.cpp \
+    IO_SceneLoader_TheCouncil.cpp \
+    Utils_TheCouncil.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -105,7 +107,9 @@ HEADERS  += \
     GUI_Extractor_TheCouncil.h \
     Extractor_TheCouncil.h \
     IO_MeshLoader_CEF.h \
-    IO_MeshLoader_TheCouncil_Prefab.h
+    IO_MeshLoader_TheCouncil_Prefab.h \
+    IO_SceneLoader_TheCouncil.h \
+    Utils_TheCouncil.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \

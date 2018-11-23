@@ -11,6 +11,7 @@
 
 #include <iostream>
 
+#include "Utils_TheCouncil.h"
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 
@@ -63,28 +64,29 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
 
     QString fullMeshFilepath = QString(ConfigGamePath.c_str()) + meshFilepath;
 
-    int lastPoint = fullMeshFilepath.lastIndexOf(".");
-    fullMeshFilepath = fullMeshFilepath.left(lastPoint);
-    fullMeshFilepath += "_3205126866.cef";
-
-    _log->addLineAndFlush(formatString("new filepath = %s", fullMeshFilepath.toStdString().c_str()));
-
-    io::IReadFile* meshFile = FileSystem->createAndOpenFile(fullMeshFilepath.toStdString().c_str());
+    QFileInfo meshFileInfo = findFile(fullMeshFilepath);
     core::array<core::stringc> bufferNames;
-    if (meshFile)
+    if (meshFileInfo.exists())
     {
-        IO_MeshLoader_CEF cefLoader(SceneManager, FileSystem);
-        AnimatedMesh = (scene::ISkinnedMesh*)cefLoader.createMesh(meshFile);
-        bufferNames = cefLoader.bufferNames;
+        //_log->addLineAndFlush(formatString("new filepath = %s", fullMeshFilepath.toStdString().c_str()));
 
-        meshFile->drop();
+        io::IReadFile* meshFile = FileSystem->createAndOpenFile(meshFileInfo.absoluteFilePath().toStdString().c_str());
+
+        if (meshFile)
+        {
+            IO_MeshLoader_CEF cefLoader(SceneManager, FileSystem);
+            AnimatedMesh = (scene::ISkinnedMesh*)cefLoader.createMesh(meshFile);
+            bufferNames = cefLoader.bufferNames;
+
+            meshFile->drop();
+        }
+        else
+            std::cout << "File " << fullMeshFilepath.toStdString().c_str() << " not found !" << std::endl;
     }
-    else
-        std::cout << "File " << fullMeshFilepath.toStdString().c_str() << " not found !" << std::endl;
 
     // stop here if no mesh loaded, else we continue with the materials
     if (!AnimatedMesh)
-        return AnimatedMesh;
+        return nullptr;
 
 
     // material node list
@@ -112,21 +114,20 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
 
             QString materialPath = QString(ConfigGamePath.c_str()) + materialFilepath;
 
-            int lastPoint = materialPath.lastIndexOf(".");
-            materialPath = materialPath.left(lastPoint);
-            materialPath += "_0.mat";
-
-            _log->addLineAndFlush(formatString("new filepath = %s", materialPath.toStdString().c_str()));
-
-            video::SMaterial mat = readMaterialFile(materialPath);
-
-
-            for (u32 i = 0; i < bufferNames.size(); ++i)
+            QFileInfo materialFileInfo = findFile(materialPath);
+            if (materialFileInfo.exists())
             {
-                if (QString(bufferNames[i].c_str()) == nodeName)
+                _log->addLineAndFlush(formatString("new filepath = %s", materialFileInfo.absoluteFilePath().toStdString().c_str()));
+
+                video::SMaterial mat = readMaterialFile(materialFileInfo.absoluteFilePath());
+
+                for (u32 i = 0; i < bufferNames.size(); ++i)
                 {
-                    AnimatedMesh->getMeshBuffer(i)->getMaterial() = mat;
-                    break;
+                    if (QString(bufferNames[i].c_str()) == nodeName)
+                    {
+                        AnimatedMesh->getMeshBuffer(i)->getMaterial() = mat;
+                        break;
+                    }
                 }
             }
         }
@@ -140,11 +141,16 @@ video::SMaterial IO_MeshLoader_TheCouncil_Prefab::readMaterialFile(QString path)
 {
     video::SMaterial mat;
 
-    QString fileContent;
     QFile file;
     file.setFileName(path);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    fileContent = file.readAll();
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        _log->addLineAndFlush(formatString("Fail to open material file : %s", path.toStdString().c_str()));
+        _log->addLineAndFlush(file.errorString().toStdString().c_str());
+        return mat;
+    }
+
+    QString fileContent = file.readAll();
     file.close();
 
     QJsonDocument d = QJsonDocument::fromJson(fileContent.toUtf8());
@@ -152,10 +158,15 @@ video::SMaterial IO_MeshLoader_TheCouncil_Prefab::readMaterialFile(QString path)
 
     QJsonObject materialData = sett2.value(QString("Data")).toObject();
     QJsonArray materialTextures = materialData["Textures"].toArray();
+
+    int idxTex = 0;
     foreach (const QJsonValue& materialTexture, materialTextures)
     {
         QString UID = materialTexture["UID"].toString();
-        if (UID == "tTexture_Albedo")
+        if (idxTex == 0
+                || UID == "tTexture_Albedo"
+                || UID == "tTexture_Diff"
+                || UID == "tTexture_a")
         {
             QJsonObject texObjectAssetRef = materialTexture["Value"].toObject()["AssetRef"].toObject();
             QString textureFilePath = texObjectAssetRef["FilePath"].toString();
@@ -184,6 +195,8 @@ video::SMaterial IO_MeshLoader_TheCouncil_Prefab::readMaterialFile(QString path)
             else
                 _log->addLineAndFlush("Texture not supported !");
         }
+
+        ++idxTex;
     }
 
 

@@ -64,7 +64,7 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
 
     QString fullMeshFilepath = QString(ConfigGamePath.c_str()) + meshFilepath;
 
-    QFileInfo meshFileInfo = findFile(fullMeshFilepath);
+    QFileInfo meshFileInfo = findFile(fullMeshFilepath, false, true);
     core::array<core::stringc> bufferNames;
     if (meshFileInfo.exists())
     {
@@ -114,7 +114,7 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
 
             QString materialPath = QString(ConfigGamePath.c_str()) + materialFilepath;
 
-            QFileInfo materialFileInfo = findFile(materialPath);
+            QFileInfo materialFileInfo = findFile(materialPath, true, false);
             if (materialFileInfo.exists())
             {
                 _log->addLineAndFlush(formatString("new filepath = %s", materialFileInfo.absoluteFilePath().toStdString().c_str()));

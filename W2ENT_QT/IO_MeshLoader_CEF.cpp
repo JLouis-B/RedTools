@@ -108,9 +108,20 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
     for (u32 i = 0; i < nbBuffer; ++i)
     {
         std::cout << "ADRESS = " << file->getPos() << std::endl;
-        file->seek(80, true);
+        file->seek(8, true);
+        f32 offsetX = readF32(file);
+        f32 offsetY = readF32(file);
+        f32 offsetZ = readF32(file);
+        core::vector3df bufferOffset(offsetX, offsetY, offsetZ);
+
+        file->seek(32, true);
+
+        core::array<f32> boundingBox = readDataArray<f32>(file, 6);
+
+        file->seek(4, true);
         core::stringc modelName = readStringUntilNull(file);
         bufferNames.push_back(modelName);
+        std::cout << "modelName=" << modelName.c_str() << std::endl;
         file->seek(120, true);
 
         u32 vertexSize = 0;
@@ -145,7 +156,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                     f32 x = readF32(file);
                     f32 y = readF32(file);
                     f32 z = readF32(file);
-                    buffer->Vertices_Standard[j].Pos = core::vector3df(x, y, z);
+                    buffer->Vertices_Standard[j].Pos = core::vector3df(x, y, z) + bufferOffset;
                     file->seek(4, true);
                 }
                 else

@@ -4,7 +4,7 @@
 #include <QFileInfo>
 
 
-QFileInfo findFile(QString base);
+QFileInfo findFile(QString base, bool checkJSon, bool checkCEF);
 
 
 #endif // UTILS_THECOUNCIL_H

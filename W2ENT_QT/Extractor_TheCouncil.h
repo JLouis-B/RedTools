@@ -10,9 +10,8 @@
 struct TheCouncilFileEntry
 {
     QString filename;
-    quint32 offset;
+    quint64 offset;
     quint32 size;
-    quint32 unknown;
 };
 
 class Extractor_TheCouncil : public QObject

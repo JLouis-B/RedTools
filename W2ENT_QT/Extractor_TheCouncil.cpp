@@ -42,12 +42,11 @@ void Extractor_TheCouncil::extractCPKFile(QFile& file, QString exportFolder)
 
     quint32 nbFiles = readUInt32(file);
     QString root = readStringFixedSize(file, 512);
-    for(int i = 0; i < nbFiles; ++i)
+    for(quint32 i = 0; i < nbFiles; ++i)
     {
         TheCouncilFileEntry entry;
         entry.size = readUInt32(file);
-        entry.offset = readUInt32(file);
-        entry.unknown = readUInt32(file);
+        entry.offset = readUInt64(file);
         entry.filename = readStringFixedSize(file, 512);
         Log::Instance()->addLineAndFlush(formatString("-> %s", entry.filename.toStdString().c_str()));
 
@@ -63,7 +62,7 @@ void Extractor_TheCouncil::extractCPKFile(QFile& file, QString exportFolder)
 
 
         QString filename = entry.filename;
-        const QString newFileFilename = exportFolder + "/" + filename;
+        const QString newFileFilename = exportFolder + "/" + root + filename;
         QFileInfo newFileInfo(newFileFilename);
 
         QDir dir = newFileInfo.absoluteDir();

@@ -67,6 +67,8 @@ VertexComponent readVertexComponent(io::IReadFile* file)
         vComponent = VERTEX_TANGENT;
     else if (component == "TEXCOORD")
         vComponent = VERTEX_TEXCOORD;
+    else if (component == "INDICE")
+        vComponent = VERTEX_INDICE;
     else
     {
         file->seek(-16, true);
@@ -94,7 +96,8 @@ u32 getComponentSize(VertexComponent component)
         return 8;
     case VERTEX_TANGENT:
         return 8;
-
+    case VERTEX_INDICE:
+        return 2*3;
     }
 }
 
@@ -122,18 +125,26 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         core::stringc modelName = readStringUntilNull(file);
         bufferNames.push_back(modelName);
         std::cout << "modelName=" << modelName.c_str() << std::endl;
-        file->seek(120, true);
+        //file->seek(120, true);
+        file->seek(4, true);
+        core::array<f32> unkFloats = readDataArray<f32>(file, 2);
+        std::cout << "unkown float 1 = " << unkFloats[0] << std::endl;
+        std::cout << "unkown float 2 = " << unkFloats[1] << std::endl; // 1.0 ?
 
-        u32 vertexSize = 0;
+        file->seek(28, true);
+        u32 nbVertices = readU32(file);
+        file->seek(4, true);
+        u32 nbTriangles = readU32(file);
+        file->seek(44, true);
+
+        file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
+        u32 nbVertexComponents = readU32(file);
+        file->seek(8, true); // uint32 + 00 00 CD AB
+
         core::array<VertexComponent> components;
-        VertexComponent component = VERTEX_POSITION;
-        while (component != VERTEX_ERROR)
+        for (u32 j = 0; j < nbVertexComponents; ++j)
         {
-            component = readVertexComponent(file);
-            if (component == VERTEX_ERROR)
-                break;
-
-            vertexSize += getComponentSize(component);
+            VertexComponent component = readVertexComponent(file);
             components.push_back(component);
         }
 
@@ -141,10 +152,9 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         file->seek(10, true);
         u32 nbSet = readU32(file);
 
-        u32 nbVertices = chunkSize / vertexSize;
-
         scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
         buffer->Vertices_Standard.set_used(nbVertices);
+        buffer->Indices.set_used(nbTriangles * 3);
         for (u32 j = 0; j < nbVertices; ++j)
         {
             buffer->Vertices_Standard[j].Color = video::SColor(255.f, 255.f, 255.f, 255.f);            
@@ -169,16 +179,14 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         std::cout << "NB VERTEX = " << nbVertices << std::endl;
         buffer->recalculateBoundingBox();
 
-        file->seek(24, true);
+        file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
+        nbVertexComponents = readU32(file);
+        file->seek(8, true); // uint32 + 00 00 CD AB
 
         components.clear();
-        component = VERTEX_POSITION;
-        while (component != VERTEX_ERROR)
+        for (u32 j = 0; j < nbVertexComponents; ++j)
         {
-            component = readVertexComponent(file);
-            if (component == VERTEX_ERROR)
-                break;
-
+            VertexComponent component = readVertexComponent(file);
             components.push_back(component);
         }
 
@@ -209,16 +217,24 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         std::cout << "nbSet = " << nbSet << std::endl;
         std::cout << "chunkSize = " << chunkSize << std::endl;
         //file->seek(chunkSize, true);
-        file->seek(24, true);
+        file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
+        nbVertexComponents = readU32(file);
+        file->seek(8, true); // uint32 + 00 00 CD AB
 
-        file->seek(44, true);
+        components.clear();
+        for (u32 j = 0; j < nbVertexComponents; ++j)
+        {
+            VertexComponent component = readVertexComponent(file);
+            components.push_back(component);
+        }
+
         chunkSize = readU32(file);
         file->seek(10, true);
         nbSet = readU32(file);
 
         std::cout << "ADRESS = " << file->getPos() << std::endl;
-        u32 nbTriangles = chunkSize / 6;
-        buffer->Indices.set_used(chunkSize / 2);
+
+        /*
         for (u32 j = 0; j < nbTriangles; ++j)
         {
             buffer->Indices[j * 3 + 0] = readU16(file);
@@ -226,7 +242,21 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
             buffer->Indices[j * 3 + 2] = readU16(file);
 
         }
+        */
 
+        for (u32 j = 0; j < nbTriangles; ++j)
+        {
+            for (u32 h = 0; h < components.size(); ++h)
+            {
+                const VertexComponent c = components[h];
+                if (c == VERTEX_INDICE)
+                {
+                    buffer->Indices[j * 3 + 0] = readU16(file);
+                    buffer->Indices[j * 3 + 1] = readU16(file);
+                    buffer->Indices[j * 3 + 2] = readU16(file);
+                }
+            }
+        }
 
         std::cout << "ADRESS = " << file->getPos() << std::endl;
 
@@ -255,6 +285,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 
         u32 unknown2 = readU32(file);
         core::stringc effectName =readStringFixedSize(file, 256);
+        std::cout << "Effect = " << effectName.c_str() << std::endl;
     }
 
     return true;

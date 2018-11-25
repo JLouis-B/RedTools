@@ -22,6 +22,8 @@ enum VertexComponent
     VERTEX_TANGENT,
     VERTEX_TEXCOORD,
 
+    VERTEX_INDICE,
+
     VERTEX_ERROR
 };
 

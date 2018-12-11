@@ -3,7 +3,9 @@
 
 GUI_Extractor_TheCouncil::GUI_Extractor_TheCouncil(QWidget *parent) :
     QDialog(parent),
-    _ui(new Ui::GUI_Extractor_TheCouncil)
+    _ui(new Ui::GUI_Extractor_TheCouncil),
+    _thread(nullptr),
+    _extractor(nullptr)
 {
     _ui->setupUi(this);
 

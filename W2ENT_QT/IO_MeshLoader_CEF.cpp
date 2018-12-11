@@ -104,6 +104,8 @@ u32 getComponentSize(VertexComponent component)
 // a starting point : http://forum.xentax.com/viewtopic.php?f=16&t=13367
 bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 {
+    scene::ISkinnedMesh::SJoint* rootJoint = AnimatedMesh->addJoint();
+
     // 7 bytes always the same + timestanp of the file (4 bytes)
     file->seek(11);
     u32 nbBuffer = readU32(file);
@@ -234,15 +236,6 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 
         std::cout << "ADRESS = " << file->getPos() << std::endl;
 
-        /*
-        for (u32 j = 0; j < nbTriangles; ++j)
-        {
-            buffer->Indices[j * 3 + 0] = readU16(file);
-            buffer->Indices[j * 3 + 1] = readU16(file);
-            buffer->Indices[j * 3 + 2] = readU16(file);
-
-        }
-        */
 
         for (u32 j = 0; j < nbTriangles; ++j)
         {
@@ -267,20 +260,53 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 
         if (nbBones > 0)
         {
+            core::array<scene::ISkinnedMesh::SJoint*> joints;
+
             // bones
             for (u32 j = 0; j < nbBones; ++j)
             {
                 core::stringc name = readStringUntilNull(file);
-                scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
+                scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint(rootJoint);
                 joint->Name = name;
+                joints.push_back(joint);
             }
 
-            // bones transform ?
+            // bones transform
             for (u32 j = 0; j < nbBones; ++j)
             {
-                file->seek(32, true);
+                scene::ISkinnedMesh::SJoint* joint = joints[j];
+
+                // quaternion + translaction + scale ?
+                core::array<f32> unkFloats = readDataArray<f32>(file, 8);
+                //for  (u32 h = 0; h < 8; ++h)
+                //    std::cout << h << " : " << unkFloats[h] << std::endl;
+
+                // rotation
+                core::quaternion q(unkFloats[0], unkFloats[1], unkFloats[2], unkFloats[3]);
+                core::vector3df rotation;
+                q.toEuler(rotation);
+
+                // position
+                core::vector3df position(unkFloats[4], unkFloats[5], unkFloats[6]);
+
+                // scale
+                core::vector3df scale(unkFloats[7], unkFloats[7], unkFloats[7]);
+
+
+
+                core::matrix4 positionMatrix;
+                positionMatrix.setTranslation(-position);
+                core::matrix4 scaleMatrix;
+                scaleMatrix.setScale(scale);
+                core::matrix4 rotationMatrix;
+                rotationMatrix.setRotationRadians(rotation);
+                core::matrix4 invRotationMatrix;
+                rotationMatrix.getInverse(invRotationMatrix);
+
+                joint->GlobalMatrix = scaleMatrix * invRotationMatrix * positionMatrix;
+                joint->LocalMatrix = joint->GlobalMatrix;
             }
-            file->seek(36, true);
+            file->seek(36, true); // 00000000000000...
         }
 
         u32 unknown2 = readU32(file);

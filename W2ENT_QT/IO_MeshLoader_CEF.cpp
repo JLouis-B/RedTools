@@ -38,7 +38,6 @@ scene::IAnimatedMesh* IO_MeshLoader_CEF::createMesh(io::IReadFile* file)
 
     if (load(file))
     {
-        SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         AnimatedMesh->finalize();
     }
     else
@@ -210,11 +209,14 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         nbVertexComponents = readU32(file);
         file->seek(8, true); // uint32 + 00 00 CD AB
 
+        bool hasNormals = false;
         components.clear();
         for (u32 j = 0; j < nbVertexComponents; ++j)
         {
             VertexComponent component = readVertexComponent(file);
             components.push_back(component);
+            if (component == VERTEX_NORMAL)
+                hasNormals = true;
         }
 
 
@@ -232,6 +234,24 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                     f32 u = readF32(file);
                     f32 v = readF32(file);
                     buffer->Vertices_Standard[j].TCoords = core::vector2df(u, v);
+                }
+                else if (c == VERTEX_NORMAL)
+                {
+                    f32 nX = halfToFloat(readU16(file));
+                    f32 nY = halfToFloat(readU16(file));
+                    f32 nZ = halfToFloat(readU16(file));
+                    f32 nW = halfToFloat(readU16(file));
+                    //std::cout << "X=" << nX << ", Y=" << nY << ", Z=" << nZ << ", W=" << nW << std::endl;
+
+                    buffer->Vertices_Standard[j].Normal = core::vector3df(nX, nY, nZ);
+                }
+                else if (c == VERTEX_TANGENT)
+                {
+                    f32 tX = halfToFloat(readU16(file));
+                    f32 tY = halfToFloat(readU16(file));
+                    f32 tZ = halfToFloat(readU16(file));
+                    f32 tW = halfToFloat(readU16(file));
+                    //std::cout << "X=" << tX << ", Y=" << tY << ", Z=" << tZ << ", W=" << tW << std::endl;
                 }
                 else
                 {
@@ -355,6 +375,9 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         u32 unknown2 = readU32(file);
         core::stringc effectName =readStringFixedSize(file, 256);
         std::cout << "Effect = " << effectName.c_str() << std::endl;
+
+        if (!hasNormals)
+            SceneManager->getMeshManipulator()->recalculateNormals(buffer);
     }
 
     return true;

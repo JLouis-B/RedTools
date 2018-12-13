@@ -27,6 +27,20 @@ enum VertexComponent
     VERTEX_ERROR
 };
 
+struct CEF_Weight
+{
+    CEF_Weight()
+    {
+        _weight = 0.f;
+        _boneId = 0;
+        _vertex = 0;
+    }
+
+    f32 _weight;
+    u32 _boneId;
+    u32 _vertex;
+};
+
 class IO_MeshLoader_CEF : public scene::IMeshLoader
 {
 public:

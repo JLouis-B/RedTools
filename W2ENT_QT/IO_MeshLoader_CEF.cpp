@@ -9,6 +9,7 @@
 
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
+#include "Utils_Halffloat.h"
 
 IO_MeshLoader_CEF::IO_MeshLoader_CEF(scene::ISceneManager* smgr, io::IFileSystem* fs)
     : SceneManager(smgr), FileSystem(fs)
@@ -87,9 +88,9 @@ u32 getComponentSize(VertexComponent component)
     case VERTEX_POSITION:
         return 16;
     case VERTEX_BLENDINDICE:
-        return 6;
+        return 4;
     case VERTEX_BLENDWEIGHT:
-        return 6;
+        return 8;
     case VERTEX_TEXCOORD:
         return 8;
     case VERTEX_NORMAL:
@@ -154,6 +155,11 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         file->seek(10, true);
         u32 nbSet = readU32(file);
 
+        std::cout << "ADRESS BUFFER = " << file->getPos() << std::endl;
+        core::array<CEF_Weight> weights;
+        weights.set_used(nbVertices * 4);
+
+
         scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
         buffer->Vertices_Standard.set_used(nbVertices);
         buffer->Indices.set_used(nbTriangles * 3);
@@ -170,6 +176,25 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                     f32 z = readF32(file);
                     buffer->Vertices_Standard[j].Pos = core::vector3df(x, y, z) + bufferOffset;
                     file->seek(4, true);
+                }
+                else if (c == VERTEX_BLENDINDICE)
+                {
+                    core::array<u8> blendIndices = readDataArray<u8>(file, 4);
+                    for (u32 k = 0; k < 4; ++k)
+                    {
+                        weights[j*4 + 3-k]._boneId = blendIndices[k];
+                        //std::cout << k << " : " << (int)blendIndices[k] << std::endl;
+                    }
+                }
+                else if (c == VERTEX_BLENDWEIGHT)
+                {
+                    core::array<u16> blendWeight = readDataArray<u16>(file, 4);
+                    for (u32 k = 0; k < 4; ++k)
+                    {
+                        weights[j*4 + k]._weight = halfToFloat(blendWeight[k]);
+                        weights[j*4 + k]._vertex = j;
+                        //std::cout << "BLEND WEIGHT " << k << " : " << halfToFloat(blendWeight[k]) << std::endl;
+                    }
                 }
                 else
                 {
@@ -305,8 +330,26 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 
                 joint->GlobalMatrix = scaleMatrix * invRotationMatrix * positionMatrix;
                 joint->LocalMatrix = joint->GlobalMatrix;
+
+                joint->Animatedposition = joint->LocalMatrix.getTranslation();
+                joint->Animatedrotation = core::quaternion(joint->LocalMatrix.getRotationDegrees()).makeInverse();
+                joint->Animatedscale = joint->LocalMatrix.getScale();
             }
             file->seek(36, true); // 00000000000000...
+
+
+            // Add weights
+            for (u32 j = 0; j < weights.size(); ++j)
+            {
+                const CEF_Weight cw = weights[j];
+                if (cw._weight > 0.f)
+                {
+                    scene::ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(AnimatedMesh->getAllJoints()[cw._boneId]);
+                    w->buffer_id = i;
+                    w->strength = cw._weight;
+                    w->vertex_id = cw._vertex;
+                }
+            }
         }
 
         u32 unknown2 = readU32(file);

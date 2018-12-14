@@ -12,7 +12,7 @@
 #include "Log.h"
 
 
-enum VertexComponent
+enum VertexComponentType
 {
     VERTEX_POSITION,
     VERTEX_BLENDWEIGHT,
@@ -25,6 +25,12 @@ enum VertexComponent
     VERTEX_INDICE,
 
     VERTEX_ERROR
+};
+
+struct VertexComponent
+{
+    VertexComponentType _type;
+    u32 _nbUV;
 };
 
 struct CEF_Weight

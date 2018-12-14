@@ -53,35 +53,44 @@ scene::IAnimatedMesh* IO_MeshLoader_CEF::createMesh(io::IReadFile* file)
 
 VertexComponent readVertexComponent(io::IReadFile* file)
 {
-    VertexComponent vComponent = VERTEX_ERROR;
+    VertexComponent vComponent;
+    vComponent._type = VERTEX_ERROR;
     core::stringc component = readStringFixedSize(file, 16);
     if (component == "POSITION")
-        vComponent = VERTEX_POSITION;
+        vComponent._type = VERTEX_POSITION;
     else if (component == "BLENDWEIGHT")
-        vComponent = VERTEX_BLENDWEIGHT;
+        vComponent._type = VERTEX_BLENDWEIGHT;
     else if (component == "BLENDINDICES")
-        vComponent = VERTEX_BLENDINDICE;
+        vComponent._type = VERTEX_BLENDINDICE;
     else if (component == "NORMAL")
-        vComponent = VERTEX_NORMAL;
+        vComponent._type = VERTEX_NORMAL;
     else if (component == "TANGENT")
-        vComponent = VERTEX_TANGENT;
+        vComponent._type = VERTEX_TANGENT;
     else if (component == "TEXCOORD")
-        vComponent = VERTEX_TEXCOORD;
+        vComponent._type = VERTEX_TEXCOORD;
     else if (component == "INDICE")
-        vComponent = VERTEX_INDICE;
+        vComponent._type = VERTEX_INDICE;
     else
     {
         file->seek(-16, true);
-        return VERTEX_ERROR;
+        return vComponent;
     }
 
-    file->seek(28, true);
+    file->seek(20, true);
+    u32 unk = readU32(file);
+    if (vComponent._type == VERTEX_TEXCOORD)
+    {
+        vComponent._nbUV = unk - 114;
+    }
+
+    file->seek(4, true); // 1
+
     return vComponent;
 }
 
 u32 getComponentSize(VertexComponent component)
 {
-    switch (component) {
+    switch (component._type) {
     case VERTEX_ERROR:
         return 0;
     case VERTEX_POSITION:
@@ -91,13 +100,13 @@ u32 getComponentSize(VertexComponent component)
     case VERTEX_BLENDWEIGHT:
         return 8;
     case VERTEX_TEXCOORD:
-        return 8;
+        return component._nbUV * 2;
     case VERTEX_NORMAL:
         return 8;
     case VERTEX_TANGENT:
         return 8;
     case VERTEX_INDICE:
-        return 2*3;
+        return 6;
     }
 }
 
@@ -140,11 +149,11 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         file->seek(44, true);
 
         file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
-        u32 nbVertexComponents = readU32(file);
+        u32 nbVertexComponentTypes = readU32(file);
         file->seek(8, true); // uint32 + 00 00 CD AB
 
         core::array<VertexComponent> components;
-        for (u32 j = 0; j < nbVertexComponents; ++j)
+        for (u32 j = 0; j < nbVertexComponentTypes; ++j)
         {
             VertexComponent component = readVertexComponent(file);
             components.push_back(component);
@@ -168,7 +177,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
             for (u32 h = 0; h < components.size(); ++h)
             {
                 const VertexComponent c = components[h];
-                if (c == VERTEX_POSITION)
+                if (c._type == VERTEX_POSITION)
                 {
                     f32 x = readF32(file);
                     f32 y = readF32(file);
@@ -176,7 +185,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                     buffer->Vertices_Standard[j].Pos = core::vector3df(x, y, z) + bufferOffset;
                     file->seek(4, true);
                 }
-                else if (c == VERTEX_BLENDINDICE)
+                else if (c._type == VERTEX_BLENDINDICE)
                 {
                     core::array<u8> blendIndices = readDataArray<u8>(file, 4);
                     for (u32 k = 0; k < 4; ++k)
@@ -185,7 +194,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                         //std::cout << k << " : " << (int)blendIndices[k] << std::endl;
                     }
                 }
-                else if (c == VERTEX_BLENDWEIGHT)
+                else if (c._type == VERTEX_BLENDWEIGHT)
                 {
                     core::array<u16> blendWeight = readDataArray<u16>(file, 4);
                     for (u32 k = 0; k < 4; ++k)
@@ -206,16 +215,16 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         buffer->recalculateBoundingBox();
 
         file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
-        nbVertexComponents = readU32(file);
+        nbVertexComponentTypes = readU32(file);
         file->seek(8, true); // uint32 + 00 00 CD AB
 
         bool hasNormals = false;
         components.clear();
-        for (u32 j = 0; j < nbVertexComponents; ++j)
+        for (u32 j = 0; j < nbVertexComponentTypes; ++j)
         {
             VertexComponent component = readVertexComponent(file);
             components.push_back(component);
-            if (component == VERTEX_NORMAL)
+            if (component._type == VERTEX_NORMAL)
                 hasNormals = true;
         }
 
@@ -229,13 +238,24 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
             for (u32 h = 0; h < components.size(); ++h)
             {
                 const VertexComponent c = components[h];
-                if (c == VERTEX_TEXCOORD)
+                if (c._type == VERTEX_TEXCOORD)
                 {
                     f32 u = readF32(file);
                     f32 v = readF32(file);
                     buffer->Vertices_Standard[j].TCoords = core::vector2df(u, v);
+
+                    // Only 1 UV channel at the moment
+                    file->seek((c._nbUV - 1) * 8, true);
+                    /*
+                    if (c._nbUV > 1)
+                    {
+                        f32 u2 = readF32(file);
+                        f32 v2 = readF32(file);
+                        std::cout << "U2=" << u2 << ", V2=" << v2 << std::endl;
+                    }
+                    */
                 }
-                else if (c == VERTEX_NORMAL)
+                else if (c._type == VERTEX_NORMAL)
                 {
                     f32 nX = halfToFloat(readU16(file));
                     f32 nY = halfToFloat(readU16(file));
@@ -245,7 +265,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 
                     buffer->Vertices_Standard[j].Normal = core::vector3df(nX, nY, nZ);
                 }
-                else if (c == VERTEX_TANGENT)
+                else if (c._type == VERTEX_TANGENT)
                 {
                     f32 tX = halfToFloat(readU16(file));
                     f32 tY = halfToFloat(readU16(file));
@@ -265,11 +285,11 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         std::cout << "chunkSize = " << chunkSize << std::endl;
         //file->seek(chunkSize, true);
         file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
-        nbVertexComponents = readU32(file);
+        nbVertexComponentTypes = readU32(file);
         file->seek(8, true); // uint32 + 00 00 CD AB
 
         components.clear();
-        for (u32 j = 0; j < nbVertexComponents; ++j)
+        for (u32 j = 0; j < nbVertexComponentTypes; ++j)
         {
             VertexComponent component = readVertexComponent(file);
             components.push_back(component);
@@ -287,7 +307,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
             for (u32 h = 0; h < components.size(); ++h)
             {
                 const VertexComponent c = components[h];
-                if (c == VERTEX_INDICE)
+                if (c._type == VERTEX_INDICE)
                 {
                     buffer->Indices[j * 3 + 0] = readU16(file);
                     buffer->Indices[j * 3 + 1] = readU16(file);

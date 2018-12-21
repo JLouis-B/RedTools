@@ -57,6 +57,11 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
     QJsonObject root = document.object();
 
     QJsonObject mesh = root["Mesh"].toObject();
+    if (!mesh.contains("AssetRef")) // no mesh
+    {
+        return SceneManager->createSkinnedMesh();
+    }
+
     QJsonObject assetRef = mesh["AssetRef"].toObject();
     QString meshFilepath = assetRef["FilePath"].toString();
 

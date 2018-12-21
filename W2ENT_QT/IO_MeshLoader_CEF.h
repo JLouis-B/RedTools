@@ -21,6 +21,7 @@ enum VertexComponentType
     VERTEX_NORMAL,
     VERTEX_TANGENT,
     VERTEX_TEXCOORD,
+    VERTEX_COLOR,
 
     VERTEX_INDICE,
 

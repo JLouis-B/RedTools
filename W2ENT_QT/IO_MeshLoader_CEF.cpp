@@ -68,6 +68,8 @@ VertexComponent readVertexComponent(io::IReadFile* file)
         vComponent._type = VERTEX_TANGENT;
     else if (component == "TEXCOORD")
         vComponent._type = VERTEX_TEXCOORD;
+    else if (component == "COLOR")
+        vComponent._type = VERTEX_COLOR;
     else if (component == "INDICE")
         vComponent._type = VERTEX_INDICE;
     else
@@ -100,11 +102,13 @@ u32 getComponentSize(VertexComponent component)
     case VERTEX_BLENDWEIGHT:
         return 8;
     case VERTEX_TEXCOORD:
-        return component._nbUV * 2;
+        return component._nbUV * 8;
     case VERTEX_NORMAL:
         return 8;
     case VERTEX_TANGENT:
         return 8;
+    case VERTEX_COLOR:
+        return 4;
     case VERTEX_INDICE:
         return 6;
     }

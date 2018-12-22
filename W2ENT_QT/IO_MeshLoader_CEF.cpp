@@ -277,6 +277,16 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                     f32 tW = halfToFloat(readU16(file));
                     //std::cout << "X=" << tX << ", Y=" << tY << ", Z=" << tZ << ", W=" << tW << std::endl;
                 }
+                else if (c._type == VERTEX_COLOR)
+                {
+                    // TODO: check if it's RGBA or ARBG or something else ?
+                    u8 r = readU8(file);
+                    u8 g = readU8(file);
+                    u8 b = readU8(file);
+                    u8 a = readU8(file);
+                    buffer->Vertices_Standard[j].Color = video::SColor(a, r, g, b);
+                    //std::cout << "R=" << (int)r << ", G=" << (int)g << ", B=" << (int)b << ", A=" << (int)a << std::endl;
+                }
                 else
                 {
                     file->seek(getComponentSize(c), true);

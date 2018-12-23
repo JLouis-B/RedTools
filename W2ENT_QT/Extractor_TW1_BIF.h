@@ -36,7 +36,7 @@ class Extractor_TW1_BIF : public QObject
     int _lastProgression;
 
     QString getExtensionFromResourceType(unsigned short resourceType);
-    QMap<unsigned short, QString> getResourceTypeMap();
+    void createResourceTypeMap();
 
     QString _file;
     QString _folder;

@@ -53,7 +53,13 @@ SOURCES += main.cpp\
     Extractor_TW3_CACHE.cpp \
     Utils_Qt_Irr.cpp \
     GUI_About.cpp \
-    IO_SpeedTreeLoader.cpp
+    IO_SpeedTreeLoader.cpp \
+    GUI_Extractor_TheCouncil.cpp \
+    Extractor_TheCouncil.cpp \
+    IO_MeshLoader_CEF.cpp \
+    IO_MeshLoader_TheCouncil_Prefab.cpp \
+    IO_SceneLoader_TheCouncil.cpp \
+    Utils_TheCouncil.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -97,7 +103,13 @@ HEADERS  += \
     GUI_Extractor_TW3_CACHE.h \
     Extractor_TW3_CACHE.h \
     GUI_About.h \
-    IO_SpeedTreeLoader.h
+    IO_SpeedTreeLoader.h \
+    GUI_Extractor_TheCouncil.h \
+    Extractor_TheCouncil.h \
+    IO_MeshLoader_CEF.h \
+    IO_MeshLoader_TheCouncil_Prefab.h \
+    IO_SceneLoader_TheCouncil.h \
+    Utils_TheCouncil.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \
@@ -111,11 +123,12 @@ FORMS    += \
     GUI_CleanTexturesPath.ui \
     GUI_Extractor_TW3_BUNDLE.ui \
     GUI_Extractor_TW3_CACHE.ui \
-    GUI_About.ui
+    GUI_About.ui \
+    GUI_Extractor_TheCouncil.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5639-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5639-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\code\libassimp.dll.a

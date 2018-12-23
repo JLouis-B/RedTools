@@ -91,6 +91,9 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_TW3_Show_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
     QObject::connect(_ui->action_TW3_LUA_utils_Clean_textures_path_depreciated, SIGNAL(triggered()), this, SLOT(cleanTexturesPath()));
 
+    QObject::connect(_ui->actionThe_Council_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
+    QObject::connect(_ui->actionLoad_The_Council_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
+
     QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
     QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
 
@@ -315,6 +318,13 @@ void GUI_MainWindow::selectTW1AnimationsFile()
     QString file = QFileDialog::getOpenFileName(this, "Select the MBA file to load", Settings::_pack0, "The Witcher 1 animations (*.mba)");
     if (file != "")
         loadTW1Animations(file);
+}
+
+void GUI_MainWindow::selectTheCouncilTemplate()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select the template file to load", Settings::_pack0, "The Council template (*.template)");
+    if (file != "")
+        loadTheCouncilTemplate(file);
 }
 
 void GUI_MainWindow::convert()
@@ -563,6 +573,12 @@ void GUI_MainWindow::bundleExtractor()
     bundle->show();
 }
 
+void GUI_MainWindow::thecouncilExtractor()
+{
+    GUI_Extractor_TheCouncil* CPK = new GUI_Extractor_TheCouncil(this);
+    CPK->show();
+}
+
 void GUI_MainWindow::loadFileGeneric(QString path)
 {
     const io::path filenamePath = QSTRING_TO_PATH(path);
@@ -647,10 +663,10 @@ void GUI_MainWindow::loadRig(QString path)
     addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
 
     core::stringc feedback;
-    bool sucess = _irrWidget->loadRig(QSTRING_TO_PATH(path), feedback);
+    bool success = _irrWidget->loadRig(QSTRING_TO_PATH(path), feedback);
 
-    if (sucess)
-        QMessageBox::information(this, "Sucess", feedback.c_str());
+    if (success)
+        QMessageBox::information(this, "success", feedback.c_str());
     else
         QMessageBox::critical(this, "Error", feedback.c_str());
 
@@ -668,7 +684,7 @@ void GUI_MainWindow::loadAnimations(QString path)
     addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
 
     core::stringc feedback;
-    bool sucess = _irrWidget->loadAnims(QSTRING_TO_PATH(path), feedback);
+    bool success = _irrWidget->loadAnims(QSTRING_TO_PATH(path), feedback);
 
     addToUILog(QString(feedback.c_str()) + "\n");
     updateWindowTitle();
@@ -684,8 +700,20 @@ void GUI_MainWindow::loadTW1Animations(QString path)
     addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
 
     core::stringc feedback;
-    bool sucess = _irrWidget->loadTW1Anims(QSTRING_TO_PATH(path), feedback);
+    bool success = _irrWidget->loadTW1Anims(QSTRING_TO_PATH(path), feedback);
 
     addToUILog(QString(feedback.c_str()) + "\n");
     updateWindowTitle();
+}
+
+void GUI_MainWindow::loadTheCouncilTemplate(QString path)
+{
+    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    {
+        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+        return;
+    }
+    core::stringc feedback;
+    bool success = _irrWidget->loadTheCouncilTemplate(QSTRING_TO_PATH(path), feedback);
+    addToUILog(QString(feedback.c_str()) + "\n");
 }

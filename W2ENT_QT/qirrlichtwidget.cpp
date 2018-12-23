@@ -121,9 +121,9 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
 
     scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), false);
 
-    bool sucess = skeleton.applyToModel(newMesh);
-    if (sucess)
-        feedbackMessage = "Rig sucessfully applied";
+    bool success = skeleton.applyToModel(newMesh);
+    if (success)
+        feedbackMessage = "Rig successfully applied";
     else
         feedbackMessage = "The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?";
 
@@ -137,8 +137,23 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
     _currentLodData->_node->setMesh(newMesh);
 
     setMaterialsSettings(_currentLodData->_node);
-    return sucess;
+    return success;
 }
+
+bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage)
+{
+    _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_pack0.toStdString().c_str());
+
+    bool success = _device->getSceneManager()->loadScene(filename);
+    if (success)
+        feedbackMessage = "Template sucessfully loaded";
+    else
+        feedbackMessage = "Fail to load template";
+
+    return success;
+}
+
 
 QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     QWidget (parent),
@@ -382,6 +397,10 @@ void QIrrlichtWidget::init ()
         _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
         _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_CEF(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_TheCouncil_Prefab(_device->getSceneManager(), _device->getFileSystem()));
+
+        _device->getSceneManager()->addExternalSceneLoader(new IO_SceneLoader_TheCouncil(_device->getSceneManager(), _device->getFileSystem()));
 
         //_device->getSceneManager()->setAmbientLight(video::SColor(255,255,255,255));
     }

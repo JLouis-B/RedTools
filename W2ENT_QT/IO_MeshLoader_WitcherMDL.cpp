@@ -337,7 +337,6 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
             file->seek(back);
         }
 
-        SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         AnimatedMesh->finalize();
     }
     else
@@ -622,7 +621,6 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
     buffer->VertexType = video::EVT_STANDARD;
 
     //std::cout << "nb vertex = " << vertexDef.nbUsedEntries << std::endl;
-    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     core::matrix4 transform = controllers.globalTransform;
@@ -652,9 +650,9 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
     for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
     {
-        f32 x = readF32(file);
-        f32 y = readF32(file);
-        f32 z = readF32(file);
+        f32 x = readS16(file) / 8192.f;
+        f32 y = readS16(file) / 8192.f;
+        f32 z = readS16(file) / 8192.f;
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
     }
 
@@ -683,7 +681,6 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
 
 
     // Faces
-    buffer->Indices.reallocate(facesCount * 3);
     buffer->Indices.set_used(facesCount * 3);
 
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);
@@ -801,7 +798,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
     scene::SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
     buffer->VertexType = video::EVT_STANDARD;
 
-    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     core::matrix4 transform = controllers.globalTransform;
@@ -830,9 +826,9 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
     for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
     {
-        f32 x = readF32(file);
-        f32 y = readF32(file);
-        f32 z = readF32(file);
+        f32 x = readS16(file) / 8192.f;
+        f32 y = readS16(file) / 8192.f;
+        f32 z = readS16(file) / 8192.f;
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
     }
 
@@ -841,7 +837,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
 
 
     // Faces
-    buffer->Indices.reallocate(facesCount * 3);
     buffer->Indices.set_used(facesCount * 3);
 
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);
@@ -927,8 +922,6 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
     }
-
-    file->seek(endPos);
 }
 
 void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControllersData controllers)
@@ -1027,7 +1020,6 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     const u16 bufferId = AnimatedMesh->getMeshBufferCount() - 1;
     buffer->VertexType = video::EVT_STANDARD;
 
-    buffer->Vertices_Standard.reallocate(vertexDef.nbUsedEntries);
     buffer->Vertices_Standard.set_used(vertexDef.nbUsedEntries);
 
     u32 skinningIndex = 0;
@@ -1077,18 +1069,40 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     file->seek(ModelInfos.offsetRawData + normalsDef.firstElemOffest);
     for (u32 i = 0; i < normalsDef.nbUsedEntries; ++i)
     {
-        f32 x = readF32(file);
-        f32 y = readF32(file);
-        f32 z = readF32(file);
+        f32 x = readS16(file) / 8192.f;
+        f32 y = readS16(file) / 8192.f;
+        f32 z = readS16(file) / 8192.f;
         buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
+        //std::cout << "X=" << x << ", Y=" << y << ", Z=" << z << std::endl;
     }
 
     // TODO : Binormals + tangents
     // need FVF
+    /*
+    file->seek(ModelInfos.offsetRawData + tangentsDef.firstElemOffest);
+    for (u32 i = 0; i < tangentsDef.nbUsedEntries; ++i)
+    {
+        f32 x = readS16(file) / 8192.f;
+        f32 y = readS16(file) / 8192.f;
+        f32 z = readS16(file) / 8192.f;
+        //std::cout << "X=" << x << ", Y=" << y << ", Z=" << z << std::endl;
+    }
+    */
+    // need FVF
+    /*
+    file->seek(ModelInfos.offsetRawData + binormalsDef.firstElemOffest);
+    for (u32 i = 0; i < binormalsDef.nbUsedEntries; ++i)
+    {
+        f32 x = readS16(file) / 8192.f;
+        f32 y = readS16(file) / 8192.f;
+        f32 z = readS16(file) / 8192.f;
+        //std::cout << "X=" << x << ", Y=" << y << ", Z=" << z << std::endl;
+    }
+    */
+
 
 
     // Faces
-    buffer->Indices.reallocate(facesCount * 3);
     buffer->Indices.set_used(facesCount * 3);
 
     file->seek(ModelInfos.offsetRawData + facesDef.firstElemOffest);

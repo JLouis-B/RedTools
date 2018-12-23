@@ -243,9 +243,17 @@
     <addaction name="menuThe_Witcher_2"/>
     <addaction name="menuThe_Witcher_3"/>
    </widget>
+   <widget class="QMenu" name="menumiscellaneous_tools">
+    <property name="title">
+     <string>Miscellaneous tools</string>
+    </property>
+    <addaction name="actionThe_Council_unpacker"/>
+    <addaction name="actionLoad_The_Council_template"/>
+   </widget>
    <addaction name="menuMenu"/>
    <addaction name="menuThe_Witcher_1_tools"/>
    <addaction name="menu_RE_tools"/>
+   <addaction name="menumiscellaneous_tools"/>
    <addaction name="menuDisplay"/>
    <addaction name="menuLanguages"/>
    <addaction name="menuHelp"/>
@@ -411,6 +419,16 @@
   <action name="action_TW1_Load_animations">
    <property name="text">
     <string>Load animations</string>
+   </property>
+  </action>
+  <action name="actionThe_Council_unpacker">
+   <property name="text">
+    <string>The Council unpacker</string>
+   </property>
+  </action>
+  <action name="actionLoad_The_Council_template">
+   <property name="text">
+    <string>Load The Council template</string>
    </property>
   </action>
  </widget>

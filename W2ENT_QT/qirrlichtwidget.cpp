@@ -477,8 +477,7 @@ void QIrrlichtWidget::keyPressEvent(QKeyEvent * event)
     irrEvent.EventType = EET_KEY_INPUT_EVENT;
 
     irrEvent.KeyInput.PressedDown = true;
-    irrEvent.KeyInput.Key = (EKEY_CODE)event->key();
-    std::cout << "key= " << event->key() << std::endl;
+    irrEvent.KeyInput.Key = (EKEY_CODE)QKEY_TO_IRRKEY(event->key());
 
     if (_device->postEventFromUser( irrEvent ))
         event->accept();
@@ -493,7 +492,7 @@ void QIrrlichtWidget::keyReleaseEvent(QKeyEvent * event)
     irrEvent.EventType = EET_KEY_INPUT_EVENT;
 
     irrEvent.KeyInput.PressedDown = false;
-    irrEvent.KeyInput.Key = (EKEY_CODE)event->key();
+    irrEvent.KeyInput.Key = (EKEY_CODE)QKEY_TO_IRRKEY(event->key());
 
     if (_device->postEventFromUser( irrEvent ))
         event->accept();

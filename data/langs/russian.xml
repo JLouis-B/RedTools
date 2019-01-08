@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<translation>
+	<!-- Main view -->
+	<element id="button_fileSelector" text="Выбор 3D модели"/>
+	<element id="button_convertir" text="Конвертировать ->"/>
+	<element id="dialogue_file" text="Выберать файл"/>
+	<element id="dialogue_folder" text="Выберать папку игры"/>
+	<element id="base_directory" text="Базовый каталог"/>
+	<element id="label_exported_file_name" text="Имя"/>
+	
+	
+	<!-- Log window -->
+	<element id="log_writingFile" text="Запись файла"/>
+	<element id="log_readingFile" text="Чтение файла"/>
+	<element id="log_abort" text="Ошибка: папка назначения не существует"/>
+	<element id="log_warning_empty" text="Предупреждение: имя экспортируемого файла пустое"/>
+
+	
+	<!-- Menus -->
+	<element id="menu_menu" text="Меню"/>
+	<element id="menu_menu_options" text="Опции"/>
+	<element id="menu_menu_search" text="Поиск"/>
+	<element id="menu_menu_addMesh" text="Добавить меш(и)"/>
+	<element id="menu_menu_quit" text="Выход"/>
+	
+	<element id="menu_re" text="Redkit утилиты"/>
+	<element id="menu_re_size" text="Размер"/>
+	<element id="menu_re_lod_empty" text="пусто"/>
+	<element id="menu_re_lod_clear" text="Очистить текущий LOD"/>
+	<element id="menu_re_lod_clear_all" text="Очистить все LODs"/>
+	
+	<element id="menu_tw" text="The Witcher утилиты"/>
+	
+	<element id="menu_tw1" text="The Witcher 1 утилиты"/>
+	<element id="menu_tw1_bif" text="BIF распаковщик"/>
+	
+	<element id="menu_tw2_dzipExtractor" text="DZIP распаковщик"/>
+	<element id="menu_tw2_3_linkedFiles" text="Показать связанные файлы (TW2 и TW3)"/>
+	<element id="menu_tw2_3_materialsExplorer" text="Обозреватель материалов(TW2 и TW3)"/>
+	
+	<element id="menu_tw3_tex_path" text="LUA утилиты: Очистить путь к текстурам"/>
+	<element id="menu_tw3_setRig" text="Загрузить rig"/>
+	<element id="menu_tw3_setAnimation" text="Загрузить анимацию"/>
+	
+	<element id="menu_display" text="Отображение"/>
+	<element id="menu_display_wireframe" text="Wireframe"/>
+	
+	<element id="menu_language" text="Язык"/>
+	
+	<element id="menu_help" text="Помощь"/>
+	<element id="menu_help_webpage" text="WebPage"/>
+	
+	
+	<!-- Search tool -->
+	<element id="search_name" text="Имя"/>
+	<element id="search_load" text="Загрузить"/>
+	<element id="search_button" text="Поиск"/>
+	<element id="search_progress" text="Прогресс"/>
+	<element id="search_extensions_filter" text="Фильтр расширений"/>
+	<element id="search_check_folder" text="Проверить также имена папок (больше результатов)"/>
+	<element id="search_result" text="Результаты"/>
+	
+	
+	<!-- Options -->
+	<element id="options_view" text="Вид"/>
+	<element id="options_camera" text="Камера"/>
+	<element id="options_camera_movement_speed" text="Скорость передвижения"/>
+	<element id="options_camera_rot_speed" text="Скорость вращения"/>
+	<element id="options_background" text="Цвет фона"/>
+	<element id="options_export" text="Экспорт"/>
+	<element id="options_export_to_pack0" text="Экспортировать в папку 'базовый каталог'"/>
+	<element id="options_export_to_other" text="Экспорт в другую папку"/>
+	<element id="options_export_move_textures" text="Копировать текстуры"/>
+	<element id="options_export_target" text="Выбрать папку экспорта"/>
+	<element id="options_export_convert_textures" text="Конвертирование текстур (Формат DDS по умолчанию)"/>
+	<element id="options_tw3_textures_folder" text="Папка текстур"/>
+	<element id="options_tw3_skeleton" text="Загрузить скелет (экспериментальный - отключите его, если он вам не нужен)"/>
+	<element id="options_debug_log" text="Включить 'debug.log'"/>
+	<element id="options_debug_log_label" text="Если у вас есть проблемы, при открытии w2ent/w2mesh файл, вы можете включить эту опцию, чтобы создать файл журнала. Этот файл может помочь мне решить вашу проблему, поэтому в случае возникновения проблемы вы можете отправить мне этот файл (через форум Ведьмака, если у вас есть учетная запись или по почте jeanlouis.boudrand@hotmail.fr.)"/>
+
+</translation>

@@ -18,13 +18,15 @@ class Extractor_TheCouncil : public QObject
 {
     Q_OBJECT
 
-
     unsigned int _nbProgress;
     int _lastProgression;
 
     QString _file;
     QString _folder;
     bool _stopped;
+
+    void extract(QString exportFolder, QString filename);
+    void extractCPKFile(QFile &file, QString exportFolder);
 
 public:
     Extractor_TheCouncil(QString file = "", QString folder = "");
@@ -37,11 +39,6 @@ signals:
     void onProgress(int);
     void finished();
     void error();
-
-private:
-    void extract(QString exportFolder, QString filename);
-    void extractCPKFile(QFile &file, QString exportFolder);
-
 };
 
 #endif // EXTRACTOR_THECOUNCIL_H

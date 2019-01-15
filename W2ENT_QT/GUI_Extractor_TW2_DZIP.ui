@@ -29,7 +29,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_destFolder">
      <item>
       <widget class="QLabel" name="label_destFolder">
        <property name="text">
@@ -54,7 +54,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_dzipFile">
      <item>
       <widget class="QLabel" name="label_dzipFile">
        <property name="text">
@@ -70,7 +70,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_select_dzipFile">
+      <widget class="QPushButton" name="pushButton_selectDzipFile">
        <property name="text">
         <string>...</string>
        </property>

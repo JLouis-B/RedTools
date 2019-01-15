@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_title">
      <property name="font">
       <font>
        <pointsize>10</pointsize>
@@ -29,7 +29,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_destFolder">
      <item>
       <widget class="QLabel" name="label_destFolder">
        <property name="text">

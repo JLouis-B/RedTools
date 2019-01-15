@@ -12,7 +12,7 @@ GUI_Extractor_TW1_BIF::GUI_Extractor_TW1_BIF(QWidget *parent) :
 {
     _ui->setupUi(this);
 
-    QObject::connect(_ui->pushButton_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
+    QObject::connect(_ui->pushButton_selectKeyFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
     QObject::connect(_ui->pushButton_selectFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
     QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(extract()));
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));

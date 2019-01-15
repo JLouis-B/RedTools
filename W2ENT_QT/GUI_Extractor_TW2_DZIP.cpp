@@ -9,7 +9,7 @@ GUI_Extractor_TW2_DZIP::GUI_Extractor_TW2_DZIP(QWidget *parent) :
 {
     _ui->setupUi(this);
 
-    QObject::connect(_ui->pushButton_select_dzipFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
+    QObject::connect(_ui->pushButton_selectDzipFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
     QObject::connect(_ui->pushButton_selectDestFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
     QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(extract()));
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));

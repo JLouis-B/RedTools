@@ -9,7 +9,7 @@ GUI_Extractor_TheCouncil::GUI_Extractor_TheCouncil(QWidget *parent) :
 {
     _ui->setupUi(this);
 
-    QObject::connect(_ui->pushButton_selectFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
+    QObject::connect(_ui->pushButton_selectCPKFile, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
     QObject::connect(_ui->pushButton_selectFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
     QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(extract()));
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -45,12 +45,12 @@ void GUI_Extractor_TheCouncil::selectFile()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Select a CPK file", QString(), "The Council CPK file (*.cpk)");
     if (filename != "")
-        _ui->lineEdit_keyFile->setText(filename);
+        _ui->lineEdit_CPKFile->setText(filename);
 }
 
 void GUI_Extractor_TheCouncil::extract()
 {
-    const QString file = _ui->lineEdit_keyFile->text();
+    const QString file = _ui->lineEdit_CPKFile->text();
     const QString folder = _ui->lineEdit_exportFolder->text();
 
     QFileInfo fileInfo(file);

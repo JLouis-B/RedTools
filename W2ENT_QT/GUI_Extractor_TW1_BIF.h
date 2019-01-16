@@ -1,10 +1,10 @@
 #ifndef EXTRACTORUI_TW1_BIF_H
 #define EXTRACTORUI_TW1_BIF_H
 
-#include "Extractor_TW1_BIF.h"
 #include <QDialog>
-#include <QFileDialog>
 #include <QThread>
+
+#include "Extractor_TW1_BIF.h"
 
 namespace Ui {
 class GUI_Extractor_TW1_BIF;

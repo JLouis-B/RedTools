@@ -1,10 +1,10 @@
 #ifndef GUI_EXTRACTOR_THECOUNCIL_H
 #define GUI_EXTRACTOR_THECOUNCIL_H
 
-#include "Extractor_TheCouncil.h"
 #include <QDialog>
-#include <QFileDialog>
 #include <QThread>
+
+#include "Extractor_TheCouncil.h"
 
 namespace Ui {
 class GUI_Extractor_TheCouncil;

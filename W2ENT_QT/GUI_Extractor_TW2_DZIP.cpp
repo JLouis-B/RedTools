@@ -1,6 +1,8 @@
 #include "GUI_Extractor_TW2_DZIP.h"
 #include "ui_GUI_Extractor_TW2_DZIP.h"
 
+#include <QFileDialog>
+
 GUI_Extractor_TW2_DZIP::GUI_Extractor_TW2_DZIP(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TW2_DZIP),

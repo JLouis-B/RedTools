@@ -1,6 +1,7 @@
 #include "GUI_Extractor_TW1_BIF.h"
 #include "ui_GUI_Extractor_TW1_BIF.h"
 
+#include <QFileDialog>
 
 #include <iostream>
 

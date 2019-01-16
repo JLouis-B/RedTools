@@ -1,6 +1,8 @@
 #include "GUI_Extractor_TheCouncil.h"
 #include "ui_GUI_Extractor_TheCouncil.h"
 
+#include <QFileDialog>
+
 GUI_Extractor_TheCouncil::GUI_Extractor_TheCouncil(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TheCouncil),

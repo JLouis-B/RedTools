@@ -3,6 +3,7 @@
 
 #include <QListView>
 #include <QTreeView>
+#include <QFileDialog>
 
 GUI_Extractor_TW3_CACHE::GUI_Extractor_TW3_CACHE(QWidget *parent) :
     QDialog(parent),

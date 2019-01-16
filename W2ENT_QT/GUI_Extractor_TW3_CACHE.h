@@ -2,7 +2,6 @@
 #define GUI_Extractor_TW3_CACHE_H
 
 #include <QDialog>
-#include <QFileDialog>
 #include <QQueue>
 #include <QThread>
 

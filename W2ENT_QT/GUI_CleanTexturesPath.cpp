@@ -1,6 +1,8 @@
 #include "GUI_CleanTexturesPath.h"
 #include "ui_GUI_CleanTexturesPath.h"
 
+#include <QDir>
+
 #include <iostream>
 
 GUI_CleanTexturesPath::GUI_CleanTexturesPath(QString texPath, QWidget *parent) :

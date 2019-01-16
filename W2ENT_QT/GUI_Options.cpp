@@ -1,12 +1,16 @@
 #include "GUI_Options.h"
 #include "ui_GUI_Options.h"
 
+#include <QColorDialog>
+#include <QFileDialog>
+
+#include "Settings.h"
+#include "Translator.h"
 
 
-
-GUI_Options::GUI_Options(QWidget *parent, QString loadedFile, QIrrlichtWidget* irr) :
+GUI_Options::GUI_Options(QWidget *parent, QString loadedFile) :
     QDialog(parent), _filename(loadedFile),
-    _ui(new Ui::GUI_Options), _irr(irr)
+    _ui(new Ui::GUI_Options)
 {
     _ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);

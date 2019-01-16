@@ -1,5 +1,10 @@
 #include "Translator.h"
 
+#include "Settings.h"
+
+#include <QtXml>
+#include <QMessageBox>
+
 QWidget* Translator::_parent = nullptr;
 QMap<QString, QString> Translator::_trad;
 

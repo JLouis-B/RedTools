@@ -2,10 +2,8 @@
 #define SEARCH_H
 
 #include <QDialog>
-#include <QDir>
 #include <QThread>
-#include "Translator.h"
-#include "GUI_Options.h"
+#include <QFileInfo>
 
 namespace Ui {
 class GUI_Search;

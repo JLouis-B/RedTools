@@ -2,8 +2,6 @@
 #define CLEANTEXTURESPATH_H
 
 #include <QDialog>
-#include <QDir>
-#include <QFile>
 
 namespace Ui {
 class GUI_CleanTexturesPath;

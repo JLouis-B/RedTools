@@ -1,13 +1,20 @@
 #include "GUI_Search.h"
 #include "ui_GUI_Search.h"
 
+#include "settings.h"
+#include "Translator.h"
+#include "Utils_Qt_Irr.h"
+#include "Utils_TW.h"
+
+#include <QDir>
+
 #include <iostream>
 
 
 // UI -------------------------------
 GUI_Search::GUI_Search(QWidget *parent) :
     QDialog(parent),
-    _ui(new Ui::GUI_Search), _thread(0), _searchEngine(0)
+    _ui(new Ui::GUI_Search), _thread(nullptr), _searchEngine(nullptr)
 {
     _ui->setupUi(this);
 

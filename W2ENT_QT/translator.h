@@ -1,14 +1,7 @@
 #ifndef TRANSLATOR_H
 #define TRANSLATOR_H
 
-#include <QMainWindow>
-#include <QtXml>
 #include <QWidget>
-#include <QMessageBox>
-#include <QApplication>
-#include <iostream>
-
-#include "Settings.h"
 
 class Translator
 {

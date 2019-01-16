@@ -1,5 +1,7 @@
 #include "QIrrlichtWidget.h"
 
+#include <QApplication>
+
 #include "IO_MeshLoader_W2ENT.h"
 #include "IO_MeshLoader_W3ENT.h"
 #include "IO_MeshLoader_RE.h"

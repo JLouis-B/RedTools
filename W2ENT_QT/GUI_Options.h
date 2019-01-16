@@ -2,13 +2,6 @@
 #define OPTIONS_H
 
 #include <QDialog>
-#include <QColorDialog>
-#include <QFileDialog>
-#include <QProcess>
-
-#include "Translator.h"
-#include "GUI_ExtFilesExplorer.h"
-#include "Settings.h"
 
 namespace Ui {
 class GUI_Options;
@@ -20,7 +13,7 @@ class GUI_Options : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Options(QWidget *parent = nullptr, QString loadedFile = QString(), QIrrlichtWidget *irr = nullptr);
+    explicit GUI_Options(QWidget* parent = nullptr, QString loadedFile = QString());
     ~GUI_Options();
 
 public slots:
@@ -34,9 +27,7 @@ public slots:
 private:
     QColor _col;
     QString _filename;
-    Ui::GUI_Options *_ui;
-
-    QIrrlichtWidget *_irr;
+    Ui::GUI_Options* _ui;
 
 signals:
     void optionsValidation();

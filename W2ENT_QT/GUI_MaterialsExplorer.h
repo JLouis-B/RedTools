@@ -4,8 +4,11 @@
 #include <QDialog>
 #include <QItemDelegate>
 #include <QTableWidgetItem>
-#include "GUI_ExtFilesExplorer.h"
-#include "QIrrlichtWidget.h"
+
+#include "IO_MeshLoader_W2ENT.h"
+#include "IO_MeshLoader_W3ENT.h"
+
+#include <IFileSystem.h>
 
 struct Property
 {
@@ -44,7 +47,7 @@ class GUI_MaterialsExplorer : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_MaterialsExplorer(QWidget *parent = nullptr, QIrrlichtWidget* irrlicht = nullptr, QString filename = "");
+    explicit GUI_MaterialsExplorer(QWidget *parent = nullptr, irr::io::IFileSystem* fs = nullptr, QString filename = "");
     ~GUI_MaterialsExplorer();
     void read(QString filename);
 
@@ -54,7 +57,7 @@ public slots :
     void openData(QTableWidgetItem *data);
 
 private:
-    QIrrlichtWidget* _irrlicht;
+    irr::io::IFileSystem* _Fs;
     Ui::GUI_MaterialsExplorer *_ui;
 
     void loadTW3Materials(io::IReadFile* file);

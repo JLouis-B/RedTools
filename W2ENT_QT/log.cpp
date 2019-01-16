@@ -1,6 +1,9 @@
 #include "Log.h"
-#include <cstdio>
-#include <stdarg.h>
+
+#include <cstdarg>
+#include <iostream>
+
+#include <IWriteFile.h>
 
 Log Log::_instance = Log();
 

@@ -15,8 +15,11 @@
 #include "IWriteFile.h"
 
 #include "Utils_TW.h"
-#include "Settings.h"
 #include "Utils_Qt_Irr.h"
+#include "Utils_Halffloat.h"
+#include "Utils_Loaders_Irr.h"
+
+#include "Settings.h"
 
 
 #include <sstream>

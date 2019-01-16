@@ -1,12 +1,7 @@
 #ifndef Extractor_TW3_CACHE_H
 #define Extractor_TW3_CACHE_H
 
-#include <QObject>
 #include <QFile>
-#include <QBuffer>
-#include <QFileInfo>
-#include <QDir>
-#include <QMap>
 
 class Extractor_TW3_CACHE : public QObject
 {

@@ -1,6 +1,9 @@
 #include "Utils_Loaders_Qt.h"
 
-
+void relativeSeek(QFile& file, int value)
+{
+    file.seek(file.pos() + value);
+}
 
 QString readString(QFile& file, int nbChars)
 {

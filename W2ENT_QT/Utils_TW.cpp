@@ -1,5 +1,10 @@
 #include "Utils_TW.h"
 
+#include "Utils_Loaders_Irr.h"
+#include "Log.h"
+
+#include <iostream>
+
 // useless ?
 /*
 WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename)

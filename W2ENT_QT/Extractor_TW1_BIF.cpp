@@ -2,6 +2,8 @@
 #include "Log.h"
 #include "Utils_Loaders_Qt.h"
 
+#include <QDir>
+
 bool operator< (const ResourceId& a, const ResourceId& b)
 {
     if (a._bifId != b._bifId)
@@ -21,11 +23,6 @@ Extractor_TW1_BIF::Extractor_TW1_BIF(QString file, QString folder): _file(file),
 void Extractor_TW1_BIF::run()
 {
     extractKeyBIF(_folder, _file);
-}
-
-void relativeSeek(QFile* buf, int value)
-{
-    buf->seek(buf->pos() + value);
 }
 
 QString Extractor_TW1_BIF::getExtensionFromResourceType(unsigned short resourceType)
@@ -61,7 +58,7 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString filename)
 
     Log::Instance()->addLineAndFlush(formatString("nbFiles = %d", nbFiles));
 
-    relativeSeek(&bifFile, 4);
+    relativeSeek(bifFile, 4);
 
     quint32 fileOffset = readUInt32(bifFile);
     quint32 keysOffset = readUInt32(bifFile);
@@ -140,7 +137,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsig
     //std::cout << "nbFiles = " << nbFiles << std::endl;
 
     // unknown
-    relativeSeek(&bifFile, 4);
+    relativeSeek(bifFile, 4);
     quint32 offset = readUInt32(bifFile);
 
     bifFile.seek(offset);
@@ -161,7 +158,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString filename, unsig
         //std::cout << "size = " << size << std::endl;
         //std::cout << "pos = " << buffer.pos() << std::endl;
 
-        relativeSeek(&bifFile, 2);
+        relativeSeek(bifFile, 2);
 
         if (resourceId > i)
         {

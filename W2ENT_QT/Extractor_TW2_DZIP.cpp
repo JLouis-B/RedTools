@@ -2,6 +2,8 @@
 #include "Log.h"
 #include "Utils_Loaders_Qt.h"
 
+#include <QDir>
+
 Extractor_TW2_DZIP::Extractor_TW2_DZIP(QString file, QString folder) : _file(file), _folder(folder)
 {
     _stopped = false;

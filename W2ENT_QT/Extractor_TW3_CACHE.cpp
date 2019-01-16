@@ -2,6 +2,8 @@
 #include "Log.h"
 #include "Utils_Loaders_Qt.h"
 
+#include <QDir>
+
 #include <zlib.h>
 
 Extractor_TW3_CACHE::Extractor_TW3_CACHE(QString file, QString folder) : _file(file), _folder(folder), _stopped(false)

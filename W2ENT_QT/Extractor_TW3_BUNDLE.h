@@ -1,12 +1,7 @@
 #ifndef EXTRACTOR_TW3_BUNDLE_H
 #define EXTRACTOR_TW3_BUNDLE_H
 
-#include <QObject>
 #include <QFile>
-#include <QBuffer>
-#include <QFileInfo>
-#include <QDir>
-#include <QMap>
 
 class Extractor_TW3_BUNDLE : public QObject
 {

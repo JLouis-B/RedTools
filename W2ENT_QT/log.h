@@ -1,9 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <irrlicht.h>
+#include <IFileSystem.h>
 
-#include <iostream>
 #include <sstream>
 
 #define USE_FLUSH_PATCH

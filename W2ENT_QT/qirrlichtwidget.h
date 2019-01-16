@@ -1,29 +1,16 @@
 #ifndef QIRRLICHTWIDGET_HPP
 #define QIRRLICHTWIDGET_HPP
 
+#include <irrlicht.h>
+
 #include <QWidget>
 #include <QResizeEvent>
-#include <irrlicht.h>
 #include <QDebug>
 #include <set>
 
-#include "Translator.h"
-#include "GUI_Resize.h"
-#include "GUI_Options.h"
-#include "Utils_Qt_Irr.h"
-#include "MeshCombiner.h"
-
-#include "Log.h"
-
-
-#include "IO_MeshLoader_W2ENT.h"
-#include "IO_MeshLoader_W3ENT.h"
-#include "IO_MeshLoader_RE.h"
 #include "IO_MeshWriter_RE.h"
-#include "IO_MeshLoader_WitcherMDL.h"
-#include "IO_MeshLoader_CEF.h"
-#include "IO_MeshLoader_TheCouncil_Prefab.h"
-#include "IO_SceneLoader_TheCouncil.h"
+#include "settings.h"
+#include "Log.h"
 
 #ifdef COMPILE_WITH_ASSIMP
     #include "IrrAssimp/IrrAssimp.h"

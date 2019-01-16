@@ -1,9 +1,8 @@
 #ifndef UTILS_TW_H
 #define UTILS_TW_H
 
-#include <irrlicht.h>
-#include "Utils_Loaders_Irr.h"
-#include "Log.h"
+#include <IFileSystem.h>
+#include <irrArray.h>
 
 using namespace irr;
 

@@ -1,10 +1,16 @@
 #include "GUI_MaterialsExplorer.h"
 #include "ui_GUI_MaterialsExplorer.h"
-#include "GUI_ExtFilesExplorer.h"
 
 #include <QPainter>
 #include <QTextDocument>
 #include <QDesktopServices>
+#include <QFileDialog>
+
+#include <iostream>
+
+#include "Utils_Loaders_Irr.h"
+#include "Utils_Qt_Irr.h"
+#include "settings.h"
 
 RichTextDelegate::RichTextDelegate(QObject *parent):QItemDelegate(parent)
 {
@@ -38,8 +44,8 @@ QTableWidgetItemWithData::QTableWidgetItemWithData(QString richData, QString raw
     setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
 }
 
-GUI_MaterialsExplorer::GUI_MaterialsExplorer(QWidget *parent, QIrrlichtWidget* irrlicht, QString filename) :
-    QDialog(parent), _irrlicht(irrlicht),
+GUI_MaterialsExplorer::GUI_MaterialsExplorer(QWidget *parent, io::IFileSystem *fs, QString filename) :
+    QDialog(parent), _Fs(fs),
     _ui(new Ui::GUI_MaterialsExplorer)
 {
     _ui->setupUi(this);
@@ -301,7 +307,7 @@ void GUI_MaterialsExplorer::read(QString filename)
     _ui->tableWidget_properties->setRowCount(0);
 
     const io::path filenamePath = QSTRING_TO_PATH(filename);
-    io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
+    io::IReadFile* file = _Fs->createAndOpenFile(filenamePath);
 
     WitcherFileType fileType = getTWFileType(file);
     switch (fileType)

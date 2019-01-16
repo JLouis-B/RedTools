@@ -2,6 +2,8 @@
 #include "Log.h"
 #include "Utils_Loaders_Qt.h"
 
+#include <QDir>
+
 #include <zlib.h>
 #include "snappy-c.h"
 #include "DOBOZ/Decompressor.h"
@@ -174,7 +176,7 @@ bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compresse
     return writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileZLIB(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileZLIB(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     char* decompressedFileContent = new char[decompressedSize];
 

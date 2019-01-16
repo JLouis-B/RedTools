@@ -21,6 +21,7 @@ T readData(QFile& f)
 #define readUInt32 readData<quint32>
 #define readUInt64 readData<quint64>
 
+void relativeSeek(QFile& file, int value);
 
 QString readString(QFile& file, int nbChars);
 QString readStringFixedSize(QFile& file, int nbChars);

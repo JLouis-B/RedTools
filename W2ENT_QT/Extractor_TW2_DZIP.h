@@ -1,12 +1,7 @@
 #ifndef TW2_DZIP_EXTRACTOR_H
 #define TW2_DZIP_EXTRACTOR_H
 
-#include <QObject>
 #include <QFile>
-#include <QBuffer>
-#include <QFileInfo>
-#include <QDir>
-#include <QMap>
 
 // Based on :
 // http://www.krinkels.ucoz.ru/_fr/0/scriptw2.txt

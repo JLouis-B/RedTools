@@ -3,6 +3,7 @@
 #include "Utils_Loaders_Qt.h"
 
 #include <QVector>
+#include <QDir>
 
 Extractor_TheCouncil::Extractor_TheCouncil(QString file, QString folder): _file(file), _folder(folder)
 {

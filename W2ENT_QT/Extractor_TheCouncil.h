@@ -2,10 +2,6 @@
 #define EXTRACTOR_THECOUNCIL_H
 
 #include <QFile>
-#include <QBuffer>
-#include <QFileInfo>
-#include <QDir>
-#include <QMap>
 
 struct TheCouncilFileEntry
 {

@@ -4,9 +4,6 @@
 // Based on the specification from http://witcher.wikia.com/wiki/KEY_BIF_V1.1_format
 
 #include <QFile>
-#include <QBuffer>
-#include <QFileInfo>
-#include <QDir>
 #include <QMap>
 
 class ResourceId

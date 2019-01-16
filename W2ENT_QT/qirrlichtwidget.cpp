@@ -1,4 +1,17 @@
 #include "QIrrlichtWidget.h"
+
+#include "IO_MeshLoader_W2ENT.h"
+#include "IO_MeshLoader_W3ENT.h"
+#include "IO_MeshLoader_RE.h"
+#include "IO_MeshLoader_WitcherMDL.h"
+#include "IO_MeshLoader_CEF.h"
+#include "IO_MeshLoader_TheCouncil_Prefab.h"
+#include "IO_SceneLoader_TheCouncil.h"
+
+#include "MeshCombiner.h"
+#include "Translator.h"
+#include "Utils_Qt_Irr.h"
+
 #include <iostream>
 
 using namespace irr;

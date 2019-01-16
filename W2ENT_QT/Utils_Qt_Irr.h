@@ -1,7 +1,7 @@
 #ifndef UTILS_QT_IRR_H
 #define UTILS_QT_IRR_H
 
-#include <irrlicht.h>
+#include <IFileSystem.h>
 #include <QString>
 
 QString PATH_TO_QSTRING(irr::io::path);

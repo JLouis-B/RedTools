@@ -331,17 +331,18 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
         core::array<f32> jointData = readDataArray<f32>(f, 12);
         core::matrix4 mat (core::matrix4::EM4CONST_IDENTITY);
 
-        std::cout << joint->Name.c_str() << " : ";
+        log->add(formatString("%s : ", joint->Name.c_str()));
         int m = 0;
         for (int n = 0; n < 12; n++)
         {
             if (m == 3 || m == 7 || m == 11)
                 m++;
 
-            std::cout << jointData[n] << ", ";
+            log->add(formatString("%f, ", jointData[n]));
             mat[m] = jointData[n];
             m++;
         }
+        log->flush();
         //std::cout << "Translation : X="<< mat.getTranslation().X << ", Y="<< mat.getTranslation().Y << ", Z="<< mat.getTranslation().Z << std::endl;
         //std::cout << "Rotation : X="<< mat.getRotationDegrees().X << ", Y="<< mat.getRotationDegrees().Y << ", Z="<< mat.getRotationDegrees().Z << std::endl;
         //std::cout << "Scale : X="<<mat.getScale().X << ", Y="<< mat.getScale().Y << ", Z="<< mat.getScale().Z << std::endl;
@@ -379,7 +380,7 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
         joint->Animatedposition = pos;
         joint->Animatedrotation = rot;
         joint->Animatedscale = scale;
-        std::cout << std::endl;
+        log->addLineAndFlush("");
         joint->GlobalMatrix = mat;
         joint->LocalMatrix = mat;
 

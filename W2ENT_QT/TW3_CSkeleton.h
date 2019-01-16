@@ -1,7 +1,7 @@
 #ifndef TW3_CSKELETON_H
 #define TW3_CSKELETON_H
 
-#include <irrlicht.h>
+#include <ISkinnedMesh.h>
 
 using namespace irr;
 

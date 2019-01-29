@@ -668,11 +668,9 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
         for (u32 i = 0; i < tVerts[t].nbUsedEntries; i++)
         {
             float u = 0.f, v = 0.f;
-            if (i < tVerts[t].nbUsedEntries)
-            {
-                u = readF32(file);
-                v = readF32(file);
-            }
+            u = readF32(file);
+            v = readF32(file);
+
             buffer->Vertices_Standard[i].TCoords = core::vector2df(u, v);
         }
     }

@@ -317,24 +317,24 @@ bool IO_MeshLoader_W3ENT::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffer
             for (u32 j = 0; j < meshInfos.numBonesPerVertex; ++j)
             {
                 unsigned char boneId = skinningData[j];
-                unsigned char weight = skinningData[j + meshInfos.numBonesPerVertex];
+                unsigned char weightStrength = skinningData[j + meshInfos.numBonesPerVertex];
 
                 if (boneId >= AnimatedMesh->getJointCount()) // If bone don't exist
                     continue;
 
-                if (weight != 0)
+                if (weightStrength != 0)
                 {
-                    ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[boneId];
+                    scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[boneId];
                     u32 bufferId = AnimatedMesh->getMeshBufferCount() - 1;
-                    float fweight = (float)weight / 255.f;
+                    f32 fWeightStrength = weightStrength / 255.f;
 
-                    ISkinnedMesh::SWeight* w = AnimatedMesh->addWeight(joint);
-                    w->buffer_id = bufferId;
-                    w->strength = fweight;
-                    w->vertex_id = i;
+                    scene::ISkinnedMesh::SWeight* weight = AnimatedMesh->addWeight(joint);
+                    weight->buffer_id = bufferId;
+                    weight->strength = fWeightStrength;
+                    weight->vertex_id = i;
                     //std::cout << "TEST:" << fweight << ", " << bufferId << ", " << i << std::endl;
 
-                    TW3_DataCache::_instance.addVertexEntry(boneId, bufferId, i, fweight);
+                    TW3_DataCache::_instance.addVertexEntry(boneId, bufferId, i, fWeightStrength);
                 }
             }
 

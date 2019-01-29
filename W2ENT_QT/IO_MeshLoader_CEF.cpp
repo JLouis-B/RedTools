@@ -356,20 +356,20 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                 scene::ISkinnedMesh::SJoint* joint = joints[j];
 
                 // quaternion + translaction + scale ?
-                core::array<f32> unkFloats = readDataArray<f32>(file, 8);
+                core::array<f32> boneTransform = readDataArray<f32>(file, 8);
                 //for  (u32 h = 0; h < 8; ++h)
                 //    std::cout << h << " : " << unkFloats[h] << std::endl;
 
                 // rotation
-                core::quaternion q(unkFloats[0], unkFloats[1], unkFloats[2], unkFloats[3]);
+                core::quaternion q(boneTransform[0], boneTransform[1], boneTransform[2], boneTransform[3]);
                 core::vector3df rotation;
                 q.toEuler(rotation);
 
                 // position
-                core::vector3df position(unkFloats[4], unkFloats[5], unkFloats[6]);
+                core::vector3df position(boneTransform[4], boneTransform[5], boneTransform[6]);
 
                 // scale
-                core::vector3df scale(unkFloats[7], unkFloats[7], unkFloats[7]);
+                core::vector3df scale(boneTransform[7], boneTransform[7], boneTransform[7]);
 
 
 

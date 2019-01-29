@@ -640,9 +640,9 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
             }
 
             bool ok = true;
-            for (unsigned int i = 0; i < AnimatedMesh->getJointCount(); i++)
+            for (u32 j = 0; j < AnimatedMesh->getJointCount(); j++)
             {
-                if (AnimatedMesh->getAllJoints()[i]->Name == name)
+                if (AnimatedMesh->getAllJoints()[j]->Name == name)
                     ok = false;
             }
             bonenames.push_back(name);

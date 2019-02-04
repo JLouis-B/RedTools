@@ -247,8 +247,9 @@
     <property name="title">
      <string>Miscellaneous tools</string>
     </property>
-    <addaction name="actionThe_Council_unpacker"/>
-    <addaction name="actionLoad_The_Council_template"/>
+    <addaction name="action_other_The_Council_unpacker"/>
+    <addaction name="action_other_Load_The_Council_template"/>
+    <addaction name="action_other_Dishonored_2_unpacker"/>
    </widget>
    <addaction name="menuMenu"/>
    <addaction name="menuThe_Witcher_1_tools"/>
@@ -421,14 +422,19 @@
     <string>Load animations</string>
    </property>
   </action>
-  <action name="actionThe_Council_unpacker">
+  <action name="action_other_The_Council_unpacker">
    <property name="text">
     <string>The Council unpacker</string>
    </property>
   </action>
-  <action name="actionLoad_The_Council_template">
+  <action name="action_other_Load_The_Council_template">
    <property name="text">
     <string>Load The Council template</string>
+   </property>
+  </action>
+  <action name="action_other_Dishonored_2_unpacker">
+   <property name="text">
+    <string>Dishonored 2 unpacker</string>
    </property>
   </action>
  </widget>

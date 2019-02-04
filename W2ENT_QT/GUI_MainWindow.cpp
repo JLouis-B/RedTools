@@ -1,9 +1,27 @@
 #include "GUI_MainWindow.h"
 #include "ui_GUI_MainWindow.h"
+
+#include <iostream>
+
+#include <QFileDialog>
 #include <QDir>
 #include <QCheckBox>
-#include <QTextCodec>
-#include <iostream>
+
+#include "GUI_Search.h"
+#include "GUI_Options.h"
+#include "GUI_Resize.h"
+#include "GUI_CleanTexturesPath.h"
+#include "GUI_Extractor_TW1_BIF.h"
+#include "GUI_Extractor_TW2_DZIP.h"
+#include "GUI_Extractor_TW3_CACHE.h"
+#include "GUI_Extractor_TW3_BUNDLE.h"
+#include "GUI_Extractor_TheCouncil.h"
+#include "GUI_Extractor_Dishonored2.h"
+#include "GUI_MaterialsExplorer.h"
+#include "GUI_ExtFilesExplorer.h"
+#include "GUI_About.h"
+#include "Translator.h"
+
 
 GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -91,8 +109,9 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_TW3_Show_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
     QObject::connect(_ui->action_TW3_LUA_utils_Clean_textures_path_depreciated, SIGNAL(triggered()), this, SLOT(cleanTexturesPath()));
 
-    QObject::connect(_ui->actionThe_Council_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
-    QObject::connect(_ui->actionLoad_The_Council_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
+    QObject::connect(_ui->action_other_The_Council_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
+    QObject::connect(_ui->action_other_Load_The_Council_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
+    QObject::connect(_ui->action_other_Dishonored_2_unpacker, SIGNAL(triggered()), this, SLOT(dishonoredExtractor()));
 
     QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
     QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
@@ -433,7 +452,7 @@ void GUI_MainWindow::openAbout()
 
 void GUI_MainWindow::options()
 {
-    GUI_Options *w = new GUI_Options (this, _irrWidget->getPath(), _irrWidget);
+    GUI_Options *w = new GUI_Options (this, _irrWidget->getPath());
     w->show();
     QObject::connect(w, SIGNAL(optionsValidation()), this, SLOT(changeOptions()));
 }
@@ -448,7 +467,7 @@ void GUI_MainWindow::search()
 
 void GUI_MainWindow::matExplorer()
 {
-    GUI_MaterialsExplorer* m = new GUI_MaterialsExplorer(this, _irrWidget, _ui->lineEdit_ImportedFile->text());
+    GUI_MaterialsExplorer* m = new GUI_MaterialsExplorer(this, _irrWidget->getFileSystem(), _ui->lineEdit_ImportedFile->text());
     m->show();
 }
 
@@ -577,6 +596,12 @@ void GUI_MainWindow::thecouncilExtractor()
 {
     GUI_Extractor_TheCouncil* CPK = new GUI_Extractor_TheCouncil(this);
     CPK->show();
+}
+
+void GUI_MainWindow::dishonoredExtractor()
+{
+    GUI_Extractor_Dishonored2* dishonored = new GUI_Extractor_Dishonored2(this);
+    dishonored->show();
 }
 
 void GUI_MainWindow::loadFileGeneric(QString path)

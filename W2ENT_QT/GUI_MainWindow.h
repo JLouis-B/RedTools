@@ -2,20 +2,8 @@
 #define MAINWINDOW_H
 
 #include "QIrrlichtWidget.h"
-#include "GUI_Search.h"
-#include "GUI_Options.h"
-#include "GUI_Resize.h"
-#include "GUI_CleanTexturesPath.h"
-#include "GUI_Extractor_TW1_BIF.h"
-#include "GUI_Extractor_TW2_DZIP.h"
-#include "GUI_Extractor_TW3_CACHE.h"
-#include "GUI_Extractor_TW3_BUNDLE.h"
-#include "GUI_Extractor_TheCouncil.h"
-#include "GUI_MaterialsExplorer.h"
-#include "GUI_About.h"
 
-#include <iostream>
-#include <QDesktopServices>
+#include <QMainWindow>
 
 namespace Ui {
 class GUI_MainWindow;
@@ -59,6 +47,7 @@ public slots :
     void dzipExtractor();
     void bundleExtractor();
     void thecouncilExtractor();
+    void dishonoredExtractor();
     void changeBaseDir(QString newDir);
 
 

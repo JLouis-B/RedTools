@@ -59,7 +59,9 @@ SOURCES += main.cpp\
     IO_MeshLoader_CEF.cpp \
     IO_MeshLoader_TheCouncil_Prefab.cpp \
     IO_SceneLoader_TheCouncil.cpp \
-    Utils_TheCouncil.cpp
+    Utils_TheCouncil.cpp \
+    Extractor_Dishonored2.cpp \
+    GUI_Extractor_Dishonored2.cpp
 
 HEADERS  += \
     IrrAssimp/IrrAssimp.h \
@@ -109,7 +111,9 @@ HEADERS  += \
     IO_MeshLoader_CEF.h \
     IO_MeshLoader_TheCouncil_Prefab.h \
     IO_SceneLoader_TheCouncil.h \
-    Utils_TheCouncil.h
+    Utils_TheCouncil.h \
+    Extractor_Dishonored2.h \
+    GUI_Extractor_Dishonored2.h
 
 FORMS    += \
     GUI_ExtFilesExplorer.ui \
@@ -124,16 +128,17 @@ FORMS    += \
     GUI_Extractor_TW3_BUNDLE.ui \
     GUI_Extractor_TW3_CACHE.ui \
     GUI_About.ui \
-    GUI_Extractor_TheCouncil.ui
+    GUI_Extractor_TheCouncil.ui \
+    GUI_Extractor_Dishonored2.ui
 
 # Change the paths here :
 LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\lib\Win32-gcc\libIrrlicht.a"
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5622-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\code\libassimp.dll.a
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\code\libassimp.dll.a
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\include" \
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\include" \
 
 # SNAPPY
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\native\snappy32.lib

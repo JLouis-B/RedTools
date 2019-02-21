@@ -97,13 +97,13 @@ void Settings::loadFromXML(QString filename)
 
     if(!xml_doc.open(QIODevice::ReadOnly))
     {
-         QMessageBox::warning(nullptr, "Erreur", "Erreur XML");
+         QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
     }
 
     if (!dom->setContent(&xml_doc))
     {
         xml_doc.close();
-        QMessageBox::warning(nullptr, "Erreur", "Erreur XML");
+        QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
     }
     QDomElement dom_element = dom->documentElement();
     QDomNode node = dom_element.firstChildElement();
@@ -335,14 +335,16 @@ void Settings::saveToXML(QString filename)
     //write_doc = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" + write_doc;
 
     QFile file(filename);
-    if(!file.open(QIODevice::WriteOnly))
+    if(file.open(QIODevice::WriteOnly))
     {
+        QTextStream stream(&file);
+        stream.setCodec("UTF8");
+        stream << write_doc;
         file.close();
-        QMessageBox::critical(nullptr, "Erreur", "Impossible d'écrire dans le document XML");
-        return;
     }
-    QTextStream stream(&file);
-    stream.setCodec("UTF8");
-    stream << write_doc;
+    else
+    {
+        QMessageBox::critical(nullptr, "Error", "Fail to write config.xml");
+    }
 }
 

@@ -1,6 +1,8 @@
 #include "QIrrlichtWidget.h"
 
 #include <QApplication>
+#include <QMessageBox>
+#include <QDir>
 
 #include "IO_MeshLoader_W2ENT.h"
 #include "IO_MeshLoader_W3ENT.h"
@@ -9,6 +11,8 @@
 #include "IO_MeshLoader_CEF.h"
 #include "IO_MeshLoader_TheCouncil_Prefab.h"
 #include "IO_SceneLoader_TheCouncil.h"
+
+#include "GUI_Resize.h"
 
 #include "MeshCombiner.h"
 #include "Translator.h"

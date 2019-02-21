@@ -1,5 +1,9 @@
 #include "Settings.h"
 
+#include <QtXml>
+#include <QMessageBox>
+
+#include "GUI_Resize.h"
 
 QString Settings::_language = "";
 
@@ -87,7 +91,6 @@ QString Settings::getFilters()
 
 void Settings::loadFromXML(QString filename)
 {
-
     // Load config from XML
     QDomDocument* dom = new QDomDocument("config");
     QFile xml_doc(filename);
@@ -335,7 +338,7 @@ void Settings::saveToXML(QString filename)
     if(!file.open(QIODevice::WriteOnly))
     {
         file.close();
-        QMessageBox::critical(0, "Erreur", "Impossible d'écrire dans le document XML");
+        QMessageBox::critical(nullptr, "Erreur", "Impossible d'écrire dans le document XML");
         return;
     }
     QTextStream stream(&file);

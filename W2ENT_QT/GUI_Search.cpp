@@ -7,6 +7,7 @@
 #include "Utils_TW.h"
 
 #include <QDir>
+#include <QTextStream>
 
 #include <iostream>
 

@@ -2,10 +2,7 @@
 #define SETTINGS_H
 
 #include <QString>
-#include <QtXml>
-#include <QMessageBox>
 
-#include "GUI_Resize.h"
 
 #define IS_A_DEVELOPMENT_BUILD
 

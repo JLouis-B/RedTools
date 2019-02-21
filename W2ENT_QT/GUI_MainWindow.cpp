@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QCheckBox>
+#include <QMessageBox>
 
 #include "GUI_Search.h"
 #include "GUI_Options.h"

@@ -3,6 +3,7 @@
 
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include "Settings.h"
 #include "Translator.h"

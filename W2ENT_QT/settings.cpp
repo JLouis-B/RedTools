@@ -3,9 +3,8 @@
 #include <QtXml>
 #include <QMessageBox>
 
-#include "GUI_Resize.h"
 
-QString Settings::_language = "";
+QString Settings::_language = QString();
 
 double Settings::_camRotSpeed = DEFAULT_CAM_ROT_SPEED;
 double Settings::_camSpeed = DEFAULT_CAM_SPEED;
@@ -14,8 +13,8 @@ int Settings::_r = 0;
 int Settings::_g = 0;
 int Settings::_b = 0;
 
-Export_Mode Settings::_mode = Export_Pack0;
-QString Settings::_exportDest = "";
+Export_Mode Settings::_mode = Export_BaseDir;
+QString Settings::_exportDest = QString();
 
 bool Settings::_copyTextures = true;
 bool Settings::_nm = false;
@@ -26,9 +25,9 @@ bool Settings::_debugLog = false;
 bool Settings::_convertTextures = false;
 QString Settings::_texFormat = ".jpg";
 
-QString Settings::_pack0 = "";
+QString Settings::_baseDir = QString();
 
-QString Settings::_TW3TexPath = "";
+QString Settings::_TW3TexPath = QString();
 bool Settings::_TW3LoadSkel = false;
 bool Settings::_TW3LoadBestLOD = false;
 
@@ -38,13 +37,15 @@ bool Settings::_firstUse = true;
 
 QString Settings::_appVersion = "2.10";
 
-QString Settings::_exporter = "";
+QString Settings::_exporter = QString();
 QString Settings::_selectedFilter = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*)";
+
+Unit Settings::_unit = Unit_m;
 
 QString Settings::getExportFolder()
 {
-    if (Settings::_mode == Export_Pack0)
-        return Settings::_pack0;
+    if (Settings::_mode == Export_BaseDir)
+        return Settings::_baseDir;
     else
         return Settings::_exportDest;
 }
@@ -89,6 +90,9 @@ QString Settings::getFilters()
     return filter;
 }
 
+irr::core::vector3df MeshSize::_originalDimensions = irr::core::vector3df(0.f, 0.f, 0.f);
+irr::core::vector3df MeshSize::_dimensions = irr::core::vector3df(0.f, 0.f, 0.f);
+
 void Settings::loadFromXML(QString filename)
 {
     // Load config from XML
@@ -115,7 +119,7 @@ void Settings::loadFromXML(QString filename)
             Settings::_language = node.toElement().text();
         else if(nodeName == "pack0")
         {
-            Settings::_pack0 = node.toElement().text();
+            Settings::_baseDir = node.toElement().text();
         }
         else if(nodeName == "camera")
         {
@@ -136,7 +140,7 @@ void Settings::loadFromXML(QString filename)
         else if(nodeName == "export")
         {
             if (node.firstChildElement("type").text() == "pack0")
-                Settings::_mode = Export_Pack0;
+                Settings::_mode = Export_BaseDir;
             else if (node.firstChildElement("type").text() == "custom")
                 Settings::_mode = Export_Custom;
 
@@ -150,9 +154,9 @@ void Settings::loadFromXML(QString filename)
         {
             QString unit = node.toElement().text();
             if (unit == "m")
-                GUI_Resize::_unit = Unit_m;
+                Settings::_unit = Unit_m;
             else if (unit == "cm")
-                GUI_Resize::_unit = Unit_cm;
+                Settings::_unit = Unit_cm;
         }
         else if(nodeName == "debug")
         {
@@ -205,7 +209,7 @@ void Settings::saveToXML(QString filename)
     QDomElement pack0_elem = dom.createElement("pack0");
     config_elem.appendChild(pack0_elem);
 
-    QDomText pack0_txt = dom.createTextNode(Settings::_pack0);
+    QDomText pack0_txt = dom.createTextNode(Settings::_baseDir);
     pack0_elem.appendChild(pack0_txt);
 
 
@@ -246,7 +250,7 @@ void Settings::saveToXML(QString filename)
     export_elem.appendChild(export_type_elem);
     if (Settings::_mode == Export_Custom)
         export_type_elem.appendChild(dom.createTextNode("custom"));
-    else if (Settings::_mode == Export_Pack0)
+    else if (Settings::_mode == Export_BaseDir)
         export_type_elem.appendChild(dom.createTextNode("pack0"));
 
     QDomElement export_dest_elem = dom.createElement("dest");
@@ -275,9 +279,9 @@ void Settings::saveToXML(QString filename)
 
     QDomElement unit_elem = dom.createElement("unit");
     QString unit;
-    if (GUI_Resize::_unit == Unit_cm)
+    if (Settings::_unit == Unit_cm)
         unit = "cm";
-    else if (GUI_Resize::_unit == Unit_m)
+    else if (Settings::_unit == Unit_m)
         unit = "m";
     config_elem.appendChild(unit_elem);
     unit_elem.appendChild(dom.createTextNode(unit));

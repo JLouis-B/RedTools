@@ -156,7 +156,7 @@ void GUI_MaterialsExplorer::openData(QTableWidgetItem* data)
 
     foreach(QString extension, extensions)
     {
-        QString fullPath = Settings::_pack0 + "/" + base + extension;
+        QString fullPath = Settings::_baseDir + "/" + base + extension;
         if (QFile::exists(fullPath))
         {
             QDesktopServices::openUrl(QUrl(fullPath));
@@ -335,7 +335,7 @@ void GUI_MaterialsExplorer::selectFile()
 {
     QString defaultDir = _ui->lineEdit_selectedFile->text();
     if (_ui->lineEdit_selectedFile->text() == "")
-        defaultDir = Settings::_pack0;
+        defaultDir = Settings::_baseDir;
 
     QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", defaultDir, "");
     if (file != "")

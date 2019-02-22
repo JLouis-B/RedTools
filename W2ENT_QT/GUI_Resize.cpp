@@ -1,9 +1,6 @@
 #include "GUI_Resize.h"
 #include "ui_GUI_Resize.h"
 
-core::vector3df GUI_Resize::_originalDimensions = core::vector3df(0, 0, 0);
-core::vector3df GUI_Resize::_dimensions = core::vector3df(0, 0, 0);
-Unit GUI_Resize::_unit = Unit_m;
 
 GUI_Resize::GUI_Resize(QWidget *parent) :
      QDialog(parent),
@@ -12,9 +9,9 @@ GUI_Resize::GUI_Resize(QWidget *parent) :
     _ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
 
-    core::vector3df size = _dimensions;
+    core::vector3df size = MeshSize::_dimensions;
 
-    if (_unit == Unit_m)
+    if (Settings::_unit == Unit_m)
     {
         _ui->combo_unit->setCurrentText("m");
         _ui->label_unitX->setText("m");
@@ -37,8 +34,8 @@ GUI_Resize::GUI_Resize(QWidget *parent) :
 
     QObject::connect(this, SIGNAL(rejected()), this, SLOT(cancel()));
 
-    _initialUnit = _unit;
-    _initialDimensions = _dimensions;
+    _initialUnit = Settings::_unit;
+    _initialDimensions = MeshSize::_dimensions;
 
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
@@ -50,15 +47,15 @@ GUI_Resize::~GUI_Resize()
 
 void GUI_Resize::cancel()
 {
-    _unit = _initialUnit;
-    _dimensions = _initialDimensions;
+    Settings::_unit = _initialUnit;
+    MeshSize::_dimensions = _initialDimensions;
 }
 
 void GUI_Resize::setNewSize()
 {
-    _dimensions = core::vector3df(_ui->spinbox_sizeX->value(), _ui->spinbox_sizeY->value(), _ui->spinbox_sizeZ->value());
-    if (_unit == Unit_m)
-        _dimensions *= 100.f; // m to cm
+    MeshSize::_dimensions = core::vector3df(_ui->spinbox_sizeX->value(), _ui->spinbox_sizeY->value(), _ui->spinbox_sizeZ->value());
+    if (Settings::_unit == Unit_m)
+        MeshSize::_dimensions *= 100.f; // m to cm
 }
 
 void GUI_Resize::changeX()
@@ -89,7 +86,7 @@ void GUI_Resize::changeUnit(QString unit)
         _ui->label_unitX->setText("cm");
         _ui->label_unitY->setText("cm");
         _ui->label_unitZ->setText("cm");
-        _unit = Unit_cm;
+        Settings::_unit = Unit_cm;
         _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeX->value() * 100.f);
     }
     else if (unit == "m")
@@ -97,7 +94,7 @@ void GUI_Resize::changeUnit(QString unit)
         _ui->label_unitX->setText("m");
         _ui->label_unitY->setText("m");
         _ui->label_unitZ->setText("m");
-        _unit = Unit_m;
+        Settings::_unit = Unit_m;
         _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeX->value() / 100.f);
     }
 }

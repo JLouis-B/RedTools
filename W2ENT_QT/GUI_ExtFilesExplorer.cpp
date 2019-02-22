@@ -79,7 +79,7 @@ void GUI_ExtFilesExplorer::selectFile()
 void GUI_ExtFilesExplorer::checkW2MI()
 {
     _back = _ui->lineEdit->text();
-    read(Settings::_pack0 + "/" + _ui->listWidget->currentItem()->text());
+    read(Settings::_baseDir + "/" + _ui->listWidget->currentItem()->text());
     _ui->button_back->setEnabled(true);
 }
 

@@ -12,8 +12,6 @@
 #include "IO_MeshLoader_TheCouncil_Prefab.h"
 #include "IO_SceneLoader_TheCouncil.h"
 
-#include "GUI_Resize.h"
-
 #include "MeshCombiner.h"
 #include "Translator.h"
 #include "Utils_Qt_Irr.h"
@@ -162,7 +160,7 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
 bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage)
 {
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_pack0.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_baseDir.toStdString().c_str());
 
     bool success = _device->getSceneManager()->loadScene(filename);
     if (success)
@@ -218,8 +216,8 @@ void QIrrlichtWidget::loadMeshPostProcess()
 {
     const scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
 
-    GUI_Resize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
-    GUI_Resize::_dimensions = GUI_Resize::_originalDimensions;
+    MeshSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
+    MeshSize::_dimensions = MeshSize::_originalDimensions;
 
 
     // Save the path of normals/specular maps
@@ -246,14 +244,14 @@ void QIrrlichtWidget::loadMeshPostProcess()
 
 scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc &feedbackMessage)
 {
-    if (Settings::_pack0.size() > 0 && Settings::_pack0[Settings::_pack0.size() - 1] != '/')
-        Settings::_pack0.push_back('/');
+    if (Settings::_baseDir.size() > 0 && Settings::_baseDir[Settings::_baseDir.size() - 1] != '/')
+        Settings::_baseDir.push_back('/');
 
     if (Settings::_TW3TexPath.size() > 0 && Settings::_TW3TexPath[Settings::_TW3TexPath.size() - 1] != '/')
         Settings::_TW3TexPath.push_back('/');
 
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_pack0.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_baseDir.toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkel);
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLOD);
@@ -713,8 +711,8 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
 
     //std::cout << filename.toStdString().c_str() << std::endl;
 
-    const core::vector3df orDim = GUI_Resize::_originalDimensions;
-    const core::vector3df dim = GUI_Resize::_dimensions;
+    const core::vector3df orDim = MeshSize::_originalDimensions;
+    const core::vector3df dim = MeshSize::_dimensions;
 
     const f32 scaleFactor = (dim/orDim).X;
     const core::vector3df scaleFactorVector = core::vector3df(scaleFactor, scaleFactor, scaleFactor);
@@ -892,11 +890,11 @@ void QIrrlichtWidget::changeLOD(LOD newLOD)
 
     _currentLodData->_node->setVisible(true);
 
-    GUI_Resize::_originalDimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
+    MeshSize::_originalDimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
     //if (ReSize::_unit == Unit_m)
     //    ReSize::_originalDimensions /= 100.0f;
 
-    GUI_Resize::_dimensions = GUI_Resize::_originalDimensions;
+    MeshSize::_dimensions = MeshSize::_originalDimensions;
 }
 
 void QIrrlichtWidget::clearLOD()

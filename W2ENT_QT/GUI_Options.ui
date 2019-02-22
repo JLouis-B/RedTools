@@ -48,7 +48,7 @@
     <attribute name="title">
      <string>Export</string>
     </attribute>
-    <widget class="QRadioButton" name="radioButton_pack0">
+    <widget class="QRadioButton" name="radioButton_exportBaseDir">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -58,10 +58,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>Export to the pack0 folder</string>
+      <string>Export to the 'base directory' folder</string>
      </property>
     </widget>
-    <widget class="QRadioButton" name="radioButton_custom">
+    <widget class="QRadioButton" name="radioButton_exportCustomDir">
      <property name="geometry">
       <rect>
        <x>20</x>

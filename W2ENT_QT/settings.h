@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <QString>
+#include <vector3d.h>
 
 
 #define IS_A_DEVELOPMENT_BUILD
@@ -17,9 +18,15 @@
 #define DEFAULT_CAM_ROT_SPEED 500
 #define DEFAULT_CAM_SPEED 500
 
+enum Unit
+{
+    Unit_m,
+    Unit_cm
+};
+
 enum Export_Mode
 {
-    Export_Pack0,
+    Export_BaseDir,
     Export_Custom
 };
 
@@ -48,7 +55,7 @@ public:
 
     static bool _debugLog;
 
-    static QString _pack0;
+    static QString _baseDir;
 
     static QString _language;
 
@@ -63,6 +70,8 @@ public:
     static QString _exporter;
     static QString _selectedFilter;
 
+    static Unit _unit;
+
     static QString getAppVersion();
     static QString getExportFolder();
 
@@ -71,6 +80,13 @@ public:
 
     static QString getFilters();
 
+};
+
+class MeshSize
+{
+public:
+    static irr::core::vector3df _originalDimensions;    // original size in cm
+    static irr::core::vector3df _dimensions;            // size in cm
 };
 
 #endif // SETTINGS_H

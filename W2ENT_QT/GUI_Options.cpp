@@ -31,9 +31,9 @@ GUI_Options::GUI_Options(QWidget *parent, QString loadedFile) :
     _ui->comboBox_format->setEnabled(_ui->checkBox_convertTextures->isChecked());
 
     if(Settings::_mode == Export_Custom)
-        _ui->radioButton_custom->setChecked(true);
+        _ui->radioButton_exportCustomDir->setChecked(true);
     else
-        _ui->radioButton_pack0->setChecked(true);
+        _ui->radioButton_exportBaseDir->setChecked(true);
 
     _ui->lineEdit_exportFolder->setText(Settings::_exportDest);
 
@@ -41,8 +41,8 @@ GUI_Options::GUI_Options(QWidget *parent, QString loadedFile) :
 
     _ui->View->setTabText(0, Translator::get("options_export"));
     _ui->checkBox_moveTextures->setText(Translator::get("options_export_move_textures"));
-    _ui->radioButton_custom->setText(Translator::get("options_export_to_other"));
-    _ui->radioButton_pack0->setText(Translator::get("options_export_to_pack0"));
+    _ui->radioButton_exportCustomDir->setText(Translator::get("options_export_to_other"));
+    _ui->radioButton_exportBaseDir->setText(Translator::get("options_export_to_pack0"));
     _ui->checkBox_convertTextures->setText(Translator::get("options_export_convert_textures"));
 
     _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
@@ -70,8 +70,8 @@ GUI_Options::GUI_Options(QWidget *parent, QString loadedFile) :
     QObject::connect(_ui->pushButton_reset, SIGNAL(clicked()), this, SLOT(reset()));
 
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectDir()));
-    QObject::connect(_ui->radioButton_custom, SIGNAL(clicked()), this, SLOT(changeExport()));
-    QObject::connect(_ui->radioButton_pack0, SIGNAL(clicked()), this, SLOT(changeExport()));
+    QObject::connect(_ui->radioButton_exportCustomDir, SIGNAL(clicked()), this, SLOT(changeExport()));
+    QObject::connect(_ui->radioButton_exportBaseDir, SIGNAL(clicked()), this, SLOT(changeExport()));
 
     QObject::connect(_ui->checkBox_moveTextures, SIGNAL(clicked(bool)), _ui->checkBox_mtNormalsMap, SLOT(setEnabled(bool)));
     QObject::connect(_ui->checkBox_moveTextures, SIGNAL(clicked(bool)), _ui->checkBox_mtSpecularMap, SLOT(setEnabled(bool)));
@@ -111,10 +111,10 @@ void GUI_Options::ok()
     Settings::_sm = _ui->checkBox_mtSpecularMap->isChecked();
 
     Settings::_exportDest = _ui->lineEdit_exportFolder->text();
-    if (_ui->radioButton_custom->isChecked())
+    if (_ui->radioButton_exportCustomDir->isChecked())
         Settings::_mode = Export_Custom;
-    else if (_ui->radioButton_pack0->isChecked())
-        Settings::_mode = Export_Pack0;
+    else if (_ui->radioButton_exportBaseDir->isChecked())
+        Settings::_mode = Export_BaseDir;
 
     Settings::_convertTextures = _ui->checkBox_convertTextures->isChecked();
     Settings::_texFormat = _ui->comboBox_format->currentText();
@@ -145,8 +145,8 @@ void GUI_Options::selectColor()
 
 void GUI_Options::changeExport()
 {
-    _ui->lineEdit_exportFolder->setEnabled(_ui->radioButton_custom->isChecked());
-    _ui->button_selectDir->setEnabled(_ui->radioButton_custom->isChecked());
+    _ui->lineEdit_exportFolder->setEnabled(_ui->radioButton_exportCustomDir->isChecked());
+    _ui->button_selectDir->setEnabled(_ui->radioButton_exportCustomDir->isChecked());
 }
 
 bool isASCII(QString path)

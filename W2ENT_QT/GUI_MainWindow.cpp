@@ -34,7 +34,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     // Load setting.xml
     Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");
-    _ui->lineEdit_folder->setText(Settings::_pack0);
+    _ui->lineEdit_folder->setText(Settings::_baseDir);
 
     // Register and set current exporter
     registerExporters();
@@ -141,7 +141,7 @@ void GUI_MainWindow::addToUILog(QString log)
 
 void GUI_MainWindow::addMesh()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_pack0, Settings::getFilters(), &Settings::_selectedFilter);
+    QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_baseDir, Settings::getFilters(), &Settings::_selectedFilter);
 
     for (int i = 0; i < files.size(); ++i)
     {
@@ -194,7 +194,7 @@ void GUI_MainWindow::addMesh()
 
 void GUI_MainWindow::changeBaseDir(QString newPath)
 {
-    Settings::_pack0 = newPath;
+    Settings::_baseDir = newPath;
 }
 
 void GUI_MainWindow::updateWindowTitle()
@@ -321,28 +321,28 @@ void GUI_MainWindow::selectMeshFile()
 
 void GUI_MainWindow::selectRigFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to load", Settings::_pack0, "The Witcher 3 rig (*.w2rig , *.w3fac)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2rig file to load", Settings::_baseDir, "The Witcher 3 rig (*.w2rig , *.w3fac)");
     if (file != "")
         loadRig(file);
 }
 
 void GUI_MainWindow::selectAnimationsFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to load", Settings::_pack0, "The Witcher 3 animations (*.w2anims)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the w2anims file to load", Settings::_baseDir, "The Witcher 3 animations (*.w2anims)");
     if (file != "")
         loadAnimations(file);
 }
 
 void GUI_MainWindow::selectTW1AnimationsFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the MBA file to load", Settings::_pack0, "The Witcher 1 animations (*.mba)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the MBA file to load", Settings::_baseDir, "The Witcher 1 animations (*.mba)");
     if (file != "")
         loadTW1Animations(file);
 }
 
 void GUI_MainWindow::selectTheCouncilTemplate()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the template file to load", Settings::_pack0, "The Council template (*.template)");
+    QString file = QFileDialog::getOpenFileName(this, "Select the template file to load", Settings::_baseDir, "The Council template (*.template)");
     if (file != "")
         loadTheCouncilTemplate(file);
 }

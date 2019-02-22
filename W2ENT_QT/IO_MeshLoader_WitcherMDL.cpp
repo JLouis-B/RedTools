@@ -62,7 +62,7 @@ bool TW1_MaterialParser::loadFile(core::stringc filename)
     core::stringc path = "";
     for (u32 i = 0; i < texFolders.size(); ++i)
     {
-        core::stringc testedPath = core::stringc(Settings::_pack0.toStdString().c_str()) + texFolders[i] + filename + core::stringc(".mat");
+        core::stringc testedPath = core::stringc(Settings::_baseDir.toStdString().c_str()) + texFolders[i] + filename + core::stringc(".mat");
         //std::cout << "get texture : " << filename.c_str() << std::endl;
 
         if (FileSystem->existFile(testedPath))

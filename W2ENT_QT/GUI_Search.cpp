@@ -91,9 +91,9 @@ void GUI_Search::search()
     _ui->pushButton_load->setEnabled(false);
     _ui->listWidget_results->clear();
 
-    if (_rootDir != Settings::_pack0)
+    if (_rootDir != Settings::_baseDir)
     {
-        _rootDir = QDir::cleanPath(Settings::_pack0);
+        _rootDir = QDir::cleanPath(Settings::_baseDir);
         updateFafSettings();
     }
 

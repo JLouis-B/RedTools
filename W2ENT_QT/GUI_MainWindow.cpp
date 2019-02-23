@@ -453,14 +453,14 @@ void GUI_MainWindow::openAbout()
 
 void GUI_MainWindow::options()
 {
-    GUI_Options *w = new GUI_Options (this, _irrWidget->getPath());
+    GUI_Options *w = new GUI_Options(this);
     w->show();
     QObject::connect(w, SIGNAL(optionsValidation()), this, SLOT(changeOptions()));
 }
 
 void GUI_MainWindow::search()
 {
-    GUI_Search* w = new GUI_Search (this);
+    GUI_Search* w = new GUI_Search(this);
     w->show();
     QObject::connect(w, SIGNAL(loadPressed(QString)), this, SLOT(loadFileGeneric(QString)));
     QObject::connect(this, SIGNAL(languageChanged()), w, SLOT(translate()));

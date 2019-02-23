@@ -13,21 +13,21 @@ class GUI_Options : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Options(QWidget* parent = nullptr, QString loadedFile = QString());
+    explicit GUI_Options(QWidget* parent = nullptr);
     ~GUI_Options();
 
 public slots:
-    void reset();
     void ok();
-    void selectColor();
-    void changeExport();
-    void selectDir();
+    void resetViewPanel();
+    void selectBackgroundColor();
+    void changeExportMode();
+    void selectExportDir();
     void selectTW3TexDir();
 
 private:
-    QColor _col;
-    QString _filename;
     Ui::GUI_Options* _ui;
+
+    QColor _backgroundColor;
 
 signals:
     void optionsValidation();

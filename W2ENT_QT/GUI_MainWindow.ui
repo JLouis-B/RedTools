@@ -215,6 +215,7 @@
       <string>The Witcher 1</string>
      </property>
      <addaction name="action_TW1_BIF_extractor"/>
+     <addaction name="separator"/>
      <addaction name="action_TW1_Load_animations"/>
     </widget>
     <widget class="QMenu" name="menuThe_Witcher_2">

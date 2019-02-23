@@ -48,7 +48,7 @@
     <attribute name="title">
      <string>Export</string>
     </attribute>
-    <widget class="QRadioButton" name="radioButton_exportBaseDir">
+    <widget class="QRadioButton" name="radioButton_export_exportBaseDir">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -61,7 +61,7 @@
       <string>Export to the 'base directory' folder</string>
      </property>
     </widget>
-    <widget class="QRadioButton" name="radioButton_exportCustomDir">
+    <widget class="QRadioButton" name="radioButton_export_exportCustomDir">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -74,7 +74,7 @@
       <string>Export to an other folder</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="button_selectDir">
+    <widget class="QPushButton" name="button_export_selectExportDir">
      <property name="geometry">
       <rect>
        <x>320</x>
@@ -87,7 +87,7 @@
       <string>...</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_exportFolder">
+    <widget class="QLineEdit" name="lineEdit_export_exportDir">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -97,7 +97,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox">
+    <widget class="QCheckBox" name="checkBox_export_copyDiffuseMap">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -116,7 +116,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_mtNormalsMap">
+    <widget class="QCheckBox" name="checkBox_export_copyNormalsMap">
      <property name="geometry">
       <rect>
        <x>170</x>
@@ -129,7 +129,7 @@
       <string>Normals map</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_moveTextures">
+    <widget class="QCheckBox" name="checkBox_export_copyTextures">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -145,7 +145,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_mtSpecularMap">
+    <widget class="QCheckBox" name="checkBox_export_copySpecularMap">
      <property name="geometry">
       <rect>
        <x>170</x>
@@ -158,7 +158,7 @@
       <string>Specular map</string>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBox_format">
+    <widget class="QComboBox" name="comboBox_export_texturesFormat">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -196,7 +196,7 @@
       </property>
      </item>
     </widget>
-    <widget class="QCheckBox" name="checkBox_convertTextures">
+    <widget class="QCheckBox" name="checkBox_export_convertTextures">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -281,7 +281,7 @@
     <attribute name="title">
      <string>View</string>
     </attribute>
-    <widget class="QLabel" name="label_camera">
+    <widget class="QLabel" name="label_view_camera">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -294,7 +294,7 @@
       <string>Caméra</string>
      </property>
     </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_cameraSpeed">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_view_cameraSpeed">
      <property name="geometry">
       <rect>
        <x>180</x>
@@ -310,7 +310,7 @@
       <double>9999.000000000000000</double>
      </property>
     </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_cameraRotSpeed">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_view_cameraRotSpeed">
      <property name="geometry">
       <rect>
        <x>180</x>
@@ -326,7 +326,7 @@
       <double>9999.000000000000000</double>
      </property>
     </widget>
-    <widget class="QPushButton" name="button_colorSelector">
+    <widget class="QPushButton" name="button_view_backgroundColorSelector">
      <property name="geometry">
       <rect>
        <x>120</x>
@@ -339,7 +339,7 @@
       <string>Change</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_colorSelector">
+    <widget class="QLabel" name="label_view_backgroundColorSelector">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -352,7 +352,7 @@
       <string>Background color</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_movementSpeed">
+    <widget class="QLabel" name="label_view_movementSpeed">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -365,7 +365,7 @@
       <string>Movement Speed</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_rotSpeed">
+    <widget class="QLabel" name="label_view_rotSpeed">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -378,7 +378,7 @@
       <string>Rotation speed</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_reset">
+    <widget class="QPushButton" name="pushButton_view_reset">
      <property name="geometry">
       <rect>
        <x>300</x>
@@ -396,7 +396,7 @@
     <attribute name="title">
      <string>Debug</string>
     </attribute>
-    <widget class="QCheckBox" name="checkBox_debug">
+    <widget class="QCheckBox" name="checkBox_debug_log">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -409,7 +409,7 @@
       <string>Enable &quot;debug.log&quot;</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_debugLog">
+    <widget class="QLabel" name="label_debug_log">
      <property name="geometry">
       <rect>
        <x>20</x>

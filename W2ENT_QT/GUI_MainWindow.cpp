@@ -110,8 +110,8 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_TW3_Show_linked_files, SIGNAL(triggered()), this, SLOT(extFiles()));
     QObject::connect(_ui->action_TW3_LUA_utils_Clean_textures_path_depreciated, SIGNAL(triggered()), this, SLOT(cleanTexturesPath()));
 
-    QObject::connect(_ui->action_other_The_Council_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
-    QObject::connect(_ui->action_other_Load_The_Council_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
+    QObject::connect(_ui->action_other_TheCouncil_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
+    QObject::connect(_ui->action_other_TheCouncil_Load_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
     QObject::connect(_ui->action_other_Dishonored_2_unpacker, SIGNAL(triggered()), this, SLOT(dishonoredExtractor()));
 
     QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));

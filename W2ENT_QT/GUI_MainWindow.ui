@@ -246,10 +246,16 @@
    </widget>
    <widget class="QMenu" name="menumiscellaneous_tools">
     <property name="title">
-     <string>Miscellaneous tools</string>
+     <string>Other games tools</string>
     </property>
-    <addaction name="action_other_The_Council_unpacker"/>
-    <addaction name="action_other_Load_The_Council_template"/>
+    <widget class="QMenu" name="menu_other_TheCouncil">
+     <property name="title">
+      <string>The council (probably works with the other Cyanide games)</string>
+     </property>
+     <addaction name="action_other_TheCouncil_unpacker"/>
+     <addaction name="action_other_TheCouncil_Load_template"/>
+    </widget>
+    <addaction name="menu_other_TheCouncil"/>
     <addaction name="action_other_Dishonored_2_unpacker"/>
    </widget>
    <addaction name="menuMenu"/>
@@ -363,11 +369,6 @@
     <string>Add mesh(es)</string>
    </property>
   </action>
-  <action name="actionCACHE">
-   <property name="text">
-    <string>CACHE</string>
-   </property>
-  </action>
   <action name="action_TW1_BIF_extractor">
    <property name="text">
     <string>BIF extractor</string>
@@ -423,19 +424,19 @@
     <string>Load animations</string>
    </property>
   </action>
-  <action name="action_other_The_Council_unpacker">
+  <action name="action_other_Dishonored_2_unpacker">
+   <property name="text">
+    <string>Dishonored 2 unpacker</string>
+   </property>
+  </action>
+  <action name="action_other_TheCouncil_unpacker">
    <property name="text">
     <string>The Council unpacker</string>
    </property>
   </action>
-  <action name="action_other_Load_The_Council_template">
+  <action name="action_other_TheCouncil_Load_template">
    <property name="text">
     <string>Load The Council template</string>
-   </property>
-  </action>
-  <action name="action_other_Dishonored_2_unpacker">
-   <property name="text">
-    <string>Dishonored 2 unpacker</string>
    </property>
   </action>
  </widget>

@@ -1,20 +1,9 @@
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
-
-#include "IrrCompileConfig.h"
-
-#define _IRR_COMPILE_WITH_RE_LOADER_
-#ifdef _IRR_COMPILE_WITH_RE_LOADER_
-
 #include "IO_MeshLoader_RE.h"
 
-#include "ISceneManager.h"
-#include "IVideoDriver.h"
-#include "IFileSystem.h"
-#include "IReadFile.h"
-#include "IWriteFile.h"
-
-#include <sstream>
+#include <ISceneManager.h>
+#include <IVideoDriver.h>
+#include <IFileSystem.h>
+#include <IReadFile.h>
 
 #include "Utils_Loaders_Irr.h"
 
@@ -25,7 +14,11 @@ namespace scene
 
 //! Constructor
 IO_MeshLoader_RE::IO_MeshLoader_RE(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs)
+: Lod1Mesh(nullptr),
+  Lod2Mesh(nullptr),
+  CollisionMesh(nullptr),
+  SceneManager(smgr),
+  FileSystem(fs)
 {
 	#ifdef _DEBUG
 	setDebugName("CREMeshFileLoader");
@@ -68,6 +61,13 @@ IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
 	    //AnimatedMesh->recalculateBoundingBox();
 		AnimatedMesh->finalize();
 		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
+
+        if (Lod1Mesh)
+            Lod1Mesh->finalize();
+        if (Lod2Mesh)
+            Lod2Mesh->finalize();
+        if (CollisionMesh)
+            CollisionMesh->finalize();
 	}
 	else
 	{
@@ -86,74 +86,130 @@ IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
 
 bool IO_MeshLoader_RE::load(io::IReadFile* f)
 {
-    _lod1 = nullptr;
-    _lod2 = nullptr;
+    if (Lod1Mesh)
+    {
+        Lod1Mesh->drop();
+        Lod1Mesh = nullptr;
+    }
+    if (Lod2Mesh)
+    {
+        Lod2Mesh->drop();
+        Lod2Mesh = nullptr;
+    }
+    if (CollisionMesh)
+    {
+        CollisionMesh->drop();
+        CollisionMesh = nullptr;
+    }
 
-    u32 nbLOD = readU32(f);
-    nbLOD--;
+    u32 nbChunks = readU32(f);
+    core::array<ChunkInfos> chunks;
+    for (u32 i = 0; i < nbChunks; ++i)
+    {
+        ChunkInfos c;
 
-    f->seek(28);
-    s32 adress = readS32(f);
-    f->seek(adress);
+        core::stringc chunkTypeString = readString(f, 4);
+        if (chunkTypeString == "rdeh")
+            c.Type = Chunk_Header;
+        if (chunkTypeString == "hsem")
+            c.Type = Chunk_Mesh;
+        if (chunkTypeString == "00lc")
+            c.Type = Chunk_Collision;
 
-    #ifdef COMPILE_WITH_LODS_SUPPORT
-        // Read all the LODS
-        for (u32 i = 0; i < nbLOD; ++i)
-            readLOD(f);
-    #else
-        // Read Only the LOD0
-        readLOD(f);
-    #endif // COMPILE_WITH_LODS_SUPPORT
+        f->read(&c.Id, 4);
+        f->read(&c.Adress, 4);
+        f->read(&c.Size, 4);
 
+        chunks.push_back(c);
+    }
+
+    for (u32 i = 0; i < chunks.size(); ++i)
+    {
+        const ChunkInfos chunk = chunks[i];
+        if (chunk.Type == Chunk_Header)
+        {
+            f->seek(chunk.Adress);
+            readHeaderChunk(f);
+        }
+        else if (chunk.Type == Chunk_Mesh)
+        {
+            #ifdef COMPILE_WITH_LODS_SUPPORT
+                f->seek(chunk._adress);
+                readMeshChunk(f, chunk._id);
+            #else
+                // load only the first LOD
+                if (chunk.Id == 0)
+                {
+                    f->seek(chunk.Adress);
+                    readMeshChunk(f, 0);
+                }
+            #endif
+        }
+        else if (chunk.Type == Chunk_Collision)
+        {
+            #ifdef COMPILE_WITH_LODS_SUPPORT
+                f->seek(chunk.Adress);
+                readCollisionMeshChunk(f);
+            #endif
+        }
+    }
 
     return true;
 }
 
-void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
+void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
 {
+    log->addLineAndFlush("Read MESH chunk");
+
+    // set the "currentLODMesh"
+    scene::ISkinnedMesh* currentLODMesh = nullptr;
+    if (id == 0)
+        currentLODMesh = AnimatedMesh;
+    else if (id == 1)
+    {
+        Lod1Mesh = SceneManager->createSkinnedMesh();
+        currentLODMesh = Lod1Mesh;
+    }
+    else if (id == 2)
+    {
+        Lod2Mesh = SceneManager->createSkinnedMesh();
+        currentLODMesh = Lod2Mesh;
+    }
+    if (!currentLODMesh)
+        return;
+
+
+    u32 sizeLODname = readU32(f);
+    core::stringc LODname = readString(f, sizeLODname);
+    log->addLineAndFlush(formatString("Read LOD : %s", LODname.c_str()));
+
 
     core::array<WeightT> weightTable;
 
-
-    s32 adress = f->getPos();
-
-    u32 sizeLODname;
-    core::stringc LODname;
-
-    f->read(&sizeLODname, 4);
-    LODname = readString(f, sizeLODname);
-
-    //f->seek(8, true);
     s32 nbMeshBuffer = readS32(f);
     s32 nbBones = readS32(f);
+    log->addLine(formatString("nbMeshBuffer : %d", nbMeshBuffer));
+    log->addLineAndFlush(formatString("nbBones : %d", nbBones));
 
+    f->seek(36, true); // 3 axis
 
-    f->seek(adress + 52);
-    irr::core::vector3df meshCenter;
+    core::vector3df meshCenter;
     f->read(&meshCenter.X, 4);
     f->read(&meshCenter.Z, 4);
     f->read(&meshCenter.Y, 4);
 
-
-    //f->seek(adress + 64);
-
     for (int n = 0; n < nbMeshBuffer; n++)
     {
-        //SMeshBufferTangents* buf = new SMeshBufferTangents();
-        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
+        SSkinMeshBuffer* buf = currentLODMesh->addMeshBuffer();
         s32 sizeMatName = readS32(f);
         core::stringc matName = readString(f, sizeMatName);
-
-        /*
-        std::cout << "matname" << std::endl;
-        std::cout << sizeMatName << std::endl;
-        std::cout << matName.c_str() << std::endl;
-        */
+        log->addLineAndFlush(formatString("matname : %s", matName.c_str()));
 
         s32 sizeMatDiff = readS32(f);
         core::stringc matDiff = readString(f, sizeMatDiff);
+        log->addLineAndFlush(formatString("diffuse texture : %s", matName.c_str()));
 
-        video::ITexture *tex = SceneManager->getVideoDriver()->getTexture(matDiff);
+        video::ITexture* tex = SceneManager->getVideoDriver()->getTexture(matDiff);
         if (tex)
             buf->Material.setTexture(0, tex);
         else
@@ -166,19 +222,15 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
 
         s32 sizeMatNor = readS32(f);
         core::stringc matNor = readString(f, sizeMatNor);
+        log->addLineAndFlush(formatString("normals texture : %s", matName.c_str()));
 
         s32 sizeMatBle = readS32(f);
         core::stringc matBle = readString(f, sizeMatBle);
+        log->addLineAndFlush(formatString("ble texture : %s", matName.c_str()));
 
 
         s32 nbVertices = readS32(f);
         s32 nbFaces = readS32(f);
-
-        /*
-        std::cout << sizeMatBle << std::endl;
-        std::cout << matBle.c_str() << std::endl;
-        */
-
         if (log->isEnabled())
         {
             log->addLine(formatString("nbVertices : %d", nbVertices));
@@ -187,9 +239,7 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
             log->flush();
         }
 
-        buf->Vertices_Standard.reallocate(nbVertices);
         buf->Vertices_Standard.set_used(nbVertices);
-
         for (s32 i = 0; i < nbVertices; i++)
         {
             f32 x, y, z, u, v, nx, ny, nz, bx, by, bz, tx, ty, tz;
@@ -221,10 +271,10 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
                 if (strenghts[ns] != 0.0f)
                 {
                     WeightT tmp;
-                    tmp.meshBufferID = n;
-                    tmp.vertexID = i;
-                    tmp.strenght = strenghts[ns];
-                    tmp.boneID = readF32(f);
+                    tmp.MeshBufferID = n;
+                    tmp.VertexID = i;
+                    tmp.Strenght = strenghts[ns];
+                    tmp.BoneID = readF32(f);
                     weightTable.push_back(tmp);
                 }
                 else
@@ -259,18 +309,14 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
             buf->Vertices[i].Tangent.Z = tz;
             */
 
-            buf->Vertices_Standard[i].Color = irr::video::SColor(255,255,255,255);
+            buf->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
 
-            if (log->isEnabled())
-                log->addLine(formatString("Vertice : x=%f, y=%f, z=%f, UV : u=%f, v=%f", x, y, z, u, v));
-
-            //std::cout << "Vertice :  x = " << x << "  y = "<< y << "  z = "<< z << ", UV = " << u << " et " << v << std::endl;
+            //if (log->isEnabled())
+            //    log->addLine(formatString("Vertice : x=%f, y=%f, z=%f, UV : u=%f, v=%f", x, y, z, u, v));
         }
-        log->flush();
+        //log->flush();
 
-        buf->Indices.reallocate(nbFaces * 3);
         buf->Indices.set_used(nbFaces * 3);
-
         for (s32 i = 0; i < nbFaces; i++)
         {
             s32 idx1, idx2, idx3;
@@ -286,7 +332,7 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
             buf->Indices[3*i + 1] = idx3;
             buf->Indices[3*i + 2] = idx2;
 
-            log->addLine(formatString("Indice : idx1 = %d, idx2 = %d, idx3 = %d", idx1, idx2, idx3));
+            //log->addLine(formatString("Indice : idx1 = %d, idx2 = %d, idx3 = %d", idx1, idx2, idx3));
         }
         log->flush();
         buf->recalculateBoundingBox();
@@ -295,19 +341,20 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
     // Read bones
     for (int i = 0; i < nbBones; i++)
     {
-        ISkinnedMesh::SJoint* root;
+        // why this code ?
+        /*
         if (i == 0)
         {
-            /*
-            root = AnimatedMesh->addJoint();
+            scene::ISkinnedMesh::SJoint* root
+            root = currentLODMesh->addJoint();
 
-            irr::core::vector3df pos(0.0f, 0.0f, 0.0f);
-            irr::core::vector3df scale(1.0f, 1.0f, 1.0f);
-            irr::core::matrix4 posM;
+            core::vector3df pos(0.0f, 0.0f, 0.0f);
+            core::vector3df scale(1.0f, 1.0f, 1.0f);
+            core::matrix4 posM;
             posM.setTranslation(pos);
-            irr::core::matrix4 rotM;
+            core::matrix4 rotM;
             rotM.setRotationDegrees(pos);
-            irr::core::matrix4 scaleM;
+            core::matrix4 scaleM;
             scaleM.setRotationDegrees(scale);
 
             root->Animatedposition = pos;
@@ -316,18 +363,18 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
 
             root->GlobalMatrix = posM * rotM * scaleM;
             root->LocalMatrix = posM * rotM * scaleM;
-            */
         }
+        */
 
 
         u32 sizeJointName = readS32(f);
         core::stringc jointName = readString(f, sizeJointName);
 
-        ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
+        scene::ISkinnedMesh::SJoint* joint = currentLODMesh->addJoint();
         joint->Name = jointName;
 
         core::array<f32> jointData = readDataArray<f32>(f, 12);
-        core::matrix4 mat (core::matrix4::EM4CONST_IDENTITY);
+        core::matrix4 mat(core::matrix4::EM4CONST_IDENTITY);
 
         log->add(formatString("%s : ", joint->Name.c_str()));
         int m = 0;
@@ -384,20 +431,78 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
 
         for (u32 w = 0; w < weightTable.size(); ++w)
         {
-            if (weightTable[w].boneID == i)
+            if (weightTable[w].BoneID == i)
             {
-                ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(joint);
-                wt->buffer_id = weightTable[w].meshBufferID;
-                wt->strength = weightTable[w].strenght;
-                wt->vertex_id = weightTable[w].vertexID;
+                ISkinnedMesh::SWeight* wt = currentLODMesh->addWeight(joint);
+                wt->buffer_id = weightTable[w].MeshBufferID;
+                wt->strength = weightTable[w].Strenght;
+                wt->vertex_id = weightTable[w].VertexID;
             }
         }
     }
+}
 
+void IO_MeshLoader_RE::readCollisionMeshChunk(io::IReadFile* f)
+{
+    log->addLineAndFlush("Read COLLISION chunk");
+    scene::ISkinnedMesh* currentLODMesh = CollisionMesh;
+
+    u32 sizeCollisionName = readU32(f);
+    core::stringc collisionName = readString(f, sizeCollisionName);
+    log->addLineAndFlush(formatString("Read collision mesh name : %s", collisionName.c_str()));
+
+    u32 nbVertices = readU32(f);
+    u32 nbTriangles = readU32(f);
+    u32 nbU = readU32(f);
+
+    SSkinMeshBuffer* buf = currentLODMesh->addMeshBuffer();
+    buf->Vertices_Standard.set_used(nbVertices);
+
+    for (u32 i = 0; i < nbVertices; ++i)
+    {
+        buf->Vertices_Standard[i].Pos.X = readF32(f);
+        buf->Vertices_Standard[i].Pos.Z = readF32(f);
+        buf->Vertices_Standard[i].Pos.Y = readF32(f);
+
+        buf->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
+    }
+
+    buf->Indices.set_used(nbTriangles * 3);
+    for (u32 i = 0; i < nbTriangles; ++i)
+    {
+        buf->Indices[3*i] = readU32(f);
+        buf->Indices[3*i + 1] = readU32(f);
+        buf->Indices[3*i + 2] = readU32(f);
+        f->seek(4, true); // smoothing group ?
+    }
+
+    u32 strSize = readU32(f);
+    f->seek(strSize, true); // skip str
+
+    f->seek(36, true); // 3 axis
+
+    core::vector3df meshCenter;
+    meshCenter.X = readF32(f);
+    meshCenter.Z = readF32(f);
+    meshCenter.Y = readF32(f);
+
+    // add the offset
+    for (u32 i = 0; i < nbVertices; ++i)
+        buf->Vertices_Standard[i].Pos += meshCenter;
+}
+
+void IO_MeshLoader_RE::readHeaderChunk(io::IReadFile* f)
+{
+    log->addLineAndFlush("Read HEADER chunk");
+    u32 userSize = readU32(f);
+    core::stringc user = readString(f, userSize);
+    log->addLineAndFlush(formatString("User : %s", user.c_str()));
+
+    u32 pathSize = readU32(f);
+    core::stringc path = readString(f, pathSize);
+    log->addLineAndFlush(formatString("Path : %s\n", path.c_str()));
 }
 
 } // end namespace scene
 } // end namespace irr
-
-#endif // _IRR_COMPILE_WITH_RE_LOADER_
 

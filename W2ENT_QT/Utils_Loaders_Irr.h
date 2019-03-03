@@ -1,7 +1,8 @@
 #ifndef UTILS_LOADERS_H
 #define UTILS_LOADERS_H
 
-#include <irrlicht.h>
+#include <IReadFile.h>
+#include <irrArray.h>
 
 using namespace irr;
 

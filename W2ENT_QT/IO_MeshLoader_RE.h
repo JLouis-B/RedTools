@@ -1,18 +1,38 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef __C_RE_MESH_FILE_LOADER_H_INCLUDED__
-#define __C_RE_MESH_FILE_LOADER_H_INCLUDED__
+#ifndef IO_MESHLOADER_RE_H
+#define IO_MESHLOADER_RE_H
 
-// #define COMPILE_WITH_LODS_SUPPORT
+//#define COMPILE_WITH_LODS_SUPPORT
 
 #include "IMeshLoader.h"
 #include "irrString.h"
-#include "SMesh.h"
-#include "SAnimatedMesh.h"
-#include "IMeshManipulator.h"
 #include "ISkinnedMesh.h"
 #include "Log.h"
+
+enum ChunkType
+{
+    Chunk_Header,
+    Chunk_Mesh,
+    Chunk_Collision
+};
+
+struct ChunkInfos
+{
+    ChunkType Type;
+    u32 Id;
+    u32 Adress;
+    u32 Size;
+};
+
+struct WeightT
+{
+    u32 VertexID;
+    u32 MeshBufferID;
+    f32 Strenght;
+    u32 BoneID;
+};
 
 namespace irr
 {
@@ -26,15 +46,6 @@ namespace io
 namespace scene
 {
 class IMeshManipulator;
-
-
-	struct WeightT
-	{
-	    u32 vertexID;
-	    u32 meshBufferID;
-	    f32 strenght;
-	    u32 boneID;
-	};
 
 //! Meshloader capable of loading re meshes.
 class IO_MeshLoader_RE : public IMeshLoader
@@ -54,23 +65,23 @@ public:
 	//! See IReferenceCounted::drop() for more information.
 	virtual IAnimatedMesh* createMesh(io::IReadFile* file);
 
-	IAnimatedMesh* _lod1;
-	IAnimatedMesh* _lod2;
+    scene::ISkinnedMesh* Lod1Mesh;
+    scene::ISkinnedMesh* Lod2Mesh;
+    scene::ISkinnedMesh* CollisionMesh;
 
 
 private:
 
-    // Main function
 	bool load(io::IReadFile* file);
 
-    void readLOD(io::IReadFile* f);
+    void readCollisionMeshChunk(io::IReadFile* f);
+    void readMeshChunk(io::IReadFile* f, u32 id);
+    void readHeaderChunk(io::IReadFile* f);
 
-    // Atrributes
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
 
-    //DEBUG
     Log* log;
 };
 

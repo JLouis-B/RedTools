@@ -1,9 +1,9 @@
 #include "IO_SceneLoader_TheCouncil.h"
 
 
-#include "ISceneManager.h"
-#include "IVideoDriver.h"
-#include "IWriteFile.h"
+#include <ISceneManager.h>
+#include <IAnimatedMeshSceneNode.h>
+
 #include "Settings.h"
 
 #include <QJsonDocument>

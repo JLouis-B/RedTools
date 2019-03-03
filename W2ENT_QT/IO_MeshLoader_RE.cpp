@@ -242,8 +242,6 @@ void IO_MeshLoader_RE::readLOD(io::IReadFile* f)
             buf->Vertices_Standard[i].Pos.Y = y;
             buf->Vertices_Standard[i].Pos.Z = z;
 
-            buf->Vertices_Standard[i].Pos += meshCenter;
-
             buf->Vertices_Standard[i].TCoords.X = u;
             buf->Vertices_Standard[i].TCoords.Y = v;
 

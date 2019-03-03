@@ -7,7 +7,6 @@
 //#define COMPILE_WITH_LODS_SUPPORT
 
 #include "IMeshLoader.h"
-#include "irrString.h"
 #include "ISkinnedMesh.h"
 #include "Log.h"
 
@@ -67,7 +66,7 @@ public:
 
     scene::ISkinnedMesh* Lod1Mesh;
     scene::ISkinnedMesh* Lod2Mesh;
-    scene::ISkinnedMesh* CollisionMesh;
+    scene::IMesh* CollisionMesh;
 
 
 private:

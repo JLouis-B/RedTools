@@ -4,6 +4,8 @@
 #include <IVideoDriver.h>
 #include <IFileSystem.h>
 #include <IReadFile.h>
+#include <SMesh.h>
+#include <SMeshBuffer.h>
 
 #include "Utils_Loaders_Irr.h"
 
@@ -66,8 +68,6 @@ IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
             Lod1Mesh->finalize();
         if (Lod2Mesh)
             Lod2Mesh->finalize();
-        if (CollisionMesh)
-            CollisionMesh->finalize();
 	}
 	else
 	{
@@ -134,8 +134,8 @@ bool IO_MeshLoader_RE::load(io::IReadFile* f)
         else if (chunk.Type == Chunk_Mesh)
         {
             #ifdef COMPILE_WITH_LODS_SUPPORT
-                f->seek(chunk._adress);
-                readMeshChunk(f, chunk._id);
+                f->seek(chunk.Adress);
+                readMeshChunk(f, chunk.Id);
             #else
                 // load only the first LOD
                 if (chunk.Id == 0)
@@ -445,7 +445,11 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
 void IO_MeshLoader_RE::readCollisionMeshChunk(io::IReadFile* f)
 {
     log->addLineAndFlush("Read COLLISION chunk");
-    scene::ISkinnedMesh* currentLODMesh = CollisionMesh;
+    CollisionMesh = new scene::SMesh();
+    scene::SMeshBuffer* buffer = new scene::SMeshBuffer();
+    ((scene::SMesh*)CollisionMesh)->addMeshBuffer(buffer);
+
+    scene::IMesh* currentLODMesh = CollisionMesh;
 
     u32 sizeCollisionName = readU32(f);
     core::stringc collisionName = readString(f, sizeCollisionName);
@@ -455,24 +459,22 @@ void IO_MeshLoader_RE::readCollisionMeshChunk(io::IReadFile* f)
     u32 nbTriangles = readU32(f);
     u32 nbU = readU32(f);
 
-    SSkinMeshBuffer* buf = currentLODMesh->addMeshBuffer();
-    buf->Vertices_Standard.set_used(nbVertices);
-
+    buffer->Vertices.set_used(nbVertices);
     for (u32 i = 0; i < nbVertices; ++i)
     {
-        buf->Vertices_Standard[i].Pos.X = readF32(f);
-        buf->Vertices_Standard[i].Pos.Z = readF32(f);
-        buf->Vertices_Standard[i].Pos.Y = readF32(f);
+        buffer->Vertices[i].Pos.X = readF32(f);
+        buffer->Vertices[i].Pos.Z = readF32(f);
+        buffer->Vertices[i].Pos.Y = readF32(f);
 
-        buf->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
+        buffer->Vertices[i].Color = video::SColor(255, 255, 255, 255);
     }
 
-    buf->Indices.set_used(nbTriangles * 3);
+    buffer->Indices.set_used(nbTriangles * 3);
     for (u32 i = 0; i < nbTriangles; ++i)
     {
-        buf->Indices[3*i] = readU32(f);
-        buf->Indices[3*i + 1] = readU32(f);
-        buf->Indices[3*i + 2] = readU32(f);
+        buffer->Indices[3*i] = readU32(f);
+        buffer->Indices[3*i + 1] = readU32(f);
+        buffer->Indices[3*i + 2] = readU32(f);
         f->seek(4, true); // smoothing group ?
     }
 
@@ -488,7 +490,7 @@ void IO_MeshLoader_RE::readCollisionMeshChunk(io::IReadFile* f)
 
     // add the offset
     for (u32 i = 0; i < nbVertices; ++i)
-        buf->Vertices_Standard[i].Pos += meshCenter;
+        buffer->Vertices[i].Pos += meshCenter;
 }
 
 void IO_MeshLoader_RE::readHeaderChunk(io::IReadFile* f)

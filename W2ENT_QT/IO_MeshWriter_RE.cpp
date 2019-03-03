@@ -430,9 +430,6 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     // file->write("\x06\x00\x00\x00noname\x04\x00\x00\x00\x64iff\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 32);
     for (u32 i=0; i<lodMesh->getMeshBufferCount(); ++i)
 	{
-        const core::vector3df meshBufferCenter = lodMesh->getMeshBuffer(i)->getBoundingBox().getCenter();
-        const core::vector3df center = meshBufferCenter - meshCenter;
-
         core::stringc matName = "noname";
         core::stringc diffuseTexture = "diff";
         if (lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0))
@@ -469,7 +466,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
         for(u32 n=0; n<lodMesh->getMeshBuffer(i)->getVertexCount(); ++n)
         {
             // The vertex positions are relatives to the mesh center
-            const core::vector3df relativePos = lodMesh->getMeshBuffer(i)->getPosition(n) - center;
+            const core::vector3df relativePos = lodMesh->getMeshBuffer(i)->getPosition(n);
             file->write(&relativePos.X, 4);
             file->write(&relativePos.Z, 4);
             file->write(&relativePos.Y, 4);

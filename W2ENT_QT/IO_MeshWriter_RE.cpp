@@ -63,12 +63,12 @@ EMESH_WRITER_TYPE IO_MeshWriter_RE::getType() const
 }
 
 
-void IO_MeshWriter_RE::createWeightsTable(ISkinnedMesh* mesh)
+void IO_MeshWriter_RE::createWeightsTable(scene::ISkinnedMesh* mesh)
 {
-    _table.clear();
-    _table.resize(mesh->getMeshBufferCount());
+    WeightsTable.clear();
+    WeightsTable.resize(mesh->getMeshBufferCount());
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
-        _table[i].resize(mesh->getMeshBuffer(i)->getVertexCount());
+        WeightsTable[i].resize(mesh->getMeshBuffer(i)->getVertexCount());
 
     const u32 nbJoints = mesh->getJointCount();
     for (u32 i = 0; i < nbJoints; ++i)
@@ -77,11 +77,11 @@ void IO_MeshWriter_RE::createWeightsTable(ISkinnedMesh* mesh)
         const u32 nbWeights = joint->Weights.size();
         for (u32 n = 0; n < nbWeights; ++n)
         {
-            irr::scene::ISkinnedMesh::SWeight w = joint->Weights[n];
+            scene::ISkinnedMesh::SWeight w = joint->Weights[n];
             Weight tmp;
             tmp.boneID = i;
             tmp.w = w;
-            _table[w.buffer_id][w.vertex_id].push_back(tmp);
+            WeightsTable[w.buffer_id][w.vertex_id].push_back(tmp);
         }
     }
 }
@@ -96,7 +96,7 @@ core::array<Weight> getWeightForVertex(scene::ISkinnedMesh* mesh, u32 meshBuffer
         const u32 nbWeights = joint->Weights.size();
         for (u32 n = 0; n < nbWeights; ++n)
         {
-            irr::scene::ISkinnedMesh::SWeight w = joint->Weights[n];
+            scene::ISkinnedMesh::SWeight w = joint->Weights[n];
             if (w.buffer_id == meshBufferID && w.vertex_id == vertexID)
             {
                 Weight wd;
@@ -110,54 +110,15 @@ core::array<Weight> getWeightForVertex(scene::ISkinnedMesh* mesh, u32 meshBuffer
     return result;
 }
 
-
-int IO_MeshWriter_RE::getJointsSize(ISkinnedMesh* mesh)
-{
-    // matrix = 4*12 + 4 for the name size = 52
-    u32 size = mesh->getJointCount() * 52;
-
-    for (u32 i = 0; i < mesh->getJointCount(); i++)
-    {
-        size += mesh->getAllJoints()[i]->Name.size();
-    }
-
-    return static_cast<int>(size);
-}
-
-int IO_MeshWriter_RE::getMaterialsSize(IMesh* mesh)
-{
-    int size = 0;
-    for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
-    {
-        size += 30; // 22 octets fixes dans un mateirl
-
-
-        irr::core::stringc matName = "noname";
-        irr::core::stringc diffuseTexture = "diff";
-        if (mesh->getMeshBuffer(i)->getMaterial().getTexture(0))
-        {
-            diffuseTexture = FileSystem->getFileBasename(mesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), true);
-            //irr::core::stringc mat = mesh->getMeshBuffer(0)->getMaterial().getTexture(0).getName().getPath();
-            matName = FileSystem->getFileBasename(mesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), false);
-
-            //core::cutFilenameExtension(matName, mat);
-        }
-        u32 matNameSize = matName.size();
-        u32 diffSize = diffuseTexture.size();
-
-        size += matNameSize;
-        size += diffSize;
-    }
-
-    return size;
-}
-
 //! writes a mesh
 bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mesh, bool skinned, s32 flags)
 {
 	if (!file)
 		return false;
 
+    ChunksAdress.clear();
+    ChunksSize.clear();
+    ChunksAdressToWrite.clear();
 
 
     u32 nbLOD = 1;
@@ -168,60 +129,31 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
     if (CollisionMesh)
         nbLOD+=CollisionMesh->getMeshBufferCount();
 
-    // Compute the number of vertices and faces
-    s32 nbVertices = 0;
-	s32 nbFaces = 0;
 
-	for (u32 i=0; i<mesh->getMeshBufferCount(); ++i)
-	{
-	    nbVertices += mesh->getMeshBuffer(i)->getVertexCount();
-	    nbFaces += mesh->getMeshBuffer(i)->getIndexCount()/3;
-	}
-
-
-	//os::Printer::log("Writing mesh", file->getFileName());
-
-	// write Red Engine MESH header
-	io::path name;
-	core::cutFilenameExtension(name,file->getFileName()) += ".re";
-
-	core::stringc user = "anonymous_user";
-	core::stringc path = FileSystem->getAbsolutePath(file->getFileName());
 
 	// Write the header
-    u32 nbLOD2 = nbLOD + 1;
-	file->write(&nbLOD2, 4);
+    u32 nbChunks = nbLOD + 1;
+    file->write(&nbChunks, 4);
 
     file->write("rdeh\x00\x00\x00\x00", 8);
-    u32 headerSize = 20 + nbLOD * 16;
-    file->write(&headerSize, 4);
+
+    // updated later
+    u32 adress = 0, size = 0;
+    ChunksAdressToWrite.push_back(file->getPos());
+    file->write(&adress, 4);
+    file->write(&size, 4);
 
 
-
-	s32 nb = 8 + user.size() + path.size();
-	file->write(&nb, 4);
 
 	file->write("hsem", 4);
     u32 LODid = 0;
     file->write(&LODid, 4);
 
-	// The adress of the LOD0
-	s32 adress = 44 + user.size() + path.size();
-	if (MeshLOD1)
-        adress += 16; // Un LOD prend 16 octets dans le header
-	if (MeshLOD2)
-        adress += 16; // Un LOD prend 16 octets dans le header
-    if (CollisionMesh)
-        adress += CollisionMesh->getMeshBufferCount() * 16;
-    file->write(&adress, 4);
 
-    // vertex = 112 octets, face = 16 octets, and there is 104 octets between the end of the path and the begin of vertices declaration
-	//int dataB = nbVertices * 112 + nbFaces * 16 + 104;
-    s32 LODsize = nbVertices * 112 + nbFaces * 16 + 64 + getMaterialsSize(mesh);
-    if(skinned)
-        LODsize += getJointsSize((ISkinnedMesh*)mesh);
-    //LODsize -=4;
-    file->write(&LODsize, 4);
+    ChunksAdressToWrite.push_back(file->getPos());
+    file->write(&adress, 4);
+    file->write(&size, 4);
+
 
     // LOD1
     if (MeshLOD1)
@@ -229,23 +161,10 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
         file->write("hsem", 4);
         LODid = 1;
         file->write(&LODid, 4);
-        adress = adress + LODsize;
+
+        ChunksAdressToWrite.push_back(file->getPos());
         file->write(&adress, 4);
-        nbVertices = 0;
-        nbFaces = 0;
-        if (MeshLOD1)
-            for (u32 i=0; i<MeshLOD1->getMeshBufferCount(); ++i)
-            {
-                nbVertices += MeshLOD1->getMeshBuffer(i)->getVertexCount();
-                nbFaces += MeshLOD1->getMeshBuffer(i)->getIndexCount()/3;
-            }
-
-
-        LODsize = nbVertices * 112 + nbFaces * 16 + 64 + getMaterialsSize(MeshLOD1);
-        if(skinned)
-              LODsize += getJointsSize((scene::ISkinnedMesh*)MeshLOD1);
-        //LODsize -=4;
-        file->write(&LODsize, 4);
+        file->write(&size, 4);
     }
 
     // LOD2
@@ -254,73 +173,76 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
         file->write("hsem", 4);
         LODid = 2;
         file->write(&LODid, 4);
-        adress = adress + LODsize;
-        file->write(&adress, 4);
-        nbVertices = 0;
-        nbFaces = 0;
-        if (MeshLOD2)
-            for (u32 i=0; i<MeshLOD2->getMeshBufferCount(); ++i)
-            {
-                nbVertices += MeshLOD2->getMeshBuffer(i)->getVertexCount();
-                nbFaces += MeshLOD2->getMeshBuffer(i)->getIndexCount()/3;
-            }
 
-        LODsize = nbVertices * 112 + nbFaces * 16 + 64 + getMaterialsSize(MeshLOD2);
-        if(skinned)
-               LODsize += getJointsSize((scene::ISkinnedMesh*)MeshLOD2);
-        //LODsize -=4;
-        file->write(&LODsize, 4);
+        ChunksAdressToWrite.push_back(file->getPos());
+        file->write(&adress, 4);
+        file->write(&size, 4);
     }
     if(CollisionMesh)
     {
+        // TODO : test if this really works with multiple mesh buffer ?
         for(u32 i = 0; i < CollisionMesh->getMeshBufferCount(); ++i)
         {
             file->write("00lc", 4);
             LODid = i;
             file->write(&LODid, 4);
-            adress = adress + LODsize;
+
+            ChunksAdressToWrite.push_back(file->getPos());
             file->write(&adress, 4);
-            nbVertices = CollisionMesh->getMeshBuffer(i)->getVertexCount();
-            nbFaces = CollisionMesh->getMeshBuffer(i)->getIndexCount()/3;
-            // name + geomcount + vertex + faces + "dafault" + center + axis
-            LODsize = 23 + 12 + (nbVertices * 12) + (nbFaces * 16) + 11 + 12 + 36;
-            if (i > 9)
-                LODsize++;
-            if (i > 99)
-                LODsize++;
-            if (i > 999)
-                LODsize++;
-            file->write(&LODsize, 4);
+            file->write(&size, 4);
         }
     }
 
-    // Size of the username
-    s32 userSize = user.size();
-    file->write(&userSize, 4);
-    // And the username
-	file->write(user.c_str(), user.size());
 
-	// Size of the path
-	s32 pathSize = path.size();
-	file->write(&pathSize, 4);
-	// And the path
-    file->write(path.c_str(), pathSize);
-
-    writeLOD(file, "LOD0", mesh, skinned);
+    writeHeaderChunk(file);
+    writeMeshChunk(file, "LOD0", mesh, skinned);
     if (MeshLOD1)
-        writeLOD(file, "LOD1", MeshLOD1, skinned);
+        writeMeshChunk(file, "LOD1", MeshLOD1, skinned);
     if (MeshLOD2)
-        writeLOD(file, "LOD2", MeshLOD2, skinned);
+        writeMeshChunk(file, "LOD2", MeshLOD2, skinned);
     if(CollisionMesh)
-        writeCollisionMesh(file);
+        writeCollisionMeshChunk(file);
 
+
+    // update the chunks adress/sie in the header
+    for (u32 i = 0; i < ChunksAdressToWrite.size(); ++i)
+    {
+        file->seek(ChunksAdressToWrite[i]);
+        file->write(&ChunksAdress[i], 4);
+        file->write(&ChunksSize[i], 4);
+    }
 
 	return true;
 }
 
-
-void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
+void IO_MeshWriter_RE::writeHeaderChunk(io::IWriteFile* file)
 {
+    ChunksAdress.push_back(file->getPos());
+    u32 chunkStart = file->getPos();
+
+    core::stringc user = "anonymous_user";
+    core::stringc path = FileSystem->getAbsolutePath(file->getFileName());
+
+    // Size of the username
+    u32 userSize = user.size();
+    file->write(&userSize, 4);
+    // And the username
+    file->write(user.c_str(), user.size());
+
+    // Size of the path
+    u32 pathSize = path.size();
+    file->write(&pathSize, 4);
+    // And the path
+    file->write(path.c_str(), pathSize);
+
+    ChunksSize.push_back(file->getPos() - chunkStart);
+}
+
+void IO_MeshWriter_RE::writeCollisionMeshChunk(io::IWriteFile* file)
+{
+    ChunksAdress.push_back(file->getPos());
+    u32 chunkStart = file->getPos();
+
     const core::vector3df meshCenter = CollisionMesh->getBoundingBox().getCenter();
     //meshCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
 
@@ -381,11 +303,15 @@ void IO_MeshWriter_RE::writeCollisionMesh(io::IWriteFile* file)
         file->write(&center.Y, 4);
     }
 
+    ChunksSize.push_back(file->getPos() - chunkStart);
 }
 
-void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMesh* lodMesh, bool skinned)
+void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodName, IMesh* lodMesh, bool skinned)
 {
-    // In the .re format, the mesh need tangents
+    ChunksAdress.push_back(file->getPos());
+    u32 chunkStart = file->getPos();
+
+    // In the .re format, the mesh needs tangents
     scene::IMesh* tangentMesh = lodMesh;
     for (u32 i = 0; i < lodMesh->getMeshBufferCount(); ++i)
     {
@@ -423,7 +349,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     file->write(&meshCenter.Y, 4);
 
     if (skinned)
-        createWeightsTable((ISkinnedMesh*)lodMesh);
+        createWeightsTable((scene::ISkinnedMesh*)lodMesh);
 
 
     // The material
@@ -483,10 +409,10 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
             core::vector3df vect3 = mesh->getMeshBuffer(i)->getNormal(n);
 
             core::matrix4 m;
-            m.setRotationDegrees(irr::core::vector3df(0, 0, -90));
+            m.setRotationDegrees(core::vector3df(0, 0, -90));
             m.rotateVect(vect2);
 
-            m.setRotationDegrees(irr::core::vector3df(-90, 0, 0));
+            m.setRotationDegrees(core::vector3df(-90, 0, 0));
             m.rotateVect(vect3);
 
             float v2x = vect2.X;
@@ -510,7 +436,7 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
 
             if (skinned)
             {
-                vector<Weight> ws = _table[i][n];
+                vector<Weight> ws = WeightsTable[i][n];
 
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 16);
 
@@ -598,9 +524,9 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
 	}
 
 
-    ISkinnedMesh* skinMesh;
+    scene::ISkinnedMesh* skinMesh;
     if (skinned)
-        skinMesh = ((ISkinnedMesh*)lodMesh);
+        skinMesh = ((scene::ISkinnedMesh*)lodMesh);
 
     for (u32 i = 0; i < nbJoints; ++i)
     {
@@ -685,21 +611,22 @@ void IO_MeshWriter_RE::writeLOD(io::IWriteFile* file, core::stringc lodName, IMe
     }
     //file->seek(-4, true);
 
+    ChunksSize.push_back(file->getPos() - chunkStart);
 }
 
 
 
-void IO_MeshWriter_RE::setLOD1(IMesh* lod1)
+void IO_MeshWriter_RE::setLOD1(scene::IMesh* lod1)
 {
     MeshLOD1 = lod1;
 }
 
-void IO_MeshWriter_RE::setLOD2(IMesh* lod2)
+void IO_MeshWriter_RE::setLOD2(scene::IMesh* lod2)
 {
     MeshLOD2 = lod2;
 }
 
-void IO_MeshWriter_RE::setCollisionMesh(IMesh *mesh)
+void IO_MeshWriter_RE::setCollisionMesh(scene::IMesh *mesh)
 {
     CollisionMesh = mesh;
 }

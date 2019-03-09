@@ -45,35 +45,35 @@ namespace scene
 		//! writes a mesh
         virtual bool writeMesh(io::IWriteFile* file, scene::IMesh* mesh, s32 flags=EMWF_NONE);
 
-        bool writeAnimatedMesh(io::IWriteFile* file, IMesh *mesh, bool skinned = false, s32 flags=EMWF_NONE);
+        bool writeAnimatedMesh(io::IWriteFile* file, scene::IMesh *mesh, bool skinned = false, s32 flags=EMWF_NONE);
 
         void setLOD1(IMesh* lod1);
-        void setLOD2(IMesh *lod2);
+        void setLOD2(IMesh* lod2);
         void setCollisionMesh(IMesh* mesh);
 
         void clearLODS();
 
 
 	protected:
-
-        void writeLOD(io::IWriteFile* file, core::stringc lodName, IMesh *lodMesh, bool skinned);
-        void writeCollisionMesh(io::IWriteFile* file);
+        void writeHeaderChunk(io::IWriteFile* file);
+        void writeMeshChunk(io::IWriteFile* file, core::stringc lodName, IMesh* lodMesh, bool skinned);
+        void writeCollisionMeshChunk(io::IWriteFile* file);
 
 
         ISceneManager* SceneManager;
         io::IFileSystem* FileSystem;
 
-        IMesh* MeshLOD1;
-        IMesh* MeshLOD2;
-        IMesh* CollisionMesh;
+        scene::IMesh* MeshLOD1;
+        scene::IMesh* MeshLOD2;
+        scene::IMesh* CollisionMesh;
 
+        void createWeightsTable(scene::ISkinnedMesh* mesh);
 
-        int getMaterialsSize(IMesh *mesh);
-        int getJointsSize(ISkinnedMesh* mesh);
+        std::vector<std::vector<std::vector<Weight> > > WeightsTable;
 
-        void createWeightsTable(ISkinnedMesh* mesh);
-
-        std::vector<std::vector<std::vector<Weight> > > _table;
+        core::array<u32> ChunksAdress;
+        core::array<u32> ChunksSize;
+        core::array<u32> ChunksAdressToWrite;
 	};
 
 } // end namespace

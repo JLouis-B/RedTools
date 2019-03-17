@@ -177,7 +177,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         buffer->Indices.set_used(nbTriangles * 3);
         for (u32 j = 0; j < nbVertices; ++j)
         {
-            buffer->Vertices_Standard[j].Color = video::SColor(255.f, 255.f, 255.f, 255.f);            
+            buffer->Vertices_Standard[j].Color = video::SColor(255, 255, 255, 255);
             for (u32 h = 0; h < components.size(); ++h)
             {
                 const VertexComponent c = components[h];

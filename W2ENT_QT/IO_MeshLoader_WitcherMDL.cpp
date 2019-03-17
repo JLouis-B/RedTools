@@ -642,7 +642,7 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
         buffer->Vertices_Standard[i].Pos = pos;
 
         // to see what's texture paint
-        buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
+        buffer->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
     }
 
@@ -816,7 +816,7 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
 #endif
 
         buffer->Vertices_Standard[i].Pos = pos;
-        buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
+        buffer->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
     }
 
@@ -1039,7 +1039,7 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
 #endif
 
         buffer->Vertices_Standard[i].Pos = pos;
-        buffer->Vertices_Standard[i].Color = video::SColor(255.f, 255.f, 255.f, 255.f);
+        buffer->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
         buffer->Vertices_Standard[i].TCoords = core::vector2df(0.f, 0.f);
 
         // Skinning of the vertex

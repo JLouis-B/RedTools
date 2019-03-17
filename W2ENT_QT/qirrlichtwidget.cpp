@@ -18,7 +18,310 @@
 
 #include <iostream>
 
+
 using namespace irr;
+
+
+QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
+    QWidget (parent),
+    _device (nullptr)
+{
+    // on écrit directement dans al mémoire vidéo du widget
+    //setAttribute (Qt::WA_PaintOnScreen);
+    setAttribute (Qt::WA_OpaquePaintEvent);
+    setFocusPolicy (Qt::StrongFocus);
+    setAutoFillBackground (false);
+
+    _currentLOD = LOD_0;
+    _currentLodData = &_lod0Data;
+
+    _reWriter = nullptr;
+    _camera = nullptr;
+
+    _inLoading = false;
+}
+
+QIrrlichtWidget::~QIrrlichtWidget ()
+{
+    if (_device)
+    {
+        _device->closeDevice ();
+        _device->drop ();
+    }
+}
+
+void QIrrlichtWidget::init()
+{
+    SIrrlichtCreationParameters params;
+
+    params.DriverType        = video::EDT_OPENGL;
+    params.WindowId          = reinterpret_cast<void*> (winId ());
+
+    params.WindowSize.Width  = width();
+    params.WindowSize.Height = height();
+
+
+
+    params.AntiAlias         = true;
+    params.Bits              = 16;
+    params.HighPrecisionFPU  = false;
+    params.Stencilbuffer     = true;
+    params.Vsync             = true;
+
+    _device = createDeviceEx(params);
+    _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
+
+    /* une fois initialisé, on émet le signal onInit, c'est la que nous
+     * ajouterons nos modèles et nos textures.
+     */
+    emit onInit (this);
+
+
+    setMouseTracking(true);
+
+    if (_device)
+    {
+        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(nullptr, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
+        _camera->setPosition(core::vector3df(0.f, 30.f, -40.f));
+        _camera->setTarget(core::vector3df(0.f, 0.f, 0.f));
+        const f32 aspectRatio = static_cast<float>(width ()) / height();
+        _camera->setAspectRatio(aspectRatio);
+        _camera->setFarValue(10000.f);
+
+        _reWriter = new scene::IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
+
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_WitcherMDL(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_CEF(_device->getSceneManager(), _device->getFileSystem()));
+        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_TheCouncil_Prefab(_device->getSceneManager(), _device->getFileSystem()));
+
+        _device->getSceneManager()->addExternalSceneLoader(new IO_SceneLoader_TheCouncil(_device->getSceneManager(), _device->getFileSystem()));
+
+        //_device->getSceneManager()->setAmbientLight(video::SColor(255,255,255,255));
+    }
+
+    /* puis on connecte notre slot updateIrrlicht (), qui s'occupe du rendu
+     * à notre signal updateIrrlichtQuery ()
+     */
+    connect (this, SIGNAL (updateIrrlichtQuery (QIrrlichtWidget*)), this, SLOT (updateIrrlicht (QIrrlichtWidget*)));
+
+    // et on lance notre timer
+    startTimer (0);
+
+    // creation du fichier de log
+    Log::Instance()->setOutput(LOG_NONE);
+    if (Settings::_debugLog)
+        Log::Instance()->addOutput(LOG_FILE);
+
+#ifdef USE_NORMALS_DEBUG_SHADER
+    initNormalsMaterial();
+#endif
+
+#ifdef IS_A_DEVELOPMENT_BUILD
+    Log::Instance()->addOutput(LOG_CONSOLE);
+#endif
+
+    Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"));
+}
+
+void QIrrlichtWidget::initNormalsMaterial()
+{
+    io::path vsFileName = "shaders/normals.vert";
+    io::path psFileName = "shaders/normals.frag";
+
+    _normalsMaterial = new NormalsDebuggerShaderCallBack();
+    _normalsMaterial->SetDevice(_device);
+
+    video::IGPUProgrammingServices* gpu = _device->getVideoDriver()->getGPUProgrammingServices();
+    const video::E_GPU_SHADING_LANGUAGE shadingLanguage = video::EGSL_DEFAULT;
+    _normalsMaterialType = gpu->addHighLevelShaderMaterialFromFiles(
+                vsFileName, "vertexMain", video::EVST_VS_1_1,
+                psFileName, "pixelMain", video::EPST_PS_1_1,
+                _normalsMaterial, video::EMT_SOLID, 0, shadingLanguage);
+
+    if (_normalsMaterialType == -1)
+    {
+        // TODO
+        // error
+    }
+}
+
+io::IFileSystem *QIrrlichtWidget::getFileSystem()
+{
+    return _device->getFileSystem();
+}
+
+void QIrrlichtWidget::updateIrrlicht(QIrrlichtWidget* irrWidget)
+{
+    if (_inLoading)
+        return;
+
+    if (_device)
+    {
+        _device->getTimer()->tick ();
+
+        video::SColor color(255, Settings::_r, Settings::_g, Settings::_b);
+
+        _device->getVideoDriver()->beginScene(true, true, color);
+        _device->getSceneManager()->drawAll();
+        _device->getVideoDriver()->endScene();
+    }
+}
+
+void QIrrlichtWidget::paintEvent(QPaintEvent* event)
+{
+    if (_device)
+    {
+        /* lorsque le widget demande a être affiché, on emet le signal updateIrrlichtQuery (),
+         * ainsi, notre slot updateIrrlicht () sera appelé.
+         */
+        emit updateIrrlichtQuery (this);
+    }
+}
+
+void QIrrlichtWidget::timerEvent(QTimerEvent* event)
+{
+    if (_device)
+    {
+        // pareil que pour la méthode paintEvent ()
+        emit updateIrrlichtQuery (this);
+    }
+
+    event->accept ();
+}
+
+void QIrrlichtWidget::resizeEvent(QResizeEvent* event)
+{
+    if (_device)
+    {
+        // lors d'un redimensionnement, on récupe la nouvelle taille du widget
+        core::dimension2d<u32> widgetSize;
+
+        widgetSize.Width  = event->size().width();
+        widgetSize.Height = event->size().height();
+
+        // et on précise à Irrlicht la nouvelle taille.
+        _device->getVideoDriver()->OnResize(widgetSize);
+
+        // update aspect ratio
+        const f32 aspectRatio = static_cast<float>(event->size().width()) / event->size().height();
+        _camera->setAspectRatio(aspectRatio);
+     }
+
+    QWidget::resizeEvent(event);
+}
+
+void QIrrlichtWidget::keyPressEvent(QKeyEvent* event)
+{
+    if (_device == nullptr)
+        return;
+
+    SEvent irrEvent;
+    irrEvent.EventType = EET_KEY_INPUT_EVENT;
+
+    irrEvent.KeyInput.PressedDown = true;
+    irrEvent.KeyInput.Key = (EKEY_CODE)QKEY_TO_IRRKEY(event->key());
+
+    if (_device->postEventFromUser( irrEvent ))
+        event->accept();
+}
+
+void QIrrlichtWidget::keyReleaseEvent(QKeyEvent* event)
+{
+    if (_device == nullptr)
+        return;
+
+    SEvent irrEvent;
+    irrEvent.EventType = EET_KEY_INPUT_EVENT;
+
+    irrEvent.KeyInput.PressedDown = false;
+    irrEvent.KeyInput.Key = (EKEY_CODE)QKEY_TO_IRRKEY(event->key());
+
+    if (_device->postEventFromUser( irrEvent ))
+        event->accept();
+}
+
+void QIrrlichtWidget::mouseMoveEvent(QMouseEvent* event)
+{
+    if (_device == nullptr)
+        return;
+
+    SEvent irrEvent;
+    irrEvent.EventType = EET_MOUSE_INPUT_EVENT;
+
+    irrEvent.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
+    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
+    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
+
+    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
+
+
+    u32 buttonState = 0;
+    if (QApplication::mouseButtons () & Qt::LeftButton) {
+        buttonState |= EMBSM_LEFT;
+    }
+    if (QApplication::mouseButtons () & Qt::RightButton) {
+        buttonState |= EMBSM_RIGHT;
+    }
+    if (QApplication::mouseButtons () & Qt::MiddleButton) {
+        buttonState |= EMBSM_MIDDLE;
+    }
+    irrEvent.MouseInput.ButtonStates = buttonState;
+
+    if (_device->postEventFromUser( irrEvent ))
+        event->accept();
+
+}
+
+void QIrrlichtWidget::mousePressEvent( QMouseEvent* event )
+{
+    if (!_device)
+        return;
+
+    // If there is a mouse event, we should report it to Irrlicht for the Maya camera
+    irr::SEvent irrEvent;
+    irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
+
+    if (event->button() == Qt::LeftButton)
+        irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
+    else if (event->button() == Qt::RightButton)
+        irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
+    else if (event->button() == Qt::MiddleButton)
+        irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
+
+    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
+    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
+    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
+
+    if(_device->postEventFromUser( irrEvent ))
+        event->accept();
+}
+
+void QIrrlichtWidget::mouseReleaseEvent( QMouseEvent* event )
+{
+    if (!_device)
+        return;
+
+    // If there is a mouse event, we should report it to Irrlicht for the Maya camera
+    irr::SEvent irrEvent;
+    irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
+
+    if (event->button() == Qt::LeftButton)
+        irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
+    else if (event->button() == Qt::RightButton)
+        irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
+    else if (event->button() == Qt::MiddleButton)
+        irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
+
+    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
+    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
+    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
+
+    if(_device->postEventFromUser( irrEvent ))
+        event->accept();
+}
 
 bool QIrrlichtWidget::isLoadableByIrrlicht(io::path filename)
 {
@@ -171,35 +474,6 @@ bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename, core::stri
     return success;
 }
 
-
-QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
-    QWidget (parent),
-    _device (nullptr)
-{
-    // on écrit directement dans al mémoire vidéo du widget
-    //setAttribute (Qt::WA_PaintOnScreen);
-    setAttribute (Qt::WA_OpaquePaintEvent);
-    setFocusPolicy (Qt::StrongFocus);
-    setAutoFillBackground (false);
-
-    _currentLOD = LOD_0;
-    _currentLodData = &_lod0Data;
-
-    _reWriter = nullptr;
-    _camera = nullptr;
-
-    _inLoading = false;
-}
-
-QIrrlichtWidget::~QIrrlichtWidget ()
-{
-    if (_device)
-    {
-        _device->closeDevice ();
-        _device->drop ();
-    }
-}
-
 bool QIrrlichtWidget::fileIsOpenableByIrrlicht(QString filename)
 {
     const io::path irrFilename = QSTRING_TO_PATH(filename);
@@ -233,7 +507,9 @@ void QIrrlichtWidget::loadMeshPostProcess()
 
     setMaterialsSettings(_currentLodData->_node);
 
-
+#ifdef USE_NORMALS_DEBUG_SHADER
+    _currentLodData->_node->setMaterialType((video::E_MATERIAL_TYPE)_normalsMaterialType);
+#endif
     // DEBUG
     /*
     std::cout << "Dimensions : x=" << mesh->getBoundingBox().MaxEdge.X - mesh->getBoundingBox().MinEdge.X
@@ -364,256 +640,6 @@ bool QIrrlichtWidget::setMesh(QString filename, core::stringc &feedbackMessage)
     _inLoading = false;
     return true;
 }
-
-void QIrrlichtWidget::init ()
-{
-    SIrrlichtCreationParameters params;
-
-    // on utilise OpenGL, et on lui donne l'identifiant de la fenêtre de notre widget
-    params.DriverType        = video::EDT_OPENGL;
-    params.WindowId          = reinterpret_cast<void*> (winId ());
-
-    // ainsi que la taille de notre widget
-    params.WindowSize.Width  = width ();
-    params.WindowSize.Height = height ();
-
-
-
-    params.AntiAlias         = true;
-    params.Bits              = 16;
-    params.HighPrecisionFPU  = false;
-    params.Stencilbuffer     = true;
-    params.Vsync             = true;
-
-    // enfin, on initialise notre moteur de rendu
-    _device = createDeviceEx (params);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
-
-    /* une fois initialisé, on émet le signal onInit, c'est la que nous
-     * ajouterons nos modèles et nos textures.
-     */
-    emit onInit (this);
-
-
-    setMouseTracking(true);
-
-    if (_device)
-    {
-        // on créé une caméra pour visualiser la scène
-
-        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(nullptr, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
-        _camera->setPosition(core::vector3df (0,30,-40));
-        _camera->setTarget(core::vector3df (0,0,0));
-        const f32 aspectRatio = static_cast<float>(width ()) / height();
-        _camera->setAspectRatio(aspectRatio);
-        _camera->setFarValue(10000.f);
-
-        _reWriter = new scene::IO_MeshWriter_RE(_device->getSceneManager(), _device->getFileSystem());
-
-        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_WitcherMDL(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_RE(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W2ENT(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new scene::IO_MeshLoader_W3ENT(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_CEF(_device->getSceneManager(), _device->getFileSystem()));
-        _device->getSceneManager()->addExternalMeshLoader(new IO_MeshLoader_TheCouncil_Prefab(_device->getSceneManager(), _device->getFileSystem()));
-
-        _device->getSceneManager()->addExternalSceneLoader(new IO_SceneLoader_TheCouncil(_device->getSceneManager(), _device->getFileSystem()));
-
-        //_device->getSceneManager()->setAmbientLight(video::SColor(255,255,255,255));
-    }
-
-    /* puis on connecte notre slot updateIrrlicht (), qui s'occupe du rendu
-     * à notre signal updateIrrlichtQuery ()
-     */
-    connect (this, SIGNAL (updateIrrlichtQuery (QIrrlichtWidget*)), this, SLOT (updateIrrlicht (QIrrlichtWidget*)));
-
-    // et on lance notre timer
-    startTimer (0);
-
-    // creation du fichier de log
-    Log::Instance()->setOutput(LOG_NONE);
-    if (Settings::_debugLog)
-        Log::Instance()->addOutput(LOG_FILE);
-
-#ifdef IS_A_DEVELOPMENT_BUILD
-    Log::Instance()->addOutput(LOG_CONSOLE);
-#endif
-
-    Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"));
-}
-
-void QIrrlichtWidget::updateIrrlicht (QIrrlichtWidget *irrWidget)
-{
-    if (_inLoading)
-        return;
-
-    if (_device)
-    {
-        // le rendu est donc fait ici même
-
-        _device->getTimer()->tick ();
-
-        video::SColor color (255, Settings::_r, Settings::_g, Settings::_b);
-
-        _device->getVideoDriver()->beginScene (true, true, color);
-        _device->getSceneManager()->drawAll ();
-        _device->getVideoDriver()->endScene ();
-    }
-}
-
-void QIrrlichtWidget::paintEvent (QPaintEvent *ev)
-{
-    if (_device)
-    {
-        /* lorsque le widget demande a être affiché, on emet le signal updateIrrlichtQuery (),
-         * ainsi, notre slot updateIrrlicht () sera appelé.
-         */
-        emit updateIrrlichtQuery (this);
-    }
-}
-
-void QIrrlichtWidget::timerEvent (QTimerEvent *ev)
-{
-    if (_device)
-    {
-        // pareil que pour la méthode paintEvent ()
-        emit updateIrrlichtQuery (this);
-    }
-
-    ev->accept ();
-}
-
-void QIrrlichtWidget::resizeEvent (QResizeEvent *ev)
-{
-    if (_device)
-    {
-        // lors d'un redimensionnement, on récupe la nouvelle taille du widget
-        core::dimension2d<u32> widgetSize;
-
-        widgetSize.Width  = ev->size ().width ();
-        widgetSize.Height = ev->size ().height ();
-
-        // et on précise à Irrlicht la nouvelle taille.
-        _device->getVideoDriver ()->OnResize (widgetSize);
-
-        // update aspect ratio
-        const f32 aspectRatio = static_cast<float>(ev->size ().width ()) / ev->size ().height();
-        _camera->setAspectRatio(aspectRatio);
-     }
-
-    QWidget::resizeEvent (ev);
-}
-
-void QIrrlichtWidget::keyPressEvent(QKeyEvent * event)
-{
-    if (_device == nullptr)
-        return;
-
-    SEvent irrEvent;
-    irrEvent.EventType = EET_KEY_INPUT_EVENT;
-
-    irrEvent.KeyInput.PressedDown = true;
-    irrEvent.KeyInput.Key = (EKEY_CODE)QKEY_TO_IRRKEY(event->key());
-
-    if (_device->postEventFromUser( irrEvent ))
-        event->accept();
-}
-
-void QIrrlichtWidget::keyReleaseEvent(QKeyEvent * event)
-{
-    if (_device == nullptr)
-        return;
-
-    SEvent irrEvent;
-    irrEvent.EventType = EET_KEY_INPUT_EVENT;
-
-    irrEvent.KeyInput.PressedDown = false;
-    irrEvent.KeyInput.Key = (EKEY_CODE)QKEY_TO_IRRKEY(event->key());
-
-    if (_device->postEventFromUser( irrEvent ))
-        event->accept();
-}
-
-void QIrrlichtWidget::mouseMoveEvent(QMouseEvent * event)
-{
-    if (_device == nullptr)
-        return;
-
-    SEvent irrEvent;
-    irrEvent.EventType = EET_MOUSE_INPUT_EVENT;
-
-    irrEvent.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
-    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
-    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
-
-    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
-
-
-    u32 buttonState = 0;
-    if (QApplication::mouseButtons () & Qt::LeftButton) {
-        buttonState |= EMBSM_LEFT;
-    }
-    if (QApplication::mouseButtons () & Qt::RightButton) {
-        buttonState |= EMBSM_RIGHT;
-    }
-    if (QApplication::mouseButtons () & Qt::MiddleButton) {
-        buttonState |= EMBSM_MIDDLE;
-    }
-    irrEvent.MouseInput.ButtonStates = buttonState;
-
-    if (_device->postEventFromUser( irrEvent ))
-        event->accept();
-
-}
-
-void QIrrlichtWidget::mousePressEvent( QMouseEvent* event )
-{
-    if (!_device)
-        return;
-
-    // If there is a mouse event, we should report it to Irrlicht for the Maya camera
-    irr::SEvent irrEvent;
-    irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
-
-    if (event->button() == Qt::LeftButton)
-        irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
-    else if (event->button() == Qt::RightButton)
-        irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
-    else if (event->button() == Qt::MiddleButton)
-        irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
-
-    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
-    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
-    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
-
-    if(_device->postEventFromUser( irrEvent ))
-        event->accept();
-}
-
-void QIrrlichtWidget::mouseReleaseEvent( QMouseEvent* event )
-{
-    if (!_device)
-        return;
-
-    // If there is a mouse event, we should report it to Irrlicht for the Maya camera
-    irr::SEvent irrEvent;
-    irrEvent.EventType = irr::EET_MOUSE_INPUT_EVENT;
-
-    if (event->button() == Qt::LeftButton)
-        irrEvent.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
-    else if (event->button() == Qt::RightButton)
-        irrEvent.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
-    else if (event->button() == Qt::MiddleButton)
-        irrEvent.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
-
-    irrEvent.MouseInput.X = _device->getCursorControl()->getPosition().X;
-    irrEvent.MouseInput.Y = _device->getCursorControl()->getPosition().Y;
-    irrEvent.MouseInput.Wheel = 0.0f; // Zero is better than undefined
-
-    if(_device->postEventFromUser( irrEvent ))
-        event->accept();
-}
-
 
 QString QIrrlichtWidget::convertTexture(QString filename, QString destDir)
 {
@@ -1049,13 +1075,4 @@ bool QIrrlichtWidget::isEmpty(LOD lod)
         break;
     }
     return false;
-}
-
-
-
-
-
-io::IFileSystem *QIrrlichtWidget::getFileSystem()
-{
-    return _device->getFileSystem();
 }

@@ -16,6 +16,63 @@
     #include "IrrAssimp/IrrAssimp.h"
 #endif
 
+
+class NormalsDebuggerShaderCallBack : public video::IShaderConstantSetCallBack
+{
+public:
+    NormalsDebuggerShaderCallBack() : WorldViewProjID(-1), TransWorldID(-1), InvWorldID(-1), FirstUpdate(true)
+    {
+    }
+
+    virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
+    {
+        video::IVideoDriver* driver = services->getVideoDriver();
+
+        // get shader constants id.
+        if (FirstUpdate)
+        {
+            WorldViewProjID = services->getVertexShaderConstantID("mWorldViewProj");
+            TransWorldID = services->getVertexShaderConstantID("mTransWorld");
+            InvWorldID = services->getVertexShaderConstantID("mInvWorld");
+
+            FirstUpdate = false;
+        }
+
+        // set inverted world matrix
+        // if we are using highlevel shaders (the user can select this when
+        // starting the program), we must set the constants by name.
+        core::matrix4 invWorld = driver->getTransform(video::ETS_WORLD);
+        invWorld.makeInverse();
+        services->setVertexShaderConstant(InvWorldID, invWorld.pointer(), 16);
+
+        // set clip matrix
+        core::matrix4 worldViewProj;
+        worldViewProj = driver->getTransform(video::ETS_PROJECTION);
+        worldViewProj *= driver->getTransform(video::ETS_VIEW);
+        worldViewProj *= driver->getTransform(video::ETS_WORLD);
+        services->setVertexShaderConstant(WorldViewProjID, worldViewProj.pointer(), 16);
+
+        // set transposed world matrix
+        core::matrix4 world = driver->getTransform(video::ETS_WORLD);
+        world = world.getTransposed();
+        services->setVertexShaderConstant(TransWorldID, world.pointer(), 16);
+    }
+
+    void SetDevice(IrrlichtDevice* device)
+    {
+        Device = device;
+    }
+
+private:
+    IrrlichtDevice* Device;
+
+    s32 WorldViewProjID;
+    s32 TransWorldID;
+    s32 InvWorldID;
+
+    bool FirstUpdate;
+};
+
 enum LOD
 {
     LOD_0,
@@ -83,13 +140,16 @@ class QIrrlichtWidget : public QWidget
     Q_OBJECT
 
     public:
-        explicit QIrrlichtWidget (QWidget *parent = 0);
+        explicit QIrrlichtWidget (QWidget *parent = nullptr);
         ~QIrrlichtWidget ();
+
+        void init();
+
+        io::IFileSystem* getFileSystem();
 
         bool setMesh(QString filename, core::stringc &feedbackMessage);
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
-        void init ();
         void exportMesh(QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
         void changeWireframe(bool state);
         void changeRigging(bool state);
@@ -101,9 +161,6 @@ class QIrrlichtWidget : public QWidget
         void changeLOD(LOD newLOD);
         void clearLOD();
         void clearAllLODs();
-
-        io::IFileSystem* getFileSystem();
-
 
         QString getFilename();
         QString getPath();
@@ -121,21 +178,21 @@ class QIrrlichtWidget : public QWidget
         bool loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage);
 
     signals:
-        void onInit (QIrrlichtWidget *irrWidget);
-        void updateIrrlichtQuery (QIrrlichtWidget *irrWidget);
+        void onInit (QIrrlichtWidget* irrWidget);
+        void updateIrrlichtQuery (QIrrlichtWidget* irrWidget);
 
     public slots:
-        void updateIrrlicht (QIrrlichtWidget *irrWidget);
+        void updateIrrlicht(QIrrlichtWidget* irrWidget);
 
     protected:
-        virtual void paintEvent (QPaintEvent *ev);
-        virtual void timerEvent (QTimerEvent *ev);
-        virtual void resizeEvent (QResizeEvent *ev);
-        void keyPressEvent(QKeyEvent * event);
-        void keyReleaseEvent(QKeyEvent * event);
-        void mousePressEvent( QMouseEvent* event );
-        void mouseReleaseEvent( QMouseEvent* event );
-        void mouseMoveEvent(QMouseEvent * event);
+        virtual void paintEvent(QPaintEvent* event);
+        virtual void timerEvent(QTimerEvent* event);
+        virtual void resizeEvent(QResizeEvent* event);
+        virtual void keyPressEvent(QKeyEvent* event);
+        virtual void keyReleaseEvent(QKeyEvent* event);
+        virtual void mousePressEvent(QMouseEvent* event);
+        virtual void mouseReleaseEvent(QMouseEvent* event);
+        virtual void mouseMoveEvent(QMouseEvent* event);
 
     private:
         IrrlichtDevice* _device;
@@ -161,6 +218,9 @@ class QIrrlichtWidget : public QWidget
         void loadMeshPostProcess();
         scene::IAnimatedMesh* loadMesh(QString filename, core::stringc &feedbackMessage);
 
+        void initNormalsMaterial();
+        NormalsDebuggerShaderCallBack* _normalsMaterial;
+        s32 _normalsMaterialType;
 };
 
 #endif // QIRRLICHTWIDGET_HPP

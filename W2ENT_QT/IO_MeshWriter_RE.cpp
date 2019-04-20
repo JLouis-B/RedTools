@@ -223,16 +223,16 @@ void IO_MeshWriter_RE::writeHeaderChunk(io::IWriteFile* file)
     core::stringc user = "anonymous_user";
     core::stringc path = FileSystem->getAbsolutePath(file->getFileName());
 
-    // Size of the username
+    // size of the username
     u32 userSize = user.size();
     file->write(&userSize, 4);
-    // And the username
+    // and the username
     file->write(user.c_str(), user.size());
 
-    // Size of the path
+    // size of the path
     u32 pathSize = path.size();
     file->write(&pathSize, 4);
-    // And the path
+    // and the path
     file->write(path.c_str(), pathSize);
 
     ChunksSize.push_back(file->getPos() - chunkStart);
@@ -341,7 +341,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
     // maybe the 3 Axis
     file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
 
-    // the decalage between the center of the mesh and (0, 0, 0)
+    // the offset between the center of the mesh and (0, 0, 0)
     const core::vector3df meshCenter = lodMesh->getBoundingBox().getCenter();
     //meshCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
     file->write(&meshCenter.X, 4);
@@ -353,7 +353,6 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
 
     // The material
-    // file->write("\x06\x00\x00\x00noname\x04\x00\x00\x00\x64iff\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 32);
     for (u32 i=0; i<lodMesh->getMeshBufferCount(); ++i)
 	{
         core::stringc matName = "noname";
@@ -364,8 +363,6 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             diffuseTexture = diffuseTexture.make_lower();
             matName = FileSystem->getFileBasename(lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), false);
             matName = matName.make_lower();
-
-            //core::cutFilenameExtension(matName, mat);
         }
         u32 matNameSize = matName.size();
         u32 diffSize = diffuseTexture.size();
@@ -378,7 +375,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
         file->write("\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 14);
 
-        s32 nbVerticesMeshBuf = lodMesh->getMeshBuffer(i)->getVertexCount();
+        u32 nbVerticesMeshBuf = lodMesh->getMeshBuffer(i)->getVertexCount();
         s32 nbFacesMeshBuf = lodMesh->getMeshBuffer(i)->getIndexCount()/3;
 
         file->write(&nbVerticesMeshBuf, 4);
@@ -518,98 +515,97 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             file->write(&index1, 4);
             file->write(&index3, 4);
             file->write(&index2, 4);
-            //if (n<(lodMesh->getMeshBuffer(i)->getIndexCount()/3)-1)
             file->write("\x00\x00\x00\x00", 4);
         }
 	}
 
 
-    scene::ISkinnedMesh* skinMesh;
     if (skinned)
-        skinMesh = ((scene::ISkinnedMesh*)lodMesh);
-
-    for (u32 i = 0; i < nbJoints; ++i)
     {
-        u32 jointSizeName = skinMesh->getAllJoints()[i]->Name.size();
-        file->write(&jointSizeName, 4);
+        scene::ISkinnedMesh* skinMesh = ((scene::ISkinnedMesh*)lodMesh);
 
-        core::stringc jointName = skinMesh->getAllJoints()[i]->Name;
-        file->write(jointName.c_str(), jointSizeName);
+        for (u32 i = 0; i < nbJoints; ++i)
+        {
+            u32 jointSizeName = skinMesh->getAllJoints()[i]->Name.size();
+            file->write(&jointSizeName, 4);
 
-        core::matrix4 transformations = skinMesh->getAllJoints()[i]->GlobalMatrix;
+            core::stringc jointName = skinMesh->getAllJoints()[i]->Name;
+            file->write(jointName.c_str(), jointSizeName);
 
-
-
-
-
-        core::matrix4 posMat;
-        core::vector3df pos = skinMesh->getAllJoints()[i]->Animatedposition;
-        pos -= meshCenter;
-        double tmp = pos.Y;
-        pos.Y = pos.Z;
-        pos.Z = tmp;
-        posMat.setTranslation(pos);
-
-        core::matrix4 rotMat;
-        core::vector3df rot;
-        skinMesh->getAllJoints()[i]->Animatedrotation.toEuler(rot);
-        tmp = rot.Y;
-        rot.Y = rot.Z;
-        rot.Z = tmp;
-        rotMat.setRotationDegrees(rot);
-
-        core::matrix4 scaleMat;
-        core::vector3df scale = skinMesh->getAllJoints()[i]->Animatedscale;
-        tmp = scale.Y;
-        scale.Y = scale.Z;
-        scale.Z = tmp;
-        scaleMat.setScale(scale);
-
-        transformations = posMat * rotMat * scaleMat;
+            core::matrix4 transformations = skinMesh->getAllJoints()[i]->GlobalMatrix;
 
 
 
-        //std::cout << "Translation : X="<< transformations.getTranslation().X << ", Y="<< transformations.getTranslation().Y << ", Z="<< transformations.getTranslation().Z << std::endl;
-        //std::cout << "Rotation : X="<< transformations.getRotationDegrees().X << ", Y="<< transformations.getRotationDegrees().Y << ", Z="<< transformations.getRotationDegrees().Z << std::endl;
-        //std::cout << "Scale : X="<<transformations.getScale().X << ", Y="<< transformations.getScale().Y << ", Z="<< transformations.getScale().Z << std::endl;
-        //std::cout << "Extra data="<<transformations[3] << ", "<< transformations[7] << ", "<< transformations[11] << std::endl;
-
-        float m0, m1, m2, m4, m5, m6, m8, m9, m10, m12, m13, m14;
-        m0 = transformations[0];
-        m1 = transformations[1];
-        m2 = transformations[2];
-
-        m4 = transformations[4];
-        m5 = transformations[5];
-        m6 = transformations[6];
-
-        m8 = transformations[8];
-        m9 = transformations[9];
-        m10 = transformations[10];
-
-        m12 = transformations[12];
-        m13 = transformations[13];
-        m14 = transformations[14];
 
 
-        file->write(&m0, 4);
-        file->write(&m1, 4);
-        file->write(&m2, 4);
+            core::matrix4 posMat;
+            core::vector3df pos = skinMesh->getAllJoints()[i]->Animatedposition;
+            pos -= meshCenter;
+            double tmp = pos.Y;
+            pos.Y = pos.Z;
+            pos.Z = tmp;
+            posMat.setTranslation(pos);
 
-        file->write(&m4, 4);
-        file->write(&m5, 4);
-        file->write(&m6, 4);
+            core::matrix4 rotMat;
+            core::vector3df rot;
+            skinMesh->getAllJoints()[i]->Animatedrotation.toEuler(rot);
+            tmp = rot.Y;
+            rot.Y = rot.Z;
+            rot.Z = tmp;
+            rotMat.setRotationDegrees(rot);
 
-        file->write(&m8, 4);
-        file->write(&m9, 4);
-        file->write(&m10, 4);
+            core::matrix4 scaleMat;
+            core::vector3df scale = skinMesh->getAllJoints()[i]->Animatedscale;
+            tmp = scale.Y;
+            scale.Y = scale.Z;
+            scale.Z = tmp;
+            scaleMat.setScale(scale);
 
-        file->write(&m12, 4);
-        file->write(&m13, 4);
-        file->write(&m14, 4);
+            transformations = posMat * rotMat * scaleMat;
 
+
+
+            //std::cout << "Translation : X="<< transformations.getTranslation().X << ", Y="<< transformations.getTranslation().Y << ", Z="<< transformations.getTranslation().Z << std::endl;
+            //std::cout << "Rotation : X="<< transformations.getRotationDegrees().X << ", Y="<< transformations.getRotationDegrees().Y << ", Z="<< transformations.getRotationDegrees().Z << std::endl;
+            //std::cout << "Scale : X="<<transformations.getScale().X << ", Y="<< transformations.getScale().Y << ", Z="<< transformations.getScale().Z << std::endl;
+            //std::cout << "Extra data="<<transformations[3] << ", "<< transformations[7] << ", "<< transformations[11] << std::endl;
+
+            float m0, m1, m2, m4, m5, m6, m8, m9, m10, m12, m13, m14;
+            m0 = transformations[0];
+            m1 = transformations[1];
+            m2 = transformations[2];
+
+            m4 = transformations[4];
+            m5 = transformations[5];
+            m6 = transformations[6];
+
+            m8 = transformations[8];
+            m9 = transformations[9];
+            m10 = transformations[10];
+
+            m12 = transformations[12];
+            m13 = transformations[13];
+            m14 = transformations[14];
+
+
+            file->write(&m0, 4);
+            file->write(&m1, 4);
+            file->write(&m2, 4);
+
+            file->write(&m4, 4);
+            file->write(&m5, 4);
+            file->write(&m6, 4);
+
+            file->write(&m8, 4);
+            file->write(&m9, 4);
+            file->write(&m10, 4);
+
+            file->write(&m12, 4);
+            file->write(&m13, 4);
+            file->write(&m14, 4);
+
+        }
     }
-    //file->seek(-4, true);
 
     ChunksSize.push_back(file->getPos() - chunkStart);
 }

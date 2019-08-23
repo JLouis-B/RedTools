@@ -135,11 +135,10 @@ void QIrrlichtWidget::initNormalsMaterial()
     _normalsMaterial->SetDevice(_device);
 
     video::IGPUProgrammingServices* gpu = _device->getVideoDriver()->getGPUProgrammingServices();
-    const video::E_GPU_SHADING_LANGUAGE shadingLanguage = video::EGSL_DEFAULT;
     _normalsMaterialType = gpu->addHighLevelShaderMaterialFromFiles(
                 vsFileName, "vertexMain", video::EVST_VS_1_1,
                 psFileName, "pixelMain", video::EPST_PS_1_1,
-                _normalsMaterial, video::EMT_SOLID, 0, shadingLanguage);
+                _normalsMaterial, video::EMT_SOLID, 0);
 
     if (_normalsMaterialType == -1)
     {

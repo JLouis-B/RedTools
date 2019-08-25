@@ -219,10 +219,11 @@ bool TW1_MaterialParser::loadFromString(core::stringc content)
 
 video::E_MATERIAL_TYPE TW1_MaterialParser::getMaterialTypeFromShader()
 {
-    if (_shader == "leaves_lm_bill"
-     || _shader == "dblsided_atest"
+    if (_shader == "dblsided_atest"
      || _shader == "leaves"
-     || _shader == "leaves_lm")
+     || _shader == "leaves_lm"
+     || _shader == "leaves_lm_bill"
+     || _shader == "leaves_singles")
         return video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
 
     return video::EMT_SOLID;

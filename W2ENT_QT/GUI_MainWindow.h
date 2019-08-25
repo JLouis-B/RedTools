@@ -20,13 +20,11 @@ public:
     void initIrrlicht();
 
 public slots :
-
     void convert();
     void translate();
     void changeLanguage();
     void selectFolder();
-    void changeWireframe(bool enable);
-    void changeRigging(bool enable);
+
     void openAbout();
     void options();
     void search();

@@ -151,8 +151,6 @@ class QIrrlichtWidget : public QWidget
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
         void exportMesh(QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
-        void changeWireframe(bool state);
-        void changeRigging(bool state);
 
         unsigned int getPolysCount();
         unsigned int getJointsCount();
@@ -183,6 +181,10 @@ class QIrrlichtWidget : public QWidget
 
     public slots:
         void updateIrrlicht(QIrrlichtWidget* irrWidget);
+
+        void enableWireframe(bool enabled);
+        void enableRigging(bool enabled);
+        void enableNormals(bool enabled);
 
     protected:
         virtual void paintEvent(QPaintEvent* event);
@@ -221,6 +223,7 @@ class QIrrlichtWidget : public QWidget
         void initNormalsMaterial();
         NormalsDebuggerShaderCallBack* _normalsMaterial;
         s32 _normalsMaterialType;
+        bool _normalsRendererEnabled;
 };
 
 #endif // QIRRLICHTWIDGET_HPP

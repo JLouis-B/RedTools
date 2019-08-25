@@ -39,6 +39,7 @@ QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     _camera = nullptr;
 
     _inLoading = false;
+    _normalsRendererEnabled = false;
 }
 
 QIrrlichtWidget::~QIrrlichtWidget ()
@@ -115,9 +116,7 @@ void QIrrlichtWidget::init()
     if (Settings::_debugLog)
         Log::Instance()->addOutput(LOG_FILE);
 
-#ifdef USE_NORMALS_DEBUG_SHADER
     initNormalsMaterial();
-#endif
 
 #ifdef IS_A_DEVELOPMENT_BUILD
     Log::Instance()->addOutput(LOG_CONSOLE);
@@ -145,6 +144,10 @@ void QIrrlichtWidget::initNormalsMaterial()
         // TODO
         // error
     }
+    else
+    {
+        _device->getVideoDriver()->getOverrideMaterial().Material.MaterialType = (video::E_MATERIAL_TYPE)_normalsMaterialType;
+    }
 }
 
 io::IFileSystem *QIrrlichtWidget::getFileSystem()
@@ -164,6 +167,18 @@ void QIrrlichtWidget::updateIrrlicht(QIrrlichtWidget* irrWidget)
         video::SColor color(255, Settings::_r, Settings::_g, Settings::_b);
 
         _device->getVideoDriver()->beginScene(true, true, color);
+
+        if (_normalsRendererEnabled)
+        {
+            //_device->getVideoDriver()->getOverrideMaterial().EnablePasses = scene::ESNRP_SKY_BOX+scene::ESNRP_SOLID+scene::ESNRP_TRANSPARENT+scene::ESNRP_TRANSPARENT_EFFECT+scene::ESNRP_SHADOW;
+            _device->getVideoDriver()->getOverrideMaterial().EnablePasses = scene::ESNRP_SOLID;
+
+        }
+        else
+        {
+            _device->getVideoDriver()->getOverrideMaterial().EnablePasses = 0;
+        }
+
         _device->getSceneManager()->drawAll();
         _device->getVideoDriver()->endScene();
     }
@@ -506,9 +521,6 @@ void QIrrlichtWidget::loadMeshPostProcess()
 
     setMaterialsSettings(_currentLodData->_node);
 
-#ifdef USE_NORMALS_DEBUG_SHADER
-    _currentLodData->_node->setMaterialType((video::E_MATERIAL_TYPE)_normalsMaterialType);
-#endif
     // DEBUG
     /*
     std::cout << "Dimensions : x=" << mesh->getBoundingBox().MaxEdge.X - mesh->getBoundingBox().MinEdge.X
@@ -830,22 +842,27 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
 }
 
 
-void QIrrlichtWidget::changeWireframe(bool state)
+void QIrrlichtWidget::enableWireframe(bool enabled)
 {
     if (_currentLodData->_node)
-        _currentLodData->_node->setMaterialFlag(video::EMF_WIREFRAME, state);
+        _currentLodData->_node->setMaterialFlag(video::EMF_WIREFRAME, enabled);
 }
 
-void QIrrlichtWidget::changeRigging(bool state)
+void QIrrlichtWidget::enableRigging(bool enabled)
 {
     if (!_currentLodData->_node)
         return;
 
-    if (state)
+    if (enabled)
         _currentLodData->_node->setDebugDataVisible(scene::EDS_SKELETON);
     else
         _currentLodData->_node->setDebugDataVisible(scene::EDS_OFF);
 
+}
+
+void QIrrlichtWidget::enableNormals(bool enabled)
+{
+    _normalsRendererEnabled = enabled;
 }
 
 unsigned int QIrrlichtWidget::getPolysCount()

@@ -176,6 +176,7 @@
     </property>
     <addaction name="action_display_Wireframe"/>
     <addaction name="action_display_Rigging"/>
+    <addaction name="action_display_Normals"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -437,6 +438,14 @@
   <action name="action_other_TheCouncil_Load_template">
    <property name="text">
     <string>Load The Council template</string>
+   </property>
+  </action>
+  <action name="action_display_Normals">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normals</string>
    </property>
   </action>
  </widget>

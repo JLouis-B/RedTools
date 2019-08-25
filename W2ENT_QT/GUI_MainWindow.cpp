@@ -114,9 +114,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_other_TheCouncil_Load_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
     QObject::connect(_ui->action_other_Dishonored_2_unpacker, SIGNAL(triggered()), this, SLOT(dishonoredExtractor()));
 
-    QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), this, SLOT(changeWireframe(bool)));
-    QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), this, SLOT(changeRigging(bool)));
-
     QObject::connect(_ui->action_help_About, SIGNAL(triggered()), this, SLOT(openAbout()));
 
 
@@ -166,8 +163,8 @@ void GUI_MainWindow::addMesh()
 
     if (!_irrWidget->isEmpty(_currentLOD))
     {
-        _irrWidget->changeWireframe(_ui->action_display_Wireframe->isChecked());
-        _irrWidget->changeRigging(_ui->action_display_Rigging->isChecked());
+        _irrWidget->enableWireframe(_ui->action_display_Wireframe->isChecked());
+        _irrWidget->enableRigging(_ui->action_display_Rigging->isChecked());
 
         _ui->button_convert->setEnabled(true);
         _ui->action_redkit_Size->setEnabled(true);
@@ -265,6 +262,11 @@ void GUI_MainWindow::initIrrlicht()
 
     _irrWidget->show();
     _irrWidget->init();
+
+    QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableWireframe(bool)));
+    QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableRigging(bool)));
+    QObject::connect(_ui->action_display_Normals, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableNormals(bool)));
+
     addToUILog(QString("The Witcher 3D models converter ") + Settings::getAppVersion() + "\n");
 }
 
@@ -433,16 +435,6 @@ void GUI_MainWindow::selectFolder()
     {
         _ui->lineEdit_folder->setText(folder);
     }
-}
-
-void GUI_MainWindow::changeWireframe(bool enable)
-{
-    _irrWidget->changeWireframe(enable);
-}
-
-void GUI_MainWindow::changeRigging(bool enable)
-{
-    _irrWidget->changeRigging(enable);
 }
 
 void GUI_MainWindow::openAbout()
@@ -651,8 +643,8 @@ void GUI_MainWindow::loadMesh(QString path)
     bool success = _irrWidget->setMesh(path, feedbackMessage);
     if (success)
     {
-        _irrWidget->changeWireframe(_ui->action_display_Wireframe->isChecked());
-        _irrWidget->changeRigging(_ui->action_display_Rigging->isChecked());
+        _irrWidget->enableWireframe(_ui->action_display_Wireframe->isChecked());
+        _irrWidget->enableRigging(_ui->action_display_Rigging->isChecked());
 
         _ui->button_convert->setEnabled(true);
         _ui->action_redkit_Size->setEnabled(true);

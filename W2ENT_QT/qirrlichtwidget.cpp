@@ -141,12 +141,13 @@ void QIrrlichtWidget::initNormalsMaterial()
 
     if (_normalsMaterialType == -1)
     {
-        // TODO
-        // error
+        QMessageBox::critical(this, "Shader error" , "Compilation of the shaders has failed. 'Display/Normals' will be broken.");
     }
     else
     {
-        _device->getVideoDriver()->getOverrideMaterial().Material.MaterialType = (video::E_MATERIAL_TYPE)_normalsMaterialType;
+        core::array<video::SOverrideMaterial::SMaterialTypeReplacement> overrideMaterialTypes;
+        overrideMaterialTypes.push_back(video::SOverrideMaterial::SMaterialTypeReplacement(-1, _normalsMaterialType));
+        _device->getVideoDriver()->getOverrideMaterial().MaterialTypes = overrideMaterialTypes;
     }
 }
 
@@ -170,9 +171,7 @@ void QIrrlichtWidget::updateIrrlicht(QIrrlichtWidget* irrWidget)
 
         if (_normalsRendererEnabled)
         {
-            //_device->getVideoDriver()->getOverrideMaterial().EnablePasses = scene::ESNRP_SKY_BOX+scene::ESNRP_SOLID+scene::ESNRP_TRANSPARENT+scene::ESNRP_TRANSPARENT_EFFECT+scene::ESNRP_SHADOW;
-            _device->getVideoDriver()->getOverrideMaterial().EnablePasses = scene::ESNRP_SOLID;
-
+            _device->getVideoDriver()->getOverrideMaterial().EnablePasses = scene::ESNRP_SKY_BOX + scene::ESNRP_SOLID + scene::ESNRP_TRANSPARENT + scene::ESNRP_TRANSPARENT_EFFECT + scene::ESNRP_SHADOW;
         }
         else
         {

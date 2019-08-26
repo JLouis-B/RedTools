@@ -1,19 +1,12 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include "CompileConfig.h"
 #include <QString>
 #include <vector3d.h>
 
 
-#define IS_A_DEVELOPMENT_BUILD
 
-// Assimp is used to import and export many file formats. You can disable it with this define
-#define COMPILE_WITH_ASSIMP
-
-// in the case of a release build, COMPILE_WITH_ASSIMP should be enabled
-#ifndef IS_A_DEVELOPMENT_BUILD
-#define COMPILE_WITH_ASSIMP
-#endif
 
 #define DEFAULT_CAM_ROT_SPEED 500
 #define DEFAULT_CAM_SPEED 500

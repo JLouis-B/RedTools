@@ -64,6 +64,7 @@ SOURCES += main.cpp\
     GUI_Extractor_Dishonored2.cpp
 
 HEADERS  += \
+    CompileConfig.h \
     IrrAssimp/IrrAssimp.h \
     IrrAssimp/IrrAssimpExport.h \
     IrrAssimp/IrrAssimpImport.h \

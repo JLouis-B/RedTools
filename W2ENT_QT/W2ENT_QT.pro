@@ -35,6 +35,7 @@ SOURCES += main.cpp\
     MeshCombiner.cpp \
     TW3_DataCache.cpp \
     GUI_CleanTexturesPath.cpp \
+    Utils_Qt.cpp \
     Utils_TW.cpp \
     IO_MeshLoader_W3ENT.cpp \
     IO_MeshLoader_W2ENT.cpp \
@@ -86,6 +87,7 @@ HEADERS  += \
     QIrrlichtWidget.h \
     GUI_MainWindow.h \
     GUI_MaterialsExplorer.h \
+    Utils_Qt.h \
     Utils_TW.h \
     IO_MeshLoader_WitcherMDL.h \
     IO_MeshLoader_W3ENT.h \

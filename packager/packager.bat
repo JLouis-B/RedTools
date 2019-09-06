@@ -5,14 +5,14 @@ echo The Witcher Converter Packager
 echo ------------------------------
 @echo on
 
+:: configure your directories here
 set release-dir=./../../Dev/build-W2ENT_QT-MinGW_32bit/release
 set data-dir=../data
-set tools-dir=../tools
-set qt-plugin-dir=C:\Qt\5.11.1\mingw53_32\plugins
+set qt-plugin-dir=C:\Qt\5.11.3\mingw53_32\plugins
 
 set prefix=The_witcher_converter
 @echo off
-set /p version=Set the version (%prefix%_version.zip) : 
+set /p version=Set the version (The file generated will be named %prefix%_YourVersion.zip) : 
 
 set filename=%prefix%_%version%.zip
 echo generated file will be : %filename%

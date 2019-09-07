@@ -136,7 +136,7 @@ private:
     core::array<Submesh_data> SubMeshData;
     core::array<core::array<unsigned char> >IdLOD;
 
-
+    s32 Version;
     core::array<core::stringc> Strings;
     core::array<core::stringc> Files;
     // Informations about a CMesh

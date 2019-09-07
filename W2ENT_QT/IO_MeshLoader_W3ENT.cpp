@@ -152,7 +152,11 @@ void checkMaterial(video::SMaterial mat)
 
 bool IO_MeshLoader_W3ENT::W3_load(io::IReadFile* file)
 {
-    loadTW3StringsAndFiles(file, Strings, Files);
+    TWFileHeader header;
+    loadTW3FileHeader(file, header);
+    Strings = header.Strings;
+    Files = header.Files;
+
     log->addLineAndFlush("Read strings and files");
 
     file->seek(12);

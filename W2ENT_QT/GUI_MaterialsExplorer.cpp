@@ -264,8 +264,8 @@ void GUI_MaterialsExplorer::W3_CMaterialInstance(io::IReadFile* file, W3_DataInf
 void GUI_MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
 {
     file->seek(0);
-    core::array<core::stringc> strings, files;
-    loadTW3StringsAndFiles(file, strings, files);
+    TWFileHeader header;
+    loadTW3FileHeader(file, header);
 
     file->seek(12);
     core::array<s32> headerData = readDataArray<s32>(file, 38);
@@ -277,7 +277,7 @@ void GUI_MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
     {
         W3_DataInfos infos;
         u16 dataType = readU16(file);
-        core::stringc dataTypeName = strings[dataType];
+        core::stringc dataTypeName = header.Strings[dataType];
 
         file->seek(6, true);
 
@@ -291,7 +291,7 @@ void GUI_MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
         if (dataTypeName == "CMaterialInstance")
         {
             _ui->listWidget_materials->addItem("Material " + QString::number(i));
-            W3_CMaterialInstance(file, infos, strings, files);
+            W3_CMaterialInstance(file, infos, header.Strings, header.Files);
         }
         file->seek(back);
     }

@@ -39,13 +39,20 @@ struct WitcherFileDesc
 // unused yet. remove ?
 //WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename);
 
+struct TWFileHeader
+{
+    s32 Version;
+    core::array<core::stringc> Strings;
+    core::array<core::stringc> Files;
+};
+
 WitcherContentType getTWFileContentType(io::path filename);
 WitcherFileType hasTWFileFormatVersion(io::IReadFile* file);
 bool hasWitcherMagicCode(io::IReadFile* file);
 WitcherFileType getTWFileType(io::IReadFile* file);
 
-void loadTWStringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes = false);
-void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes = false);
-void loadTW3StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files);
+bool loadTWFileHeader(io::IReadFile* file, TWFileHeader &header, bool loadFilenamesWithTypes = false);
+bool loadTW2FileHeader(io::IReadFile* file, TWFileHeader &header, bool loadFilenamesWithTypes = false);
+bool loadTW3FileHeader(io::IReadFile* file, TWFileHeader &header);
 
 #endif // UTILS_TW_H

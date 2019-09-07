@@ -54,10 +54,11 @@ void GUI_ExtFilesExplorer::read(QString filename)
             break;
     }
 
-    loadTWStringsAndFiles(file, strings, files, true);
-    for (u32 i = 0; i < files.size(); ++i)
+    TWFileHeader header;
+    loadTWFileHeader(file, header, true);
+    for (u32 i = 0; i < header.Files.size(); ++i)
     {
-        _ui->listWidget->addItem(QString(files[i].c_str()));
+        _ui->listWidget->addItem(QString(header.Files[i].c_str()));
     }
 
     if (file)

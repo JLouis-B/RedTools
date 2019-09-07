@@ -74,26 +74,28 @@ WitcherFileType getTWFileType(io::IReadFile* file)
     return hasTWFileFormatVersion(file);
 }
 
-void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes)
+bool loadTW2FileHeader(io::IReadFile* file, TWFileHeader& header, bool loadFilenamesWithTypes)
 {
     if (!file)
-        return;
+        return false;
 
     const long initialPos = file->getPos();
     file->seek(4);
-    core::array<s32> header = readDataArray<s32>(file, 10);
+    core::array<s32> headerData = readDataArray<s32>(file, 10);
+    header.Version = headerData[0];
 
     // strings
-    file->seek(header[2]);
-    for (int i = 0; i < header[3]; ++i)
+    file->seek(headerData[2]);
+    for (int i = 0; i < headerData[3]; ++i)
     {
-        strings.push_back(readString(file, readU8(file) -128));
-        Log::Instance()->addLineAndFlush(strings[i]);
+        core::stringc string = readString(file, readU8(file) -128);
+        header.Strings.push_back(string);
+        Log::Instance()->addLineAndFlush(string);
     }
 
     // files
-    file->seek(header[6]);
-    for (int i = 0; i < header[7]; i++)
+    file->seek(headerData[6]);
+    for (int i = 0; i < headerData[7]; i++)
     {
         u8 format_name, size;
         file->read(&size, 1);
@@ -108,23 +110,28 @@ void loadTW2StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& str
 
         // Type of the file (CMesh, CMaterialInstance...)
         u32 fileTypeIndex = readU32(file) - 1;
-        core::stringc fileType = strings[fileTypeIndex];
+        core::stringc fileType = header.Strings[fileTypeIndex];
 
         core::stringc file = filename;
-        if (withTypes)
+        if (loadFilenamesWithTypes)
             file = fileType + " : " + filename;
 
         Log::Instance()->addLineAndFlush(file);
         //cout << file << endl;
-        files.push_back(file);
+        header.Files.push_back(file);
     }
 
 
     file->seek(initialPos);
+
+    return true;
 }
 
-void loadTW3StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files)
+bool loadTW3FileHeader(io::IReadFile* file, TWFileHeader &header)
 {
+    if (!file)
+        return false;
+
     const long initialPos = file->getPos();
 
     file->seek(12);
@@ -155,39 +162,41 @@ void loadTW3StringsAndFiles(io::IReadFile* file, core::array<core::stringc>& str
         core::stringc str = readStringUntilNull(file);
         if (nbStringsRead < nbStrings)
         {
-            strings.push_back(str);
+            header.Strings.push_back(str);
             std::cout << "-->" << str.c_str() << std::endl;
             nbStringsRead++;
         }
         else
         {
-            files.push_back(str);
+            header.Files.push_back(str);
             std::cout << "--> FILE: " << str.c_str() << std::endl;
         }
     }
 
     file->seek(initialPos);
+
+    return true;
 }
 
-void loadTWStringsAndFiles(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files, bool withTypes)
+bool loadTWFileHeader(io::IReadFile* file, TWFileHeader& header, bool loadFilenamesWithTypes)
 {
-    strings.clear();
-    files.clear();
+    header.Strings.clear();
+    header.Files.clear();
 
     if (!hasWitcherMagicCode(file))
-        return;
+        return false;
 
     WitcherFileType version = getTWFileType(file);
 
     switch (version)
     {
         case WFT_WITCHER_2:
-            loadTW2StringsAndFiles(file, strings, files, withTypes);
+            return loadTW2FileHeader(file, header, loadFilenamesWithTypes);
             break;
         case WFT_WITCHER_3:
-            loadTW3StringsAndFiles(file, strings, files);
+            return loadTW3FileHeader(file, header);
         break;
         default:
-            return;
+            return false;
     }
 }

@@ -399,7 +399,12 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
     readString(file, 4); // CR2W
 
-    loadTW2StringsAndFiles(file, Strings, FilesTable, false);
+    TWFileHeader header;
+    loadTW2FileHeader(file, header, false);
+    Version = header.Version;
+    Strings = header.Strings;
+    Files = header.Files;
+
     log->addLineAndFlush("Table 1 & 2 OK");
 
     core::array<s32> headerData = readDataArray<s32>(file, 10);

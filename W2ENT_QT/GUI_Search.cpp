@@ -4,7 +4,7 @@
 #include "settings.h"
 #include "Translator.h"
 #include "Utils_Qt_Irr.h"
-#include "Utils_TW.h"
+#include "Utils_RedEngine.h"
 
 #include <QDir>
 #include <QTextStream>
@@ -173,20 +173,20 @@ void GUI_Search::enableButton()
 
 
     QString selected = _ui->listWidget_results->currentItem()->text();
-    WitcherContentType type = getTWFileContentType(QSTRING_TO_PATH(selected));
-    if (type == WCT_WITCHER_ENTITY)
+    RedEngineContentType type = getRedEngineFileContentType(QSTRING_TO_PATH(selected));
+    if (type == RECT_WITCHER_ENTITY)
     {
         _ui->pushButton_load->setText("Load entity");
     }
-    else if (type == WCT_WITCHER_MESH)
+    else if (type == RECT_WITCHER_MESH)
     {
         _ui->pushButton_load->setText("Load mesh");
     }
-    else if (type == WCT_WITCHER_RIG)
+    else if (type == RECT_WITCHER_RIG)
     {
         _ui->pushButton_load->setText("Load rig");
     }
-    else if (type == WCT_WITCHER_ANIMATIONS)
+    else if (type == RECT_WITCHER_ANIMATIONS)
     {
         _ui->pushButton_load->setText("Load animations");
     }

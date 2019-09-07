@@ -36,7 +36,6 @@ SOURCES += main.cpp\
     TW3_DataCache.cpp \
     GUI_CleanTexturesPath.cpp \
     Utils_Qt.cpp \
-    Utils_TW.cpp \
     IO_MeshLoader_W3ENT.cpp \
     IO_MeshLoader_W2ENT.cpp \
     IO_MeshLoader_WitcherMDL.cpp \
@@ -60,6 +59,7 @@ SOURCES += main.cpp\
     IO_MeshLoader_CEF.cpp \
     IO_MeshLoader_TheCouncil_Prefab.cpp \
     IO_SceneLoader_TheCouncil.cpp \
+    Utils_RedEngine.cpp \
     Utils_TheCouncil.cpp \
     Extractor_Dishonored2.cpp \
     GUI_Extractor_Dishonored2.cpp
@@ -88,7 +88,6 @@ HEADERS  += \
     GUI_MainWindow.h \
     GUI_MaterialsExplorer.h \
     Utils_Qt.h \
-    Utils_TW.h \
     IO_MeshLoader_WitcherMDL.h \
     IO_MeshLoader_W3ENT.h \
     IO_MeshLoader_W2ENT.h \
@@ -114,6 +113,7 @@ HEADERS  += \
     IO_MeshLoader_CEF.h \
     IO_MeshLoader_TheCouncil_Prefab.h \
     IO_SceneLoader_TheCouncil.h \
+    Utils_RedEngine.h \
     Utils_TheCouncil.h \
     Extractor_Dishonored2.h \
     GUI_Extractor_Dishonored2.h
@@ -135,8 +135,8 @@ FORMS    += \
     GUI_Extractor_Dishonored2.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5858-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5858-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5861-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5861-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\code\libassimp.dll.a
@@ -148,8 +148,8 @@ LIBS += C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\native\snappy32.
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\include" \
 
 # LZ4
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_2_win32\dll\liblz4.lib
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_2_win32\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_3_win32\dll\liblz4.lib
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_3_win32\include" \
 
 DISTFILES += \
     app.rc

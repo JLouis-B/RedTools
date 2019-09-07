@@ -45,7 +45,7 @@ bool IO_MeshLoader_W3ENT::isALoadableFileExtension(const io::path& filename) con
     if (!file)
         return false;
 
-    bool checkIsLoadable = (getTWFileType(file) == WFT_WITCHER_3);
+    bool checkIsLoadable = (getRedEngineFileType(file) == REV_WITCHER_3);
     file->drop();
 
     return checkIsLoadable;
@@ -152,7 +152,7 @@ void checkMaterial(video::SMaterial mat)
 
 bool IO_MeshLoader_W3ENT::W3_load(io::IReadFile* file)
 {
-    TWFileHeader header;
+    RedEngineFileHeader header;
     loadTW3FileHeader(file, header);
     Strings = header.Strings;
     Files = header.Files;
@@ -1707,7 +1707,7 @@ bool IO_MeshLoader_W3ENT::load(io::IReadFile* file)
     const s32 fileFormatVersion = readS32(file);
     log->addLineAndFlush(formatString("File format version : %d", fileFormatVersion));
 
-    if (hasTWFileFormatVersion(file) == WFT_WITCHER_3)
+    if (getTWFileFormatVersion(file) == REV_WITCHER_3)
     {
         return W3_load(file);
     }

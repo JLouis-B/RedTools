@@ -1,4 +1,4 @@
-#include "Utils_TW.h"
+#include "Utils_RedEngine.h"
 
 #include "Utils_Loaders_Irr.h"
 #include "Log.h"
@@ -19,26 +19,26 @@ WitcherFileDesc getFullTWFileDescription(io::IReadFile* file, io::path filename)
 }
 */
 
-WitcherContentType getTWFileContentType(io::path filename)
+RedEngineContentType getRedEngineFileContentType(io::path filename)
 {
     if (core::hasFileExtension ( filename, "w2ent" ))
-        return WCT_WITCHER_ENTITY;
+        return RECT_WITCHER_ENTITY;
     else if (core::hasFileExtension ( filename, "w2mesh" ))
-        return WCT_WITCHER_MESH;
+        return RECT_WITCHER_MESH;
     else if (core::hasFileExtension ( filename, "w2rig" ))
-        return WCT_WITCHER_RIG;
+        return RECT_WITCHER_RIG;
     else if (core::hasFileExtension ( filename, "w2anims" ))
-        return WCT_WITCHER_ANIMATIONS;
+        return RECT_WITCHER_ANIMATIONS;
     else if (core::hasFileExtension ( filename, "w2mi" ))
-        return WCT_WITCHER_MATERIAL;
+        return RECT_WITCHER_MATERIAL;
     else
-        return WCT_WITCHER_OTHER;
+        return RECT_WITCHER_OTHER;
 }
 
-WitcherFileType hasTWFileFormatVersion(io::IReadFile* file)
+RedEngineVersion getTWFileFormatVersion(io::IReadFile* file)
 {
     if (!file)
-        return WFT_UNKNOWN;
+        return REV_UNKNOWN;
 
     const long pos = file->getPos();
 
@@ -47,14 +47,14 @@ WitcherFileType hasTWFileFormatVersion(io::IReadFile* file)
     file->seek(pos);
 
     if (version == 115)
-        return WFT_WITCHER_2;
+        return REV_WITCHER_2;
     else if (version >= 162)
-        return WFT_WITCHER_3;
+        return REV_WITCHER_3;
     else
-        return WFT_UNKNOWN;
+        return REV_UNKNOWN;
 }
 
-bool hasWitcherMagicCode(io::IReadFile* file)
+bool hasRedEngineMagicCode(io::IReadFile* file)
 {
     if (!file)
         return false;
@@ -66,15 +66,15 @@ bool hasWitcherMagicCode(io::IReadFile* file)
     return (magic == "CR2W");
 }
 
-WitcherFileType getTWFileType(io::IReadFile* file)
+RedEngineVersion getRedEngineFileType(io::IReadFile* file)
 {
-    if (!hasWitcherMagicCode(file))
-        return WFT_UNKNOWN;
+    if (!hasRedEngineMagicCode(file))
+        return REV_UNKNOWN;
 
-    return hasTWFileFormatVersion(file);
+    return getTWFileFormatVersion(file);
 }
 
-bool loadTW2FileHeader(io::IReadFile* file, TWFileHeader& header, bool loadFilenamesWithTypes)
+bool loadTW2FileHeader(io::IReadFile* file, RedEngineFileHeader& header, bool loadFilenamesWithTypes)
 {
     if (!file)
         return false;
@@ -127,7 +127,7 @@ bool loadTW2FileHeader(io::IReadFile* file, TWFileHeader& header, bool loadFilen
     return true;
 }
 
-bool loadTW3FileHeader(io::IReadFile* file, TWFileHeader &header)
+bool loadTW3FileHeader(io::IReadFile* file, RedEngineFileHeader &header)
 {
     if (!file)
         return false;
@@ -178,24 +178,22 @@ bool loadTW3FileHeader(io::IReadFile* file, TWFileHeader &header)
     return true;
 }
 
-bool loadTWFileHeader(io::IReadFile* file, TWFileHeader& header, bool loadFilenamesWithTypes)
+bool loadTWFileHeader(io::IReadFile* file, RedEngineFileHeader &header, bool loadFilenamesWithTypes)
 {
     header.Strings.clear();
     header.Files.clear();
 
-    if (!hasWitcherMagicCode(file))
+    if (!hasRedEngineMagicCode(file))
         return false;
 
-    WitcherFileType version = getTWFileType(file);
+    RedEngineVersion version = getRedEngineFileType(file);
 
     switch (version)
     {
-        case WFT_WITCHER_2:
+        case REV_WITCHER_2:
             return loadTW2FileHeader(file, header, loadFilenamesWithTypes);
-            break;
-        case WFT_WITCHER_3:
+        case REV_WITCHER_3:
             return loadTW3FileHeader(file, header);
-        break;
         default:
             return false;
     }

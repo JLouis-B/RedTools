@@ -14,7 +14,7 @@
 #include "IReadFile.h"
 #include "IWriteFile.h"
 
-#include "Utils_TW.h"
+#include "Utils_RedEngine.h"
 #include "Utils_Qt_Irr.h"
 #include "Utils_Halffloat.h"
 #include "Utils_Loaders_Irr.h"
@@ -48,7 +48,7 @@ bool IO_MeshLoader_W2ENT::isALoadableFileExtension(const io::path& filename) con
     if (!file)
         return false;
 
-    bool checkIsLoadable = (getTWFileType(file) == WFT_WITCHER_2);
+    bool checkIsLoadable = (getRedEngineFileType(file) == REV_WITCHER_2);
 
     file->drop();
     return checkIsLoadable;
@@ -399,7 +399,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
     readString(file, 4); // CR2W
 
-    TWFileHeader header;
+    RedEngineFileHeader header;
     loadTW2FileHeader(file, header, false);
     Version = header.Version;
     Strings = header.Strings;

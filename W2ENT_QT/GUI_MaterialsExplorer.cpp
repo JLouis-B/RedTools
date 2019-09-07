@@ -264,7 +264,7 @@ void GUI_MaterialsExplorer::W3_CMaterialInstance(io::IReadFile* file, W3_DataInf
 void GUI_MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
 {
     file->seek(0);
-    TWFileHeader header;
+    RedEngineFileHeader header;
     loadTW3FileHeader(file, header);
 
     file->seek(12);
@@ -309,18 +309,18 @@ void GUI_MaterialsExplorer::read(QString filename)
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _Fs->createAndOpenFile(filenamePath);
 
-    WitcherFileType fileType = getTWFileType(file);
+    RedEngineVersion fileType = getRedEngineFileType(file);
     switch (fileType)
     {
-        case WFT_UNKNOWN:
+        case REV_UNKNOWN:
             _ui->label_fileType->setText("File type : Not a witcher file");
             break;
 
-        case WFT_WITCHER_2:
+        case REV_WITCHER_2:
             _ui->label_fileType->setText("File type : The Witcher 2 file (not supported yet)");
             break;
 
-        case WFT_WITCHER_3:
+        case REV_WITCHER_3:
             loadTW3Materials(file);
             _ui->label_fileType->setText("File type : The Witcher 3 file");
             break;

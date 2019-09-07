@@ -38,23 +38,23 @@ void GUI_ExtFilesExplorer::read(QString filename)
     const io::path filenamePath = QSTRING_TO_PATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
-    WitcherFileType fileType = getTWFileType(file);
+    RedEngineVersion fileType = getRedEngineFileType(file);
     switch (fileType)
     {
-        case WFT_UNKNOWN:
+        case REV_UNKNOWN:
             _ui->label_fileType->setText("File type : Not a witcher file");
             return;
 
-        case WFT_WITCHER_2:
+        case REV_WITCHER_2:
             _ui->label_fileType->setText("File type : The Witcher 2 file");
             break;
 
-        case WFT_WITCHER_3:
+        case REV_WITCHER_3:
             _ui->label_fileType->setText("File type : The Witcher 3 file");
             break;
     }
 
-    TWFileHeader header;
+    RedEngineFileHeader header;
     loadTWFileHeader(file, header, true);
     for (u32 i = 0; i < header.Files.size(); ++i)
     {

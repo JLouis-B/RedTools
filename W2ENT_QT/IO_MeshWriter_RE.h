@@ -1,14 +1,8 @@
-// Copyright (C) 2008-2012 Christian Stehno
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
+#ifndef RE_MESH_WRITER_H
+#define RE_MESH_WRITER_H
 
-#ifndef __IRR_RE_MESH_WRITER_H_INCLUDED__
-#define __IRR_RE_MESH_WRITER_H_INCLUDED__
-
-#include "IMeshWriter.h"
-#include "S3DVertex.h"
-#include "irrString.h"
-#include "ISkinnedMesh.h"
+#include <IMeshWriter.h>
+#include <ISkinnedMesh.h>
 
 #include <vector>
 
@@ -16,17 +10,13 @@ namespace irr
 {
 namespace io
 {
-	class IFileSystem;
+    class IFileSystem;
 } // end namespace io
 namespace scene
 {
-	class IMeshBuffer;
-	class ISceneManager;
-
-
     struct Weight
     {
-        ISkinnedMesh::SWeight w;
+        scene::ISkinnedMesh::SWeight w;
         u32 boneID;
     };
 
@@ -35,7 +25,6 @@ namespace scene
     class IO_MeshWriter_RE : public IMeshWriter
 	{
 	public:
-
         IO_MeshWriter_RE(scene::ISceneManager* smgr, io::IFileSystem* fs);
         virtual ~IO_MeshWriter_RE();
 
@@ -45,14 +34,13 @@ namespace scene
 		//! writes a mesh
         virtual bool writeMesh(io::IWriteFile* file, scene::IMesh* mesh, s32 flags=EMWF_NONE);
 
-        bool writeAnimatedMesh(io::IWriteFile* file, scene::IMesh *mesh, bool skinned = false, s32 flags=EMWF_NONE);
+        bool writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mesh, bool skinned = false, s32 flags=EMWF_NONE);
 
-        void setLOD1(IMesh* lod1);
-        void setLOD2(IMesh* lod2);
-        void setCollisionMesh(IMesh* mesh);
+        void setLOD1(scene::IMesh* lod1);
+        void setLOD2(scene::IMesh* lod2);
+        void setCollisionMesh(scene::IMesh* mesh);
 
         void clearLODS();
-
 
 	protected:
         void writeHeaderChunk(io::IWriteFile* file);
@@ -60,7 +48,7 @@ namespace scene
         void writeCollisionMeshChunk(io::IWriteFile* file);
 
 
-        ISceneManager* SceneManager;
+        scene::ISceneManager* SceneManager;
         io::IFileSystem* FileSystem;
 
         scene::IMesh* MeshLOD1;
@@ -69,6 +57,7 @@ namespace scene
 
         void createWeightsTable(scene::ISkinnedMesh* mesh);
 
+        // TODO: use core::array instead (but boring to do because core::array doesn't call the default contructor of the objects)
         std::vector<std::vector<std::vector<Weight> > > WeightsTable;
 
         core::array<u32> ChunksAdress;

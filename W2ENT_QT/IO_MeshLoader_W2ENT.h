@@ -101,13 +101,13 @@ private:
     void CSkeleton(io::IReadFile* file, DataInfos infos);
 
     void skeleton(io::IReadFile* file);
-    void drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel);
+    void drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats);
     void CMaterialInstance(io::IReadFile* file, DataInfos infos, int nMats);
     void TEXTURE(io::IReadFile* file, core::stringc xbm_file, core::array<int> data, core::array<core::stringc> stringsXBM);
     void convertXBMToDDS(core::stringc xbm_file);
-    void drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel);
+    void drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats);
     void vert_format(io::IReadFile* file);
-    void static_meshes(io::IReadFile* file, core::array<int> mats, int nModel);
+    void static_meshes(io::IReadFile* file, core::array<int> mats);
 
 	bool find (core::array<core::stringc> stringVect, core::stringc name);
 	core::stringc searchParent(core::stringc bonename);
@@ -119,8 +119,8 @@ private:
     void make_localMatrix_from_global();
     void computeLocal(scene::ISkinnedMesh::SJoint* joint);
 
-    void addVectorToLog(irr::core::vector3df vec);
-    void addMatrixToLog(irr::core::matrix4 mat);
+    void addVectorToLog(core::vector3df vec);
+    void addMatrixToLog(core::matrix4 mat);
 
 
     void make_vertex_group(Submesh_data dataSubMesh, core::array<core::array<unsigned char> > weighting);
@@ -138,17 +138,17 @@ private:
 
 
     core::array<core::stringc> Strings;
-    core::array<core::stringc> FilesTable;
+    core::array<core::stringc> Files;
     // Informations about a CMesh
-    core::array <Meshdata> MeshesToLoad;
+    core::array<Meshdata> MeshesToLoad;
     // Materials of the meshes
     core::array<Mat> Materials;
 
     io::path ConfigGamePath;
 
     // Bones data
-    irr::core::array<core::stringc> bonenames;
-    irr::core::array<bone_data> bones_data;
+    core::array<core::stringc> bonenames;
+    core::array<bone_data> bones_data;
 
     //DEBUG
     Log* log;

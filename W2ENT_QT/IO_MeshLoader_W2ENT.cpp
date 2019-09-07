@@ -95,7 +95,7 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     }
 
 	//Clear up
-    FilesTable.clear();
+    Files.clear();
     Strings.clear();
     Materials.clear();
     MeshesToLoad.clear();
@@ -402,7 +402,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     loadTW2StringsAndFiles(file, Strings, FilesTable, false);
     log->addLineAndFlush("Table 1 & 2 OK");
 
-    core::array<s32> header = readDataArray<s32>(file, 10);
+    core::array<s32> headerData = readDataArray<s32>(file, 10);
 
     //std::cout << std::endl << "Liste 3 (de taille " << data[9] << ") : " << std::endl;
 
@@ -428,8 +428,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     core::array <core::stringc> chunks;
 
     // Ok, now we can read the materials and meshes
-    file->seek(back + header[4]);
-    for(int i = 0; i < header[5]; ++i) // Now, the list of all the components of the files
+    file->seek(back + headerData[4]);
+    for(int i = 0; i < headerData[5]; ++i) // Now, the list of all the components of the files
     {
         // Read data
         u16 dataTypeId = readU16(file) - 1;    // Data type
@@ -604,7 +604,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
     if (nbBones == 128)
     {
         file->seek(1, true); //readUnsignedChars(file, 1);
-        static_meshes(file, mats,nModel);
+        static_meshes(file, mats);
     }
     else // If the mesh isn't static
     {
@@ -700,7 +700,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
         skeleton(file);
 
 
-        drawmesh(file, data, mats, nModel);
+        drawmesh(file, data, mats);
 
     }
 
@@ -708,7 +708,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
 }
 
 
-void IO_MeshLoader_W2ENT::static_meshes(io::IReadFile* file, core::array<int> mats, int nModel)
+void IO_MeshLoader_W2ENT::static_meshes(io::IReadFile* file, core::array<int> mats)
 {
     // We read submesh infos
     int back = file->getPos();
@@ -733,11 +733,11 @@ void IO_MeshLoader_W2ENT::static_meshes(io::IReadFile* file, core::array<int> ma
     }
 
     file->seek(back+4);
-    drawmesh_static(file, data, mats, nModel);
+    drawmesh_static(file, data, mats);
 }
 
 
-void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel)
+void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats)
 {
     log->addLineAndFlush("Drawmesh_static");
 
@@ -750,7 +750,7 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
             continue;
 
         log->addLineAndFlush("submesh");
-        SSkinMeshBuffer *buf = AnimatedMesh->addMeshBuffer();
+        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
 
         Submesh_data var = SubMeshData[n];
         //std::cout << "var.vertype = " << var.vertype << std::endl;
@@ -768,6 +768,7 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
 
         file->seek(back+VertStart*vertsize);
         buf->Vertices_Standard.reallocate(VertEnd);
+
         for (int i = 0; i < VertEnd; i++)
         {
             int back1 = file->getPos();
@@ -810,7 +811,7 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
 }
 
 
-void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats, int nModel)
+void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats)
 {
     log->addLineAndFlush("Drawmesh");
 
@@ -827,12 +828,12 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
         core::array<core::array<u8> > weighting;
         // std::cout << "var.vertype = " << SubMeshData[n].vertype << std::endl;
         int vertsize = 0;
-        if (SubMeshData[n].vertype==1)
-            vertsize=44;
-        else if (SubMeshData[n].vertype==11)
-            vertsize=44;
+        if (SubMeshData[n].vertype == 1)
+            vertsize = 44;
+        else if (SubMeshData[n].vertype == 11)
+            vertsize = 44;
         else
-            vertsize=52;
+            vertsize = 52;
 
         Submesh_data var = SubMeshData[n];
         int VertStart  = var.dataI[0];
@@ -863,7 +864,7 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
         int FacesEnd = var.dataI[3];
 
         // Faces
-        file->seek(back+data[2]+FacesStart*2);        
+        file->seek(back + data[2] + FacesStart*2);
         buf->Indices.set_used(FacesEnd);
         file->read(buf->Indices.pointer(), FacesEnd * 2);
 
@@ -889,7 +890,7 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
 
 video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc filename)
 {
-    video::ITexture* texture = 0;
+    video::ITexture* texture = nullptr;
 
     if (core::hasFileExtension(filename.c_str(), "xbm"))
     {
@@ -982,7 +983,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos
                     {
                         // ImageID is the index of the texture file in the FilesTable
                         //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
-                        core::stringc texturePath = ConfigGamePath + FilesTable[255-imageID];
+                        core::stringc texturePath = ConfigGamePath + Files[255-imageID];
                         file->seek(3, true); //readUnsignedChars(file, 3);
 
                         if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")
@@ -998,7 +999,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos
                             video::ITexture* tex = getTexture(texturePath);
                             material.setTexture(1, tex);
                         }
-                        if (propertyName == "specular" || propertyName == "tex_Specular" || propertyName == "Specular" || propertyName == "sptTexSpecular")
+                        else if (propertyName == "specular" || propertyName == "tex_Specular" || propertyName == "Specular" || propertyName == "sptTexSpecular")
                         {
                             // not handled by irrlicht
                             video::ITexture* tex = getTexture(texturePath);

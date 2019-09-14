@@ -474,6 +474,7 @@ void GUI_MainWindow::changeOptions()
 void GUI_MainWindow::re_size()
 {
     GUI_Resize* r = new GUI_Resize(this);
+    r->setMeshOriginalDimensions(_irrWidget->getMeshDimensions());
     r->show();
 }
 

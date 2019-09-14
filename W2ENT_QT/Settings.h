@@ -78,8 +78,7 @@ public:
 class MeshSize
 {
 public:
-    static irr::core::vector3df _originalDimensions;    // original size in cm
-    static irr::core::vector3df _dimensions;            // size in cm
+    static float _scaleFactor;
 };
 
 #endif // SETTINGS_H

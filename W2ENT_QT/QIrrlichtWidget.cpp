@@ -503,9 +503,7 @@ void QIrrlichtWidget::loadMeshPostProcess()
 {
     const scene::IAnimatedMesh* mesh = _currentLodData->_node->getMesh();
 
-    MeshSize::_originalDimensions = (mesh->getBoundingBox().MaxEdge - mesh->getBoundingBox().MinEdge);
-    MeshSize::_dimensions = MeshSize::_originalDimensions;
-
+    MeshSize::_scaleFactor = 1.f;
 
     // Save the path of normals/specular maps
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
@@ -747,31 +745,36 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
 
     //std::cout << filename.toStdString().c_str() << std::endl;
 
-    const core::vector3df orDim = MeshSize::_originalDimensions;
-    const core::vector3df dim = MeshSize::_dimensions;
+    //const core::vector3df orDim = MeshSize::_originalDimensions;
+    //const core::vector3df dim = MeshSize::_dimensions;
 
-    const f32 scaleFactor = (dim/orDim).X;
-    const core::vector3df scaleFactorVector = core::vector3df(scaleFactor, scaleFactor, scaleFactor);
+    //const f32 scaleFactor = (dim/orDim).X;
 
-    if (_lod0Data._node)
+    float scaleFactor = MeshSize::_scaleFactor;
+    // Set the export size
+    if (scaleFactor != 1.f)
     {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), scaleFactorVector);
-        scaleSkeleton(_lod0Data._node->getMesh(), scaleFactor);
-    }
-    if (_lod1Data._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), scaleFactorVector);
-        scaleSkeleton(_lod1Data._node->getMesh(), scaleFactor);
-    }
-    if (_lod2Data._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), scaleFactorVector);
-        scaleSkeleton(_lod2Data._node->getMesh(), scaleFactor);
-    }
-    if (_collisionsLodData._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), scaleFactorVector);
-        scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactor);
+        const core::vector3df scaleFactorVector = core::vector3df(scaleFactor, scaleFactor, scaleFactor);
+        if (_lod0Data._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), scaleFactorVector);
+            scaleSkeleton(_lod0Data._node->getMesh(), scaleFactor);
+        }
+        if (_lod1Data._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), scaleFactorVector);
+            scaleSkeleton(_lod1Data._node->getMesh(), scaleFactor);
+        }
+        if (_lod2Data._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), scaleFactorVector);
+            scaleSkeleton(_lod2Data._node->getMesh(), scaleFactor);
+        }
+        if (_collisionsLodData._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), scaleFactorVector);
+            scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactor);
+        }
     }
 
     if (exporter._exporterType == Exporter_Irrlicht)
@@ -808,30 +811,33 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
 #endif
     }
 
+    // Reset the scale
+    if (scaleFactor != 1.f)
+    {
+        const f32 scaleFactorInverse = 1.0f / scaleFactor;
+        const core::vector3df scaleVectorInverseVector = core::vector3df(scaleFactorInverse, scaleFactorInverse, scaleFactorInverse);
+        if (_lod0Data._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), scaleVectorInverseVector);
+            scaleSkeleton(_lod0Data._node->getMesh(), scaleFactorInverse);
+        }
 
-    const f32 scaleFactorInverse = 1.0f / scaleFactor;
-    const core::vector3df scaleVectorInverseVector = core::vector3df(scaleFactorInverse, scaleFactorInverse, scaleFactorInverse);
-    if (_lod0Data._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod0Data._node->getMesh(), scaleVectorInverseVector);
-        scaleSkeleton(_lod0Data._node->getMesh(), scaleFactorInverse);
-    }
+        if (_lod1Data._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), scaleVectorInverseVector);
+            scaleSkeleton(_lod1Data._node->getMesh(), scaleFactorInverse);
+        }
 
-    if (_lod1Data._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod1Data._node->getMesh(), scaleVectorInverseVector);
-        scaleSkeleton(_lod1Data._node->getMesh(), scaleFactorInverse);
-    }
-
-    if (_lod2Data._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), scaleVectorInverseVector);
-        scaleSkeleton(_lod2Data._node->getMesh(), scaleFactorInverse);
-    }
-    if (_collisionsLodData._node)
-    {
-        _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), scaleVectorInverseVector);
-        scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactorInverse);
+        if (_lod2Data._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_lod2Data._node->getMesh(), scaleVectorInverseVector);
+            scaleSkeleton(_lod2Data._node->getMesh(), scaleFactorInverse);
+        }
+        if (_collisionsLodData._node)
+        {
+            _device->getSceneManager()->getMeshManipulator()->scale(_collisionsLodData._node->getMesh(), scaleVectorInverseVector);
+            scaleSkeleton(_collisionsLodData._node->getMesh(), scaleFactorInverse);
+        }
     }
 
     if (file)
@@ -882,7 +888,7 @@ core::vector3df QIrrlichtWidget::getMeshDimensions()
 {
     if (_currentLodData->_node)
         return _currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge;
-    return core::vector3df(0, 0, 0);
+    return core::vector3df(0.f, 0.f, 0.f);
 }
 
 void QIrrlichtWidget::changeOptions()
@@ -930,12 +936,6 @@ void QIrrlichtWidget::changeLOD(LOD newLOD)
         return;
 
     _currentLodData->_node->setVisible(true);
-
-    MeshSize::_originalDimensions = (_currentLodData->_node->getMesh()->getBoundingBox().MaxEdge - _currentLodData->_node->getMesh()->getBoundingBox().MinEdge);
-    //if (ReSize::_unit == Unit_m)
-    //    ReSize::_originalDimensions /= 100.0f;
-
-    MeshSize::_dimensions = MeshSize::_originalDimensions;
 }
 
 void QIrrlichtWidget::clearLOD()

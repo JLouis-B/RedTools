@@ -18,8 +18,9 @@ class GUI_Resize : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Resize(QWidget *parent = nullptr);
+    explicit GUI_Resize(QWidget* parent = nullptr);
     ~GUI_Resize();
+    void setMeshOriginalDimensions(core::vector3df originalDimensions);
 
 
 public slots:
@@ -28,18 +29,23 @@ public slots:
     void changeZ();
     void changeUnit(QString unit);
 
-    void cancel();
-
+    // validate window
+    void validateNewSize();
 
 private:
-    Ui::GUI_Resize *_ui;
-    float _ratioY;
-    float _ratioZ;
+    Ui::GUI_Resize* _ui;
+
+    float _ratioYX;
+    float _ratioZX;
+    float _ratioXY;
+    float _ratioZY;
+    float _ratioXZ;
+    float _ratioYZ;
 
     core::vector3df _initialDimensions;
-    Unit _initialUnit;
+    Unit _unit;
 
-    void setNewSize();
+    void enableEvents(bool enabled);
 };
 
 #endif // RESIZE_H

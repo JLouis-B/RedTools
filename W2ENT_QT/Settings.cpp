@@ -90,23 +90,22 @@ QString Settings::getFilters()
     return filter;
 }
 
-irr::core::vector3df MeshSize::_originalDimensions = irr::core::vector3df(0.f, 0.f, 0.f);
-irr::core::vector3df MeshSize::_dimensions = irr::core::vector3df(0.f, 0.f, 0.f);
+float MeshSize::_scaleFactor = 1.f;
 
 void Settings::loadFromXML(QString filename)
 {
     // Load config from XML
     QDomDocument* dom = new QDomDocument("config");
-    QFile xml_doc(filename);
+    QFile xmlDoc(filename);
 
-    if(!xml_doc.open(QIODevice::ReadOnly))
+    if(!xmlDoc.open(QIODevice::ReadOnly))
     {
          QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
     }
 
-    if (!dom->setContent(&xml_doc))
+    if (!dom->setContent(&xmlDoc))
     {
-        xml_doc.close();
+        xmlDoc.close();
         QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
     }
     QDomElement dom_element = dom->documentElement();
@@ -184,7 +183,7 @@ void Settings::loadFromXML(QString filename)
         node = node.nextSibling();
     }
 
-    xml_doc.close();
+    xmlDoc.close();
     delete dom;
 }
 

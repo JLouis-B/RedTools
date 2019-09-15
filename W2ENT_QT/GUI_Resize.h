@@ -24,9 +24,9 @@ public:
 
 
 public slots:
-    void changeX();
-    void changeY();
-    void changeZ();
+    void changeX(double newValue);
+    void changeY(double newValue);
+    void changeZ(double newValue);
     void changeUnit(QString unit);
 
     // validate window
@@ -42,7 +42,7 @@ private:
     float _ratioXZ;
     float _ratioYZ;
 
-    core::vector3df _initialDimensions;
+    core::vector3df _originalDimensions;
     Unit _unit;
 
     void enableEvents(bool enabled);

@@ -19,9 +19,9 @@ GUI_Resize::GUI_Resize(QWidget *parent) :
         _ui->label_unitZ->setText("m");
     }
 
-    QObject::connect(_ui->spinbox_sizeX, SIGNAL(valueChanged(double)), this, SLOT(changeX()));
-    QObject::connect(_ui->spinbox_sizeY, SIGNAL(valueChanged(double)), this, SLOT(changeY()));
-    QObject::connect(_ui->spinbox_sizeZ, SIGNAL(valueChanged(double)), this, SLOT(changeZ()));
+    QObject::connect(_ui->spinbox_sizeX, SIGNAL(valueChanged(double)), this, SLOT(changeX(double)));
+    QObject::connect(_ui->spinbox_sizeY, SIGNAL(valueChanged(double)), this, SLOT(changeY(double)));
+    QObject::connect(_ui->spinbox_sizeZ, SIGNAL(valueChanged(double)), this, SLOT(changeZ(double)));
     QObject::connect(_ui->combo_unit, SIGNAL(currentTextChanged(QString)), this, SLOT(changeUnit(QString)));
 
     QObject::connect(this, SIGNAL(accepted()), this, SLOT(validateNewSize()));
@@ -34,7 +34,7 @@ GUI_Resize::~GUI_Resize()
 
 void GUI_Resize::setMeshOriginalDimensions(core::vector3df originalDimensions)
 {
-    _initialDimensions = originalDimensions;
+    _originalDimensions = originalDimensions;
     core::vector3df dimensions = originalDimensions * MeshSize::_scaleFactor;
     if (_unit == Unit_m)
     {
@@ -80,37 +80,37 @@ void GUI_Resize::validateNewSize()
     if (_unit == Unit_m)
         newSize *= 100.f; // m to cm
 
-    if (newSize.X != 0.f && _initialDimensions.X != 0.f)
-        MeshSize::_scaleFactor = newSize.X / _initialDimensions.X;
-    else if (newSize.Y != 0.f && _initialDimensions.Y != 0.f)
-        MeshSize::_scaleFactor = newSize.Y / _initialDimensions.Y;
-    else if (newSize.Z != 0.f && _initialDimensions.Z != 0.f)
-        MeshSize::_scaleFactor = newSize.Z / _initialDimensions.Z;
+    if (newSize.X != 0.f && _originalDimensions.X != 0.f)
+        MeshSize::_scaleFactor = newSize.X / _originalDimensions.X;
+    else if (newSize.Y != 0.f && _originalDimensions.Y != 0.f)
+        MeshSize::_scaleFactor = newSize.Y / _originalDimensions.Y;
+    else if (newSize.Z != 0.f && _originalDimensions.Z != 0.f)
+        MeshSize::_scaleFactor = newSize.Z / _originalDimensions.Z;
     else
         MeshSize::_scaleFactor = 1.f;
 }
 
-void GUI_Resize::changeX()
+void GUI_Resize::changeX(double newValue)
 {
     enableEvents(false);
-    _ui->spinbox_sizeY->setValue(_ui->spinbox_sizeX->value() * _ratioYX);
-    _ui->spinbox_sizeZ->setValue(_ui->spinbox_sizeX->value() * _ratioZX);
+    _ui->spinbox_sizeY->setValue(newValue * _ratioYX);
+    _ui->spinbox_sizeZ->setValue(newValue * _ratioZX);
     enableEvents(true);
 }
 
-void GUI_Resize::changeY()
+void GUI_Resize::changeY(double newValue)
 {
     enableEvents(false);
-    _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeY->value() * _ratioXY);
-    _ui->spinbox_sizeZ->setValue(_ui->spinbox_sizeY->value() * _ratioZY);
+    _ui->spinbox_sizeX->setValue(newValue * _ratioXY);
+    _ui->spinbox_sizeZ->setValue(newValue * _ratioZY);
     enableEvents(true);
 }
 
-void GUI_Resize::changeZ()
+void GUI_Resize::changeZ(double newValue)
 {
     enableEvents(false);
-    _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeZ->value() * _ratioXZ);
-    _ui->spinbox_sizeY->setValue(_ui->spinbox_sizeZ->value() * _ratioYZ);
+    _ui->spinbox_sizeX->setValue(newValue * _ratioXZ);
+    _ui->spinbox_sizeY->setValue(newValue * _ratioYZ);
     enableEvents(true);
 }
 
@@ -123,9 +123,9 @@ void GUI_Resize::changeUnit(QString unit)
         _ui->label_unitZ->setText("cm");
         _unit = Unit_cm;
         enableEvents(false);
-        _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeX->value() * 100.f);
-        _ui->spinbox_sizeY->setValue(_ui->spinbox_sizeY->value() * 100.f);
-        _ui->spinbox_sizeZ->setValue(_ui->spinbox_sizeZ->value() * 100.f);
+        _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeX->value() * 100.);
+        _ui->spinbox_sizeY->setValue(_ui->spinbox_sizeY->value() * 100.);
+        _ui->spinbox_sizeZ->setValue(_ui->spinbox_sizeZ->value() * 100.);
         enableEvents(true);
     }
     else if (unit == "m")
@@ -135,9 +135,9 @@ void GUI_Resize::changeUnit(QString unit)
         _ui->label_unitZ->setText("m");
         _unit = Unit_m;
         enableEvents(false);
-        _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeX->value() / 100.f);
-        _ui->spinbox_sizeY->setValue(_ui->spinbox_sizeY->value() / 100.f);
-        _ui->spinbox_sizeZ->setValue(_ui->spinbox_sizeZ->value() / 100.f);
+        _ui->spinbox_sizeX->setValue(_ui->spinbox_sizeX->value() / 100.);
+        _ui->spinbox_sizeY->setValue(_ui->spinbox_sizeY->value() / 100.);
+        _ui->spinbox_sizeZ->setValue(_ui->spinbox_sizeZ->value() / 100.);
         enableEvents(true);
     }
 }

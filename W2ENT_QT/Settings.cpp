@@ -42,6 +42,8 @@ QString Settings::_selectedFilter = "All files/The witcher 1/2/3, Irrlicht and A
 
 Unit Settings::_unit = Unit_m;
 
+WindowState Settings::_windowState;
+
 QString Settings::getExportFolder()
 {
     if (Settings::_mode == Export_BaseDir)
@@ -116,7 +118,7 @@ void Settings::loadFromXML(QString filename)
 
         if(nodeName == "language")
             Settings::_language = node.toElement().text();
-        else if(nodeName == "pack0")
+        else if(nodeName == "base_directory")
         {
             Settings::_baseDir = node.toElement().text();
         }
@@ -179,6 +181,16 @@ void Settings::loadFromXML(QString filename)
         {
             Settings::_selectedFilter = node.toElement().text();
         }
+        else if (nodeName == "window_state")
+        {
+            QByteArray windowGeometry = QByteArray::fromStdString(node.toElement().text().toStdString());
+            windowGeometry = QByteArray::fromBase64(windowGeometry);
+
+            WindowState window;
+            window._geometry = windowGeometry;
+            window._initialised = true;
+            Settings::_windowState = window;
+        }
 
         node = node.nextSibling();
     }
@@ -190,13 +202,13 @@ void Settings::loadFromXML(QString filename)
 void Settings::saveToXML(QString filename)
 {
     // Save the config in a xml
-    // Create the DOM
     QDomDocument dom("config");
     //QDomElement docElem = dom.documentElement(); // the document element
     QDomElement config_elem = dom.createElement("config");
     dom.appendChild(config_elem);
 
-    // language
+
+    // Language
     QDomElement lang_elem = dom.createElement("language");
     config_elem.appendChild(lang_elem);
 
@@ -204,8 +216,8 @@ void Settings::saveToXML(QString filename)
     lang_elem.appendChild(lang_txt);
 
 
-    // pack0 folder
-    QDomElement pack0_elem = dom.createElement("pack0");
+    // Base directory
+    QDomElement pack0_elem = dom.createElement("base_directory");
     config_elem.appendChild(pack0_elem);
 
     QDomText pack0_txt = dom.createTextNode(Settings::_baseDir);
@@ -286,8 +298,6 @@ void Settings::saveToXML(QString filename)
     unit_elem.appendChild(dom.createTextNode(unit));
 
 
-
-
     // textures conversion
     QDomElement tex_conv_elem = dom.createElement("textures_conversion");
     config_elem.appendChild(tex_conv_elem);
@@ -299,8 +309,6 @@ void Settings::saveToXML(QString filename)
     QDomElement tex_conv_format_elem = dom.createElement("format");
     tex_conv_elem.appendChild(tex_conv_format_elem);
     tex_conv_format_elem.appendChild(dom.createTextNode(Settings::_texFormat));
-
-
 
 
     // debug.log
@@ -326,11 +334,20 @@ void Settings::saveToXML(QString filename)
     tw3bestlod_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_TW3LoadBestLOD)));
 
 
-
-
+    // First usage
     QDomElement firstuse_elem = dom.createElement("first_use");
     config_elem.appendChild(firstuse_elem);
     firstuse_elem.appendChild(dom.createTextNode(QString::number((int)Settings::_firstUse)));
+
+
+    // Window state
+    WindowState window = Settings::_windowState;
+
+    QDomElement windowStateElem = dom.createElement("window_state");
+    config_elem.appendChild(windowStateElem);
+
+    std::string windowGeometryData = window._geometry.toBase64().toStdString();
+    windowStateElem.appendChild(dom.createTextNode(QString::fromStdString(windowGeometryData)));
 
 
     // Write the DOM in a XML

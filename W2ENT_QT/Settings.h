@@ -23,6 +23,18 @@ enum Export_Mode
     Export_Custom
 };
 
+struct WindowState
+{
+    bool _initialised;
+
+    QByteArray _geometry;
+
+    WindowState()
+    {
+        _initialised = false;
+    }
+};
+
 class Settings
 {
 private:
@@ -64,6 +76,8 @@ public:
     static QString _selectedFilter;
 
     static Unit _unit;
+
+    static WindowState _windowState;
 
     static QString getAppVersion();
     static QString getExportFolder();

@@ -37,6 +37,12 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");
     _ui->lineEdit_folder->setText(Settings::_baseDir);
 
+    WindowState window = Settings::_windowState;
+    if (window._initialised)
+    {
+        restoreGeometry(window._geometry);
+    }
+
     // Register and set current exporter
     registerExporters();
     if (!Settings::_exporter.isEmpty())
@@ -128,6 +134,24 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
     for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
         QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
+}
+
+GUI_MainWindow::~GUI_MainWindow()
+{
+    if (_ui->comboBox_exportFormat->currentIndex() != -1)
+        Settings::_exporter = _ui->comboBox_exportFormat->currentText();
+
+    WindowState window;
+    window._geometry = saveGeometry();
+    Settings::_windowState = window;
+
+    Settings::saveToXML(QCoreApplication::applicationDirPath() + "/config.xml");
+
+    // Delete UI
+    delete _ui;
+
+    if (_irrWidget)
+        delete _irrWidget;
 }
 
 void GUI_MainWindow::addToUILog(QString log)
@@ -240,22 +264,6 @@ void GUI_MainWindow::cleanTexturesPath()
     else
         QMessageBox::critical(this, "Error", "TW3 textures folder can't be opened. Check the tuto for more informations.");
 }
-
-GUI_MainWindow::~GUI_MainWindow()
-{
-    if (_ui->comboBox_exportFormat->currentIndex() != -1)
-        Settings::_exporter = _ui->comboBox_exportFormat->currentText();
-
-    Settings::saveToXML(QCoreApplication::applicationDirPath() + "/config.xml");
-
-    // Delete UI
-    delete _ui;
-
-    if (_irrWidget)
-        delete _irrWidget;
-}
-
-
 
 void GUI_MainWindow::initIrrlicht()
 {

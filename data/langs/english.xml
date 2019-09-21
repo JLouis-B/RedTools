@@ -56,7 +56,6 @@
 	<element id="search_load" text="Load"/>
 	<element id="search_button" text="Search"/>
 	<element id="search_progress" text="Progress"/>
-	<element id="search_extensions_filter" text="Extensions filter"/>
 	<element id="search_check_folder" text="Check also the folder names (more results)"/>
 	<element id="search_result" text="Results"/>
 	

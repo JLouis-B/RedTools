@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
-    <height>455</height>
+    <width>800</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -94,14 +94,14 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Contents searched :</string>
+          <string>Content searched :</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="checkBox_searchMesh">
          <property name="text">
-          <string>Meshes and Entity (.w2mesh &amp; .w2ent)</string>
+          <string>Redgine: Meshes and Entities (.w2mesh .w2ent)</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -111,7 +111,7 @@
        <item>
         <widget class="QCheckBox" name="checkBox_searchRigs">
          <property name="text">
-          <string>Rigs (.w2rig)</string>
+          <string>Redgine: Rigs (.w2rig)</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -121,7 +121,7 @@
        <item>
         <widget class="QCheckBox" name="checkBox_searchAnims">
          <property name="text">
-          <string>Animations (.w2anim)</string>
+          <string>Redgine: Animations (.w2anim)</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -133,19 +133,12 @@
          <item>
           <widget class="QLabel" name="label_extensions">
            <property name="text">
-            <string>Additional extensions :</string>
+            <string>Additional extensions (eg: &quot;fbx obj&quot; to search .fbx and .obj files) :</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLineEdit" name="lineEdit_extensionsFilter"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_reset">
-           <property name="text">
-            <string>Reset</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </item>
@@ -184,35 +177,8 @@
      </widget>
     </widget>
    </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>GUI_Search</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

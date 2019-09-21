@@ -19,12 +19,10 @@ GUI_Search::GUI_Search(QWidget *parent) :
 {
     _ui->setupUi(this);
 
-    resetExtensionsFilter();
     translate();
 
     QObject::connect(_ui->pushButton_search, SIGNAL(clicked()), this, SLOT(search()));
     QObject::connect(_ui->pushButton_load, SIGNAL(clicked()), this, SLOT(load()));
-    QObject::connect(_ui->pushButton_reset, SIGNAL(clicked()), this, SLOT(resetExtensionsFilter()));
     QObject::connect(_ui->listWidget_results, SIGNAL(currentRowChanged(int)), this, SLOT(enableButton()));
 
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
@@ -54,7 +52,6 @@ void GUI_Search::translate()
     _ui->label_name->setText(Translator::get("search_name") + " :");
     _ui->label_result->setText(Translator::get("search_result") + " :");
     _ui->label_progression->setText(Translator::get("search_progress") + " :");
-    _ui->label_extensions->setText(Translator::get("search_extensions_filter"));
     _ui->checkBox_folder->setText(Translator::get("search_check_folder"));
     _ui->pushButton_search->setText(Translator::get("search_button"));
     _ui->pushButton_load->setText(Translator::get("search_load"));
@@ -190,11 +187,6 @@ void GUI_Search::enableButton()
     {
         _ui->pushButton_load->setText("Load animations");
     }
-}
-
-void GUI_Search::resetExtensionsFilter()
-{
-    _ui->lineEdit_extensionsFilter->setText("");
 }
 
 

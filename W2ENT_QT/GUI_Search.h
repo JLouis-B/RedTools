@@ -46,7 +46,7 @@ class GUI_Search : public QDialog
     Q_OBJECT
 
 public:
-    explicit GUI_Search(QWidget *parent = 0);
+    explicit GUI_Search(QWidget *parent = nullptr);
     ~GUI_Search();
 
 
@@ -59,7 +59,6 @@ public slots:
     void setProgress(int progress);
     void searchEnd();
     void addResult(QString item);
-    void resetExtensionsFilter();
 
 private:
     Ui::GUI_Search *_ui;

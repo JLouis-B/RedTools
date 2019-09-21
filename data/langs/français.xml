@@ -55,7 +55,6 @@
 	<element id="search_load" text="Charger"/>
 	<element id="search_button" text="Rechercher"/>
 	<element id="search_progress" text="Progression"/>
-	<element id="search_extensions_filter" text="Filtre d'extensions"/>
 	<element id="search_check_folder" text="Vérifier aussi les noms de dossiers (plus de résultats)"/>
 	<element id="search_result" text="Résultats"/>
 	

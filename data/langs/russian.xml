@@ -56,7 +56,6 @@
 	<element id="search_load" text="Загрузить"/>
 	<element id="search_button" text="Поиск"/>
 	<element id="search_progress" text="Прогресс"/>
-	<element id="search_extensions_filter" text="Фильтр расширений"/>
 	<element id="search_check_folder" text="Проверить также имена папок (больше результатов)"/>
 	<element id="search_result" text="Результаты"/>
 	

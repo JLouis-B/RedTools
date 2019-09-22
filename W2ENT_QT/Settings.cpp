@@ -6,8 +6,8 @@
 
 QString Settings::_language = QString();
 
-double Settings::_camRotSpeed = DEFAULT_CAM_ROT_SPEED;
-double Settings::_camSpeed = DEFAULT_CAM_SPEED;
+double Settings::_cameraRotationSpeed = DEFAULT_CAM_ROT_SPEED;
+double Settings::_cameraSpeed = DEFAULT_CAM_SPEED;
 
 QColor Settings::_backgroundColor;
 
@@ -15,20 +15,20 @@ QColor Settings::_backgroundColor;
 Export_Mode Settings::_mode = Export_BaseDir;
 QString Settings::_exportDest = QString();
 
-bool Settings::_copyTextures = true;
-bool Settings::_nm = false;
-bool Settings::_sm = false;
+bool Settings::_copyTexturesEnabled = true;
+bool Settings::_copyTexturesSlot1 = false;
+bool Settings::_copyTexturesSlot2 = false;
 
 bool Settings::_debugLog = false;
 
-bool Settings::_convertTextures = false;
-QString Settings::_texFormat = ".jpg";
+bool Settings::_convertTexturesEnabled = false;
+QString Settings::_convertTexturesFormat = ".jpg";
 
 QString Settings::_baseDir = QString();
 
 QString Settings::_TW3TexPath = QString();
-bool Settings::_TW3LoadSkel = false;
-bool Settings::_TW3LoadBestLOD = false;
+bool Settings::_TW3LoadSkeletonEnabled = false;
+bool Settings::_TW3LoadBestLODEnabled = false;
 
 QString Settings::_formats = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*);;The Witcher 2/3 3D models (*.w2ent , *.w2mesh);;The Witcher 1 3D models (*.mdb)";
 
@@ -124,8 +124,8 @@ void Settings::loadFromXML(QString filename)
         }
         else if(nodeName == "camera")
         {
-            Settings::_camSpeed = node.firstChildElement("speed").text().toDouble();
-            Settings::_camRotSpeed = node.firstChildElement("rotation_speed").text().toDouble();
+            Settings::_cameraSpeed = node.firstChildElement("speed").text().toDouble();
+            Settings::_cameraRotationSpeed = node.firstChildElement("rotation_speed").text().toDouble();
         }
         else if(nodeName == "background_color")
         {
@@ -137,21 +137,22 @@ void Settings::loadFromXML(QString filename)
         }
         else if(nodeName == "textures_conversion")
         {
-            Settings::_convertTextures = node.firstChildElement("enabled").text().toInt();
-            Settings::_texFormat = node.firstChildElement("format").text();
+            Settings::_convertTexturesEnabled = node.firstChildElement("enabled").text().toInt();
+            Settings::_convertTexturesFormat = node.firstChildElement("format").text();
         }
         else if(nodeName == "export")
         {
-            if (node.firstChildElement("type").text() == "pack0")
+            QString exportType = node.firstChildElement("type").text();
+            if (exportType == "base_directory")
                 Settings::_mode = Export_BaseDir;
-            else if (node.firstChildElement("type").text() == "custom")
+            else if (exportType == "custom")
                 Settings::_mode = Export_Custom;
 
-            Settings::_exportDest = node.firstChildElement("dest").text();
+            Settings::_exportDest = node.firstChildElement("destination").text();
 
-            Settings::_copyTextures = node.firstChildElement("move_textures").text().toInt();
-            Settings::_nm = node.firstChildElement("move_normals_map").text().toInt();
-            Settings::_sm = node.firstChildElement("move_specular_map").text().toInt();
+            Settings::_copyTexturesEnabled = node.firstChildElement("copy_textures").text().toInt();
+            Settings::_copyTexturesSlot1 = node.firstChildElement("copy_normals_map").text().toInt();
+            Settings::_copyTexturesSlot2 = node.firstChildElement("copy_specular_map").text().toInt();
         }
         else if(nodeName == "unit")
         {
@@ -161,15 +162,15 @@ void Settings::loadFromXML(QString filename)
             else if (unit == "cm")
                 Settings::_unit = Unit_cm;
         }
-        else if(nodeName == "debug")
+        else if(nodeName == "debug_log")
         {
             Settings::_debugLog = node.toElement().text().toInt();
         }
         else if(nodeName == "TW3")
         {
             Settings::_TW3TexPath = node.firstChildElement("TW3_textures").text();
-            Settings::_TW3LoadSkel = node.firstChildElement("TW3_loadSkel").text().toInt();
-            Settings::_TW3LoadBestLOD = node.firstChildElement("TW3_loadBestLOD").text().toInt();
+            Settings::_TW3LoadSkeletonEnabled = node.firstChildElement("TW3_loadSkel").text().toInt();
+            Settings::_TW3LoadBestLODEnabled = node.firstChildElement("TW3_loadBestLOD").text().toInt();
         }
         else if (nodeName == "first_use")
         {
@@ -261,19 +262,19 @@ void Settings::saveToXML(QString filename)
     // camera data
     QDomElement cameraElem = dom.createElement("camera");
     configElem.appendChild(cameraElem);
-    appendNewDoubleElement(dom, cameraElem, "speed", Settings::_camSpeed);
-    appendNewDoubleElement(dom, cameraElem, "rotation_speed", Settings::_camRotSpeed);
+    appendNewDoubleElement(dom, cameraElem, "speed", Settings::_cameraSpeed);
+    appendNewDoubleElement(dom, cameraElem, "rotation_speed", Settings::_cameraRotationSpeed);
 
     // export settings
     QDomElement exportElem = dom.createElement("export");
     configElem.appendChild(exportElem);
 
-    QString exportType = Settings::_mode == Export_BaseDir ? "pack0" : "custom";
+    QString exportType = Settings::_mode == Export_BaseDir ? "base_directory" : "custom";
     appendNewStringElement(dom, exportElem, "type", exportType);
-    appendNewStringElement(dom, exportElem, "dest", Settings::_exportDest);
-    appendNewBoolElement(dom, exportElem, "move_textures", Settings::_copyTextures);
-    appendNewBoolElement(dom, exportElem, "move_normals_map", Settings::_nm);
-    appendNewBoolElement(dom, exportElem, "move_specular_map", Settings::_sm);
+    appendNewStringElement(dom, exportElem, "destination", Settings::_exportDest);
+    appendNewBoolElement(dom, exportElem, "copy_textures", Settings::_copyTexturesEnabled);
+    appendNewBoolElement(dom, exportElem, "copy_normals_map", Settings::_copyTexturesSlot1);
+    appendNewBoolElement(dom, exportElem, "copy_specular_map", Settings::_copyTexturesSlot2);
 
     appendNewStringElement(dom, configElem, "exporter", Settings::_exporter);
     appendNewStringElement(dom, configElem, "selected_filter", Settings::_selectedFilter);
@@ -290,19 +291,19 @@ void Settings::saveToXML(QString filename)
     QDomElement texConvElem = dom.createElement("textures_conversion");
     configElem.appendChild(texConvElem);
 
-    appendNewBoolElement(dom, texConvElem, "enabled", Settings::_convertTextures);
-    appendNewStringElement(dom, texConvElem, "format", Settings::_texFormat);
+    appendNewBoolElement(dom, texConvElem, "enabled", Settings::_convertTexturesEnabled);
+    appendNewStringElement(dom, texConvElem, "format", Settings::_convertTexturesFormat);
 
     // debug.log
-    appendNewBoolElement(dom, configElem, "debug", Settings::_debugLog);
+    appendNewBoolElement(dom, configElem, "debug_log", Settings::_debugLog);
 
     // TW3
     QDomElement TW3Elem = dom.createElement("TW3");
     configElem.appendChild(TW3Elem);
 
     appendNewStringElement(dom, TW3Elem, "TW3_textures", Settings::_TW3TexPath);
-    appendNewBoolElement(dom, TW3Elem, "TW3_loadSkel", Settings::_TW3LoadSkel);
-    appendNewBoolElement(dom, TW3Elem, "TW3_loadBestLOD", Settings::_TW3LoadBestLOD);
+    appendNewBoolElement(dom, TW3Elem, "TW3_loadSkel", Settings::_TW3LoadSkeletonEnabled);
+    appendNewBoolElement(dom, TW3Elem, "TW3_loadBestLOD", Settings::_TW3LoadBestLODEnabled);
 
     // first usage
     appendNewBoolElement(dom, configElem, "first_use", Settings::_firstUse);

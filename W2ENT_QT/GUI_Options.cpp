@@ -16,18 +16,18 @@ GUI_Options::GUI_Options(QWidget *parent) :
     _ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
 
-    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_camRotSpeed);
-    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_camSpeed);
+    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
+    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
     _backgroundColor = Settings::_backgroundColor;
 
-    _ui->checkBox_export_copyTextures->setChecked(Settings::_copyTextures);
-    _ui->checkBox_export_copyNormalsMap->setChecked(Settings::_nm);
-    _ui->checkBox_export_copySpecularMap->setChecked(Settings::_sm);
+    _ui->checkBox_export_copyTextures->setChecked(Settings::_copyTexturesEnabled);
+    _ui->checkBox_export_copyNormalsMap->setChecked(Settings::_copyTexturesSlot1);
+    _ui->checkBox_export_copySpecularMap->setChecked(Settings::_copyTexturesSlot2);
 
 
-    _ui->checkBox_export_convertTextures->setChecked(Settings::_convertTextures);
-    if (_ui->comboBox_export_texturesFormat->findText(Settings::_texFormat) != -1)
-        _ui->comboBox_export_texturesFormat->setCurrentIndex(_ui->comboBox_export_texturesFormat->findText(Settings::_texFormat));
+    _ui->checkBox_export_convertTextures->setChecked(Settings::_convertTexturesEnabled);
+    if (_ui->comboBox_export_texturesFormat->findText(Settings::_convertTexturesFormat) != -1)
+        _ui->comboBox_export_texturesFormat->setCurrentIndex(_ui->comboBox_export_texturesFormat->findText(Settings::_convertTexturesFormat));
     _ui->comboBox_export_texturesFormat->setEnabled(_ui->checkBox_export_convertTextures->isChecked());
 
     if(Settings::_mode == Export_Custom)
@@ -57,8 +57,8 @@ GUI_Options::GUI_Options(QWidget *parent) :
     _ui->label_view_backgroundColorSelector->setText(Translator::get("options_background"));
 
     _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
-    _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkel);
-    _ui->checkBox_TW3_loadBestLOD->setChecked(Settings::_TW3LoadBestLOD);
+    _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkeletonEnabled);
+    _ui->checkBox_TW3_loadBestLOD->setChecked(Settings::_TW3LoadBestLODEnabled);
 
     _ui->checkBox_debug_log->setChecked(Settings::_debugLog);
 
@@ -90,20 +90,20 @@ GUI_Options::~GUI_Options()
 
 void GUI_Options::resetViewPanel()
 {
-    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_camRotSpeed);
-    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_camSpeed);
+    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
+    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
 
     _backgroundColor = QColor(0, 0, 0);
 }
 
 void GUI_Options::ok()
 {
-    Settings::_camRotSpeed = _ui->doubleSpinBox_view_cameraRotSpeed->value();
-    Settings::_camSpeed = _ui->doubleSpinBox_view_cameraSpeed->value();
+    Settings::_cameraRotationSpeed = _ui->doubleSpinBox_view_cameraRotSpeed->value();
+    Settings::_cameraSpeed = _ui->doubleSpinBox_view_cameraSpeed->value();
 
-    Settings::_copyTextures = _ui->checkBox_export_copyTextures->isChecked();
-    Settings::_nm = _ui->checkBox_export_copyNormalsMap->isChecked();
-    Settings::_sm = _ui->checkBox_export_copySpecularMap->isChecked();
+    Settings::_copyTexturesEnabled = _ui->checkBox_export_copyTextures->isChecked();
+    Settings::_copyTexturesSlot1 = _ui->checkBox_export_copyNormalsMap->isChecked();
+    Settings::_copyTexturesSlot2 = _ui->checkBox_export_copySpecularMap->isChecked();
 
     Settings::_exportDest = _ui->lineEdit_export_exportDir->text();
     if (_ui->radioButton_export_exportCustomDir->isChecked())
@@ -111,12 +111,12 @@ void GUI_Options::ok()
     else if (_ui->radioButton_export_exportBaseDir->isChecked())
         Settings::_mode = Export_BaseDir;
 
-    Settings::_convertTextures = _ui->checkBox_export_convertTextures->isChecked();
-    Settings::_texFormat = _ui->comboBox_export_texturesFormat->currentText();
+    Settings::_convertTexturesEnabled = _ui->checkBox_export_convertTextures->isChecked();
+    Settings::_convertTexturesFormat = _ui->comboBox_export_texturesFormat->currentText();
 
     Settings::_TW3TexPath = _ui->lineEdit_TW3_texFolder->text();
-    Settings::_TW3LoadSkel = _ui->checkBox_TW3_loadSkel->isChecked();
-    Settings::_TW3LoadBestLOD = _ui->checkBox_TW3_loadBestLOD->isChecked();
+    Settings::_TW3LoadSkeletonEnabled = _ui->checkBox_TW3_loadSkel->isChecked();
+    Settings::_TW3LoadBestLODEnabled = _ui->checkBox_TW3_loadBestLOD->isChecked();
 
     Settings::_debugLog = _ui->checkBox_debug_log->isChecked();
 

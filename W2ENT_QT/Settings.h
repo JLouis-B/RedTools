@@ -50,20 +50,20 @@ private:
     static QString _appVersion;
 
 public:
-    static double _camSpeed;
-    static double _camRotSpeed;
+    static double _cameraSpeed;
+    static double _cameraRotationSpeed;
 
     static QColor _backgroundColor;
 
     static Export_Mode _mode;
     static QString _exportDest;
 
-    static bool _copyTextures;
-    static bool _nm;
-    static bool _sm;
+    static bool _copyTexturesEnabled;
+    static bool _copyTexturesSlot1;
+    static bool _copyTexturesSlot2;
 
-    static bool _convertTextures;
-    static QString _texFormat;
+    static bool _convertTexturesEnabled;
+    static QString _convertTexturesFormat;
 
     static bool _debugLog;
 
@@ -72,8 +72,8 @@ public:
     static QString _language;
 
     static QString _TW3TexPath;
-    static bool _TW3LoadSkel;
-    static bool _TW3LoadBestLOD;
+    static bool _TW3LoadSkeletonEnabled;
+    static bool _TW3LoadBestLODEnabled;
 
     static QString _formats;
 

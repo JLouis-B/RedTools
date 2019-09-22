@@ -1,7 +1,7 @@
 <!DOCTYPE config>
 <config>
  <language>langs/english.xml</language>
- <pack0></pack0>
+ <base_directory></base_directory>
  <background_color>
   <r>0</r>
   <g>0</g>
@@ -12,11 +12,11 @@
   <rotation_speed>-500</rotation_speed>
  </camera>
  <export>
-  <type>pack0</type>
-  <dest></dest>
-  <move_textures>1</move_textures>
-  <move_normals_map>1</move_normals_map>
-  <move_specular_map>0</move_specular_map>
+  <type>base_directory</type>
+  <destination></destination>
+  <copy_textures>1</copy_textures>
+  <copy_normals_map>1</copy_normals_map>
+  <copy_specular_map>0</copy_specular_map>
  </export>
  <unit>m</unit>
  <textures_conversion>

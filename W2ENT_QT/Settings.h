@@ -3,6 +3,7 @@
 
 #include "CompileConfig.h"
 #include <QString>
+#include <QColor>
 #include <vector3d.h>
 
 
@@ -52,9 +53,7 @@ public:
     static double _camSpeed;
     static double _camRotSpeed;
 
-    static int _r;
-    static int _g;
-    static int _b;
+    static QColor _backgroundColor;
 
     static Export_Mode _mode;
     static QString _exportDest;

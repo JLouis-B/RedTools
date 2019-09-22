@@ -165,9 +165,7 @@ void QIrrlichtWidget::updateIrrlicht(QIrrlichtWidget* irrWidget)
     {
         _device->getTimer()->tick ();
 
-        video::SColor color(255, Settings::_r, Settings::_g, Settings::_b);
-
-        _device->getVideoDriver()->beginScene(true, true, color);
+        _device->getVideoDriver()->beginScene(true, true, QCOLOR_TO_IRRCOLOR(Settings::_backgroundColor));
 
         if (_normalsRendererEnabled)
         {

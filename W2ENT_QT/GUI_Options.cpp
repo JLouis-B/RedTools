@@ -18,7 +18,7 @@ GUI_Options::GUI_Options(QWidget *parent) :
 
     _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_camRotSpeed);
     _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_camSpeed);
-    _backgroundColor = QColor(Settings::_r, Settings::_g, Settings::_b);
+    _backgroundColor = Settings::_backgroundColor;
 
     _ui->checkBox_export_copyTextures->setChecked(Settings::_copyTextures);
     _ui->checkBox_export_copyNormalsMap->setChecked(Settings::_nm);
@@ -120,9 +120,7 @@ void GUI_Options::ok()
 
     Settings::_debugLog = _ui->checkBox_debug_log->isChecked();
 
-    Settings::_r = _backgroundColor.red();
-    Settings::_g = _backgroundColor.green();
-    Settings::_b = _backgroundColor.blue();
+    Settings::_backgroundColor = _backgroundColor;
 
     accept();
     emit optionsValidation();

@@ -33,3 +33,8 @@ int QKEY_TO_IRRKEY(int qKey)
 
     return qKey;
 }
+
+irr::video::SColor QCOLOR_TO_IRRCOLOR(QColor color)
+{
+    return irr::video::SColor(color.alpha(), color.red(), color.green(), color.blue());
+}

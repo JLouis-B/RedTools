@@ -27,9 +27,9 @@ signals:
     void sendItem(QString);
 
 private:
+    QString _rootDir;
     QStringList _keywords;
     QStringList _extensions;
-    QString _rootDir;
     bool _searchFolders;
     bool _useFafSearch;
     QString _fafSearchFilesIndex;

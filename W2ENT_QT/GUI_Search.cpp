@@ -1,7 +1,7 @@
 #include "GUI_Search.h"
 #include "ui_GUI_Search.h"
 
-#include "settings.h"
+#include "Settings.h"
 #include "Translator.h"
 #include "Utils_Qt_Irr.h"
 #include "Utils_RedEngine.h"
@@ -19,6 +19,12 @@ GUI_Search::GUI_Search(QWidget *parent) :
 {
     _ui->setupUi(this);
 
+    SearchSettings settings = Settings::_searchSettings;
+    _ui->checkBox_searchMeshes->setChecked(settings._searchRedMeshes);
+    _ui->checkBox_searchRigs->setChecked(settings._searchRedRigs);
+    _ui->checkBox_searchAnimations->setChecked(settings._searchRedAnimations);
+    _ui->lineEdit_additionalExtensions->setText(settings._additionnalExtensions);
+
     translate();
 
     QObject::connect(_ui->pushButton_search, SIGNAL(clicked()), this, SLOT(search()));
@@ -32,6 +38,13 @@ GUI_Search::GUI_Search(QWidget *parent) :
 
 GUI_Search::~GUI_Search()
 {
+    SearchSettings settings;
+    settings._searchRedMeshes = _ui->checkBox_searchMeshes->isChecked();
+    settings._searchRedRigs = _ui->checkBox_searchRigs->isChecked();
+    settings._searchRedAnimations = _ui->checkBox_searchAnimations->isChecked();
+    settings._additionnalExtensions = _ui->lineEdit_additionalExtensions->text();
+    Settings::_searchSettings = settings;
+
     delete _ui;
 }
 
@@ -61,8 +74,8 @@ void GUI_Search::search()
 {
     QString name = _ui->lineEdit_name->text();
     QStringList keywords = name.split(" ", QString::SkipEmptyParts);
-    QStringList extensions = _ui->lineEdit_extensionsFilter->text().split(" ", QString::SkipEmptyParts);
-    if (_ui->checkBox_searchMesh->isChecked())
+    QStringList extensions = _ui->lineEdit_additionalExtensions->text().split(" ", QString::SkipEmptyParts);
+    if (_ui->checkBox_searchMeshes->isChecked())
     {
         extensions.push_back("w2mesh");
         extensions.push_back("w2ent");
@@ -71,7 +84,7 @@ void GUI_Search::search()
     {
         extensions.push_back("w2rig");
     }
-    if (_ui->checkBox_searchAnims->isChecked())
+    if (_ui->checkBox_searchAnimations->isChecked())
     {
         extensions.push_back("w2anims");
     }

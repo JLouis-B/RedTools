@@ -43,6 +43,7 @@ QString Settings::_selectedFilter = "All files/The witcher 1/2/3, Irrlicht and A
 Unit Settings::_unit = Unit_m;
 
 WindowState Settings::_windowState;
+SearchSettings Settings::_searchSettings;
 
 QString Settings::getExportFolder()
 {
@@ -190,6 +191,15 @@ void Settings::loadFromXML(QString filename)
             window._geometry = windowGeometry;
             window._initialised = true;
             Settings::_windowState = window;
+        }
+        else if (nodeName == "search_settings")
+        {
+            SearchSettings searchSettings;
+            searchSettings._searchRedMeshes = node.firstChildElement("meshes").text().toInt();
+            searchSettings._searchRedRigs = node.firstChildElement("rigs").text().toInt();
+            searchSettings._searchRedAnimations = node.firstChildElement("animations").text().toInt();
+            searchSettings._additionnalExtensions = node.firstChildElement("additional_extensions").text();
+            Settings::_searchSettings = searchSettings;
         }
 
         node = node.nextSibling();
@@ -350,16 +360,38 @@ void Settings::saveToXML(QString filename)
     windowStateElem.appendChild(dom.createTextNode(QString::fromStdString(windowGeometryData)));
 
 
+    // Search
+    SearchSettings searchSettings = Settings::_searchSettings;
+
+    QDomElement searchSettingsElem = dom.createElement("search_settings");
+    config_elem.appendChild(searchSettingsElem);
+
+    QDomElement searchSettingsRedkitMeshesElem = dom.createElement("meshes");
+    searchSettingsElem.appendChild(searchSettingsRedkitMeshesElem);
+    searchSettingsRedkitMeshesElem.appendChild(dom.createTextNode(QString::number((int)searchSettings._searchRedMeshes)));
+
+    QDomElement searchSettingsRedkitRigsElem = dom.createElement("rigs");
+    searchSettingsElem.appendChild(searchSettingsRedkitRigsElem);
+    searchSettingsRedkitRigsElem.appendChild(dom.createTextNode(QString::number((int)searchSettings._searchRedRigs)));
+
+    QDomElement searchSettingsRedkitAnimsElem = dom.createElement("animations");
+    searchSettingsElem.appendChild(searchSettingsRedkitAnimsElem);
+    searchSettingsRedkitAnimsElem.appendChild(dom.createTextNode(QString::number((int)searchSettings._searchRedAnimations)));
+
+    QDomElement searchSettingsAdditionnal = dom.createElement("additional_extensions");
+    searchSettingsElem.appendChild(searchSettingsAdditionnal);
+    searchSettingsAdditionnal.appendChild(dom.createTextNode(searchSettings._additionnalExtensions));
+
+
     // Write the DOM in a XML
-    QString write_doc = dom.toString().toUtf8();
-    //write_doc = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" + write_doc;
+    QString writeDoc = dom.toString().toUtf8();
 
     QFile file(filename);
     if(file.open(QIODevice::WriteOnly))
     {
         QTextStream stream(&file);
         stream.setCodec("UTF8");
-        stream << write_doc;
+        stream << writeDoc;
         file.close();
     }
     else

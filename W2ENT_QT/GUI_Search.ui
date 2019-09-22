@@ -99,7 +99,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_searchMesh">
+        <widget class="QCheckBox" name="checkBox_searchMeshes">
          <property name="text">
           <string>Redgine: Meshes and Entities (.w2mesh .w2ent)</string>
          </property>
@@ -119,7 +119,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_searchAnims">
+        <widget class="QCheckBox" name="checkBox_searchAnimations">
          <property name="text">
           <string>Redgine: Animations (.w2anim)</string>
          </property>
@@ -131,14 +131,14 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QLabel" name="label_extensions">
+          <widget class="QLabel" name="label_additionalExtensions">
            <property name="text">
             <string>Additional extensions (eg: &quot;fbx obj&quot; to search .fbx and .obj files) :</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_extensionsFilter"/>
+          <widget class="QLineEdit" name="lineEdit_additionalExtensions"/>
          </item>
         </layout>
        </item>

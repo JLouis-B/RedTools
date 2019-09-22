@@ -35,6 +35,14 @@ struct WindowState
     }
 };
 
+struct SearchSettings
+{
+    bool _searchRedMeshes;
+    bool _searchRedRigs;
+    bool _searchRedAnimations;
+    QString _additionnalExtensions;
+};
+
 class Settings
 {
 private:
@@ -76,6 +84,8 @@ public:
     static QString _selectedFilter;
 
     static Unit _unit;
+
+    static SearchSettings _searchSettings;
 
     static WindowState _windowState;
 

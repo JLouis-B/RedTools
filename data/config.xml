@@ -30,4 +30,10 @@
   <TW3_loadBestLOD>0</TW3_loadBestLOD>
  </TW3>
  <first_use>1</first_use>
+ <search_settings>
+  <meshes>1</meshes>
+  <rigs>1</rigs>
+  <animations>1</animations>
+  <additional_extensions></additional_extensions>
+ </search_settings>
 </config>

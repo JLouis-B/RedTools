@@ -82,7 +82,7 @@ void QIrrlichtWidget::init()
 
     if (_device)
     {
-        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(nullptr, Settings::_camRotSpeed, 100, Settings::_camSpeed, -1, 50);
+        _camera = _device->getSceneManager()->addCameraSceneNodeMaya(nullptr, Settings::_cameraRotationSpeed, 100, Settings::_cameraSpeed, -1, 50);
         _camera->setPosition(core::vector3df(0.f, 30.f, -40.f));
         _camera->setTarget(core::vector3df(0.f, 0.f, 0.f));
         const f32 aspectRatio = static_cast<float>(width ()) / height();
@@ -535,8 +535,8 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc 
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
     _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_baseDir.toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
-    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkel);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLOD);
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkeletonEnabled);
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLODEnabled);
 
     // Clear the previous data
     TW3_DataCache::_instance.clear();
@@ -649,7 +649,7 @@ bool QIrrlichtWidget::setMesh(QString filename, core::stringc &feedbackMessage)
 
 QString QIrrlichtWidget::convertTexture(QString filename, QString destDir)
 {
-    if (!Settings::_convertTextures)
+    if (!Settings::_convertTexturesEnabled)
     {
         //std::cout << filename.toStdString().c_str() << " to " << destDir.toStdString().c_str() << std::endl;
         QFile::copy(filename, destDir);
@@ -689,7 +689,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
     }
 
 
-    if (Settings::_copyTextures)
+    if (Settings::_copyTexturesEnabled)
     {
         // Will be exported in a subfolder
         exportFolder = exportFolder + "/" +  filename + "_export/";
@@ -708,9 +708,9 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
     if (exporter._exporterType != Exporter_Redkit)
     {
         copyTextures(_currentLodData->_node->getMesh(), exportFolder);
-        if(Settings::_nm)
+        if(Settings::_copyTexturesSlot1)
             copyTextures(_currentLodData->_additionalTextures[1], exportFolder);
-        if(Settings::_sm)
+        if(Settings::_copyTexturesSlot2)
             copyTextures(_currentLodData->_additionalTextures[2], exportFolder);
     }
     else
@@ -718,25 +718,25 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
         if (_lod0Data._node)
         {
             copyTextures(_lod0Data._node->getMesh(), exportFolder);
-            if(Settings::_nm)
+            if(Settings::_copyTexturesSlot1)
                 copyTextures(_lod0Data._additionalTextures[1], exportFolder);
-            if(Settings::_sm)
+            if(Settings::_copyTexturesSlot2)
                 copyTextures(_lod0Data._additionalTextures[2], exportFolder);
         }
         if (_lod1Data._node)
         {
             copyTextures(_lod1Data._node->getMesh(), exportFolder);
-            if(Settings::_nm)
+            if(Settings::_copyTexturesSlot1)
                 copyTextures(_lod1Data._additionalTextures[1], exportFolder);
-            if(Settings::_sm)
+            if(Settings::_copyTexturesSlot2)
                 copyTextures(_lod1Data._additionalTextures[2], exportFolder);
         }
         if (_lod2Data._node)
         {
             copyTextures(_lod2Data._node->getMesh(), exportFolder);
-            if(Settings::_nm)
+            if(Settings::_copyTexturesSlot1)
                 copyTextures(_lod2Data._additionalTextures[1], exportFolder);
-            if(Settings::_sm)
+            if(Settings::_copyTexturesSlot2)
                 copyTextures(_lod2Data._additionalTextures[2], exportFolder);
         }
     }
@@ -901,8 +901,8 @@ void QIrrlichtWidget::changeOptions()
         }
     }
     scene::ISceneNodeAnimatorCameraMaya* anim = (scene::ISceneNodeAnimatorCameraMaya*)(*it);
-    anim->setMoveSpeed(Settings::_camSpeed);
-    anim->setRotateSpeed(Settings::_camRotSpeed);
+    anim->setMoveSpeed(Settings::_cameraSpeed);
+    anim->setRotateSpeed(Settings::_cameraRotationSpeed);
 }
 
 void QIrrlichtWidget::changeLOD(LOD newLOD)
@@ -983,8 +983,8 @@ void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 
             // The extension of the texture
             QString targetExtension;
-            if (Settings::_convertTextures)
-                targetExtension = Settings::_texFormat;
+            if (Settings::_convertTexturesEnabled)
+                targetExtension = Settings::_convertTexturesFormat;
             else
             {
                 io::path extension;
@@ -997,7 +997,7 @@ void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 
             //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
             QString texPath;
-            if (Settings::_copyTextures)
+            if (Settings::_copyTexturesEnabled)
                 texPath = convertTexture(PATH_TO_QSTRING(buf->getMaterial().getTexture(0)->getName().getPath()), fullPath);
             else
             {
@@ -1030,15 +1030,15 @@ void QIrrlichtWidget::copyTextures(std::set<io::path> paths, QString exportFolde
         basePath = basePath.right(indice-1);
 
         QString targetExtension = ".dds";
-        if (Settings::_convertTextures)
-            targetExtension = Settings::_texFormat;
+        if (Settings::_convertTexturesEnabled)
+            targetExtension = Settings::_convertTexturesFormat;
 
 
         QString fullPath = exportFolder + basePath + targetExtension;
 
         //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
         QString texPath;
-        if (Settings::_copyTextures)
+        if (Settings::_copyTexturesEnabled)
             texPath = convertTexture(PATH_TO_QSTRING(*it), fullPath);
         else
         {

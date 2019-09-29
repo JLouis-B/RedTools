@@ -11,4 +11,8 @@
 */
 #define COMPILE_WITH_ASSIMP
 
+
+#define VERSION_MAJOR 2
+#define VERSION_MINOR 11
+
 #endif // COMPILECONFIG_H

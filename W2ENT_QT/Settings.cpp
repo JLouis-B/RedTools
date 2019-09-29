@@ -34,8 +34,6 @@ QString Settings::_formats = "All files/The witcher 1/2/3, Irrlicht and Assimp s
 
 bool Settings::_firstUse = true;
 
-QString Settings::_appVersion = "2.10";
-
 QString Settings::_exporter = QString();
 QString Settings::_selectedFilter = "All files/The witcher 1/2/3, Irrlicht and Assimp supported files(*)";
 
@@ -54,12 +52,11 @@ QString Settings::getExportFolder()
 
 QString Settings::getAppVersion()
 {
+    QString appVersion = QString::number(VERSION_MAJOR) + "." + QString::number(VERSION_MINOR);
 #ifdef IS_A_DEVELOPMENT_BUILD
-    QString appVersion = _appVersion + " - DEV BUILD";
-    return appVersion;
-#else
-    return _appVersion;
+    appVersion += " - DEV BUILD";
 #endif
+    return appVersion;
 }
 
 QString Settings::getFilters()

@@ -46,9 +46,6 @@ struct SearchSettings
 
 class Settings
 {
-private:
-    static QString _appVersion;
-
 public:
     static double _cameraSpeed;
     static double _cameraRotationSpeed;

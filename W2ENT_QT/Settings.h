@@ -38,6 +38,8 @@ struct WindowState
 
 struct SearchSettings
 {
+    QByteArray _windowGeometry;
+    bool _checkFolderNames;
     bool _searchRedMeshes;
     bool _searchRedRigs;
     bool _searchRedAnimations;

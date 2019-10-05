@@ -20,6 +20,9 @@ GUI_Search::GUI_Search(QWidget *parent) :
     _ui->setupUi(this);
 
     SearchSettings settings = Settings::_searchSettings;
+    if (settings._windowGeometry.size() > 0)
+        restoreGeometry(settings._windowGeometry);
+    _ui->checkBox_checkFolderNames->setChecked(settings._checkFolderNames);
     _ui->checkBox_searchMeshes->setChecked(settings._searchRedMeshes);
     _ui->checkBox_searchRigs->setChecked(settings._searchRedRigs);
     _ui->checkBox_searchAnimations->setChecked(settings._searchRedAnimations);
@@ -39,6 +42,8 @@ GUI_Search::GUI_Search(QWidget *parent) :
 GUI_Search::~GUI_Search()
 {
     SearchSettings settings;
+    settings._windowGeometry = this->saveGeometry();
+    settings._checkFolderNames = _ui->checkBox_checkFolderNames->isChecked();
     settings._searchRedMeshes = _ui->checkBox_searchMeshes->isChecked();
     settings._searchRedRigs = _ui->checkBox_searchRigs->isChecked();
     settings._searchRedAnimations = _ui->checkBox_searchAnimations->isChecked();
@@ -65,7 +70,7 @@ void GUI_Search::translate()
     _ui->label_name->setText(Translator::get("search_name") + " :");
     _ui->label_result->setText(Translator::get("search_result") + " :");
     _ui->label_progression->setText(Translator::get("search_progress") + " :");
-    _ui->checkBox_folder->setText(Translator::get("search_check_folder"));
+    _ui->checkBox_checkFolderNames->setText(Translator::get("search_check_folder"));
     _ui->pushButton_search->setText(Translator::get("search_button"));
     _ui->pushButton_load->setText(Translator::get("search_load"));
 }
@@ -108,7 +113,7 @@ void GUI_Search::search()
     }
 
     _thread = new QThread();
-    _searchEngine = new SearchEngine(_rootDir, keywords, extensions, _ui->checkBox_folder->isChecked(), _useFafSearch, _fafSearchFilesIndex);
+    _searchEngine = new SearchEngine(_rootDir, keywords, extensions, _ui->checkBox_checkFolderNames->isChecked(), _useFafSearch, _fafSearchFilesIndex);
     _searchEngine->moveToThread(_thread);
 
     QObject::connect(_thread, SIGNAL(started()), _searchEngine, SLOT(run()));

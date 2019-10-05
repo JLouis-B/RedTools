@@ -91,6 +91,13 @@ QString Settings::getFilters()
 
 float MeshSize::_scaleFactor = 1.f;
 
+QByteArray stringToByteArray(QString input)
+{
+    QByteArray data = QByteArray::fromStdString(input.toStdString());
+    data = QByteArray::fromBase64(data);
+    return data;
+}
+
 void Settings::loadFromXML(QString filename)
 {
     // Load config from XML
@@ -183,8 +190,7 @@ void Settings::loadFromXML(QString filename)
         }
         else if (nodeName == "window_state")
         {
-            QByteArray windowGeometry = QByteArray::fromStdString(node.toElement().text().toStdString());
-            windowGeometry = QByteArray::fromBase64(windowGeometry);
+            QByteArray windowGeometry = stringToByteArray(node.toElement().text());
 
             WindowState window;
             window._geometry = windowGeometry;
@@ -194,6 +200,12 @@ void Settings::loadFromXML(QString filename)
         else if (nodeName == "search_settings")
         {
             SearchSettings searchSettings;
+            if (!node.firstChildElement("window_geometry").isNull())
+                searchSettings._windowGeometry = stringToByteArray(node.firstChildElement("window_geometry").text());
+            else
+                searchSettings._windowGeometry = QByteArray();
+
+            searchSettings._checkFolderNames = node.firstChildElement("check_folder_names").text().toInt();
             searchSettings._searchRedMeshes = node.firstChildElement("meshes").text().toInt();
             searchSettings._searchRedRigs = node.firstChildElement("rigs").text().toInt();
             searchSettings._searchRedAnimations = node.firstChildElement("animations").text().toInt();
@@ -239,6 +251,12 @@ void appendNewColorElement(QDomDocument& dom, QDomElement& parent, QString name,
     appendNewIntElement(dom, newElement, "r", value.red());
     appendNewIntElement(dom, newElement, "g", value.green());
     appendNewIntElement(dom, newElement, "b", value.blue());
+}
+
+void appendNewByteArrayElement(QDomDocument& dom, QDomElement& parent, QString name, QByteArray value)
+{
+    QString base64data = QString::fromStdString(value.toBase64().toStdString());
+    appendNewStringElement(dom, parent, name, base64data);
 }
 
 void Settings::saveToXML(QString filename)
@@ -307,8 +325,7 @@ void Settings::saveToXML(QString filename)
 
     // window state
     WindowState window = Settings::_windowState;
-    QString windowGeometryData = QString::fromStdString(window._geometry.toBase64().toStdString());
-    appendNewStringElement(dom, configElem, "window_state", windowGeometryData);
+    appendNewByteArrayElement(dom, configElem, "window_state", window._geometry);
 
     // search settings
     SearchSettings searchSettings = Settings::_searchSettings;
@@ -316,6 +333,8 @@ void Settings::saveToXML(QString filename)
     QDomElement searchSettingsElem = dom.createElement("search_settings");
     configElem.appendChild(searchSettingsElem);
 
+    appendNewByteArrayElement(dom, searchSettingsElem, "window_geometry", searchSettings._windowGeometry);
+    appendNewBoolElement(dom, searchSettingsElem, "check_folder_names", searchSettings._checkFolderNames);
     appendNewBoolElement(dom, searchSettingsElem, "meshes", searchSettings._searchRedMeshes);
     appendNewBoolElement(dom, searchSettingsElem, "rigs", searchSettings._searchRedRigs);
     appendNewBoolElement(dom, searchSettingsElem, "animations", searchSettings._searchRedAnimations);

@@ -32,7 +32,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_folder">
+        <widget class="QCheckBox" name="checkBox_checkFolderNames">
          <property name="text">
           <string>Check also the folders name (more results)</string>
          </property>

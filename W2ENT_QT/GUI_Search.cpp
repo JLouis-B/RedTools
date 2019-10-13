@@ -36,7 +36,7 @@ GUI_Search::GUI_Search(QWidget *parent) :
 
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 
-    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GUI_Search::~GUI_Search()
@@ -61,8 +61,7 @@ void GUI_Search::destroyWindow()
         while (_thread)
             QCoreApplication::processEvents();
     }
-
-    delete this;
+    deleteLater();
 }
 
 void GUI_Search::translate()

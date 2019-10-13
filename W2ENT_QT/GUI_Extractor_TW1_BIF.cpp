@@ -35,7 +35,7 @@ void GUI_Extractor_TW1_BIF::destroyWindow()
         while(_thread /*&& !_thread->isFinished()*/)
             QCoreApplication::processEvents();
     }
-    delete this;
+    deleteLater();
 }
 
 void GUI_Extractor_TW1_BIF::selectFolder()

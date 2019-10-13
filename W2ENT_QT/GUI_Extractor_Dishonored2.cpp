@@ -36,7 +36,7 @@ void GUI_Extractor_Dishonored2::destroyWindow()
         while(_thread /*&& !_thread->isFinished()*/)
             QCoreApplication::processEvents();
     }
-    delete this;
+    deleteLater();
 }
 
 void GUI_Extractor_Dishonored2::selectFolder()

@@ -10,7 +10,7 @@
 
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
-#include "settings.h"
+#include "Settings.h"
 
 RichTextDelegate::RichTextDelegate(QObject *parent):QItemDelegate(parent)
 {

@@ -33,7 +33,7 @@ void GUI_Extractor_TW2_DZIP::destroyWindow()
         while(_thread)
             QCoreApplication::processEvents();
     }
-    delete this;
+    deleteLater();
 }
 
 void GUI_Extractor_TW2_DZIP::selectFolder()

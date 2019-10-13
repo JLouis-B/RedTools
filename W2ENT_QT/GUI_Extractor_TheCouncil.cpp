@@ -33,7 +33,7 @@ void GUI_Extractor_TheCouncil::destroyWindow()
         while(_thread /*&& !_thread->isFinished()*/)
             QCoreApplication::processEvents();
     }
-    delete this;
+    deleteLater();
 }
 
 void GUI_Extractor_TheCouncil::selectFolder()

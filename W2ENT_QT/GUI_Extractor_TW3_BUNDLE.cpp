@@ -8,8 +8,8 @@
 GUI_Extractor_TW3_BUNDLE::GUI_Extractor_TW3_BUNDLE(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TW3_BUNDLE),
-    _extractor(nullptr),
-    _thread(nullptr)
+    _thread(nullptr),
+    _extractor(nullptr)
 {
     _ui->setupUi(this);
 
@@ -35,7 +35,7 @@ void GUI_Extractor_TW3_BUNDLE::destroyWindow()
         while(_thread)
             QCoreApplication::processEvents();
     }
-    delete this;
+    deleteLater();
 }
 
 void GUI_Extractor_TW3_BUNDLE::selectFolder()

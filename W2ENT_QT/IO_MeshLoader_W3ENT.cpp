@@ -29,7 +29,14 @@ namespace scene
 
 //! Constructor
 IO_MeshLoader_W3ENT::IO_MeshLoader_W3ENT(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs), AnimatedMesh(nullptr), log(nullptr), meshToAnimate(nullptr), frameOffset(0)
+: meshToAnimate(nullptr),
+  SceneManager(smgr),
+  FileSystem(fs),
+  AnimatedMesh(nullptr),
+  FrameOffset(0),
+  log(nullptr),
+  ConfigLoadSkeleton(true),
+  ConfigLoadOnlyBestLOD(false)
 {
 	#ifdef _DEBUG
     setDebugName("CW3ENTMeshFileLoader");
@@ -858,7 +865,7 @@ SBufferInfos IO_MeshLoader_W3ENT::ReadSMeshCookedDataProperty(io::IReadFile* fil
         else if (propHeader.propName == "bonePositions")
         {
             core::array<core::vector3df> positions = ReadBonesPosition(file);
-            nbBonesPos = positions.size();
+            NbBonesPos = positions.size();
         }
         //else if (propHeader.propName == "collisionInitPositionOffset")
         //    ReadVector3Property(file, &bufferInfos);
@@ -968,7 +975,7 @@ void IO_MeshLoader_W3ENT::readAnimBuffer(core::array<core::array<SAnimationBuffe
             for (u32 f = 0; f < infos.numFrames; ++f)
             {
                 u32 keyframe = f;
-                keyframe += frameOffset;
+                keyframe += FrameOffset;
 
 
                 //std::cout << "Adress = " << dataFile->getPos() << std::endl;
@@ -1153,7 +1160,7 @@ void IO_MeshLoader_W3ENT::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* fi
         dataFile->drop();
     }
 
-    frameOffset += numFrames;
+    FrameOffset += numFrames;
     log->addLineAndFlush("W3_CAnimationBufferBitwiseCompressed end");
 }
 
@@ -1436,7 +1443,7 @@ void IO_MeshLoader_W3ENT::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
    log->addLineAndFlush(formatString("All properties readed, @=%d", file->getPos()));
 
-   if (!isStatic && nbBonesPos > 0 && ConfigLoadSkeleton)
+   if (!isStatic && NbBonesPos > 0 && ConfigLoadSkeleton)
    {
         ReadBones(file);
    }
@@ -1483,7 +1490,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
 
     // TODO
     //log->addAndFlush("NbBonesPos = ");
-    log->addLineAndFlush(formatString("NbBonesPos = %d", nbBonesPos));
+    log->addLineAndFlush(formatString("NbBonesPos = %d", NbBonesPos));
     long pos;
     unsigned char nbRead;
     do
@@ -1491,7 +1498,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
         pos = file->getPos();
         nbRead = readBonesNumber(file);
 
-        if (nbRead == nbBonesPos)
+        if (nbRead == NbBonesPos)
         {
             if (!checkBones(file, nbRead))
             {
@@ -1501,7 +1508,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
 
         if (file->getPos() >= file->getSize())
             return;
-    }   while (nbRead != nbBonesPos);
+    }   while (nbRead != NbBonesPos);
 
     file->seek(pos);
 
@@ -1517,7 +1524,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
         u16 jointName = readU16(file);
         log->addLineAndFlush(formatString("string id = %d", jointName));
 
-        scene::ISkinnedMesh::SJoint* joint = 0;
+        scene::ISkinnedMesh::SJoint* joint = nullptr;
         //if (!AnimatedMesh->getJointCount())
              joint = AnimatedMesh->addJoint();
         //else

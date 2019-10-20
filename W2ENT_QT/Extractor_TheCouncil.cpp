@@ -5,11 +5,14 @@
 #include <QVector>
 #include <QDir>
 
-Extractor_TheCouncil::Extractor_TheCouncil(QString file, QString folder): _file(file), _folder(folder)
+Extractor_TheCouncil::Extractor_TheCouncil(QString file, QString folder)
+    : _file(file),
+      _folder(folder),
+      _stopped(false),
+      _nbProgress(0),
+      _lastProgression(0)
+
 {
-    _nbProgress = 0;
-    _lastProgression = 0;
-    _stopped = false;
 }
 
 void Extractor_TheCouncil::run()

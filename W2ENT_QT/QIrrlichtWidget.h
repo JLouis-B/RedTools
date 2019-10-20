@@ -9,7 +9,7 @@
 #include <set>
 
 #include "IO_MeshWriter_RE.h"
-#include "settings.h"
+#include "Settings.h"
 #include "Log.h"
 
 #ifdef COMPILE_WITH_ASSIMP
@@ -20,7 +20,12 @@
 class NormalsDebuggerShaderCallBack : public video::IShaderConstantSetCallBack
 {
 public:
-    NormalsDebuggerShaderCallBack() : WorldViewProjID(-1), TransWorldID(-1), InvWorldID(-1), FirstUpdate(true)
+    NormalsDebuggerShaderCallBack() :
+        Device(nullptr),
+        WorldViewProjID(-1),
+        TransWorldID(-1),
+        InvWorldID(-1),
+        FirstUpdate(true)
     {
     }
 

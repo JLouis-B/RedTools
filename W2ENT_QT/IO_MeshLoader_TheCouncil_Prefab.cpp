@@ -18,7 +18,8 @@
 #include "IO_MeshLoader_CEF.h"
 
 IO_MeshLoader_TheCouncil_Prefab::IO_MeshLoader_TheCouncil_Prefab(scene::ISceneManager* smgr, io::IFileSystem* fs)
-    : SceneManager(smgr), FileSystem(fs)
+    : SceneManager(smgr),
+      FileSystem(fs)
 {
 
 }

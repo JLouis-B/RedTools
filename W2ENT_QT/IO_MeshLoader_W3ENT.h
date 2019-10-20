@@ -180,7 +180,7 @@ private:
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
 
-    u32 frameOffset;    
+    u32 FrameOffset;
 
     // load the different types of data
     bool W3_load(io::IReadFile* file);
@@ -214,7 +214,7 @@ private:
     // Files table
     core::array<core::stringc> Files;
 
-    u32 nbBonesPos;
+    u32 NbBonesPos;
 
     int getTextureLayerFromTextureType(core::stringc textureType);
     core::stringc searchParent(core::stringc bonename);

@@ -112,13 +112,12 @@ bool loadTW2FileHeader(io::IReadFile* file, RedEngineFileHeader& header, bool lo
         u32 fileTypeIndex = readU32(file) - 1;
         core::stringc fileType = header.Strings[fileTypeIndex];
 
-        core::stringc file = filename;
         if (loadFilenamesWithTypes)
-            file = fileType + " : " + filename;
+            filename = fileType + " : " + filename;
 
-        Log::Instance()->addLineAndFlush(file);
+        Log::Instance()->addLineAndFlush(filename);
         //cout << file << endl;
-        header.Files.push_back(file);
+        header.Files.push_back(filename);
     }
 
 

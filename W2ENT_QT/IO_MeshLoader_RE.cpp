@@ -20,7 +20,9 @@ IO_MeshLoader_RE::IO_MeshLoader_RE(scene::ISceneManager* smgr, io::IFileSystem* 
   Lod2Mesh(nullptr),
   CollisionMesh(nullptr),
   SceneManager(smgr),
-  FileSystem(fs)
+  FileSystem(fs),
+  AnimatedMesh(nullptr),
+  log(nullptr)
 {
 	#ifdef _DEBUG
 	setDebugName("CREMeshFileLoader");

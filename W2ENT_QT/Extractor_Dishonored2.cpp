@@ -9,11 +9,14 @@
 
 #include <zlib.h>
 
-Extractor_Dishonored2::Extractor_Dishonored2(QString indexFile, QString resourcesFile, QString folder): _indexFile(indexFile), _resourcesFile(resourcesFile), _folder(folder)
+Extractor_Dishonored2::Extractor_Dishonored2(QString indexFile, QString resourcesFile, QString folder)
+    : _indexFile(indexFile),
+      _resourcesFile(resourcesFile),
+      _folder(folder),
+      _stopped(false),
+      _nbProgress(0),
+      _lastProgression(0)
 {
-    _nbProgress = 0;
-    _lastProgression = 0;
-    _stopped = false;
 }
 
 void Extractor_Dishonored2::run()

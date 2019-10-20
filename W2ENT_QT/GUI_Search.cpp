@@ -255,7 +255,7 @@ void SearchEngine::isASearchedFile(QFileInfo& fileInfo)
 
 void SearchEngine::fafSearch()
 {
-    _fafSearchNextProgressionCap = 10;
+    int nextProgressionUpdate = 10;
 
     const qint64 fileSize = _fafSearchFilesIndex.size();
     qint64 customPos = 0;
@@ -278,9 +278,9 @@ void SearchEngine::fafSearch()
         // update progression
         //std::cout << line.toStdString().c_str() << std::endl;
         int newProgression = (customPos * 100)/fileSize;
-        if (newProgression > _fafSearchNextProgressionCap)
+        if (newProgression > nextProgressionUpdate)
         {
-           _fafSearchNextProgressionCap = newProgression + 10;
+           nextProgressionUpdate = newProgression + 10;
            emit onProgress(newProgression);
         }
     }

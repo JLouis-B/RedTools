@@ -5,13 +5,16 @@
 #include <QDir>
 
 #include <zlib.h>
-#include "snappy-c.h"
+#include <snappy-c.h>
+#include <lz4.h>
 #include "DOBOZ/Decompressor.h"
-#include "lz4.h"
 
-Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder) : _file(file), _folder(folder), _stopped(false)
+Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder)
+    : _file(file),
+      _folder(folder),
+      _stopped(false),
+      _lastProgression(0)
 {
-
 }
 
 void Extractor_TW3_BUNDLE::run()

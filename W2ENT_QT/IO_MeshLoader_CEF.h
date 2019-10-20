@@ -36,11 +36,11 @@ struct VertexComponent
 
 struct CEF_Weight
 {
-    CEF_Weight()
+    CEF_Weight() :
+        _weight(0.f),
+        _boneId(0),
+        _vertex(0)
     {
-        _weight = 0.f;
-        _boneId = 0;
-        _vertex = 0;
     }
 
     f32 _weight;

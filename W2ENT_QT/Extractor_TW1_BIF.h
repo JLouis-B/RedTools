@@ -29,8 +29,6 @@ class Extractor_TW1_BIF : public QObject
 
     QMap<ResourceId, QString> _resources;
     QMap<unsigned short, QString> _fileTypes;
-    unsigned int _nbProgress;
-    int _lastProgression;
 
     QString getExtensionFromResourceType(unsigned short resourceType);
     void createResourceTypeMap();
@@ -38,12 +36,14 @@ class Extractor_TW1_BIF : public QObject
     QString _file;
     QString _folder;
     bool _stopped;
+    unsigned int _nbProgress;
+    int _lastProgression;
 
 
 public:
     Extractor_TW1_BIF(QString file = "", QString folder = "");
-    void extractBIF(QString exportFolder, QString filename, unsigned int bifId = 0);
-    void extractKeyBIF(QString exportFolder, QString filename);
+    void extractBIF(QString exportFolder, QString bifFilename, unsigned int bifId = 0);
+    void extractKeyBIF(QString exportFolder, QString keyFilename);
 
 public slots :
     void run();

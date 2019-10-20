@@ -102,7 +102,7 @@ struct ControllersData
 class TW1_MaterialParser
 {
 public :
-    TW1_MaterialParser(io::IFileSystem *fs);
+    explicit TW1_MaterialParser(io::IFileSystem *fs);
     bool loadFile(core::stringc filename);
     bool loadFromString(core::stringc content);
     bool hasMaterial();

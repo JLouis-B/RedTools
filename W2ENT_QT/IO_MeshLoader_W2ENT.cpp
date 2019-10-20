@@ -32,7 +32,11 @@ namespace scene
 
 //! Constructor
 IO_MeshLoader_W2ENT::IO_MeshLoader_W2ENT(scene::ISceneManager* smgr, io::IFileSystem* fs)
-: SceneManager(smgr), FileSystem(fs), AnimatedMesh(nullptr), log(nullptr)
+: SceneManager(smgr),
+  FileSystem(fs),
+  AnimatedMesh(nullptr),
+  NbSubMesh(0),
+  log(nullptr)
 {
 	#ifdef _DEBUG
 	setDebugName("CW2ENTMeshFileLoader");

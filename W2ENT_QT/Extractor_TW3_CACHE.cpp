@@ -6,9 +6,12 @@
 
 #include <zlib.h>
 
-Extractor_TW3_CACHE::Extractor_TW3_CACHE(QString file, QString folder) : _file(file), _folder(folder), _stopped(false)
+Extractor_TW3_CACHE::Extractor_TW3_CACHE(QString file, QString folder)
+    : _file(file),
+      _folder(folder),
+      _stopped(false),
+      _lastProgression(0)
 {
-
 }
 
 void Extractor_TW3_CACHE::run()

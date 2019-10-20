@@ -24,7 +24,8 @@ using namespace irr;
 
 QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     QWidget (parent),
-    _device (nullptr)
+    _device (nullptr),
+    _normalsMaterial(nullptr)
 {
     // on écrit directement dans al mémoire vidéo du widget
     //setAttribute (Qt::WA_PaintOnScreen);
@@ -506,11 +507,12 @@ void QIrrlichtWidget::loadMeshPostProcess()
     // Save the path of normals/specular maps
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
     {
-        const video::SMaterial mat = mesh->getMeshBuffer(i)->getMaterial();
-        for (u32 i = 1; i < _IRR_MATERIAL_MAX_TEXTURES_; ++i)
+        const video::SMaterial material = mesh->getMeshBuffer(i)->getMaterial();
+        for (u32 j = 1; j < _IRR_MATERIAL_MAX_TEXTURES_; ++j)
         {
-            if(mat.getTexture(i))
-                _currentLodData->_additionalTextures[i].insert(mat.getTexture(i)->getName().getPath());
+            const video::ITexture* texture = material.getTexture(j);
+            if (texture)
+                _currentLodData->_additionalTextures[i].insert(texture->getName().getPath());
         }
     }
 

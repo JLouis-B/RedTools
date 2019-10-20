@@ -34,7 +34,6 @@ private:
     bool _useFafSearch;
     QString _fafSearchFilesIndex;
     bool _stopped;
-    int _fafSearchNextProgressionCap;
 
     void scanFolder(QString repName, int level);
     void isASearchedFile(QFileInfo& fileInfo);

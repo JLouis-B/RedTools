@@ -22,9 +22,11 @@
 
 
 IO_SceneLoader_TheCouncil::IO_SceneLoader_TheCouncil(scene::ISceneManager* smgr, io::IFileSystem* fs)
-    : SceneManager(smgr), FileSystem(fs)
+    : SceneManager(smgr),
+      FileSystem(fs),
+      RootNode(nullptr),
+      _log(nullptr)
 {
-
 }
 
 bool IO_SceneLoader_TheCouncil::isALoadableFileExtension(const io::path& filename) const
@@ -33,7 +35,7 @@ bool IO_SceneLoader_TheCouncil::isALoadableFileExtension(const io::path& filenam
 }
 
 //! Returns true if the class might be able to load this file.
-bool IO_SceneLoader_TheCouncil::isALoadableFileFormat(io::IReadFile *file) const
+bool IO_SceneLoader_TheCouncil::isALoadableFileFormat(io::IReadFile* file) const
 {
     // todo: check inside the file
     return true;

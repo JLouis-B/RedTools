@@ -25,13 +25,12 @@ private:
     void extract(QString exportFolder, QString indexFilename, QString resourcesFilename);
     void extractFiles(QFile& indexFile, QFile& resourcesFile, QFile &sharedResourcesFile, QString exportFolder);
 
-    unsigned int _nbProgress;
-    int _lastProgression;
-
     QString _indexFile;
     QString _resourcesFile;
     QString _folder;
     bool _stopped;
+    unsigned int _nbProgress;
+    int _lastProgression;
 };
 
 #endif // EXTRACTOR_DISHONORED2_H

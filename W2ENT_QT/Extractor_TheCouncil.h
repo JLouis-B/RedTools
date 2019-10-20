@@ -14,12 +14,11 @@ class Extractor_TheCouncil : public QObject
 {
     Q_OBJECT
 
-    unsigned int _nbProgress;
-    int _lastProgression;
-
     QString _file;
     QString _folder;
     bool _stopped;
+    unsigned int _nbProgress;
+    int _lastProgression;
 
     void extract(QString exportFolder, QString filename);
     void extractCPKFile(QFile &file, QString exportFolder);

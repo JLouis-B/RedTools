@@ -68,9 +68,7 @@
 	<element id="options_export" text="Export"/>
 	<element id="options_export_to_pack0" text="Exporter vers le dossier 'Repertoire de base'"/>
 	<element id="options_export_to_other" text="Exporter vers un autre dossier"/>
-	<element id="options_export_move_textures" text="Copier les textures"/>
 	<element id="options_export_target" text="Choisissez le dossier d'export"/>
-	<element id="options_export_convert_textures" text="Convertir les textures"/>
 	<element id="options_tw3_textures_folder" text="Dossier des textures"/>
 	<element id="options_tw3_skeleton" text="Charger les squelettes (expérimental et instable - A désactiver si vous n'en avez pas besoin)"/>
 	<element id="options_debug_log" text="Générer le 'debug.log'"/>

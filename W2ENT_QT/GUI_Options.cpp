@@ -14,16 +14,18 @@ GUI_Options::GUI_Options(QWidget *parent) :
     _ui(new Ui::GUI_Options)
 {
     _ui->setupUi(this);
+    translate();
     setAttribute(Qt::WA_DeleteOnClose);
+    setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    setFixedSize(this->size());
 
     _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
     _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
     _backgroundColor = Settings::_backgroundColor;
 
     _ui->checkBox_export_copyTextures->setChecked(Settings::_copyTexturesEnabled);
-    _ui->checkBox_export_copyNormalsMap->setChecked(Settings::_copyTexturesSlot1);
-    _ui->checkBox_export_copySpecularMap->setChecked(Settings::_copyTexturesSlot2);
-
+    _ui->checkBox_export_copyTexturesSlot1->setChecked(Settings::_copyTexturesSlot1);
+    _ui->checkBox_export_copyTexturesSlot2->setChecked(Settings::_copyTexturesSlot2);
 
     _ui->checkBox_export_convertTextures->setChecked(Settings::_convertTexturesEnabled);
     if (_ui->comboBox_export_texturesFormat->findText(Settings::_convertTexturesFormat) != -1)
@@ -34,16 +36,45 @@ GUI_Options::GUI_Options(QWidget *parent) :
         _ui->radioButton_export_exportCustomDir->setChecked(true);
     else
         _ui->radioButton_export_exportBaseDir->setChecked(true);
+    changeExportMode();
 
     _ui->lineEdit_export_exportDir->setText(Settings::_exportDest);
 
-    setFixedSize(this->size());
+    _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
+    _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkeletonEnabled);
+    _ui->checkBox_TW3_loadBestLOD->setChecked(Settings::_TW3LoadBestLODEnabled);
 
+    _ui->checkBox_debug_log->setChecked(Settings::_debugLog);
+
+
+    QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(ok()));
+    QObject::connect(_ui->button_view_backgroundColorSelector, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
+    QObject::connect(_ui->pushButton_view_reset, SIGNAL(clicked()), this, SLOT(resetViewPanel()));
+
+    QObject::connect(_ui->button_export_selectExportDir, SIGNAL(clicked()), this, SLOT(selectExportDir()));
+    QObject::connect(_ui->radioButton_export_exportCustomDir, SIGNAL(clicked()), this, SLOT(changeExportMode()));
+    QObject::connect(_ui->radioButton_export_exportBaseDir, SIGNAL(clicked()), this, SLOT(changeExportMode()));
+
+    QObject::connect(_ui->checkBox_export_copyTextures, SIGNAL(clicked(bool)), _ui->checkBox_export_copyTexturesSlot1, SLOT(setEnabled(bool)));
+    QObject::connect(_ui->checkBox_export_copyTextures, SIGNAL(clicked(bool)), _ui->checkBox_export_copyTexturesSlot2, SLOT(setEnabled(bool)));
+    _ui->checkBox_export_copyTexturesSlot1->setEnabled(Settings::_copyTexturesEnabled);
+    _ui->checkBox_export_copyTexturesSlot2->setEnabled(Settings::_copyTexturesEnabled);
+
+    QObject::connect(_ui->checkBox_export_convertTextures, SIGNAL(clicked(bool)), _ui->comboBox_export_texturesFormat, SLOT(setEnabled(bool)));
+
+    QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
+}
+
+GUI_Options::~GUI_Options()
+{
+    delete _ui;
+}
+
+void GUI_Options::translate()
+{
     _ui->View->setTabText(0, Translator::get("options_export"));
-    _ui->checkBox_export_copyTextures->setText(Translator::get("options_export_move_textures"));
     _ui->radioButton_export_exportCustomDir->setText(Translator::get("options_export_to_other"));
     _ui->radioButton_export_exportBaseDir->setText(Translator::get("options_export_to_pack0"));
-    _ui->checkBox_export_convertTextures->setText(Translator::get("options_export_convert_textures"));
 
     _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
     _ui->checkBox_TW3_loadSkel->setText(Translator::get("options_tw3_skeleton"));
@@ -55,37 +86,6 @@ GUI_Options::GUI_Options(QWidget *parent) :
     _ui->checkBox_debug_log->setText(Translator::get("options_debug_log"));
     _ui->label_debug_log->setText(Translator::get("options_debug_log_label"));
     _ui->label_view_backgroundColorSelector->setText(Translator::get("options_background"));
-
-    _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
-    _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkeletonEnabled);
-    _ui->checkBox_TW3_loadBestLOD->setChecked(Settings::_TW3LoadBestLODEnabled);
-
-    _ui->checkBox_debug_log->setChecked(Settings::_debugLog);
-
-    changeExportMode();
-
-
-    QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(ok()));
-    QObject::connect(_ui->button_view_backgroundColorSelector, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
-    QObject::connect(_ui->pushButton_view_reset, SIGNAL(clicked()), this, SLOT(resetViewPanel()));
-
-    QObject::connect(_ui->button_export_selectExportDir, SIGNAL(clicked()), this, SLOT(selectExportDir()));
-    QObject::connect(_ui->radioButton_export_exportCustomDir, SIGNAL(clicked()), this, SLOT(changeExportMode()));
-    QObject::connect(_ui->radioButton_export_exportBaseDir, SIGNAL(clicked()), this, SLOT(changeExportMode()));
-
-    QObject::connect(_ui->checkBox_export_copyTextures, SIGNAL(clicked(bool)), _ui->checkBox_export_copyNormalsMap, SLOT(setEnabled(bool)));
-    QObject::connect(_ui->checkBox_export_copyTextures, SIGNAL(clicked(bool)), _ui->checkBox_export_copySpecularMap, SLOT(setEnabled(bool)));
-
-    QObject::connect(_ui->checkBox_export_convertTextures, SIGNAL(clicked(bool)), _ui->comboBox_export_texturesFormat, SLOT(setEnabled(bool)));
-
-    QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
-
-    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-}
-
-GUI_Options::~GUI_Options()
-{
-    delete _ui;
 }
 
 void GUI_Options::resetViewPanel()
@@ -102,8 +102,8 @@ void GUI_Options::ok()
     Settings::_cameraSpeed = _ui->doubleSpinBox_view_cameraSpeed->value();
 
     Settings::_copyTexturesEnabled = _ui->checkBox_export_copyTextures->isChecked();
-    Settings::_copyTexturesSlot1 = _ui->checkBox_export_copyNormalsMap->isChecked();
-    Settings::_copyTexturesSlot2 = _ui->checkBox_export_copySpecularMap->isChecked();
+    Settings::_copyTexturesSlot1 = _ui->checkBox_export_copyTexturesSlot1->isChecked();
+    Settings::_copyTexturesSlot2 = _ui->checkBox_export_copyTexturesSlot2->isChecked();
 
     Settings::_exportDest = _ui->lineEdit_export_exportDir->text();
     if (_ui->radioButton_export_exportCustomDir->isChecked())

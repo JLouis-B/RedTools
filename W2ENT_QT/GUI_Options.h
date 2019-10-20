@@ -26,8 +26,8 @@ public slots:
 
 private:
     Ui::GUI_Options* _ui;
-
     QColor _backgroundColor;
+    void translate();
 
 signals:
     void optionsValidation();

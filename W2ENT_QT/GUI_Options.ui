@@ -97,7 +97,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_export_copyDiffuseMap">
+    <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot0">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -105,28 +105,28 @@
       <rect>
        <x>170</x>
        <y>100</y>
-       <width>81</width>
+       <width>201</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Diffuse map</string>
+      <string>Texture0 : Diffuse map</string>
      </property>
      <property name="checked">
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_export_copyNormalsMap">
+    <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot1">
      <property name="geometry">
       <rect>
        <x>170</x>
        <y>120</y>
-       <width>91</width>
+       <width>201</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Normals map</string>
+      <string>Texture1 : Normals map</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="checkBox_export_copyTextures">
@@ -139,23 +139,23 @@
       </rect>
      </property>
      <property name="text">
-      <string>Copy textures</string>
+      <string>Copy textures :</string>
      </property>
      <property name="checked">
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_export_copySpecularMap">
+    <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot2">
      <property name="geometry">
       <rect>
        <x>170</x>
        <y>140</y>
-       <width>91</width>
+       <width>201</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Specular map</string>
+      <string>Texture2 : Specular map</string>
      </property>
     </widget>
     <widget class="QComboBox" name="comboBox_export_texturesFormat">
@@ -206,7 +206,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Convert textures (DDS format by default)</string>
+      <string>Convert textures to another format :</string>
      </property>
     </widget>
    </widget>

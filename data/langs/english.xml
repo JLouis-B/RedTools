@@ -69,9 +69,7 @@
 	<element id="options_export" text="Export"/>
 	<element id="options_export_to_pack0" text="Export to the 'base directory' folder"/>
 	<element id="options_export_to_other" text="Export to an other folder"/>
-	<element id="options_export_move_textures" text="Copy textures"/>
 	<element id="options_export_target" text="Select the export folder"/>
-	<element id="options_export_convert_textures" text="Convert textures (DDS format by default)"/>
 	<element id="options_tw3_textures_folder" text="Textures folder"/>
 	<element id="options_tw3_skeleton" text="Load skeleton (experimental - disable it if you don't need it)"/>
 	<element id="options_debug_log" text="Enable 'debug.log'"/>

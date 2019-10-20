@@ -69,9 +69,7 @@
 	<element id="options_export" text="Экспорт"/>
 	<element id="options_export_to_pack0" text="Экспортировать в папку 'базовый каталог'"/>
 	<element id="options_export_to_other" text="Экспорт в другую папку"/>
-	<element id="options_export_move_textures" text="Копировать текстуры"/>
 	<element id="options_export_target" text="Выбрать папку экспорта"/>
-	<element id="options_export_convert_textures" text="Конвертирование текстур (Формат DDS по умолчанию)"/>
 	<element id="options_tw3_textures_folder" text="Папка текстур"/>
 	<element id="options_tw3_skeleton" text="Загрузить скелет (экспериментальный - отключите его, если он вам не нужен)"/>
 	<element id="options_debug_log" text="Включить 'debug.log'"/>

@@ -114,6 +114,8 @@ bool IO_SceneLoader_TheCouncil::loadScene(io::IReadFile* file, scene::ISceneUser
                     quat.W = rotation["w"].toDouble();
                     core::vector3df euler;
                     quat.toEuler(euler);
+                    euler = core::vector3df(-euler.X, -euler.Y, euler.Z) * 180.f / 3.14f;
+
                     node->setRotation(euler);
 
                     QJsonObject scale = transform["Scale"].toObject();

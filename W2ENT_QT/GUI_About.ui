@@ -98,7 +98,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Contact :&lt;br/&gt;&lt;a href=&quot;mailto:jeanlouis.boudrand@hotmail.fr&quot;&gt;jeanlouis.boudrand@hotmail.fr&lt;/a&gt;</string>
+      <string>Contact :&lt;br/&gt;&lt;a href=&quot;mailto:jeanlouis.boudrand@hotmail.fr&quot;&gt;jeanlouis.boudrand@hotmail.fr&lt;/a&gt; / &lt;a href=&quot;https://twitter.com/jlouisb1&quot;&gt;@jlouisb1&lt;/a&gt;</string>
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>

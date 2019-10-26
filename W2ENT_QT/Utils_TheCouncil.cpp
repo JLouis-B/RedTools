@@ -38,16 +38,8 @@ QFileInfo findFile(QString base, bool checkJSon, bool checkCEF)
 
         fileInfoFilename = fileInfoFilename.left(pos);
 
-        for (int i = 0; i < fileInfoFilename.size(); ++i)
-        {
-            if (filename[i] != fileInfoFilename[i])
-                isTheGoodFile = false;
-        }
-        for (int i = 0; i < extension.size(); ++i)
-        {
-            if (extension[i] != fileInfoExtension[i])
-                isTheGoodFile = false;
-        }
+        if (fileInfoFilename != filename || fileInfoExtension != extension)
+            continue;
 
 
         //if (fileInfoVersionInt < bestVersion)

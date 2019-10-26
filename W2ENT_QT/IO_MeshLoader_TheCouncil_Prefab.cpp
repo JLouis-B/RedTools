@@ -77,7 +77,6 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
         //_log->addLineAndFlush(formatString("new filepath = %s", fullMeshFilepath.toStdString().c_str()));
 
         io::IReadFile* meshFile = FileSystem->createAndOpenFile(meshFileInfo.absoluteFilePath().toStdString().c_str());
-
         if (meshFile)
         {
             IO_MeshLoader_CEF cefLoader(SceneManager, FileSystem);
@@ -87,8 +86,10 @@ scene::IAnimatedMesh* IO_MeshLoader_TheCouncil_Prefab::createMesh(io::IReadFile*
             meshFile->drop();
         }
         else
-            std::cout << "File " << fullMeshFilepath.toStdString().c_str() << " not found !" << std::endl;
+            _log->addLineAndFlush(formatString("Error: Fail to open %s !", fullMeshFilepath.toStdString().c_str()));
     }
+    else
+        _log->addLineAndFlush(formatString("Error: %s not found", fullMeshFilepath.toStdString().c_str()));
 
     // stop here if no mesh loaded, else we continue with the materials
     if (!AnimatedMesh)
@@ -166,17 +167,19 @@ video::SMaterial IO_MeshLoader_TheCouncil_Prefab::readMaterialFile(QString path)
     QJsonArray materialTextures = materialData["Textures"].toArray();
 
     int idxTex = 0;
+    bool diffuseTextureFound = false;
     foreach (const QJsonValue& materialTexture, materialTextures)
     {
         QString UID = materialTexture["UID"].toString();
         if (idxTex == 0
                 || UID == "tTexture_Albedo"
                 || UID == "tTexture_Diff"
-                || UID == "tTexture_a")
+                || UID == "tTexture_DFF")
         {
             QJsonObject texObjectAssetRef = materialTexture["Value"].toObject()["AssetRef"].toObject();
             QString textureFilePath = texObjectAssetRef["FilePath"].toString();
 
+            _log->addLineAndFlush(formatString("idxTex = %d, UID = %s", idxTex, UID.toStdString().c_str()));
             _log->addLineAndFlush(formatString("filepath = %s", textureFilePath.toStdString().c_str()));
 
             QString texturePath = QString(ConfigGamePath.c_str()) + textureFilePath;
@@ -200,11 +203,15 @@ video::SMaterial IO_MeshLoader_TheCouncil_Prefab::readMaterialFile(QString path)
             }
             else
                 _log->addLineAndFlush("Texture not supported !");
+
+            diffuseTextureFound = true;
         }
 
         ++idxTex;
     }
 
+    if (!diffuseTextureFound)
+        _log->addLineAndFlush("Warning: No diffuse texture found in the material");
 
     return mat;
 }

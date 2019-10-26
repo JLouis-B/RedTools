@@ -10,8 +10,6 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-#include <iostream>
-
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 #include "Utils_TheCouncil.h"
@@ -72,7 +70,7 @@ bool IO_SceneLoader_TheCouncil::loadScene(io::IReadFile* file, scene::ISceneUser
     QJsonArray objects = root["Objects"].toArray();
     foreach (const QJsonValue& objectValue, objects)
     {
-        std::cout << "Object" << std::endl;
+        _log->addLineAndFlush("Object");
         QJsonObject object = objectValue.toObject();
 
         if (object.contains("Prefab"))
@@ -85,48 +83,63 @@ bool IO_SceneLoader_TheCouncil::loadScene(io::IReadFile* file, scene::ISceneUser
             QFileInfo prefabFileInfo = findFile(prefabPath, true, false);
             if (prefabFileInfo.exists())
             {
-                std::cout << "Prefab exist" << std::endl;
+                _log->addLineAndFlush("Prefab found");
 
                 io::IReadFile* meshFile = FileSystem->createAndOpenFile(prefabFileInfo.absoluteFilePath().toStdString().c_str());
                 if (meshFile)
                 {
-                    std::cout << "Mesh file" << std::endl;
+                    _log->addLineAndFlush("File successfully opened");
                     IO_MeshLoader_TheCouncil_Prefab prefabLoader(SceneManager, FileSystem);
                     scene::IAnimatedMesh* animatedMesh = prefabLoader.createMesh(meshFile);
-
                     meshFile->drop();
 
-                    scene::IAnimatedMeshSceneNode* node = SceneManager->addAnimatedMeshSceneNode(animatedMesh, RootNode);
 
-                    QJsonObject transform = object["Transform"].toObject()["DefaultValue"].toObject();
-                    QJsonObject translation = transform["Translation"].toObject();
-                    core::vector3df position;
-                    position.X = translation["x"].toDouble();
-                    position.Y = translation["y"].toDouble();
-                    position.Z = translation["z"].toDouble();
-                    node->setPosition(position);
+                    if (animatedMesh == nullptr)
+                    {
+                        _log->addLineAndFlush(formatString("Error: Loading of the prefab %s has failed", prefabFileInfo.absoluteFilePath().toStdString().c_str()));
+                    }
+                    else
+                    {
+                        scene::IAnimatedMeshSceneNode* node = SceneManager->addAnimatedMeshSceneNode(animatedMesh, RootNode);
 
-                    QJsonObject rotation = transform["Rotation"].toObject();
-                    core::quaternion quat;
-                    quat.X = rotation["x"].toDouble();
-                    quat.Y = rotation["y"].toDouble();
-                    quat.Z = rotation["z"].toDouble();
-                    quat.W = rotation["w"].toDouble();
-                    core::vector3df euler;
-                    quat.toEuler(euler);
-                    euler = core::vector3df(-euler.X, -euler.Y, euler.Z) * 180.f / 3.14f;
+                        QJsonObject transform = object["Transform"].toObject()["DefaultValue"].toObject();
+                        QJsonObject translation = transform["Translation"].toObject();
+                        core::vector3df position;
+                        position.X = translation["x"].toDouble();
+                        position.Y = translation["y"].toDouble();
+                        position.Z = translation["z"].toDouble();
+                        node->setPosition(position);
 
-                    node->setRotation(euler);
+                        QJsonObject rotation = transform["Rotation"].toObject();
+                        core::quaternion quat;
+                        quat.X = rotation["x"].toDouble();
+                        quat.Y = rotation["y"].toDouble();
+                        quat.Z = rotation["z"].toDouble();
+                        quat.W = rotation["w"].toDouble();
+                        core::vector3df euler;
+                        quat.toEuler(euler);
+                        euler = core::vector3df(-euler.X, -euler.Y, euler.Z) * 180.f / 3.14f;
 
-                    QJsonObject scale = transform["Scale"].toObject();
-                    core::vector3df scaleV;
-                    scaleV.X = scale["x"].toDouble();
-                    scaleV.Y = scale["y"].toDouble();
-                    scaleV.Z = scale["z"].toDouble();
-                    node->setScale(scaleV);
+                        node->setRotation(euler);
 
-                    node->setMaterialFlag(video::EMF_LIGHTING, false);
+                        QJsonObject scale = transform["Scale"].toObject();
+                        core::vector3df scaleV;
+                        scaleV.X = scale["x"].toDouble();
+                        scaleV.Y = scale["y"].toDouble();
+                        scaleV.Z = scale["z"].toDouble();
+                        node->setScale(scaleV);
+
+                        node->setMaterialFlag(video::EMF_LIGHTING, false);
+                    }
                 }
+                else
+                {
+                    _log->addLineAndFlush(formatString("Error: Fail to open %s", prefabFileInfo.absoluteFilePath().toStdString().c_str()));
+                }
+            }
+            else
+            {
+                _log->addLineAndFlush(formatString("Error: %s not found", prefabFileInfo.absoluteFilePath().toStdString().c_str()));
             }
         }
     }

@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-QFileInfo findFile(QString base, bool checkJSon, bool checkCEF)
+QFileInfo findFile(QString base, TheCouncilFormat format)
 {
     QFileInfo fInfo(base);
     QString absolutePath = fInfo.absolutePath();
@@ -15,8 +15,8 @@ QFileInfo findFile(QString base, bool checkJSon, bool checkCEF)
     if (extension == "fbx")
         extension = "cef";
 
-    std::cout << "absolutePath = " << absolutePath.toStdString().c_str() << std::endl;
-    std::cout << "filename = " << filename.toStdString().c_str() << std::endl;
+    //std::cout << "absolutePath = " << absolutePath.toStdString().c_str() << std::endl;
+    //std::cout << "filename = " << filename.toStdString().c_str() << std::endl;
 
     // search the files
     QDir dirFiles(absolutePath);
@@ -42,38 +42,42 @@ QFileInfo findFile(QString base, bool checkJSon, bool checkCEF)
             continue;
 
 
-        //if (fileInfoVersionInt < bestVersion)
-        //    isTheGoodFile = false;
-
-        if (checkJSon)
+        // check first bytes to know if the file is valid
+        switch(format)
         {
-            QFile file;
-            file.setFileName(fileInfo.absoluteFilePath());
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+            case TheCouncil_CEF:
             {
-                QByteArray firstBytes = file.read(2);
-                if (firstBytes != "{\"")
-                    isTheGoodFile = false;
+                QFile file;
+                file.setFileName(fileInfo.absoluteFilePath());
+                if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+                {
+                    QByteArray firstBytes = file.read(3);
+                    if (firstBytes != "CEF")
+                        isTheGoodFile = false;
+                }
+                file.close();
             }
-            file.close();
+            break;
+
+            case TheCouncil_JSON:
+            {
+                QFile file;
+                file.setFileName(fileInfo.absoluteFilePath());
+                if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+                {
+                    QByteArray firstBytes = file.read(2);
+                    if (firstBytes != "{\"")
+                        isTheGoodFile = false;
+                }
+                file.close();
+            }
+            break;
         }
 
-        if (checkCEF)
-        {
-            QFile file;
-            file.setFileName(fileInfo.absoluteFilePath());
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text))
-            {
-                QByteArray firstBytes = file.read(3);
-                if (firstBytes != "CEF")
-                    isTheGoodFile = false;
-            }
-            file.close();
-        }
 
         if (isTheGoodFile)
         {
-            std::cout << "Find a valid file : " << fileInfo.absoluteFilePath().toStdString().c_str() << std::endl;
+            //std::cout << "Find a valid file : " << fileInfo.absoluteFilePath().toStdString().c_str() << std::endl;
             bestFile = fileInfo;
             bestVersion = fileInfoVersionInt;
         }

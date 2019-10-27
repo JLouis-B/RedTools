@@ -80,7 +80,7 @@ bool IO_SceneLoader_TheCouncil::loadScene(io::IReadFile* file, scene::ISceneUser
 
             prefabPath = QString(ConfigGamePath.c_str()) + prefabPath;
 
-            QFileInfo prefabFileInfo = findFile(prefabPath, true, false);
+            QFileInfo prefabFileInfo = findFile(prefabPath, TheCouncil_JSON);
             if (prefabFileInfo.exists())
             {
                 _log->addLineAndFlush("Prefab found");

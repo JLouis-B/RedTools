@@ -8,7 +8,7 @@ echo ------------------------------
 :: configure your directories here
 set release-dir=./../../Dev/build-W2ENT_QT-MinGW_32bit/release
 set data-dir=../data
-set qt-plugin-dir=C:\Qt\5.11.3\mingw53_32\plugins
+set qt-plugin-dir=C:\Qt\5.12.5\mingw73_32\plugins
 
 set prefix=The_witcher_converter
 @echo off
@@ -28,9 +28,12 @@ mkdir "%foldername%"
 ::copy qwindows.dll
 @echo off
 set foldername-platforms=%foldername%/platforms
+set foldername-styles=%foldername%/styles
 @echo on
 mkdir "%foldername-platforms%"
+mkdir "%foldername-styles%"
 copy "%qt-plugin-dir%\platforms\qwindows.dll" "%foldername-platforms%"
+copy "%qt-plugin-dir%\styles\qwindowsvistastyle.dll" "%foldername-styles%"
 
 :: copy dll and exe
 cd "%release-dir%"

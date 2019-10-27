@@ -119,13 +119,13 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
 {
     scene::ISkinnedMesh::SJoint* rootJoint = AnimatedMesh->addJoint();
 
-    // 7 bytes always the same + timestanp of the file (4 bytes)
+    // 7 bytes always the same + timestamp of the file (4 bytes)
     file->seek(11);
     u32 nbBuffer = readU32(file);
 
     for (u32 i = 0; i < nbBuffer; ++i)
     {
-        std::cout << "ADRESS = " << file->getPos() << std::endl;
+        _log->addLineAndFlush(formatString("Adress = %d", file->getPos()));
         file->seek(8, true);
         f32 positionX = readF32(file);
         f32 positionY = readF32(file);
@@ -152,12 +152,12 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         file->seek(4, true);
         core::stringc modelName = readStringUntilNull(file);
         bufferNames.push_back(modelName);
-        std::cout << "modelName=" << modelName.c_str() << std::endl;
+        _log->addLineAndFlush(formatString("modelName = %s", modelName.c_str()));
         //file->seek(120, true);
         file->seek(4, true);
         core::array<f32> unkFloats = readDataArray<f32>(file, 2);
-        std::cout << "unkown float 1 = " << unkFloats[0] << std::endl;
-        std::cout << "unkown float 2 = " << unkFloats[1] << std::endl; // 1.0 ?
+        //std::cout << "unkown float 1 = " << unkFloats[0] << std::endl;
+        //std::cout << "unkown float 2 = " << unkFloats[1] << std::endl; // 1.0 ?
 
         file->seek(28, true);
         u32 nbVertices = readU32(file);
@@ -180,7 +180,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         file->seek(10, true);
         u32 nbSet = readU32(file);
 
-        std::cout << "ADRESS BUFFER = " << file->getPos() << std::endl;
+        _log->addLineAndFlush(formatString("Adress weight buffer = %d", file->getPos()));
         core::array<CEF_Weight> weights;
         weights.set_used(nbVertices * 4);
 
@@ -231,8 +231,8 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                 }
             }
         }
-        std::cout << "ADRESS = " << file->getPos() << std::endl;
-        std::cout << "NB VERTEX = " << nbVertices << std::endl;
+        _log->addLine(formatString("Adress normals = %d", file->getPos()));
+        _log->addLineAndFlush(formatString("Nb vertices = %d", nbVertices));
         buffer->recalculateBoundingBox();
 
         file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
@@ -312,8 +312,8 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         }
 
         // TODO !
-        std::cout << "nbSet = " << nbSet << std::endl;
-        std::cout << "chunkSize = " << chunkSize << std::endl;
+        //std::cout << "nbSet = " << nbSet << std::endl;
+        //std::cout << "chunkSize = " << chunkSize << std::endl;
         //file->seek(chunkSize, true);
         file->seek(12, true); // uint32 + uint32 + 00 00 CD AB
         nbVertexComponentTypes = readU32(file);
@@ -330,7 +330,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         file->seek(10, true);
         nbSet = readU32(file);
 
-        std::cout << "ADRESS = " << file->getPos() << std::endl;
+        _log->addLineAndFlush(formatString("Adress indices = %d", file->getPos()));
 
 
         for (u32 j = 0; j < nbTriangles; ++j)
@@ -347,7 +347,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
             }
         }
 
-        std::cout << "ADRESS = " << file->getPos() << std::endl;
+        _log->addAndFlush(formatString("Adress bones = %d", file->getPos()));
 
         file->seek(37, true);
         u32 nbBones = readU32(file);
@@ -424,8 +424,8 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         }
 
         u32 unknown2 = readU32(file);
-        core::stringc effectName =readStringFixedSize(file, 256);
-        std::cout << "Effect = " << effectName.c_str() << std::endl;
+        core::stringc effectName = readStringFixedSize(file, 256);
+        _log->addLineAndFlush(formatString("Effect = %s", effectName.c_str()));
 
         if (!hasNormals)
             SceneManager->getMeshManipulator()->recalculateNormals(buffer);

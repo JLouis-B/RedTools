@@ -3,8 +3,13 @@
 
 #include <QFileInfo>
 
+enum TheCouncilFormat
+{
+    TheCouncil_CEF,
+    TheCouncil_JSON
+};
 
-QFileInfo findFile(QString base, bool checkJSon, bool checkCEF);
+QFileInfo findFile(QString base, TheCouncilFormat format);
 
 
 #endif // UTILS_THECOUNCIL_H

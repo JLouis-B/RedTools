@@ -127,12 +127,25 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
     {
         std::cout << "ADRESS = " << file->getPos() << std::endl;
         file->seek(8, true);
-        f32 offsetX = readF32(file);
-        f32 offsetY = readF32(file);
-        f32 offsetZ = readF32(file);
-        core::vector3df bufferOffset(offsetX, offsetY, offsetZ);
+        f32 positionX = readF32(file);
+        f32 positionY = readF32(file);
+        f32 positionZ = readF32(file);
+        core::vector3df position(positionX, positionY, positionZ);
 
-        file->seek(32, true);
+        f32 quatX = readF32(file);
+        f32 quatY = readF32(file);
+        f32 quatZ = readF32(file);
+        f32 quatW = readF32(file);
+        core::quaternion quat = core::quaternion(quatX, quatY, quatZ, quatW);
+        core::vector3df euler;
+        quat.toEuler(euler);
+
+        core::matrix4 qPos, qRot;
+        qPos.setTranslation(position);
+        qRot.setRotationRadians(euler);
+        core::matrix4 transform = qPos * qRot;
+
+        file->seek(16, true);
 
         core::array<f32> boundingBox = readDataArray<f32>(file, 6);
 
@@ -186,8 +199,12 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
                     f32 x = readF32(file);
                     f32 y = readF32(file);
                     f32 z = readF32(file);
-                    buffer->Vertices_Standard[j].Pos = core::vector3df(x, y, z) + bufferOffset;
                     file->seek(4, true);
+
+                    f32 vectIn[3] = {x, y, z};
+                    f32 vectOut[3];
+                    transform.transformVec3(vectOut, vectIn);
+                    buffer->Vertices_Standard[j].Pos = core::vector3df(vectOut[0], vectOut[1], vectOut[2]);
                 }
                 else if (c._type == VERTEX_BLENDINDICE)
                 {

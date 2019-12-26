@@ -1597,7 +1597,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
 }
 
 
-ISkinnedMesh* IO_MeshLoader_W3ENT::ReadW2MESHFile(core::stringc filename)
+scene::ISkinnedMesh* IO_MeshLoader_W3ENT::ReadW2MESHFile(core::stringc filename)
 {
     ISkinnedMesh* mesh = nullptr;
     io::IReadFile* meshFile = FileSystem->createAndOpenFile(filename);

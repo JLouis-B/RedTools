@@ -784,7 +784,7 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
             int back1 = file->getPos();
             video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
+            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
 
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
@@ -857,7 +857,7 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
             int back1 = file->getPos();
             video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
+            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
 
             weighting.push_back(readDataArray<u8>(file, 8));
 

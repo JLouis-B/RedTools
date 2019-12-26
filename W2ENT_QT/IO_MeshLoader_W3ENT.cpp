@@ -1547,31 +1547,27 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
         }
 
 
-
-        core::matrix4 matr = matrix;
-
-
-        core::vector3df position = matr.getTranslation();
+        core::vector3df position = matrix.getTranslation();
         core::matrix4 invRot;
-        matr.getInverse(invRot);
+        matrix.getInverse(invRot);
         //invRot.rotateVect(position);
 
         core::vector3df rotation = invRot.getRotationDegrees();
         //rotation = core::vector3df(0, 0, 0);
         position = - position;
-        core::vector3df scale = matr.getScale();
+        core::vector3df scale = matrix.getScale();
 
         if (joint)
         {
             //Build GlobalMatrix:
             core::matrix4 positionMatrix;
             positionMatrix.setTranslation(position);
-            core::matrix4 scaleMatrix;
-            scaleMatrix.setScale(scale);
             core::matrix4 rotationMatrix;
             rotationMatrix.setRotationDegrees(rotation);
+            core::matrix4 scaleMatrix;
+            scaleMatrix.setScale(scale);
 
-            joint->GlobalMatrix =  scaleMatrix * rotationMatrix * positionMatrix;
+            joint->GlobalMatrix = scaleMatrix * rotationMatrix * positionMatrix;
             joint->LocalMatrix = joint->GlobalMatrix;
 
             joint->Animatedposition = joint->LocalMatrix.getTranslation();
@@ -1594,7 +1590,7 @@ void IO_MeshLoader_W3ENT::ReadBones(io::IReadFile* file)
     readBonesNumber(file);
     for (char i = 0; i < nbBones; ++i)
     {
-        u32 parent = readU32(file);
+        u32 unk = readU32(file);
         //std::cout << "= " << joints[parent]->Name.c_str() << "->" << joints[i]->Name.c_str() << std::endl;
     }
     log->addLineAndFlush("Bones loaded");

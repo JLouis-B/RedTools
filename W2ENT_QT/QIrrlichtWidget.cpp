@@ -936,7 +936,7 @@ void QIrrlichtWidget::changeLOD(LOD newLOD)
 
 void QIrrlichtWidget::clearLOD()
 {
-    // Delete the current w2ent/w2mesh
+    // Delete the current mesh
     _currentLodData->clearLodData();
 
     _device->getSceneManager()->getMeshCache()->clearUnusedMeshes();

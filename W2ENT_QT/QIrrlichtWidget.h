@@ -102,7 +102,6 @@ struct LOD_data
         }
 
         _additionalTextures.clear();
-        _additionalTextures.resize(_IRR_MATERIAL_MAX_TEXTURES_);
     }
 
     scene::IAnimatedMeshSceneNode* _node;

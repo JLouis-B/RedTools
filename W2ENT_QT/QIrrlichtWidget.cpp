@@ -505,6 +505,7 @@ void QIrrlichtWidget::loadMeshPostProcess()
     MeshSize::_scaleFactor = 1.f;
 
     // Save the path of normals/specular maps
+    _currentLodData->_additionalTextures.resize(mesh->getMeshBufferCount());
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
     {
         const video::SMaterial material = mesh->getMeshBuffer(i)->getMaterial();
@@ -744,11 +745,6 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
     }
 
     //std::cout << filename.toStdString().c_str() << std::endl;
-
-    //const core::vector3df orDim = MeshSize::_originalDimensions;
-    //const core::vector3df dim = MeshSize::_dimensions;
-
-    //const f32 scaleFactor = (dim/orDim).X;
 
     float scaleFactor = MeshSize::_scaleFactor;
     // Set the export size

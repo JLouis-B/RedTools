@@ -271,19 +271,20 @@ void IO_MeshLoader_W2ENT::make_bone_position()
 
         ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(boneName.c_str())];
 
-        irr::core::vector3df position = matr.getTranslation();
-        irr::core::matrix4 invRot;
+        core::vector3df position = matr.getTranslation();
+        core::matrix4 invRot;
         matr.getInverse(invRot);
-        invRot.rotateVect(position);
 
+        /*
+        Because we switched Y/Z axis we're supposed to add a (90, 0,  180) rotation
         core::matrix4 axisMatrix;
         axisMatrix.setInverseRotationDegrees(core::vector3df(90, 0,  180));
         axisMatrix.rotateVect(position);
+        */
 
         core::vector3df rotation = invRot.getRotationDegrees();
-        rotation = core::vector3df(0, 0, 0);
-        position = - position;
-        irr::core::vector3df scale = core::vector3df(1, 1, 1);//invRot.getScale();
+        position = -position;
+        core::vector3df scale = matr.getScale();
 
         if (joint)
         {
@@ -299,11 +300,11 @@ void IO_MeshLoader_W2ENT::make_bone_position()
 
             //Build GlobalMatrix:
             core::matrix4 positionMatrix;
-            positionMatrix.setTranslation( position );
-            core::matrix4 scaleMatrix;
-            scaleMatrix.setScale( scale );
+            positionMatrix.setTranslation(position);
             core::matrix4 rotationMatrix;
             rotationMatrix.setRotationDegrees(rotation);
+            core::matrix4 scaleMatrix;
+            scaleMatrix.setScale(scale);
 
             //printVector(axisMatrix.getRotationDegrees());
 

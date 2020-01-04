@@ -6,7 +6,7 @@
 #include <QWidget>
 #include <QResizeEvent>
 #include <QDebug>
-#include <set>
+#include <QSet>
 
 #include "IO_MeshWriter_RE.h"
 #include "Settings.h"
@@ -105,7 +105,20 @@ struct LOD_data
     }
 
     scene::IAnimatedMeshSceneNode* _node;
-    QVector<std::set<io::path> > _additionalTextures;
+    QVector<QVector<QString> > _additionalTextures;
+
+    QSet<QString> getTexturesSetForLayer(int layer)
+    {
+        Q_ASSERT(layer >= 1 && layer < _IRR_MATERIAL_MAX_TEXTURES_);
+        QSet<QString> texturesSet;
+        for (int i = 0; i < _additionalTextures.size(); ++i)
+        {
+            QString path = _additionalTextures[i][layer-1];
+            if (!path.isEmpty())
+                texturesSet.insert(path);
+        }
+        return texturesSet;
+    }
 };
 
 struct IrrlichtExporterInfos
@@ -209,7 +222,7 @@ class QIrrlichtWidget : public QWidget
         scene::IO_MeshWriter_RE* _reWriter;
 
         void copyTextures(scene::IMesh* mesh, QString exportFolder);
-        void copyTextures(std::set<io::path> paths, QString exportFolder);
+        void copyTextures(QSet<QString> paths, QString exportFolder);
 
         LOD_data _lod0Data;
         LOD_data _lod1Data;

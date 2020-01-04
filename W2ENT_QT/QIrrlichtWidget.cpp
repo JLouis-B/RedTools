@@ -509,11 +509,15 @@ void QIrrlichtWidget::loadMeshPostProcess()
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
     {
         const video::SMaterial material = mesh->getMeshBuffer(i)->getMaterial();
+        _currentLodData->_additionalTextures[i].resize(_IRR_MATERIAL_MAX_TEXTURES_-1);
         for (u32 j = 1; j < _IRR_MATERIAL_MAX_TEXTURES_; ++j)
         {
+            QString texturePath = QString();
             const video::ITexture* texture = material.getTexture(j);
             if (texture)
-                _currentLodData->_additionalTextures[i].insert(texture->getName().getPath());
+                texturePath = PATH_TO_QSTRING(texture->getName().getPath());
+
+            _currentLodData->_additionalTextures[i][j-1] = texturePath;
         }
     }
 
@@ -712,35 +716,36 @@ void QIrrlichtWidget::exportMesh(QString exportFolder, QString filename, Exporte
     {
         copyTextures(_currentLodData->_node->getMesh(), exportFolder);
         if(Settings::_copyTexturesSlot1)
-            copyTextures(_currentLodData->_additionalTextures[1], exportFolder);
+            copyTextures(_currentLodData->getTexturesSetForLayer(1), exportFolder);
         if(Settings::_copyTexturesSlot2)
-            copyTextures(_currentLodData->_additionalTextures[2], exportFolder);
+            copyTextures(_currentLodData->getTexturesSetForLayer(2), exportFolder);
     }
     else
     {
+        // TODO: merge the sets of the LODs and call copyTextures once to avoid to copy the same texture many times
         if (_lod0Data._node)
         {
             copyTextures(_lod0Data._node->getMesh(), exportFolder);
             if(Settings::_copyTexturesSlot1)
-                copyTextures(_lod0Data._additionalTextures[1], exportFolder);
+                copyTextures(_lod0Data.getTexturesSetForLayer(1), exportFolder);
             if(Settings::_copyTexturesSlot2)
-                copyTextures(_lod0Data._additionalTextures[2], exportFolder);
+                copyTextures(_lod0Data.getTexturesSetForLayer(2), exportFolder);
         }
         if (_lod1Data._node)
         {
             copyTextures(_lod1Data._node->getMesh(), exportFolder);
             if(Settings::_copyTexturesSlot1)
-                copyTextures(_lod1Data._additionalTextures[1], exportFolder);
+                copyTextures(_lod1Data.getTexturesSetForLayer(1), exportFolder);
             if(Settings::_copyTexturesSlot2)
-                copyTextures(_lod1Data._additionalTextures[2], exportFolder);
+                copyTextures(_lod1Data.getTexturesSetForLayer(2), exportFolder);
         }
         if (_lod2Data._node)
         {
             copyTextures(_lod2Data._node->getMesh(), exportFolder);
             if(Settings::_copyTexturesSlot1)
-                copyTextures(_lod2Data._additionalTextures[1], exportFolder);
+                copyTextures(_lod2Data.getTexturesSetForLayer(1), exportFolder);
             if(Settings::_copyTexturesSlot2)
-                copyTextures(_lod2Data._additionalTextures[2], exportFolder);
+                copyTextures(_lod2Data.getTexturesSetForLayer(2), exportFolder);
         }
     }
 
@@ -1012,12 +1017,12 @@ void QIrrlichtWidget::copyTextures(scene::IMesh* mesh, QString exportFolder)
 }
 
 
-void QIrrlichtWidget::copyTextures(std::set<io::path> paths, QString exportFolder)
+void QIrrlichtWidget::copyTextures(QSet<QString> paths, QString exportFolder)
 {
-    std::set<io::path>::iterator it;
+    QSet<QString>::iterator it;
     for (it = paths.begin(); it != paths.end(); ++it)
     {
-        QString filename = PATH_TO_QSTRING(*it);
+        QString filename = (*it);
 
         int index = filename.lastIndexOf(".");
         QString basePath = filename.left(index);
@@ -1037,13 +1042,12 @@ void QIrrlichtWidget::copyTextures(std::set<io::path> paths, QString exportFolde
         //std::cout << "-> la : " << texturePath.toStdString().c_str() << std::endl;
         QString texPath;
         if (Settings::_copyTexturesEnabled)
-            texPath = convertTexture(PATH_TO_QSTRING(*it), fullPath);
+            texPath = convertTexture(filename, fullPath);
         else
         {
-            QString tmpPath = PATH_TO_QSTRING(*it);
-            index = tmpPath.lastIndexOf(".");
+            index = filename.lastIndexOf(".");
             basePath = filename.left(index);
-            texPath = convertTexture(PATH_TO_QSTRING(*it), basePath + targetExtension);
+            texPath = convertTexture(filename, basePath + targetExtension);
         }
 
 

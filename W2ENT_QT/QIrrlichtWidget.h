@@ -219,6 +219,7 @@ class QIrrlichtWidget : public QWidget
 
         scene::IO_MeshWriter_RE* _reWriter;
 
+        bool convertAndCopyTexture(QString texturePath, QString exportFolder, bool shouldCopyTextures, QString& outputTexturePath);
         void convertAndCopyTextures(scene::IMesh* mesh, QString exportFolder, bool shouldCopyTextures);
         void convertAndCopyTextures(QSet<QString> paths, QString exportFolder, bool shouldCopyTextures);
 

@@ -939,6 +939,35 @@ void QIrrlichtWidget::clearAllLODs()
     _device->getVideoDriver()->removeAllHardwareBuffers();
 }
 
+// Convert and copy a single texture
+bool QIrrlichtWidget::convertAndCopyTexture(QString texturePath, QString exportFolder, bool shouldCopyTextures, QString& outputTexturePath)
+{
+    QFileInfo pathInfo(texturePath);
+    if (!pathInfo.exists())
+        return false; // TODO: Log something in this case ?
+
+    if (Settings::_convertTexturesEnabled) // Convert and generate the new file in the export folder
+    {
+        video::IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(texturePath));
+        if (image)
+        {
+            outputTexturePath = exportFolder + pathInfo.baseName() + Settings::_convertTexturesFormat;
+            if (!shouldCopyTextures) // we convert the texture but we keep it in it's original folder
+                outputTexturePath = pathInfo.absolutePath() + '\\' + pathInfo.baseName() + Settings::_convertTexturesFormat;
+
+            _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_PATH(outputTexturePath));
+            image->drop();
+        }
+    }
+    else if (shouldCopyTextures) // We just have to copy the original texture file in this case
+    {
+        outputTexturePath = exportFolder + pathInfo.fileName();
+        QFile::copy(texturePath, outputTexturePath);
+    }
+    return true;
+}
+
+// convert and copy the diffuse textures of a mesh
 void QIrrlichtWidget::convertAndCopyTextures(scene::IMesh* mesh, QString exportFolder, bool shouldCopyTextures)
 {
     for (u32 i = 0; i < mesh->getMeshBufferCount(); ++i)
@@ -948,29 +977,9 @@ void QIrrlichtWidget::convertAndCopyTextures(scene::IMesh* mesh, QString exportF
         if (diffuseTexture)
         {
             QString texturePath = PATH_TO_QSTRING(diffuseTexture->getName().getPath());
-            QFileInfo pathInfo(texturePath);
-            if (pathInfo.exists()) // TODO: Log something if file not exist ?
+            QString outputTexturePath;
+            if (convertAndCopyTexture(texturePath, exportFolder, shouldCopyTextures, outputTexturePath)) // TODO: Log something if file not exist ?
             {
-                QString outputTexturePath = texturePath;
-                if (Settings::_convertTexturesEnabled) // Convert and generate the new file in the export folder
-                {
-                    video::IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(texturePath));
-                    if (image)
-                    {
-                        outputTexturePath = exportFolder + pathInfo.baseName() + Settings::_convertTexturesFormat;
-                        if (!shouldCopyTextures) // we convert the texture but we keep it in it's original folder
-                            outputTexturePath = pathInfo.absolutePath() + '\\' + pathInfo.baseName() + Settings::_convertTexturesFormat;
-
-                        _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_PATH(outputTexturePath));
-                        image->drop();
-                    }
-                }
-                else if (shouldCopyTextures) // We just have to copy the original texture file in this case
-                {
-                    outputTexturePath = exportFolder + pathInfo.fileName();
-                    QFile::copy(texturePath, outputTexturePath);
-                }
-
                 // We apply the nex texture to the mesh, so the exported file will use it
                 // TODO: Restore the original texture on the mesh after the export ?
                 video::ITexture* tex = _device->getSceneManager()->getVideoDriver()->getTexture(QSTRING_TO_PATH(outputTexturePath));
@@ -980,6 +989,7 @@ void QIrrlichtWidget::convertAndCopyTextures(scene::IMesh* mesh, QString exportF
     }
 }
 
+// convert and copy a list of textures
 void QIrrlichtWidget::convertAndCopyTextures(QSet<QString> paths, QString exportFolder, bool shouldCopyTextures)
 {
     QSet<QString>::iterator it;
@@ -987,30 +997,11 @@ void QIrrlichtWidget::convertAndCopyTextures(QSet<QString> paths, QString export
     {
         QString texturePath = (*it);
         QFileInfo pathInfo(texturePath);
-        if (!pathInfo.exists())
-            continue; // TODO: Log something in this case ?
 
-        if (Settings::_convertTexturesEnabled) // Convert and generate the new file in the export folder
-        {
-            video::IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(texturePath));
-            if (image)
-            {
-                QString convertedTexturePath = exportFolder + pathInfo.baseName() + Settings::_convertTexturesFormat;
-                if (!shouldCopyTextures) // we convert the texture but we keep it in it's original folder
-                    convertedTexturePath = pathInfo.absolutePath() + '\\' + pathInfo.baseName() + Settings::_convertTexturesFormat;
-
-                _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_PATH(convertedTexturePath));
-                image->drop();
-            }
-        }
-        else if (shouldCopyTextures) // We just have to copy the original texture file in this case
-        {
-            QString copiedTexturePath = exportFolder + pathInfo.fileName();
-            QFile::copy(texturePath, copiedTexturePath);
-        }
+        QString outputTexturePath;
+        convertAndCopyTexture(texturePath, exportFolder, shouldCopyTextures, outputTexturePath);
     }
 }
-
 
 QString QIrrlichtWidget::getFilename()
 {

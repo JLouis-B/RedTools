@@ -44,10 +44,16 @@ SearchSettings Settings::_searchSettings;
 
 QString Settings::getExportFolder()
 {
+    QString exportFolder;
     if (Settings::_mode == Export_BaseDir)
-        return Settings::_baseDir;
+        exportFolder = Settings::_baseDir;
     else
-        return Settings::_exportDest;
+        exportFolder = Settings::_exportDest;
+
+    if (exportFolder.size() > 0 && exportFolder[exportFolder.size()-1] != '\\')
+        exportFolder.push_back('\\');
+
+    return exportFolder;
 }
 
 QString Settings::getAppVersion()

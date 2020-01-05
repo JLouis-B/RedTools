@@ -167,7 +167,7 @@ class QIrrlichtWidget : public QWidget
         bool setMesh(QString filename, core::stringc &feedbackMessage);
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
-        void exportMesh(QString exportFolder, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
+        void exportMesh(QString exportFolderPath, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
 
         unsigned int getPolysCount();
         unsigned int getJointsCount();
@@ -181,8 +181,6 @@ class QIrrlichtWidget : public QWidget
         QString getPath();
 
         bool isEmpty (LOD lod);
-
-        QString convertTexture(QString filename, QString destDir);
 
         bool loadRig(const io::path filename, core::stringc &feedbackMessage);
         bool loadAnims(const io::path filename, core::stringc &feedbackMessage);
@@ -221,8 +219,8 @@ class QIrrlichtWidget : public QWidget
 
         scene::IO_MeshWriter_RE* _reWriter;
 
-        void copyTextures(scene::IMesh* mesh, QString exportFolder);
-        void copyTextures(QSet<QString> paths, QString exportFolder);
+        void convertAndCopyTextures(scene::IMesh* mesh, QString exportFolder, bool shouldCopyTextures);
+        void convertAndCopyTextures(QSet<QString> paths, QString exportFolder, bool shouldCopyTextures);
 
         LOD_data _lod0Data;
         LOD_data _lod1Data;

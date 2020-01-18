@@ -271,20 +271,19 @@ void IO_MeshLoader_W2ENT::make_bone_position()
 
         ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(boneName.c_str())];
 
-        core::vector3df position = matr.getTranslation();
-        core::matrix4 invRot;
+        irr::core::vector3df position = matr.getTranslation();
+        irr::core::matrix4 invRot;
         matr.getInverse(invRot);
+        invRot.rotateVect(position);
 
-        /*
-        Because we switched Y/Z axis we're supposed to add a (90, 0,  180) rotation
         core::matrix4 axisMatrix;
         axisMatrix.setInverseRotationDegrees(core::vector3df(90, 0,  180));
         axisMatrix.rotateVect(position);
-        */
 
         core::vector3df rotation = invRot.getRotationDegrees();
-        position = -position;
-        core::vector3df scale = matr.getScale();
+        rotation = core::vector3df(0, 0, 0);
+        position = - position;
+        irr::core::vector3df scale = core::vector3df(1, 1, 1);//invRot.getScale();
 
         if (joint)
         {
@@ -300,11 +299,11 @@ void IO_MeshLoader_W2ENT::make_bone_position()
 
             //Build GlobalMatrix:
             core::matrix4 positionMatrix;
-            positionMatrix.setTranslation(position);
+            positionMatrix.setTranslation( position );
+            core::matrix4 scaleMatrix;
+            scaleMatrix.setScale( scale );
             core::matrix4 rotationMatrix;
             rotationMatrix.setRotationDegrees(rotation);
-            core::matrix4 scaleMatrix;
-            scaleMatrix.setScale(scale);
 
             //printVector(axisMatrix.getRotationDegrees());
 
@@ -784,7 +783,7 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
             int back1 = file->getPos();
             video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
 
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
@@ -857,7 +856,7 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
             int back1 = file->getPos();
             video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
 
             weighting.push_back(readDataArray<u8>(file, 8));
 

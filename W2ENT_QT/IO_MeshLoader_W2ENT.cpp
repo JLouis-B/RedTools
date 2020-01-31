@@ -117,7 +117,7 @@ void printVector(core::vector3df vect)
 
 void IO_MeshLoader_W2ENT::make_vertex_group(Submesh_data dataSubMesh, core::array<core::array<unsigned char> > weighting)
 {
-    core::array <unsigned short> vertex_groups = dataSubMesh.dataH;
+    core::array<unsigned short> vertex_groups = dataSubMesh.dataH;
 
     for (unsigned int id_0 = 0; id_0 < weighting.size(); id_0++)
     {
@@ -334,7 +334,7 @@ void IO_MeshLoader_W2ENT::computeLocal(ISkinnedMesh::SJoint* joint)
 {
     // Get parent
     const core::stringc parentName = searchParent(joint->Name.c_str());
-    ISkinnedMesh::SJoint* jointParent = 0;
+    scene::ISkinnedMesh::SJoint* jointParent = nullptr;
     if (AnimatedMesh->getJointNumber(parentName.c_str()) != -1)
     {
         jointParent = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(parentName.c_str())];
@@ -342,8 +342,8 @@ void IO_MeshLoader_W2ENT::computeLocal(ISkinnedMesh::SJoint* joint)
 
     if (jointParent)
     {
-        irr::core::matrix4 globalParent = jointParent->GlobalMatrix;
-        irr::core::matrix4 invGlobalParent;
+        core::matrix4 globalParent = jointParent->GlobalMatrix;
+        core::matrix4 invGlobalParent;
         globalParent.getInverse(invGlobalParent);
 
         joint->LocalMatrix = invGlobalParent * joint->GlobalMatrix;
@@ -443,7 +443,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     {
         // Read data
         u16 dataTypeId = readU16(file) - 1;    // Data type
-        core::stringc dataType = Strings[dataTypeId];
+        core::stringc dataTypeName = Strings[dataTypeId];
+        log->addLineAndFlush(formatString("dataTypeName=%s", dataTypeName.c_str()));
 
         core::array<s32> data2 = readDataArray<s32>(file, 5);             // Data info (adress...)
 
@@ -472,8 +473,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             file->seek(1, true);    //readUnsignedChars(file, 1)[0]-128;
         }
 
-        if (!find(chunks, dataType))    //check if 'name' is already in 'chuncks'. If this is not the case, name is added in chunk
-            chunks.push_back(dataType);
+        if (!find(chunks, dataTypeName))    //check if 'name' is already in 'chuncks'. If this is not the case, name is added in chunk
+            chunks.push_back(dataTypeName);
 
         // Now we check the type of the data, and if we have a CMaterialInstance or CMesh we read it
         //std::cout << name.c_str() << std::endl;
@@ -482,7 +483,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         // now all stuff readed
         const int back2 = file->getPos();
 
-        if (dataType == "CMaterialInstance")
+        if (dataTypeName == "CMaterialInstance")
         {
             log->addAndFlush("\nCMaterialInstance\n");
 
@@ -492,7 +493,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
             log->addLineAndFlush("CMaterialInstance OK");
         }
-        else if (dataType == "CMesh")
+        else if (dataTypeName == "CMesh")
         {
             //std::cout << "CMesh" << std::endl;            
             log->addAndFlush("\nCMesh\n");
@@ -514,16 +515,16 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
             log->addLineAndFlush("CMesh OK");
         }
-        else if (dataType == "CSkeleton")
+        else if (dataTypeName == "CSkeleton")
         {
             //std::cout << "CSkeleton" << std::endl;
             CSkeleton(file, infos);
         }
-        else if (dataType == "CSkeletalAnimation")
+        else if (dataTypeName == "CSkeletalAnimation")
         {
             //std::cout << "CSkeletalAnimation" << std::endl;
         }
-        else if (dataType == "CLayer")
+        else if (dataTypeName == "CLayer")
         {
             //std::cout << "CLayer" << std::endl;
         }
@@ -544,7 +545,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
 bool checkIfBoneDontExist(core::stringc name, irr::core::array<bone_data> datas)
 {
-    for (int i = 0; i < datas.size(); i++)
+    for (u32 i = 0; i < datas.size(); i++)
     {
         if (datas[i].name == name)
             return false;
@@ -563,6 +564,8 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, DataInfos infos)
         if (!ReadPropertyHeader(file, propHeader))
             break;
 
+
+        log->addLineAndFlush(propHeader.toString());
         file->seek(propHeader.endPos);
     }
     file->seek(-4, true);

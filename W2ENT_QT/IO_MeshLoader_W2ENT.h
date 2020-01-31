@@ -32,6 +32,11 @@ struct W2_PropertyHeader
     core::stringc propType;
     s32 propSize;
     u32 endPos;
+
+    core::stringc toString()
+    {
+        return formatString("W2_PropertyHeader: propName = %s, propType = %s, propSize = %d, endPos = %d, startPos = %d", propName.c_str(), propType.c_str(), propSize, endPos, endPos-propSize);
+    }
 };
 
 struct Meshdata

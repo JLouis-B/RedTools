@@ -23,7 +23,7 @@
   <enabled>0</enabled>
   <format>.jpg</format>
  </textures_conversion>
- <debug>0</debug>
+ <debug_log>0</debug_log>
  <TW3>
   <TW3_textures></TW3_textures>
   <TW3_loadSkel>0</TW3_loadSkel>

@@ -73,6 +73,6 @@
 	<element id="options_tw3_textures_folder" text="Textures folder"/>
 	<element id="options_tw3_skeleton" text="Load skeleton (experimental - disable it if you don't need it)"/>
 	<element id="options_debug_log" text="Enable 'debug.log'"/>
-	<element id="options_debug_log_label" text="If you have a problem to load a w2ent/w2mesh file, you can enable this option to generate a log file. This file can help me to solve your problem, so in case of problem, you can send me this file (via The witcher forum if you have an account or by mail at jeanlouis.boudrand@hotmail.fr.)"/>
+	<element id="options_debug_log_label" text="If you have an issue with the software, you can enable this option to generate a debug.log file in the folder of the software. It contains information about what happened, so if you want to report a problem with the software please include this file to provide as much information as possible for debugging (see Help/About to contact me)"/>
 
 </translation>

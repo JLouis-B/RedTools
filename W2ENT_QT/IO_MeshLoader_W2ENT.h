@@ -136,9 +136,7 @@ private:
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
-	unsigned int NbSubMesh;
 
-    core::array<Submesh_data> SubMeshData;
     core::array<core::array<unsigned char> >IdLOD;
 
     s32 Version;

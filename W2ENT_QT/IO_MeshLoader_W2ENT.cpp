@@ -35,7 +35,6 @@ IO_MeshLoader_W2ENT::IO_MeshLoader_W2ENT(scene::ISceneManager* smgr, io::IFileSy
 : SceneManager(smgr),
   FileSystem(fs),
   AnimatedMesh(nullptr),
-  NbSubMesh(0),
   log(nullptr)
 {
 	#ifdef _DEBUG
@@ -103,7 +102,6 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     Strings.clear();
     Materials.clear();
     MeshesToLoad.clear();
-    NbSubMesh = 0;
 
 	return AnimatedMesh;
 }
@@ -685,15 +683,16 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
         back = file->getPos();
         file->seek(seek);
         core::array<s32> data = readDataArray<s32>(file, 6);
-        NbSubMesh = readU8(file);
-        SubMeshData.clear();
-        for (unsigned int i = 0; i < NbSubMesh; i++)
+        u8 nbSubMesh = readU8(file);
+
+        core::array<Submesh_data> subMeshesData;
+        for (u8 i = 0; i < nbSubMesh; i++)
         {
             Submesh_data s_data;
             s_data.vertexType = readU8(file);
             s_data.dataI = readDataArray<s32>(file, 4);
             s_data.dataH = readDataArray<u16>(file, readU8(file)+2);
-            SubMeshData.push_back(s_data);
+            subMeshesData.push_back(s_data);
 
             /*
             if ((s_data.dataI[2] < 0 || s_data.dataI[2] > 100000 || error_with_bones ) && magic == false) // Can crash here
@@ -704,7 +703,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
             }
             */
 
-            log->addLineAndFlush(formatString("Submesh : vertEnd = %d, vertype = %d", s_data.dataI[2], s_data.vertexType));
+            log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", s_data.dataI[2], s_data.vertexType));
         }
 
         file->seek(back);
@@ -713,7 +712,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
         skeleton(file);
 
 
-        drawmesh(file, data, mats);
+        drawmesh(file, data, subMeshesData, mats);
 
     }
 
@@ -723,46 +722,46 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
 
 void IO_MeshLoader_W2ENT::static_meshes(io::IReadFile* file, core::array<int> mats)
 {
-    // We read submesh infos
-    int back = file->getPos();
-    int seek = readS32(file);
-    file->seek(back + seek);
+    // We read submeshes infos
+    long back = file->getPos();
+    int subMeshesInfosOffset = readS32(file);
+    file->seek(back + subMeshesInfosOffset);
 
-    file->seek(4, true); //readUnsignedShorts(file, 2);
-    readS32(file);
+    file->seek(4, true); // readUnsignedShorts(file, 2);
+    file->seek(4, true); // int
 
     core::array<s32> meshData = readDataArray<s32>(file, 4); // Indices adress + unks
-    NbSubMesh = readU8(file);
-    SubMeshData.clear();
+    u8 nbSubMesh = readU8(file);
     u8 vertexType = readU8(file);
 
-    for (unsigned int i = 0; i < NbSubMesh; i++)
+    core::array<Submesh_data> subMeshesData;
+    for (u8 i = 0; i < nbSubMesh; i++)
     {
         Submesh_data s_data;
         s_data.vertexType = vertexType;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
         s_data.dataI = readDataArray<s32>(file, 5);
         s_data.dataH = readDataArray<u16>(file, 1);
-        SubMeshData.push_back(s_data);
+        subMeshesData.push_back(s_data);
     }
 
     file->seek(back+4);
-    drawmesh_static(file, meshData, mats);
+    drawmesh_static(file, meshData, subMeshesData, mats);
 }
 
 
-void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats)
+void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> meshData, core::array<Submesh_data> subMeshesData, core::array<int> mats)
 {
     log->addLineAndFlush("Drawmesh_static");
 
     long back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
-    for (unsigned int n = 0; n < NbSubMesh; n++)
+    for (u32 i = 0; i < subMeshesData.size(); i++)
     {
-        if (n >= IdLOD[0][0])
+        Submesh_data submesh = subMeshesData[i];
+        if (i >= IdLOD[0][0])
             continue;
 
-        Submesh_data submesh = SubMeshData[n];
 
         int vertexSize = 0;
         bool hasSecondUVLayer = false;
@@ -834,16 +833,16 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
         int indicesStart = submesh.dataI[1];
         int indicesCount = submesh.dataI[3];
 
-        file->seek(back + data[0] + indicesStart * 2);
+        file->seek(back + meshData[0] + indicesStart * 2);
 
         buffer->Indices.set_used(indicesCount);
         file->read(buffer->Indices.pointer(), indicesCount * 2);
 
 
         int result = 0;
-        if (n < mats.size())
-            if ((unsigned int)mats[n] < Materials.size())
-                result = mats[n];
+        if (i < mats.size())
+            if ((unsigned int)mats[i] < Materials.size())
+                result = mats[i];
         //std::cout << "MaterialSize= " << Materials.size() << std::endl;
         //std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;
 
@@ -858,19 +857,19 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
 }
 
 
-void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats)
+void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> meshData, core::array<Submesh_data> subMeshesData, core::array<int> mats)
 {
     log->addLineAndFlush("Drawmesh");
 
     int back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
-    for (unsigned int n = 0; n < NbSubMesh; n++)
+    for (u32 i = 0; i < subMeshesData.size(); i++)
     {
-        if (n >= IdLOD[0][0])
+        Submesh_data submesh = subMeshesData[i];
+        if (i >= IdLOD[0][0])
             continue;
 
-        Submesh_data submesh = SubMeshData[n];
 
         int vertexSize = 0;
         switch (submesh.vertexType) {
@@ -920,15 +919,15 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
         int indicesCount = submesh.dataI[3];
 
         // Faces
-        file->seek(back + data[2] + indicesStart * 2);
+        file->seek(back + meshData[2] + indicesStart * 2);
         buffer->Indices.set_used(indicesCount);
         file->read(buffer->Indices.pointer(), indicesCount * 2);
 
 
         int result = 0;
-        if (n < mats.size())
-            if ((unsigned int)mats[n] < Materials.size())
-                result = mats[n];
+        if (i < mats.size())
+            if ((unsigned int)mats[i] < Materials.size())
+                result = mats[i];
 
         /*std::cout << "MaterialSize= " << Materials.size() << std::endl;
         std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;*/

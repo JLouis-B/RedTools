@@ -690,7 +690,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
         for (unsigned int i = 0; i < NbSubMesh; i++)
         {
             Submesh_data s_data;
-            s_data.vertype = readU8(file);
+            s_data.vertexType = readU8(file);
             s_data.dataI = readDataArray<s32>(file, 4);
             s_data.dataH = readDataArray<u16>(file, readU8(file)+2);
             SubMeshData.push_back(s_data);
@@ -704,7 +704,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
             }
             */
 
-            log->addLineAndFlush(formatString("Submesh : vertEnd = %d, vertype = %d", s_data.dataI[2], s_data.vertype));
+            log->addLineAndFlush(formatString("Submesh : vertEnd = %d, vertype = %d", s_data.dataI[2], s_data.vertexType));
         }
 
         file->seek(back);
@@ -731,22 +731,22 @@ void IO_MeshLoader_W2ENT::static_meshes(io::IReadFile* file, core::array<int> ma
     file->seek(4, true); //readUnsignedShorts(file, 2);
     readS32(file);
 
-    core::array<s32> data = readDataArray<s32>(file, 4);
+    core::array<s32> meshData = readDataArray<s32>(file, 4); // Indices adress + unks
     NbSubMesh = readU8(file);
     SubMeshData.clear();
-    int Vert_Type = readU8(file);
+    u8 vertexType = readU8(file);
 
     for (unsigned int i = 0; i < NbSubMesh; i++)
     {
         Submesh_data s_data;
-        s_data.vertype = Vert_Type;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
+        s_data.vertexType = vertexType;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
         s_data.dataI = readDataArray<s32>(file, 5);
         s_data.dataH = readDataArray<u16>(file, 1);
         SubMeshData.push_back(s_data);
     }
 
     file->seek(back+4);
-    drawmesh_static(file, data, mats);
+    drawmesh_static(file, meshData, mats);
 }
 
 
@@ -754,7 +754,7 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
 {
     log->addLineAndFlush("Drawmesh_static");
 
-    int back = file->getPos();
+    long back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
     for (unsigned int n = 0; n < NbSubMesh; n++)
@@ -762,48 +762,82 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
         if (n >= IdLOD[0][0])
             continue;
 
-        log->addLineAndFlush("submesh");
-        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
+        Submesh_data submesh = SubMeshData[n];
 
-        Submesh_data var = SubMeshData[n];
-        //std::cout << "var.vertype = " << var.vertype << std::endl;
+        int vertexSize = 0;
+        bool hasSecondUVLayer = false;
+        switch (submesh.vertexType) {
+        case 0:
+            vertexSize = 36;
+            break;
 
-        int vertsize = 0;
-        if (var.vertype == 0)
-            vertsize = 36;
-        else if (var.vertype == 6)
-            vertsize = 44;
-        else if (var.vertype == 9 || var.vertype  == 5)
-            vertsize = 60;
+        case 6:
+            vertexSize = 44;
+            hasSecondUVLayer = true;
+            break;
 
-        int VertStart = var.dataI[0];
-        int VertEnd = var.dataI[2];
+        case 9:
+        case 5:
+            vertexSize = 60;
+            break;
 
-        file->seek(back+VertStart*vertsize);
-        buf->Vertices_Standard.reallocate(VertEnd);
+        default:
+            log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
+            break;
+        }
+        int verticesStart = submesh.dataI[0];
+        int verticesCount = submesh.dataI[2];
 
-        for (int i = 0; i < VertEnd; i++)
+        log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
+        file->seek(back + verticesStart * vertexSize);
+
+        SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+        if (hasSecondUVLayer)
         {
-            int back1 = file->getPos();
-            video::S3DVertex vertex;
-            core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+            buffer->VertexType = video::EVT_2TCOORDS;
+            buffer->Vertices_2TCoords.reallocate(verticesCount);
+        }
+        else
+        {
+            buffer->VertexType = video::EVT_STANDARD;
+            buffer->Vertices_Standard.reallocate(verticesCount);
+        }
 
+        for (int i = 0; i < verticesCount; i++)
+        {
+            long vertexAdress = file->getPos();
+            core::array<f32> position = readDataArray<f32>(file, 3);
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
-            vertex.TCoords = core::vector2df(uv[0], uv[1]);
-            vertex.Color = defaultColor;
-            buf->Vertices_Standard.push_back(vertex);
 
-            file->seek(back1 + vertsize);
+            if (hasSecondUVLayer)
+            {
+                core::array<f32> uv2 = readDataArray<f32>(file, 2);
+                video::S3DVertex2TCoords vertex;
+                vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+                vertex.TCoords = core::vector2df(uv[0], uv[1]);
+                vertex.TCoords2 = core::vector2df(uv2[0], uv2[1]);
+                vertex.Color = defaultColor;
+                buffer->Vertices_2TCoords.push_back(vertex);
+            }
+            else
+            {
+                video::S3DVertex vertex;
+                vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+                vertex.TCoords = core::vector2df(uv[0], uv[1]);
+                vertex.Color = defaultColor;
+                buffer->Vertices_Standard.push_back(vertex);
+            }
+
+            file->seek(vertexAdress + vertexSize);
         }
-        int FacesStart = var.dataI[1];
-        int FacesEnd = var.dataI[3];
+        int indicesStart = submesh.dataI[1];
+        int indicesCount = submesh.dataI[3];
 
-        file->seek(back+data[0]+FacesStart*2);
+        file->seek(back + data[0] + indicesStart * 2);
 
-        buf->Indices.set_used(FacesEnd);
-        file->read(buf->Indices.pointer(), FacesEnd * 2);
+        buffer->Indices.set_used(indicesCount);
+        file->read(buffer->Indices.pointer(), indicesCount * 2);
 
 
         int result = 0;
@@ -813,10 +847,10 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
         //std::cout << "MaterialSize= " << Materials.size() << std::endl;
         //std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;
 
-        buf->Material = Materials[result].material;
+        buffer->Material = Materials[result].material;
 
-        SceneManager->getMeshManipulator()->recalculateNormals(buf);
-        buf->recalculateBoundingBox();
+        SceneManager->getMeshManipulator()->recalculateNormals(buffer);
+        buffer->recalculateBoundingBox();
     }
     AnimatedMesh->setDirty();
 
@@ -836,28 +870,37 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
         if (n >= IdLOD[0][0])
             continue;
 
-        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
+        Submesh_data submesh = SubMeshData[n];
 
+        int vertexSize = 0;
+        switch (submesh.vertexType) {
+        case 1:
+            vertexSize = 44;
+            break;
+
+        case 11:
+            vertexSize = 44;
+            break;
+
+        default:
+            vertexSize = 52;
+            log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
+            break;
+        }
+
+        int verticesStart = submesh.dataI[0];
+        int verticesCount = submesh.dataI[2];
+
+        log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
+        file->seek(back + verticesStart * vertexSize);
+
+        SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+        buffer->Vertices_Standard.reallocate(verticesCount);
         core::array<core::array<u8> > weighting;
-        // std::cout << "var.vertype = " << SubMeshData[n].vertype << std::endl;
-        int vertsize = 0;
-        if (SubMeshData[n].vertype == 1)
-            vertsize = 44;
-        else if (SubMeshData[n].vertype == 11)
-            vertsize = 44;
-        else
-            vertsize = 52;
-
-        Submesh_data var = SubMeshData[n];
-        int VertStart  = var.dataI[0];
-        int VertEnd = var.dataI[2];
-
-        file->seek(back+VertStart*vertsize);
-        buf->Vertices_Standard.reallocate(VertEnd);
-        weighting.reallocate(VertEnd);
-        for (int i = 0; i < VertEnd; i++)
+        weighting.reallocate(verticesCount);
+        for (int i = 0; i < verticesCount; i++)
         {
-            int back1 = file->getPos();
+            int vertexAdress = file->getPos();
             video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
             vertex.Pos = core::vector3df(position[0], position[1], position[2]);
@@ -868,18 +911,18 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
             core::array<f32> uv = readDataArray<f32>(file, 2);
             vertex.TCoords = core::vector2df(uv[0], uv[1]);
             vertex.Color = defaultColor;
-            buf->Vertices_Standard.push_back(vertex);
+            buffer->Vertices_Standard.push_back(vertex);
 
-            file->seek(back1+vertsize);
+            file->seek(vertexAdress + vertexSize);
         }
 
-        int FacesStart = var.dataI[1];
-        int FacesEnd = var.dataI[3];
+        int indicesStart = submesh.dataI[1];
+        int indicesCount = submesh.dataI[3];
 
         // Faces
-        file->seek(back + data[2] + FacesStart*2);
-        buf->Indices.set_used(FacesEnd);
-        file->read(buf->Indices.pointer(), FacesEnd * 2);
+        file->seek(back + data[2] + indicesStart * 2);
+        buffer->Indices.set_used(indicesCount);
+        file->read(buffer->Indices.pointer(), indicesCount * 2);
 
 
         int result = 0;
@@ -890,12 +933,12 @@ void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, c
         /*std::cout << "MaterialSize= " << Materials.size() << std::endl;
         std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;*/
 
-        buf->Material = Materials[result].material;
+        buffer->Material = Materials[result].material;
 
         make_vertex_group(SubMeshData[n], weighting);
 
-        SceneManager->getMeshManipulator()->recalculateNormals(buf);
-        buf->recalculateBoundingBox();
+        SceneManager->getMeshManipulator()->recalculateNormals(buffer);
+        buffer->recalculateBoundingBox();
     }
 
     log->addLineAndFlush("Drawmesh OK");

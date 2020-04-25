@@ -48,7 +48,7 @@ struct Meshdata
 
 struct Submesh_data
 {
-    int vertype;
+    int vertexType;
     core::array <int> dataI;
     core::array <unsigned short> dataH;
 };
@@ -62,7 +62,7 @@ struct Mat
 struct bone_data
 {
     core::stringc name;
-    irr::core::matrix4 matr;
+    core::matrix4 matr;
 };
 
 

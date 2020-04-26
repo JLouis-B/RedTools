@@ -164,7 +164,7 @@ class QIrrlichtWidget : public QWidget
 
         io::IFileSystem* getFileSystem();
 
-        bool setMesh(QString filename, core::stringc &feedbackMessage);
+        bool loadAndReplaceMesh(QString filename, core::stringc &feedbackMessage);
         bool addMesh(QString filename, core::stringc &feedbackMessage);
 
         void exportMesh(QString exportFolderPath, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);

@@ -180,7 +180,7 @@ void GUI_MainWindow::addMesh()
         core::stringc feedbackMessage;
 
         if (_irrWidget->isEmpty(_currentLOD))
-            _irrWidget->setMesh(file, feedbackMessage);
+            _irrWidget->loadAndReplaceMesh(file, feedbackMessage);
         else
             _irrWidget->addMesh(file, feedbackMessage);
 
@@ -651,7 +651,7 @@ void GUI_MainWindow::loadMesh(QString path)
     QCoreApplication::processEvents();
 
     core::stringc feedbackMessage = "";
-    bool success = _irrWidget->setMesh(path, feedbackMessage);
+    bool success = _irrWidget->loadAndReplaceMesh(path, feedbackMessage);
     if (success)
     {
         _irrWidget->enableWireframe(_ui->action_display_Wireframe->isChecked());
@@ -690,6 +690,7 @@ void GUI_MainWindow::loadRig(QString path)
         return;
     }
     addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+    QCoreApplication::processEvents();
 
     core::stringc feedback;
     bool success = _irrWidget->loadRig(QSTRING_TO_PATH(path), feedback);
@@ -711,6 +712,7 @@ void GUI_MainWindow::loadAnimations(QString path)
         return;
     }
     addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+    QCoreApplication::processEvents();
 
     core::stringc feedback;
     bool success = _irrWidget->loadAnims(QSTRING_TO_PATH(path), feedback);
@@ -727,6 +729,7 @@ void GUI_MainWindow::loadTW1Animations(QString path)
         return;
     }
     addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+    QCoreApplication::processEvents();
 
     core::stringc feedback;
     bool success = _irrWidget->loadTW1Anims(QSTRING_TO_PATH(path), feedback);
@@ -742,6 +745,9 @@ void GUI_MainWindow::loadTheCouncilTemplate(QString path)
         QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
+    addToUILog(Translator::get("log_readingFile") + " '" + path + "'... ");
+    QCoreApplication::processEvents();
+
     core::stringc feedback;
     bool success = _irrWidget->loadTheCouncilTemplate(QSTRING_TO_PATH(path), feedback);
     addToUILog(QString(feedback.c_str()) + "\n");

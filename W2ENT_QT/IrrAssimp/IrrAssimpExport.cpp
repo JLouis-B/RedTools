@@ -239,42 +239,48 @@ void IrrAssimpExport::createMeshes(const scene::IMesh* mesh)
             assimpMesh->mBitangents = new aiVector3D[assimpMesh->mNumVertices];
         }
 
-        video::S3DVertex* vertices = (video::S3DVertex*)buffer->getVertices();
-
-        video::S3DVertex2TCoords* tCoordsVertices;
-        verticesType == video::EVT_2TCOORDS ? tCoordsVertices = (video::S3DVertex2TCoords*) vertices : tCoordsVertices = 0;
-
-        video::S3DVertexTangents* tangentsVertices;
-        verticesType == video::EVT_TANGENTS ? tangentsVertices = (video::S3DVertexTangents*) vertices : tangentsVertices = 0;
-
+        void* vertices = (void*)buffer->getVertices();
         for (unsigned int j = 0; j < buffer->getVertexCount(); ++j)
         {
-            video::S3DVertex vertex = vertices[j];
-
-            core::vector3df position = vertex.Pos;
-            core::vector3df normal = vertex.Normal;
-            core::vector2df uv = vertex.TCoords;
-            video::SColor color = vertex.Color;
-
+            core::vector3df position = buffer->getPosition(j);
+            core::vector3df normal = buffer->getNormal(j);
+            core::vector2df uv = buffer->getTCoords(j);
             assimpMesh->mVertices[j] = aiVector3D(position.X, position.Y, position.Z);
             assimpMesh->mNormals[j] = aiVector3D(normal.X, normal.Y, normal.Z);
             assimpMesh->mTextureCoords[0][j] = aiVector3D(uv.X, uv.Y, 0);
-            assimpMesh->mColors[0][j] = aiColor4D(color.getRed() / 255.f, color.getGreen() / 255.f, color.getBlue() / 255.f, color.getAlpha() / 255.f);
 
-            if (verticesType == video::EVT_2TCOORDS)
+            switch(verticesType)
             {
-                video::S3DVertex2TCoords tCoordsVertex = tCoordsVertices[j];
-                core::vector2df uv2 = tCoordsVertex.TCoords2;
-                assimpMesh->mTextureCoords[1][j] = aiVector3D(uv2.X, uv2.Y, 0);
-            }
-            if (verticesType == video::EVT_TANGENTS)
-            {
-                video::S3DVertexTangents tangentsVertex = tangentsVertices[j];
-                core::vector3df tangent = tangentsVertex.Tangent;
-                core::vector3df binormal = tangentsVertex.Binormal;
+                case video::EVT_STANDARD:
+                {
+                    video::S3DVertex vertex = ((video::S3DVertex*)vertices)[j];
+                    video::SColorf color = vertex.Color;
+                    assimpMesh->mColors[0][j] = aiColor4D(color.getRed() / 255.f, color.getGreen() / 255.f, color.getBlue() / 255.f, color.getAlpha() / 255.f);
+                    break;
+                }
+                case video::EVT_2TCOORDS:
+                {
+                    video::S3DVertex2TCoords vertex = ((video::S3DVertex2TCoords*)vertices)[j];
+                    video::SColorf color = vertex.Color;
+                    assimpMesh->mColors[0][j] = aiColor4D(color.getRed() / 255.f, color.getGreen() / 255.f, color.getBlue() / 255.f, color.getAlpha() / 255.f);
 
-                assimpMesh->mTangents[j] = aiVector3D(tangent.X, tangent.Y, tangent.Z);
-                assimpMesh->mBitangents[j] = aiVector3D(binormal.X, binormal.Y, binormal.Z);
+                    core::vector2df uv2 = vertex.TCoords2;
+                    assimpMesh->mTextureCoords[1][j] = aiVector3D(uv2.X, uv2.Y, 0);
+                    break;
+                }
+                case video::EVT_TANGENTS:
+                {
+                    video::S3DVertexTangents vertex = ((video::S3DVertexTangents*)vertices)[j];
+                    video::SColorf color = vertex.Color;
+                    assimpMesh->mColors[0][j] = aiColor4D(color.getRed() / 255.f, color.getGreen() / 255.f, color.getBlue() / 255.f, color.getAlpha() / 255.f);
+
+                    core::vector3df tangent = vertex.Tangent;
+                    core::vector3df binormal = vertex.Binormal;
+
+                    assimpMesh->mTangents[j] = aiVector3D(tangent.X, tangent.Y, tangent.Z);
+                    assimpMesh->mBitangents[j] = aiVector3D(binormal.X, binormal.Y, binormal.Z);
+                    break;
+                }
             }
         }
 

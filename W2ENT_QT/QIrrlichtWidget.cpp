@@ -15,6 +15,7 @@
 #include "MeshCombiner.h"
 #include "Translator.h"
 #include "Utils_Qt_Irr.h"
+#include "Utils_Qt.h"
 
 #include <iostream>
 
@@ -477,7 +478,7 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
 bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage)
 {
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_baseDir.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", cleanPath(Settings::_baseDir).toStdString().c_str());
 
     bool success = _device->getSceneManager()->loadScene(filename);
     if (success)
@@ -535,15 +536,9 @@ void QIrrlichtWidget::loadMeshPostProcess()
 
 scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc &feedbackMessage)
 {
-    if (Settings::_baseDir.size() > 0 && Settings::_baseDir[Settings::_baseDir.size() - 1] != '/')
-        Settings::_baseDir.push_back('/');
-
-    if (Settings::_TW3TexPath.size() > 0 && Settings::_TW3TexPath[Settings::_TW3TexPath.size() - 1] != '/')
-        Settings::_TW3TexPath.push_back('/');
-
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", Settings::_baseDir.toStdString().c_str());
-    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", Settings::_TW3TexPath.toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", cleanPath(Settings::_baseDir).toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", cleanPath(Settings::_TW3TexPath).toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkeletonEnabled);
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLODEnabled);
 
@@ -783,7 +778,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
     {
 #ifdef COMPILE_WITH_ASSIMP
         IrrAssimp assimp(_device->getSceneManager());
-        assimp.exportMesh(_currentLodData->_node->getMesh(), exporter._assimpExporterId.toStdString().c_str(), exportFolderPath.toStdString().c_str());
+        assimp.exportMesh(_currentLodData->_node->getMesh(), exporter._assimpExporterId.toStdString().c_str(), exportMeshPath);
 #else
         QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");
 #endif

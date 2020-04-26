@@ -72,6 +72,6 @@
 	<element id="options_tw3_textures_folder" text="Dossier des textures"/>
 	<element id="options_tw3_skeleton" text="Charger les squelettes (expérimental et instable - A désactiver si vous n'en avez pas besoin)"/>
 	<element id="options_debug_log" text="Générer le 'debug.log'"/>
-	<element id="options_debug_log_label" text="En cas de problème pour charger un fichier w2ent/w2mesh, vous pouvez activer cette option pour générer un fichier de log. Ce fichier peut m'aider à corriger votre problème, donc en cas de problème vous pouvez m'envoyer ce fichier (via le foru The witcher si vous etes inscrit ou par mail à jeanlouis.boudrand@hotmail.fr.)"/>
+	<element id="options_debug_log_label" text="En cas de problème avec le logiciel, vous pouvez activer cette option pour générer un fichier de log. Ce fichier peut m'aider à corriger votre problème, donc en cas de problème vous pouvez m'envoyer ce fichier (voir Aide/About pour me contacter)"/>
 
 </translation>

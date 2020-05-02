@@ -20,13 +20,13 @@
 namespace irr
 {
 
-struct DataInfos
+struct ChunkDescriptor
 {
     int size;
     int adress;
 };
 
-struct W2_PropertyHeader
+struct PropertyHeader
 {
     core::stringc propName;
     core::stringc propType;
@@ -39,27 +39,27 @@ struct W2_PropertyHeader
     }
 };
 
-struct Meshdata
+struct MeshData
 {
     int nModel;
     core::array<int> nMat;
-    DataInfos infos;
+    ChunkDescriptor infos;
 };
 
-struct Submesh_data
+struct SubmeshData
 {
     int vertexType;
     core::array <int> dataI;
     core::array <unsigned short> dataH;
 };
 
-struct Mat
+struct Material
 {
     int id;
     video::SMaterial material;
 };
 
-struct bone_data
+struct BoneData
 {
     core::stringc name;
     core::matrix4 matr;
@@ -97,22 +97,26 @@ public:
 
 private:
 
-    bool ReadPropertyHeader(io::IReadFile* file, W2_PropertyHeader& propHeader);
+    bool ReadPropertyHeader(io::IReadFile* file, PropertyHeader& propHeader);
 
     // Main function
 	bool load(io::IReadFile* file);
 
-    void CMesh(io::IReadFile* file, Meshdata tmp);
-    void CSkeleton(io::IReadFile* file, DataInfos infos);
 
     void skeleton(io::IReadFile* file);
-    void drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats);
-    void CMaterialInstance(io::IReadFile* file, DataInfos infos, int nMats);
-    void TEXTURE(io::IReadFile* file, core::stringc xbm_file, core::array<int> data, core::array<core::stringc> stringsXBM);
-    void convertXBMToDDS(core::stringc xbm_file);
-    void drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats);
+    void CMesh(io::IReadFile* file, MeshData tmp);
+    void loadStaticMesh(io::IReadFile* file, core::array<int> mats);
+    void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
     void vert_format(io::IReadFile* file);
-    void static_meshes(io::IReadFile* file, core::array<int> mats);
+    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
+
+    void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats);
+    void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
+    void generateDDSFromXBM(core::stringc filepath);
+
+    void CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
+
+
 
 	bool find (core::array<core::stringc> stringVect, core::stringc name);
 	core::stringc searchParent(core::stringc bonename);
@@ -128,7 +132,7 @@ private:
     void addMatrixToLog(core::matrix4 mat);
 
 
-    void make_vertex_group(Submesh_data dataSubMesh, core::array<core::array<unsigned char> > weighting);
+    void SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting);
 
     video::ITexture* getTexture(core::stringc filename);
 
@@ -143,15 +147,15 @@ private:
     core::array<core::stringc> Strings;
     core::array<core::stringc> Files;
     // Informations about a CMesh
-    core::array<Meshdata> MeshesToLoad;
+    core::array<MeshData> MeshesToLoad;
     // Materials of the meshes
-    core::array<Mat> Materials;
+    core::array<Material> Materials;
 
     io::path ConfigGamePath;
 
     // Bones data
-    core::array<core::stringc> bonenames;
-    core::array<bone_data> bones_data;
+    core::array<core::stringc> BonesName;
+    core::array<BoneData> BonesData;
 
     //DEBUG
     Log* log;

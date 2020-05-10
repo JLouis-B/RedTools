@@ -62,6 +62,10 @@ EMESH_WRITER_TYPE IO_MeshWriter_RE::getType() const
     return EMWT_OBJ;
 }
 
+core::vector3df IrrToRedVector(core::vector3df irrVector)
+{
+    return core::vector3df(irrVector.X, irrVector.Z, irrVector.Y);
+}
 
 void IO_MeshWriter_RE::createWeightsTable(scene::ISkinnedMesh* mesh)
 {
@@ -204,7 +208,7 @@ bool IO_MeshWriter_RE::writeAnimatedMesh(io::IWriteFile* file, scene::IMesh* mes
         writeCollisionMeshChunk(file);
 
 
-    // update the chunks adress/sie in the header
+    // update the chunks adress/size in the header
     for (u32 i = 0; i < ChunksAdressToWrite.size(); ++i)
     {
         file->seek(ChunksAdressToWrite[i]);
@@ -248,7 +252,9 @@ void IO_MeshWriter_RE::writeCollisionMeshChunk(io::IWriteFile* file)
 
     for (u32 i = 0; i < CollisionMesh->getMeshBufferCount(); ++i)
     {
-        const core::vector3df meshBufferCenter = CollisionMesh->getMeshBuffer(i)->getBoundingBox().getCenter();
+        const scene::IMeshBuffer* buffer = CollisionMesh->getMeshBuffer(i);
+
+        const core::vector3df meshBufferCenter = buffer->getBoundingBox().getCenter();
         //meshBufferCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
 
         const core::vector3df center = meshBufferCenter - meshCenter;
@@ -261,8 +267,8 @@ void IO_MeshWriter_RE::writeCollisionMeshChunk(io::IWriteFile* file)
         // And the path
         file->write(objectName.c_str(), objectNameSize);
 
-        const u32 nbVertices = CollisionMesh->getMeshBuffer(i)->getVertexCount();
-        const u32 nbTriangles = CollisionMesh->getMeshBuffer(i)->getIndexCount()/3;
+        const u32 nbVertices = buffer->getVertexCount();
+        const u32 nbTriangles = buffer->getIndexCount()/3;
         const u32 nbU = 1;
 
         file->write(&nbVertices, 4);
@@ -271,17 +277,17 @@ void IO_MeshWriter_RE::writeCollisionMeshChunk(io::IWriteFile* file)
 
         for (u32 n = 0; n < nbVertices; ++n)
         {
-            core::vector3df vertexPos = CollisionMesh->getMeshBuffer(i)->getPosition(n) - center;
+            const core::vector3df vertexPos = IrrToRedVector(buffer->getPosition(n) - center);
 
             file->write(&vertexPos.X, 4);
-            file->write(&vertexPos.Z, 4);
             file->write(&vertexPos.Y, 4);
+            file->write(&vertexPos.Z, 4);
         }
         for (u32 n = 0; n < nbTriangles; ++n)
         {
-            u32 index1 = CollisionMesh->getMeshBuffer(i)->getIndices()[n*3];
-            u32 index2 = CollisionMesh->getMeshBuffer(i)->getIndices()[n*3 + 1];
-            u32 index3 = CollisionMesh->getMeshBuffer(i)->getIndices()[n*3 + 2];
+            u32 index1 = buffer->getIndices()[n*3];
+            u32 index2 = buffer->getIndices()[n*3 + 1];
+            u32 index3 = buffer->getIndices()[n*3 + 2];
 
             file->write(&index1, 4);
             file->write(&index2, 4);
@@ -298,9 +304,10 @@ void IO_MeshWriter_RE::writeCollisionMeshChunk(io::IWriteFile* file)
         file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
 
         // probably the mesh center
-        file->write(&center.X, 4);
-        file->write(&center.Z, 4);
-        file->write(&center.Y, 4);
+        const core::vector3df redCenter = IrrToRedVector(center);
+        file->write(&redCenter.X, 4);
+        file->write(&redCenter.Y, 4);
+        file->write(&redCenter.Z, 4);
     }
 
     ChunksSize.push_back(file->getPos() - chunkStart);
@@ -313,11 +320,14 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
     // In the .re format, the mesh needs tangents
     scene::IMesh* tangentMesh = lodMesh;
+    bool useSeparateTangentsMesh = false;
+
     for (u32 i = 0; i < lodMesh->getMeshBufferCount(); ++i)
     {
         if (lodMesh->getMeshBuffer(i)->getVertexType() != video::EVT_TANGENTS)
         {
             tangentMesh = SceneManager->getMeshManipulator()->createMeshWithTangents(lodMesh);
+            useSeparateTangentsMesh = true;
             break;
         }
     }
@@ -342,26 +352,29 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
     file->write("\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80?", 36);
 
     // the offset between the center of the mesh and (0, 0, 0)
-    const core::vector3df meshCenter = lodMesh->getBoundingBox().getCenter();
+    const core::vector3df redMeshCenter = IrrToRedVector(lodMesh->getBoundingBox().getCenter());
     //meshCenter.Y = 0.0f; // not sure why I have forced it to 0 previously
-    file->write(&meshCenter.X, 4);
-    file->write(&meshCenter.Z, 4);
-    file->write(&meshCenter.Y, 4);
+    file->write(&redMeshCenter.X, 4);
+    file->write(&redMeshCenter.Y, 4);
+    file->write(&redMeshCenter.Z, 4);
 
     if (skinned)
         createWeightsTable((scene::ISkinnedMesh*)lodMesh);
 
 
-    // The material
     for (u32 i=0; i<lodMesh->getMeshBufferCount(); ++i)
 	{
+        const scene::IMeshBuffer* buffer = lodMesh->getMeshBuffer(i);
+        const scene::IMeshBuffer* tangentBuffer = tangentMesh->getMeshBuffer(i); // Potentially not the same as 'buffer' if the mesh has no tangents
+        const video::SMaterial material = buffer->getMaterial();
+
         core::stringc matName = "noname";
         core::stringc diffuseTexture = "diff";
-        if (lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0))
+        if (material.getTexture(0))
         {
-            diffuseTexture = FileSystem->getFileBasename(lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), true);
+            diffuseTexture = FileSystem->getFileBasename(material.getTexture(0)->getName().getPath(), true);
             diffuseTexture = diffuseTexture.make_lower();
-            matName = FileSystem->getFileBasename(lodMesh->getMeshBuffer(i)->getMaterial().getTexture(0)->getName().getPath(), false);
+            matName = FileSystem->getFileBasename(material.getTexture(0)->getName().getPath(), false);
             matName = matName.make_lower();
         }
         u32 matNameSize = matName.size();
@@ -375,30 +388,27 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
         file->write("\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 14);
 
-        u32 nbVerticesMeshBuf = lodMesh->getMeshBuffer(i)->getVertexCount();
-        s32 nbFacesMeshBuf = lodMesh->getMeshBuffer(i)->getIndexCount()/3;
+        u32 nbVerticesMeshBuf = buffer->getVertexCount();
+        s32 nbFacesMeshBuf = buffer->getIndexCount()/3;
 
         file->write(&nbVerticesMeshBuf, 4);
         file->write(&nbFacesMeshBuf, 4);
 
-        //SceneManager->getMeshManipulator()->recalculateNormals(lodMesh);
 
-        // write mesh buffers
-        // And now the vertex
-        video::S3DVertexTangents* verts = (video::S3DVertexTangents*)(tangentMesh->getMeshBuffer(i)->getVertices());
+        video::S3DVertexTangents* vertices = (video::S3DVertexTangents*)(tangentBuffer->getVertices());
         for(u32 n=0; n<lodMesh->getMeshBuffer(i)->getVertexCount(); ++n)
         {
             // The vertex positions are relatives to the mesh center
-            const core::vector3df relativePos = lodMesh->getMeshBuffer(i)->getPosition(n);
-            file->write(&relativePos.X, 4);
-            file->write(&relativePos.Z, 4);
-            file->write(&relativePos.Y, 4);
+            const core::vector3df redRelativePos = IrrToRedVector(buffer->getPosition(n));
+            file->write(&redRelativePos.X, 4);
+            file->write(&redRelativePos.Y, 4);
+            file->write(&redRelativePos.Z, 4);
             // Y and Z axis seem don't be the same that the Irrlicht axis
 
-            const core::vector3df normal = lodMesh->getMeshBuffer(i)->getNormal(n);
-            file->write(&normal.X, 4);
-            file->write(&normal.Z, 4);
-            file->write(&normal.Y, 4);
+            const core::vector3df redNormal = IrrToRedVector(buffer->getNormal(n));
+            file->write(&redNormal.X, 4);
+            file->write(&redNormal.Y, 4);
+            file->write(&redNormal.Z, 4);
 
 
             /*
@@ -411,25 +421,17 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
             m.setRotationDegrees(core::vector3df(-90, 0, 0));
             m.rotateVect(vect3);
-
-            float v2x = vect2.X;
-            float v2y = vect2.Y;
-            float v2z = vect2.Z;
-
-            float v3x = vect3.X;
-            float v3y = vect3.Y;
-            float v3z = vect3.Z;
             */
             // Binormals and tangeants ?
-            const core::vector3df tangent = (verts)[n].Tangent;
-            file->write(&tangent.X, 4);
-            file->write(&tangent.Z, 4);
-            file->write(&tangent.Y, 4);
+            const core::vector3df redTangent = IrrToRedVector(vertices[n].Tangent);
+            file->write(&redTangent.X, 4);
+            file->write(&redTangent.Y, 4);
+            file->write(&redTangent.Z, 4);
 
-            const core::vector3df binormal = (verts)[n].Binormal;
-            file->write(&binormal.X, 4);
-            file->write(&binormal.Z, 4);
-            file->write(&binormal.Y, 4);
+            const core::vector3df redBinormal = IrrToRedVector(vertices[n].Binormal);
+            file->write(&redBinormal.X, 4);
+            file->write(&redBinormal.Y, 4);
+            file->write(&redBinormal.Z, 4);
 
             if (skinned)
             {
@@ -473,7 +475,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 48);
 
 
-            const core::vector2df uv = lodMesh->getMeshBuffer(i)->getTCoords(n);
+            const core::vector2df uv = buffer->getTCoords(n);
             file->write(&uv.X, 4);
             file->write(&uv.Y, 4);
 
@@ -483,34 +485,17 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             else
             {
                 // std::cout << "WARNING : 2 TCoords" << std::endl;
-                core::vector2df tCoords2 = ((video::S3DVertex2TCoords*)lodMesh->getMeshBuffer(i)->getVertices())[n].TCoords2;
+                const core::vector2df tCoords2 = ((video::S3DVertex2TCoords*)buffer->getVertices())[n].TCoords2;
                 file->write(&tCoords2.X, 4);
                 file->write(&tCoords2.Y, 4);
             }
         }
 
-
-        // And the indices
-
         for(u32 n=0; n<lodMesh->getMeshBuffer(i)->getIndexCount()/3; n++)
         {
-            /*
-            u16 index1 = mesh->getMeshBuffer(i)->getIndices()[n*3];
-            u16 index2 = mesh->getMeshBuffer(i)->getIndices()[n*3 + 1];
-            u16 index3 = mesh->getMeshBuffer(i)->getIndices()[n*3 + 2];
-
-            file->write(&index1, 2);
-            file->write("\x00\x00", 2);
-            file->write(&index3, 2);
-            file->write("\x00\x00", 2);
-            file->write(&index2, 2);
-            file->write("\x00\x00", 2);
-            file->write("\x00\x00\x00\x00", 4);*/
-
-            // u32 version
-            u32 index1 = lodMesh->getMeshBuffer(i)->getIndices()[n*3];
-            u32 index2 = lodMesh->getMeshBuffer(i)->getIndices()[n*3 + 1];
-            u32 index3 = lodMesh->getMeshBuffer(i)->getIndices()[n*3 + 2];
+            const u32 index1 = buffer->getIndices()[n*3];
+            const u32 index2 = buffer->getIndices()[n*3 + 1];
+            const u32 index3 = buffer->getIndices()[n*3 + 2];
 
             file->write(&index1, 4);
             file->write(&index3, 4);
@@ -519,50 +504,39 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
         }
 	}
 
-
+    // This part isn't well tested
     if (skinned)
     {
         scene::ISkinnedMesh* skinMesh = ((scene::ISkinnedMesh*)lodMesh);
 
         for (u32 i = 0; i < nbJoints; ++i)
         {
-            u32 jointSizeName = skinMesh->getAllJoints()[i]->Name.size();
+            const scene::ISkinnedMesh::SJoint* joint = skinMesh->getAllJoints()[i];
+
+            u32 jointSizeName = joint->Name.size();
             file->write(&jointSizeName, 4);
 
-            core::stringc jointName = skinMesh->getAllJoints()[i]->Name;
+            core::stringc jointName = joint->Name;
             file->write(jointName.c_str(), jointSizeName);
 
-            core::matrix4 transformations = skinMesh->getAllJoints()[i]->GlobalMatrix;
 
-
-
-
+            core::matrix4 transformations = joint->GlobalMatrix;
 
             core::matrix4 posMat;
-            core::vector3df pos = skinMesh->getAllJoints()[i]->Animatedposition;
-            pos -= meshCenter;
-            double tmp = pos.Y;
-            pos.Y = pos.Z;
-            pos.Z = tmp;
-            posMat.setTranslation(pos);
+            core::vector3df redBonePos = IrrToRedVector(joint->Animatedposition) - redMeshCenter;
+            posMat.setTranslation(redBonePos);
 
             core::matrix4 rotMat;
-            core::vector3df rot;
-            skinMesh->getAllJoints()[i]->Animatedrotation.toEuler(rot);
-            tmp = rot.Y;
-            rot.Y = rot.Z;
-            rot.Z = tmp;
-            rotMat.setRotationDegrees(rot);
+            core::vector3df redBoneRot;
+            joint->Animatedrotation.toEuler(redBoneRot);
+            redBoneRot = IrrToRedVector(redBoneRot);
+            rotMat.setRotationDegrees(redBoneRot);
 
             core::matrix4 scaleMat;
-            core::vector3df scale = skinMesh->getAllJoints()[i]->Animatedscale;
-            tmp = scale.Y;
-            scale.Y = scale.Z;
-            scale.Z = tmp;
-            scaleMat.setScale(scale);
+            core::vector3df redBoneScale = IrrToRedVector(joint->Animatedscale);
+            scaleMat.setScale(redBoneScale);
 
             transformations = posMat * rotMat * scaleMat;
-
 
 
             //std::cout << "Translation : X="<< transformations.getTranslation().X << ", Y="<< transformations.getTranslation().Y << ", Z="<< transformations.getTranslation().Z << std::endl;
@@ -570,7 +544,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             //std::cout << "Scale : X="<<transformations.getScale().X << ", Y="<< transformations.getScale().Y << ", Z="<< transformations.getScale().Z << std::endl;
             //std::cout << "Extra data="<<transformations[3] << ", "<< transformations[7] << ", "<< transformations[11] << std::endl;
 
-            float m0, m1, m2, m4, m5, m6, m8, m9, m10, m12, m13, m14;
+            f32 m0, m1, m2, m4, m5, m6, m8, m9, m10, m12, m13, m14;
             m0 = transformations[0];
             m1 = transformations[1];
             m2 = transformations[2];
@@ -606,6 +580,9 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
         }
     }
+
+    if (useSeparateTangentsMesh)
+        tangentMesh->drop();
 
     ChunksSize.push_back(file->getPos() - chunkStart);
 }

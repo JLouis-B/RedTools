@@ -202,7 +202,7 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
 
     for (int n = 0; n < nbMeshBuffer; n++)
     {
-        SSkinMeshBuffer* buf = currentLODMesh->addMeshBuffer();
+        SSkinMeshBuffer* buffer = currentLODMesh->addMeshBuffer();
         s32 sizeMatName = readS32(f);
         core::stringc matName = readString(f, sizeMatName);
         log->addLineAndFlush(formatString("matname : %s", matName.c_str()));
@@ -213,12 +213,12 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
 
         video::ITexture* tex = SceneManager->getVideoDriver()->getTexture(matDiff);
         if (tex)
-            buf->Material.setTexture(0, tex);
+            buffer->Material.setTexture(0, tex);
         else
         {
             tex = SceneManager->getVideoDriver()->getTexture(FileSystem->getFileDir(f->getFileName()) + "/" + matDiff);
             if (tex)
-                buf->Material.setTexture(0, tex);
+                buffer->Material.setTexture(0, tex);
         }
 
 
@@ -241,7 +241,7 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
             log->flush();
         }
 
-        buf->Vertices_Standard.set_used(nbVertices);
+        buffer->Vertices_Standard.set_used(nbVertices);
         for (s32 i = 0; i < nbVertices; i++)
         {
             f32 x, y, z, u, v, nx, ny, nz, bx, by, bz, tx, ty, tz;
@@ -290,16 +290,16 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
             f->seek(8, true);
 
 
-            buf->Vertices_Standard[i].Pos.X = x;
-            buf->Vertices_Standard[i].Pos.Y = y;
-            buf->Vertices_Standard[i].Pos.Z = z;
+            buffer->Vertices_Standard[i].Pos.X = x;
+            buffer->Vertices_Standard[i].Pos.Y = y;
+            buffer->Vertices_Standard[i].Pos.Z = z;
 
-            buf->Vertices_Standard[i].TCoords.X = u;
-            buf->Vertices_Standard[i].TCoords.Y = v;
+            buffer->Vertices_Standard[i].TCoords.X = u;
+            buffer->Vertices_Standard[i].TCoords.Y = v;
 
-            buf->Vertices_Standard[i].Normal.X = nx;
-            buf->Vertices_Standard[i].Normal.Y = ny;
-            buf->Vertices_Standard[i].Normal.Z = nz;
+            buffer->Vertices_Standard[i].Normal.X = nx;
+            buffer->Vertices_Standard[i].Normal.Y = ny;
+            buffer->Vertices_Standard[i].Normal.Z = nz;
 
             /*
             buf->Vertices[i].Binormal.X = bx;
@@ -311,14 +311,14 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
             buf->Vertices[i].Tangent.Z = tz;
             */
 
-            buf->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
+            buffer->Vertices_Standard[i].Color = video::SColor(255, 255, 255, 255);
 
             //if (log->isEnabled())
             //    log->addLine(formatString("Vertice : x=%f, y=%f, z=%f, UV : u=%f, v=%f", x, y, z, u, v));
         }
         //log->flush();
 
-        buf->Indices.set_used(nbFaces * 3);
+        buffer->Indices.set_used(nbFaces * 3);
         for (s32 i = 0; i < nbFaces; i++)
         {
             s32 idx1, idx2, idx3;
@@ -330,14 +330,14 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
             f->seek(4, true);
 
 
-            buf->Indices[3*i] = idx1;
-            buf->Indices[3*i + 1] = idx3;
-            buf->Indices[3*i + 2] = idx2;
+            buffer->Indices[3*i] = idx1;
+            buffer->Indices[3*i + 1] = idx3;
+            buffer->Indices[3*i + 2] = idx2;
 
             //log->addLine(formatString("Indice : idx1 = %d, idx2 = %d, idx3 = %d", idx1, idx2, idx3));
         }
         log->flush();
-        buf->recalculateBoundingBox();
+        buffer->recalculateBoundingBox();
     }
 
     // Read bones

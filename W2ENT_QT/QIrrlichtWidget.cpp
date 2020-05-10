@@ -404,8 +404,9 @@ bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedback
     _currentLodData->_node->setMesh(newMesh);
 
     setMaterialsSettings(_currentLodData->_node);
-    return true;
 
+    feedbackMessage = "done";
+    return true;
 }
 
 bool QIrrlichtWidget::loadTW1Anims(const io::path filename, core::stringc &feedbackMessage)
@@ -431,6 +432,7 @@ bool QIrrlichtWidget::loadTW1Anims(const io::path filename, core::stringc &feedb
 
     setMaterialsSettings(_currentLodData->_node);
 
+    feedbackMessage = "done";
     return true;
 }
 
@@ -596,6 +598,7 @@ bool QIrrlichtWidget::addMesh(QString filename, core::stringc &feedbackMessage)
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
+        feedbackMessage = "fail";
         _inLoading = false;
         return false;
     }
@@ -615,7 +618,7 @@ bool QIrrlichtWidget::addMesh(QString filename, core::stringc &feedbackMessage)
     return true;
 }
 
-bool QIrrlichtWidget::setMesh(QString filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadAndReplaceMesh(QString filename, core::stringc &feedbackMessage)
 {
     _inLoading = true;
 
@@ -627,6 +630,7 @@ bool QIrrlichtWidget::setMesh(QString filename, core::stringc &feedbackMessage)
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
+        feedbackMessage = "fail";
         _inLoading = false;
         return false;
     }

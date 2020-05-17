@@ -810,9 +810,20 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
         int indicesCount = submesh.dataI[3];
 
         file->seek(back + meshData[0] + indicesStart * 2);
-
         buffer->Indices.set_used(indicesCount);
-        file->read(buffer->Indices.pointer(), indicesCount * 2);
+        for (u32 i = 0; i < indicesCount; ++i)
+        {
+            const u16 indice = readU16(file);
+
+            // Indice need to be inversed for the normals
+            if (i % 3 == 0)
+                buffer->Indices[i] = indice;
+            else if (i % 3 == 1)
+                buffer->Indices[i+1] = indice;
+            else if (i % 3 == 2)
+                buffer->Indices[i-1] = indice;
+        }
+
 
 
         int result = 0;
@@ -897,7 +908,18 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
         // Faces
         file->seek(back + meshData[2] + indicesStart * 2);
         buffer->Indices.set_used(indicesCount);
-        file->read(buffer->Indices.pointer(), indicesCount * 2);
+        for (u32 i = 0; i < indicesCount; ++i)
+        {
+            const u16 indice = readU16(file);
+
+            // Indice need to be inversed for the normals
+            if (i % 3 == 0)
+                buffer->Indices[i] = indice;
+            else if (i % 3 == 1)
+                buffer->Indices[i+1] = indice;
+            else if (i % 3 == 2)
+                buffer->Indices[i-1] = indice;
+        }
 
 
         int result = 0;

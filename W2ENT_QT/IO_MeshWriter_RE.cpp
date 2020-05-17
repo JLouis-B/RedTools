@@ -369,22 +369,23 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
         const video::SMaterial material = buffer->getMaterial();
 
         core::stringc matName = "noname";
-        core::stringc diffuseTexture = "diff";
-        if (material.getTexture(0))
+        core::stringc diffuseTextureName = "diff";
+        const video::ITexture* diffuseTexture = material.getTexture(0);
+        if (diffuseTexture)
         {
-            diffuseTexture = FileSystem->getFileBasename(material.getTexture(0)->getName().getPath(), true);
-            diffuseTexture = diffuseTexture.make_lower();
-            matName = FileSystem->getFileBasename(material.getTexture(0)->getName().getPath(), false);
+            diffuseTextureName = FileSystem->getFileBasename(diffuseTexture->getName().getPath(), true);
+            diffuseTextureName = diffuseTextureName.make_lower();
+            matName = FileSystem->getFileBasename(diffuseTexture->getName().getPath(), false);
             matName = matName.make_lower();
         }
         u32 matNameSize = matName.size();
-        u32 diffSize = diffuseTexture.size();
+        u32 diffuseTextureSize = diffuseTextureName.size();
 
         file->write(&matNameSize, 4);
         file->write(matName.c_str(), matNameSize);
 
-        file->write(&diffSize, 4);
-        file->write(diffuseTexture.c_str(), diffSize);
+        file->write(&diffuseTextureSize, 4);
+        file->write(diffuseTextureName.c_str(), diffuseTextureSize);
 
         file->write("\x03\x00\x00\x00nor\x03\x00\x00\x00\x62le", 14);
 
@@ -396,14 +397,13 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
 
         video::S3DVertexTangents* vertices = (video::S3DVertexTangents*)(tangentBuffer->getVertices());
-        for(u32 n=0; n<lodMesh->getMeshBuffer(i)->getVertexCount(); ++n)
+        for(u32 n=0; n<buffer->getVertexCount(); ++n)
         {
             // The vertex positions are relatives to the mesh center
             const core::vector3df redRelativePos = IrrToRedVector(buffer->getPosition(n));
             file->write(&redRelativePos.X, 4);
             file->write(&redRelativePos.Y, 4);
             file->write(&redRelativePos.Z, 4);
-            // Y and Z axis seem don't be the same that the Irrlicht axis
 
             const core::vector3df redNormal = IrrToRedVector(buffer->getNormal(n));
             file->write(&redNormal.X, 4);
@@ -412,8 +412,8 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
 
 
             /*
-            core::vector3df vect2 = mesh->getMeshBuffer(i)->getNormal(n);
-            core::vector3df vect3 = mesh->getMeshBuffer(i)->getNormal(n);
+            core::vector3df vect2 = buffer->getNormal(n);
+            core::vector3df vect3 = buffer->getNormal(n);
 
             core::matrix4 m;
             m.setRotationDegrees(core::vector3df(0, 0, -90));
@@ -422,7 +422,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             m.setRotationDegrees(core::vector3df(-90, 0, 0));
             m.rotateVect(vect3);
             */
-            // Binormals and tangeants ?
+            // Binormals and tangents ?
             const core::vector3df redTangent = IrrToRedVector(vertices[n].Tangent);
             file->write(&redTangent.X, 4);
             file->write(&redTangent.Y, 4);
@@ -480,7 +480,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             file->write(&uv.Y, 4);
 
             // The second UV layer
-            if (lodMesh->getMeshBuffer(i)->getVertexType() != video::EVT_2TCOORDS)
+            if (buffer->getVertexType() != video::EVT_2TCOORDS)
                 file->write("\x00\x00\x00\x00\x00\x00\x00\x00", 8);
             else
             {
@@ -491,7 +491,7 @@ void IO_MeshWriter_RE::writeMeshChunk(io::IWriteFile* file, core::stringc lodNam
             }
         }
 
-        for(u32 n=0; n<lodMesh->getMeshBuffer(i)->getIndexCount()/3; n++)
+        for(u32 n=0; n<buffer->getIndexCount()/3; n++)
         {
             const u32 index1 = buffer->getIndices()[n*3];
             const u32 index2 = buffer->getIndices()[n*3 + 1];

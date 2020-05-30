@@ -102,8 +102,6 @@ private:
     // Main function
 	bool load(io::IReadFile* file);
 
-
-    void skeleton(io::IReadFile* file);
     void CMesh(io::IReadFile* file, MeshData tmp);
     void loadStaticMesh(io::IReadFile* file, core::array<int> mats);
     void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
@@ -116,17 +114,7 @@ private:
 
     void CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
 
-
-
 	bool find (core::array<core::stringc> stringVect, core::stringc name);
-	core::stringc searchParent(core::stringc bonename);
-
-	void check_armature(io::IReadFile* file);
-    void make_bone();
-    void make_bone_parent();
-    void make_bone_position();
-    void make_localMatrix_from_global();
-    void computeLocal(scene::ISkinnedMesh::SJoint* joint);
 
     void addVectorToLog(core::vector3df vec);
     void addMatrixToLog(core::matrix4 mat);
@@ -154,8 +142,8 @@ private:
     io::path ConfigGamePath;
 
     // Bones data
-    core::array<core::stringc> BonesName;
-    core::array<BoneData> BonesData;
+    //core::array<core::stringc> BonesName;
+    //core::array<BoneData> BonesData;
 
     //DEBUG
     Log* log;

@@ -942,14 +942,14 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
     log->addLineAndFlush("Drawmesh OK");
 }
 
-video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc filename)
+video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc textureFilepath)
 {
     video::ITexture* texture = nullptr;
 
-    if (core::hasFileExtension(filename.c_str(), "xbm"))
+    if (core::hasFileExtension(textureFilepath.c_str(), "xbm"))
     {
         io::path ddsFilepath;
-        core::cutFilenameExtension(ddsFilepath, filename);
+        core::cutFilenameExtension(ddsFilepath, textureFilepath);
         ddsFilepath += ".dds";
 
         //ddsfile = GamePath + ddsfile;
@@ -960,14 +960,14 @@ video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc filename)
         if (!texture)
         {
             // Make a DDS file from the XBM file
-            generateDDSFromXBM(filename);
+            generateDDSFromXBM(textureFilepath, ddsFilepath);
             texture = SceneManager->getVideoDriver()->getTexture(ddsFilepath.c_str());
         }
     }
     else
     {
-        if (FileSystem->existFile(filename))
-            texture = SceneManager->getVideoDriver()->getTexture(filename.c_str());
+        if (FileSystem->existFile(textureFilepath))
+            texture = SceneManager->getVideoDriver()->getTexture(textureFilepath.c_str());
     }
 
     return texture;
@@ -1076,21 +1076,16 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor
     //std::cout << "Texture : " << FilesTable[255-readUnsignedChars(1)[0]] << std::endl;
 }
 
-void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc filepath)
+void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc xbmFilepath, core::stringc ddsFilepath)
 {
     log->addLineAndFlush("XBM to DDS");
 
-    // Make the name of the DDS file
-    io::path ddsfile;
-    core::cutFilenameExtension(ddsfile, filepath);
-    ddsfile += ".dds";
-
     // Open the XBM file
-    io::IReadFile* xbmFile = FileSystem->createAndOpenFile((filepath).c_str());
+    io::IReadFile* xbmFile = FileSystem->createAndOpenFile((xbmFilepath).c_str());
     if (!xbmFile)
     {
         SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, check your 'Base directory'.");
-        log->addAndFlush(core::stringc("Error : the file ") + filepath + core::stringc(" can't be opened.\n"));
+        log->addAndFlush(core::stringc("Error : the file ") + xbmFilepath + core::stringc(" can't be opened.\n"));
         return;
     }
 
@@ -1099,8 +1094,8 @@ void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc filepath)
 
     core::array<s32> data = readDataArray<s32>(xbmFile, 10);
     xbmFile->seek(data[2]);
-    core::array<core::stringc> stringsXBM;
 
+    core::array<core::stringc> stringsXBM;
     for (int i = 0; i < data[3]; i++)
         stringsXBM.push_back(readString(xbmFile, readU8(xbmFile)-128));
 
@@ -1112,7 +1107,7 @@ void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc filepath)
     for (int i = 0; i < data[5]; i++)
     {
         const u16 dataTypeId = readU16(xbmFile) - 1;
-        const core::stringc dataTypeName = Strings[dataTypeId];
+        const core::stringc dataTypeName = stringsXBM[dataTypeId];
         log->addLineAndFlush(formatString("dataTypeName=%s", dataTypeName.c_str()));
 
         core::array<s32> data2 = readDataArray<s32>(xbmFile, 5);
@@ -1144,7 +1139,7 @@ void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc filepath)
 
         // If the data is a CBitmapTexture, we read the data
         if (dataTypeName == "CBitmapTexture")
-            XBM_CBitmapTexture(xbmFile, ddsfile, chunkInfos, stringsXBM);
+            XBM_CBitmapTexture(xbmFile, ddsFilepath, chunkInfos, stringsXBM);
 
         xbmFile->seek(back3);
     }

@@ -112,7 +112,7 @@ private:
 
     void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats);
     void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
-    void generateDDSFromXBM(core::stringc filepath);
+    void generateDDSFromXBM(core::stringc filepath, core::stringc ddsFilepath);
 
     void CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
 
@@ -134,7 +134,7 @@ private:
 
     void SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting);
 
-    video::ITexture* getTexture(core::stringc filename);
+    video::ITexture* getTexture(core::stringc textureFilepath);
 
     // Attributes
     scene::ISceneManager* SceneManager;

@@ -106,64 +106,6 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
 	return AnimatedMesh;
 }
 
-
-void printVector(core::vector3df vect)
-{
-    std::cout << "Vector : " << vect.X << ", " << vect.Y << ", " << vect.Z << std::endl;
-}
-
-
-// TODO
-void IO_MeshLoader_W2ENT::SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting)
-{
-    /*
-    core::array<unsigned short> vertex_groups = dataSubMesh.dataH;
-
-    for (unsigned int id_0 = 0; id_0 < weighting.size(); id_0++)
-    {
-        core::array<unsigned char> data = weighting[id_0]; // weights list of a vertex
-        for (int id_1 = 0; id_1 < 4; id_1++)
-        {
-            unsigned char w = data[id_1+4]; // # strength
-            if (w != 0)
-            {
-                unsigned short boneId = vertex_groups[data[id_1]];
-                core::stringc boneName = BonesName[boneId];
-
-                ISkinnedMesh::SJoint* bone = nullptr;
-                // Loop to find the bone with the bonename
-                for (unsigned int i = 0; i < AnimatedMesh->getJointCount(); i++)
-                {
-                    if (boneName == AnimatedMesh->getAllJoints()[i]->Name)
-                    {
-                        bone = AnimatedMesh->getAllJoints()[i];
-                        break;
-                    }
-                }
-                if (! bone)
-                    ; //std::cout << "bone not found " << grName.c_str()  << std::endl;
-                else
-                {
-
-                    ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
-                    wt->strength = ((float)w)/255.0f;
-                    wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1; // TODO
-                    wt->vertex_id = id_0; // TODO
-
-                    if (wt->strength > 1.0f || wt->strength < 0.0f)
-                        std::cout << "Error, strength range : " << wt->strength << std::endl;
-                    if (wt->buffer_id >= AnimatedMesh->getMeshBufferCount())
-                        std::cout << "Error, mesh buffer range" << std::endl;
-                    if (wt->vertex_id >= AnimatedMesh->getMeshBuffer(wt->buffer_id)->getVertexCount() )
-                        std::cout << "Error, vertex ID range" << std::endl;
-
-                }
-            }
-        }
-    }
-    */
-}
-
 void IO_MeshLoader_W2ENT::addVectorToLog(irr::core::vector3df vec)
 {
     log->addLineAndFlush(formatString("Vector : %f %f %f", vec.X, vec.Y, vec.Z));
@@ -401,20 +343,22 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 
     if (nbBones == 128)
     {
+        log->addLineAndFlush("Static mesh");
         file->seek(1, true); //readUnsignedChars(file, 1);
         loadStaticMesh(file, mats);
     }
     else // If the mesh isn't static
     {
-        log->addLineAndFlush("Loop");
+        log->addLineAndFlush("Skinned mesh");
 
-        //BonesName.clear();
-        //BonesData.clear();
+        core::array<core::stringc> boneNames;
+        boneNames.reallocate(nbBones);
 
         for (int i = 0; i < nbBones; i++)
         {
-            BoneData bone;
-            file->read(bone.matr.pointer(), 4 * 16);
+            //BoneData bone;
+            core::matrix4 boneMatrix;
+            file->read(boneMatrix.pointer(), 4 * 16);
 
             u16 boneNameId = readU16(file) - 1;
             core::stringc boneName = "";
@@ -424,17 +368,47 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
             }
             else
             {
+                // Is it still necessary ?
                 log->addLineAndFlush(formatString("Wrong bone ID : %d (max=%d", boneNameId, Strings.size()-1));
                 boneName = "bone-";
                 boneName += i;
             }
 
-            bool boneAlreadyCreated = false;
-            for (u32 j = 0; j < AnimatedMesh->getJointCount(); j++)
+            bool boneAlreadyCreated = JointHelper::HasJoint(AnimatedMesh, boneName);
+            if (!boneAlreadyCreated)
             {
-                if (AnimatedMesh->getAllJoints()[j]->Name == boneName)
-                    boneAlreadyCreated = true;
+                scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
+                joint->Name = boneName;
+
+
+                core::vector3df position = boneMatrix.getTranslation();
+                core::matrix4 invBoneMatrix;
+                boneMatrix.getInverse(invBoneMatrix);
+
+                core::vector3df rotation = invBoneMatrix.getRotationDegrees();
+                position = -position;
+                core::vector3df scale = boneMatrix.getScale();
+
+
+                //Build GlobalMatrix:
+                core::matrix4 positionMatrix;
+                positionMatrix.setTranslation(position);
+                core::matrix4 rotationMatrix;
+                rotationMatrix.setRotationDegrees(rotation);
+                core::matrix4 scaleMatrix;
+                scaleMatrix.setScale(scale);
+
+                joint->GlobalMatrix = scaleMatrix * rotationMatrix * positionMatrix;
+                joint->LocalMatrix = joint->GlobalMatrix;
+
+                joint->Animatedposition = joint->LocalMatrix.getTranslation();
+                joint->Animatedrotation = core::quaternion(joint->LocalMatrix.getRotationDegrees()).makeInverse();
+                joint->Animatedscale = joint->LocalMatrix.getScale();
             }
+
+            boneNames.push_back(boneName);
+
+
             //BonesName.push_back(boneName);
             /*
             if (!boneAlreadyCreated)
@@ -472,7 +446,8 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
             SubmeshData submesh;
             submesh.vertexType = readU8(file);
             submesh.dataI = readDataArray<s32>(file, 4);
-            submesh.dataH = readDataArray<u16>(file, readU8(file)+2);
+            submesh.bonesId = readDataArray<u16>(file, readU8(file));
+            submesh.unk = readU32(file);
             subMeshesData.push_back(submesh);
 
             /*
@@ -489,11 +464,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 
         file->seek(back);
 
-        // Skeleton called before drawmesh to avoid crash
-        //skeleton(file);
-
-
-        loadSkinnedSubmeshes(file, data, subMeshesData, mats);
+        loadSkinnedSubmeshes(file, data, subMeshesData, mats, boneNames);
 
     }
 
@@ -521,7 +492,7 @@ void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<int> m
         SubmeshData submesh;
         submesh.vertexType = vertexType;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
         submesh.dataI = readDataArray<s32>(file, 5);
-        submesh.dataH = readDataArray<u16>(file, 1);
+        submesh.unk = readU16(file);
         subMeshesData.push_back(submesh);
     }
 
@@ -651,7 +622,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
 }
 
 
-void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats)
+void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames)
 {
     log->addLineAndFlush("Drawmesh");
 
@@ -689,8 +660,6 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
 
         SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
         buffer->Vertices_Standard.reallocate(verticesCount);
-        core::array<core::array<u8> > weighting;
-        weighting.reallocate(verticesCount);
         for (int i = 0; i < verticesCount; i++)
         {
             int vertexAdress = file->getPos();
@@ -698,7 +667,33 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
             core::array<f32> position = readDataArray<f32>(file, 3);
             vertex.Pos = core::vector3df(position[0], position[1], position[2]);
 
-            weighting.push_back(readDataArray<u8>(file, 8));
+
+            // Skinning
+            core::array<u8> weightsData = readDataArray<u8>(file, 8);
+            for (int vertexWeightsId = 0; vertexWeightsId < 4; vertexWeightsId++)
+            {
+                u8 strength = weightsData[vertexWeightsId + 4];
+                if (strength != 0)
+                {
+                    u16 boneId = submesh.bonesId[weightsData[vertexWeightsId]];
+                    core::stringc boneName = boneNames[boneId];
+
+                    ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
+                    if (bone)
+                    {
+
+                        ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
+                        wt->strength = ((f32)strength) / 255.0f;
+                        wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
+                        wt->vertex_id = i;
+
+                        if (wt->strength > 1.0f || wt->strength < 0.0f)
+                            log->addLineAndFlush(formatString("Error, strength range : %f", wt->strength));
+
+                    }
+                }
+            }
+
 
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
@@ -740,7 +735,7 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
         buffer->Material = Materials[result].material;
 
         // TODO
-        SkinSubmesh(subMeshesData[i], weighting);
+        //(subMeshesData[i], weighting);
 
         SceneManager->getMeshManipulator()->recalculateNormals(buffer);
         buffer->recalculateBoundingBox();

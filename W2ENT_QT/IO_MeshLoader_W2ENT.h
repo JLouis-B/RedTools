@@ -49,8 +49,9 @@ struct MeshData
 struct SubmeshData
 {
     int vertexType;
-    core::array <int> dataI;
-    core::array <unsigned short> dataH;
+    core::array<s32> dataI;
+    core::array<u16> bonesId;
+    u32 unk;
 };
 
 struct Material
@@ -106,7 +107,7 @@ private:
     void loadStaticMesh(io::IReadFile* file, core::array<int> mats);
     void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
     void vert_format(io::IReadFile* file);
-    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
+    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames);
 
     void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats);
     void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
@@ -120,7 +121,7 @@ private:
     void addMatrixToLog(core::matrix4 mat);
 
 
-    void SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting);
+    //void SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting);
 
     video::ITexture* getTexture(core::stringc textureFilepath);
 

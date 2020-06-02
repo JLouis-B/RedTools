@@ -37,3 +37,23 @@ core::stringc readStringFixedSize(io::IReadFile* file, int nbChars)
 
     return returnedString;
 }
+
+
+// JointHelper functions
+bool JointHelper::HasJoint(scene::ISkinnedMesh* mesh, core::stringc jointName)
+{
+    return mesh->getJointNumber(jointName.c_str()) != -1;
+}
+
+scene::ISkinnedMesh::SJoint* JointHelper::GetJointByName(scene::ISkinnedMesh* mesh, core::stringc jointName)
+{
+    s32 number = mesh->getJointNumber(jointName.c_str());
+    if (number != -1)
+    {
+        return mesh->getAllJoints()[number];
+    }
+    else
+    {
+        return nullptr;
+    }
+}

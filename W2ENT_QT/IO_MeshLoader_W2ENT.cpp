@@ -106,12 +106,12 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
 	return AnimatedMesh;
 }
 
-void IO_MeshLoader_W2ENT::addVectorToLog(irr::core::vector3df vec)
+void IO_MeshLoader_W2ENT::addVectorToLog(core::vector3df vec)
 {
     log->addLineAndFlush(formatString("Vector : %f %f %f", vec.X, vec.Y, vec.Z));
 }
 
-void IO_MeshLoader_W2ENT::addMatrixToLog(irr::core::matrix4 mat)
+void IO_MeshLoader_W2ENT::addMatrixToLog(core::matrix4 mat)
 {
     core::stringc logContent = "Matrix4 : \n";
     for (u32 i = 0; i < 16; ++i)
@@ -267,7 +267,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     log->addLineAndFlush("Textures and mesh data OK");
 
     // When we have loaded all the materials and all the 'mesh headers', we load the meshes
-    for (unsigned int i = 0; i < MeshesToLoad.size(); i++)
+    for (u32 i = 0; i < MeshesToLoad.size(); i++)
     {
         // Create mesh
         CMesh(file, MeshesToLoad[i]);
@@ -275,16 +275,6 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
     log->addLineAndFlush("All is loaded");
 	return true;
-}
-
-bool checkIfBoneDontExist(core::stringc name, irr::core::array<BoneData> datas)
-{
-    for (u32 i = 0; i < datas.size(); i++)
-    {
-        if (datas[i].name == name)
-            return false;
-    }
-    return true;
 }
 
 void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)

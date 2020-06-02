@@ -1,6 +1,7 @@
 #ifndef UTILS_LOADERS_H
 #define UTILS_LOADERS_H
 
+#include <ISkinnedMesh.h>
 #include <IReadFile.h>
 #include <irrArray.h>
 
@@ -37,5 +38,11 @@ core::stringc readStringUntilNull(io::IReadFile* file);
 core::stringc readStringFixedSize(io::IReadFile* file, int nbChars);
 
 
+class JointHelper
+{
+public:
+    static bool HasJoint(scene::ISkinnedMesh* mesh, core::stringc jointName);
+    static scene::ISkinnedMesh::SJoint* GetJointByName(scene::ISkinnedMesh* mesh, core::stringc jointName);
+};
 
 #endif // UTILS_LOADERS_H

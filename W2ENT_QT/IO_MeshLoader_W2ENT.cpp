@@ -544,7 +544,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
             buffer->Vertices_Standard.reallocate(verticesCount);
         }
 
-        for (int i = 0; i < verticesCount; i++)
+        for (int j = 0; j < verticesCount; j++)
         {
             long vertexAdress = file->getPos();
             core::array<f32> position = readDataArray<f32>(file, 3);
@@ -579,17 +579,17 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
 
         file->seek(back + meshData[0] + indicesStart * 2);
         buffer->Indices.set_used(indicesCount);
-        for (u32 i = 0; i < indicesCount; ++i)
+        for (u32 j = 0; j < indicesCount; ++j)
         {
             const u16 indice = readU16(file);
 
             // Indice need to be inversed for the normals
-            if (i % 3 == 0)
-                buffer->Indices[i] = indice;
-            else if (i % 3 == 1)
-                buffer->Indices[i+1] = indice;
-            else if (i % 3 == 2)
-                buffer->Indices[i-1] = indice;
+            if (j % 3 == 0)
+                buffer->Indices[j] = indice;
+            else if (j % 3 == 1)
+                buffer->Indices[j+1] = indice;
+            else if (j % 3 == 2)
+                buffer->Indices[j-1] = indice;
         }
 
 
@@ -650,7 +650,7 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
 
         SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
         buffer->Vertices_Standard.reallocate(verticesCount);
-        for (int i = 0; i < verticesCount; i++)
+        for (int j = 0; j < verticesCount; j++)
         {
             int vertexAdress = file->getPos();
             video::S3DVertex vertex;
@@ -700,17 +700,17 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
         // Faces
         file->seek(back + meshData[2] + indicesStart * 2);
         buffer->Indices.set_used(indicesCount);
-        for (u32 i = 0; i < indicesCount; ++i)
+        for (u32 j = 0; j < indicesCount; ++j)
         {
             const u16 indice = readU16(file);
 
             // Indice need to be inversed for the normals
-            if (i % 3 == 0)
-                buffer->Indices[i] = indice;
-            else if (i % 3 == 1)
-                buffer->Indices[i+1] = indice;
-            else if (i % 3 == 2)
-                buffer->Indices[i-1] = indice;
+            if (j % 3 == 0)
+                buffer->Indices[j] = indice;
+            else if (j % 3 == 1)
+                buffer->Indices[j+1] = indice;
+            else if (j % 3 == 2)
+                buffer->Indices[j-1] = indice;
         }
 
 

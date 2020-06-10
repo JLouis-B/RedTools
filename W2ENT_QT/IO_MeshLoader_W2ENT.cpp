@@ -101,14 +101,13 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     Files.clear();
     Strings.clear();
     Materials.clear();
-    MeshesToLoad.clear();
 
 	return AnimatedMesh;
 }
 
-void IO_MeshLoader_W2ENT::addVectorToLog(core::vector3df vec)
+void IO_MeshLoader_W2ENT::addVectorToLog(core::stringc name, core::vector3df vec)
 {
-    log->addLineAndFlush(formatString("Vector : %f %f %f", vec.X, vec.Y, vec.Z));
+    log->addLineAndFlush(formatString("Vector %s : %f %f %f", name.c_str(), vec.X, vec.Y, vec.Z));
 }
 
 void IO_MeshLoader_W2ENT::addMatrixToLog(core::matrix4 mat)
@@ -125,8 +124,8 @@ void IO_MeshLoader_W2ENT::addMatrixToLog(core::matrix4 mat)
     logContent += "\n";
     log->addAndFlush(logContent);
 
-    addVectorToLog(mat.getTranslation());
-    addVectorToLog(mat.getRotationDegrees());
+    addVectorToLog("mat translation", mat.getTranslation());
+    addVectorToLog("mat euler", mat.getRotationDegrees());
 
     logContent = "End matrix4\n\n";
 
@@ -135,9 +134,8 @@ void IO_MeshLoader_W2ENT::addMatrixToLog(core::matrix4 mat)
 
 bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 {
-    int back = file->getPos();
-
-    readString(file, 4); // CR2W
+    long back = file->getPos();
+    file->seek(4, true); // "CR2W" magic string
 
     RedEngineFileHeader header;
     loadTW2FileHeader(file, header, false);
@@ -170,7 +168,9 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     // useless for the loader
 
     int nMat = 0, nModel = 0;
-    core::array <core::stringc> chunks;
+    core::array<core::stringc> chunks;
+    core::array<MeshData> meshesToLoad;
+    core::array<ChunkDescriptor> skeletonsToLoad;
 
     // Ok, now we can read the materials and meshes
     file->seek(back + headerData[4]);
@@ -222,7 +222,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             log->addAndFlush("\nCMaterialInstance\n");
 
             CMaterialInstance(file, chunkInfos, nMat);
-            MeshesToLoad[MeshesToLoad.size()-1].nMat.push_back(nMat);
+            meshesToLoad[meshesToLoad.size()-1].nMat.push_back(nMat);
             nMat++;
 
             log->addLineAndFlush("CMaterialInstance OK");
@@ -243,7 +243,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             MeshData meshData;
             meshData.nModel = nModel;             // The index of the mesh (useful if there are many meshes)
             meshData.infos = chunkInfos;
-            MeshesToLoad.push_back(meshData);
+            meshesToLoad.push_back(meshData);
 
             nModel++;
 
@@ -251,8 +251,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         }
         else if (dataTypeName == "CSkeleton")
         {
+            skeletonsToLoad.push_back(chunkInfos);
             //std::cout << "CSkeleton" << std::endl;
-            CSkeleton(file, chunkInfos);
         }
         else if (dataTypeName == "CSkeletalAnimation")
         {
@@ -267,10 +267,16 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     log->addLineAndFlush("Textures and mesh data OK");
 
     // When we have loaded all the materials and all the 'mesh headers', we load the meshes
-    for (u32 i = 0; i < MeshesToLoad.size(); i++)
+    for (u32 i = 0; i < meshesToLoad.size(); ++i)
     {
         // Create mesh
-        CMesh(file, MeshesToLoad[i]);
+        CMesh(file, meshesToLoad[i]);
+    }
+
+    // Finally we load the skeletons
+    for (u32 i = 0; i < skeletonsToLoad.size(); ++i)
+    {
+        CSkeleton(file, skeletonsToLoad[i]);
     }
 
     log->addLineAndFlush("All is loaded");
@@ -293,7 +299,206 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
         file->seek(propHeader.endPos);
     }
     file->seek(-4, true);
+
+    log->addLineAndFlush(formatString("CSKeleton start at %d", file->getPos()));
+    file->seek(3, true);
+    u32 chunkSize = readU32(file);
+    file->seek(36, true); // unk
+    file->seek(28, true); // app info : version (4 bytes) + 24 bytes string
+    file->seek(116, true); // "__classname__", "__type__"...
+
+    u32 unk = readU32(file);
+    u32 endOfBonesNamesAdress = readU32(file);
+    u32 endOfBonesUnk1Adress = readU32(file);
+    u32 endOfBonesUnk2Adress = readU32(file);
+    u32 dataSize = readU32(file);
+    file->seek(8, true); // 2x dataSize
+    log->addLineAndFlush(formatString("unk = %d, endOfBonesNamesAdress = %d, endOfBonesUnk1Adress = %d, endOfBonesUnk2Adress = %d, dataSize = %d", unk, endOfBonesNamesAdress, endOfBonesUnk1Adress, endOfBonesUnk2Adress, dataSize));
+
+    file->seek(112, true);
+
+    //  Data chunk start
+    const long dataStartAdress = file->getPos();
+    log->addLineAndFlush(formatString("dataStartAdress = %d", dataStartAdress));
+    file->seek(8, true);
+    u32 nbBones = readU32(file);
+    log->addLineAndFlush(formatString("%d bones at %d", nbBones, file->getPos()-4));
+    file->seek(20, true); // 3x bones count
+
+    file->seek(16, true);
+
+    core::stringc rootName = readStringFixedSize(file, 16);
+    log->addLineAndFlush(formatString("Root = %s", rootName.c_str()));
+
+    long bonesParentIdChunkAdress = file->getPos();
+    //long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - totalNamesSize;
+    //long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - (nbBones * 48);
+
+
+    core::array<u32> boneNameSizes;
+    boneNameSizes.set_used(nbBones);
+    u32 totalNamesSize = 0;
+
+    file->seek(dataStartAdress + endOfBonesNamesAdress-1);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        bool isInText = false;
+        u32 textSize = 0;
+        while (1)
+        {
+            char c = readS8(file);
+            file->seek(-2, true);
+
+            if (!isInText && c != 0)
+            {
+                isInText = true;
+            }
+            if (isInText && c == 0)
+            {
+                file->seek(1, true);
+                boneNameSizes[nbBones-(i+1)] = textSize;
+                totalNamesSize += textSize;
+                log->addLineAndFlush(formatString("Text size is : %d", textSize));
+                break;
+            }
+            textSize++;
+        }
+    }
+
+    long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - totalNamesSize;
+    long bonesTransformChunkAdress = bonesNameChunkAdress - (/*16 +*/48 + nbBones * 48);
+
+    core::array<scene::ISkinnedMesh::SJoint*> bones;
+    file->seek(bonesNameChunkAdress);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        core::stringc boneName = readStringFixedSize(file, boneNameSizes[i]);
+        //core::stringc boneName = readStringFixedSize(file, 48);
+        scene::ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
+
+        if (!bone)
+        {
+            log->addLineAndFlush(formatString("Bone %s doesn't exist (@%d)", boneName.c_str(), file->getPos()));
+            bone = AnimatedMesh->addJoint();
+            bone->Name = boneName;
+        }
+        else
+        {
+            log->addLineAndFlush(formatString("Bone %s exist (@%d)", boneName.c_str(), file->getPos()));
+        }
+        bones.push_back(bone);
+    }
+
+    core::array<scene::ISkinnedMesh::SJoint*> roots;
+    file->seek(bonesParentIdChunkAdress);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        const s16 parentId = readS16(file); // -1 if root
+        scene::ISkinnedMesh::SJoint* joint = bones[i];
+        if (!joint)
+        {
+            continue;
+        }
+
+        if (parentId >= 0)
+        {
+            scene::ISkinnedMesh::SJoint* parent = bones[parentId];
+            if (!parent)
+            {
+                log->addLineAndFlush(formatString("Parent %d doesn't exist", parentId));
+                continue;
+            }
+            else
+            {
+                parent->Children.push_back(joint);
+                log->addLineAndFlush(formatString("%s -> %s", parent->Name.c_str(), joint->Name.c_str()));
+            }
+        }
+        else if (parentId == -1)
+        {
+            roots.push_back(joint);
+            //scene::ISkinnedMesh::SJoint* parent = JointHelper::GetJointByName(AnimatedMesh, rootName);
+            //parent->Children.push_back(joint);
+        }
+        else
+        {
+            log->addLineAndFlush(formatString("Invalid parent ID: %d", parentId));
+        }
+    }
+
+    std::cout << "needed size is " << nbBones * 48 << std::endl;
+    log->addLineAndFlush(formatString("Transform: %d", bonesTransformChunkAdress));
+    file->seek(bonesTransformChunkAdress);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        // position (vector 4) + quaternion (4 float) + scale (vector 4)
+        core::vector3df position;
+        position.X = readF32(file);
+        position.Y = readF32(file);
+        position.Z = readF32(file);
+        readF32(file); // the w component
+        addVectorToLog("position", position);
+
+        core::quaternion orientation;
+        orientation.X = readF32(file);
+        orientation.Y = readF32(file);
+        orientation.Z = readF32(file);
+        orientation.W = readF32(file);
+        log->addLineAndFlush(formatString("Orientation : %f, %f, %f, %f", orientation.X, orientation.Y, orientation.Z, orientation.W));
+
+        core::vector3df scale;
+        scale.X = readF32(file);
+        scale.Y = readF32(file);
+        scale.Z = readF32(file);
+        readF32(file); // the w component
+        addVectorToLog("scale", scale);
+
+        core::matrix4 posMat;
+        posMat.setTranslation(position);
+
+        core::matrix4 rotMat;
+        core::vector3df euler;
+        orientation.toEuler(euler);
+        //std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
+        //std::cout << "Rotation (radians) = " << euler.X << ", " << euler.Y << ", " << euler.Z << std::endl;
+        chechNaNErrors(euler);
+
+        rotMat.setRotationRadians(euler);
+
+        core::matrix4 scaleMat;
+        scaleMat.setScale(scale);
+
+        core::matrix4 localTransform = posMat * rotMat * scaleMat;
+        orientation.makeInverse();
+        /*
+        skeleton.matrix.push_back(localTransform);
+        skeleton.positions.push_back(position);
+        skeleton.rotations.push_back(orientation);
+        skeleton.scales.push_back(scale);
+        */
+
+        scene::ISkinnedMesh::SJoint* joint = bones[i];
+        if (!joint)
+        {
+            log->addLineAndFlush("Transform : joint dont exist!");
+            continue;
+        }
+        else
+        {
+            joint->LocalMatrix = localTransform;
+
+            joint->Animatedposition = position;
+            joint->Animatedrotation = orientation;
+            joint->Animatedscale = scale;
+        }
+    }
+
+    for (u32 i = 0; i < roots.size(); ++i)
+    {
+        JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
+    }
 }
+
 
 void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 {

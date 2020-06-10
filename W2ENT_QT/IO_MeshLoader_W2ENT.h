@@ -117,7 +117,7 @@ private:
 
 	bool find (core::array<core::stringc> stringVect, core::stringc name);
 
-    void addVectorToLog(core::vector3df vec);
+    void addVectorToLog(core::stringc name, core::vector3df vec);
     void addMatrixToLog(core::matrix4 mat);
 
 
@@ -135,8 +135,6 @@ private:
     s32 Version;
     core::array<core::stringc> Strings;
     core::array<core::stringc> Files;
-    // Informations about a CMesh
-    core::array<MeshData> MeshesToLoad;
     // Materials of the meshes
     core::array<Material> Materials;
 

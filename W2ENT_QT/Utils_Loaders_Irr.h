@@ -37,12 +37,15 @@ core::stringc readString(io::IReadFile* file, int nbChars);
 core::stringc readStringUntilNull(io::IReadFile* file);
 core::stringc readStringFixedSize(io::IReadFile* file, int nbChars);
 
+void chechNaNErrors(core::vector3df& vector3);
 
 class JointHelper
 {
 public:
-    static bool HasJoint(scene::ISkinnedMesh* mesh, core::stringc jointName);
-    static scene::ISkinnedMesh::SJoint* GetJointByName(scene::ISkinnedMesh* mesh, core::stringc jointName);
+    static bool HasJoint(const scene::ISkinnedMesh* mesh, const core::stringc jointName);
+    static scene::ISkinnedMesh::SJoint* GetJointByName(const scene::ISkinnedMesh* mesh, const core::stringc jointName);
+    static scene::ISkinnedMesh::SJoint* GetParent(const scene::ISkinnedMesh* mesh, const scene::ISkinnedMesh::SJoint* joint);
+    static void ComputeGlobalMatrixRecursive(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint);
 };
 
 #endif // UTILS_LOADERS_H

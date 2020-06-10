@@ -1164,20 +1164,6 @@ void IO_MeshLoader_W3ENT::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* fi
     log->addLineAndFlush("W3_CAnimationBufferBitwiseCompressed end");
 }
 
-// sometimes toEuler give NaN numbers
-void chechNaNErrors(core::vector3df& vector3)
-{
-    if (std::isnan(vector3.X) || std::isinf(vector3.X))
-        vector3.X = 0.f;
-
-    if (std::isnan(vector3.Y) || std::isinf(vector3.Y))
-        vector3.Y = 0.f;
-
-    if (std::isnan(vector3.Z) || std::isinf(vector3.Z))
-        vector3.Z = 0.f;
-
-}
-
 TW3_CSkeleton IO_MeshLoader_W3ENT::W3_CSkeleton(io::IReadFile* file, W3_DataInfos infos)
 {
     file->seek(infos.adress + 1);

@@ -5,8 +5,6 @@
 
 using namespace irr;
 
-scene::ISkinnedMesh::SJoint* getJointByName(scene::ISkinnedMesh* mesh, core::stringc name);
-
 class TW3_CSkeleton
 {
 public:

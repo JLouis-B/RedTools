@@ -10,8 +10,6 @@
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 
-#include "TW3_CSkeleton.h"
-
 enum NodeType
 {
     kNodeTypeNode         = 0x00000001,
@@ -968,7 +966,7 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
         u32 boneId = readU32(file);
         core::stringc boneName = readStringFixedSize(file, 92);
         _log->addLineAndFlush(formatString("Add Bone : %s", boneName.c_str()));
-        scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, boneName);
+        scene::ISkinnedMesh::SJoint* joint = JointHelper::GetJointByName(AnimatedMesh, boneName);
         bones.push_back(joint);
     }
     file->seek(back);
@@ -1261,7 +1259,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
         _log->addLineAndFlush(formatString("type=%s", NodeTypeNames.at(type).c_str()));
     }
 
-    scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, name);
+    scene::ISkinnedMesh::SJoint* joint = JointHelper::GetJointByName(AnimatedMesh, name);
     if (!joint) // when we load a MBA file on the top of a MDL files, joints already exist
     {
         joint = AnimatedMesh->addJoint(parentJoint);
@@ -1446,10 +1444,10 @@ void IO_MeshLoader_WitcherMDL::loadAnimationNode(io::IReadFile* file, f32 timeOf
         _log->addLineAndFlush(formatString("type=%s", NodeTypeNames.at(type).c_str()));
     }
 
-    scene::ISkinnedMesh::SJoint* joint = getJointByName(AnimatedMesh, name);
+    scene::ISkinnedMesh::SJoint* joint = JointHelper::GetJointByName(AnimatedMesh, name);
     if (!joint)
     {
-        std::cout << "joint not found" << std::endl;
+        _log->addLineAndFlush(formatString("joint not found: %s", name.c_str()));
     }
     else
     {

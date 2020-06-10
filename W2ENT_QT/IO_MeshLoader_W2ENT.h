@@ -11,7 +11,7 @@
 #include "IMeshManipulator.h"
 #include "ISkinnedMesh.h"
 
-//#include "os.h"
+#include <map>
 
 #include "Log.h"
 
@@ -60,11 +60,13 @@ struct Material
     video::SMaterial material;
 };
 
+/*
 struct BoneData
 {
     core::stringc name;
-    core::matrix4 matr;
+    core::matrix4 offsetMatrix;
 };
+*/
 
 
 
@@ -115,6 +117,8 @@ private:
 
     void CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
 
+    void SkinMesh();
+
 	bool find (core::array<core::stringc> stringVect, core::stringc name);
 
     void addVectorToLog(core::stringc name, core::vector3df vec);
@@ -142,7 +146,7 @@ private:
 
     // Bones data
     //core::array<core::stringc> BonesName;
-    //core::array<BoneData> BonesData;
+    std::map<scene::ISkinnedMesh::SJoint*, core::matrix4> BonesOffsetMatrix;
 
     //DEBUG
     Log* log;

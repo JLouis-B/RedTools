@@ -21,8 +21,9 @@
 
 #include "Settings.h"
 
-
+#include <vector>
 #include <sstream>
+#include "IrrAssimp/IrrAssimpImport.h" // SkinnedVertex struct
 
 
 namespace irr
@@ -101,6 +102,7 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     Files.clear();
     Strings.clear();
     Materials.clear();
+    BonesOffsetMatrix.clear();
 
 	return AnimatedMesh;
 }
@@ -278,6 +280,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     {
         CSkeleton(file, skeletonsToLoad[i]);
     }
+    SkinMesh();
 
     log->addLineAndFlush("All is loaded");
 	return true;
@@ -499,6 +502,59 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
     }
 }
 
+void IO_MeshLoader_W2ENT::SkinMesh()
+{
+    // prepare the skinning array
+    std::vector<std::vector<SkinnedVertex> > skinnedVertex;
+    skinnedVertex.resize(AnimatedMesh->getMeshBufferCount());
+    for (u32 i = 0; i < AnimatedMesh->getMeshBufferCount(); ++i)
+    {
+        const scene::IMeshBuffer* buffer = AnimatedMesh->getMeshBuffer(i);
+        skinnedVertex[i].resize(buffer->getVertexCount());
+    }
+
+
+    // Skin
+    for (u32 i = 0; i < AnimatedMesh->getJointCount(); ++i)
+    {
+        scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
+
+        core::matrix4 jointOffset = BonesOffsetMatrix[joint];
+
+        const core::matrix4 boneMat = joint->GlobalMatrix * jointOffset; //* InverseRootNodeWorldTransform;
+
+        for (u32 j = 0; j < joint->Weights.size(); ++j)
+        {
+            const scene::ISkinnedMesh::SWeight weight = joint->Weights[j];
+            const u16 bufferId = weight.buffer_id;
+            const u32 vertexId = weight.vertex_id;
+
+            core::vector3df sourcePos = AnimatedMesh->getMeshBuffer(bufferId)->getPosition(vertexId);
+            core::vector3df sourceNorm = AnimatedMesh->getMeshBuffer(bufferId)->getNormal(vertexId);
+            core::vector3df destPos, destNormal;
+            boneMat.transformVect(destPos, sourcePos);
+            boneMat.rotateVect(destNormal, sourceNorm);
+
+            skinnedVertex[bufferId][vertexId].Moved = true;
+            skinnedVertex[bufferId][vertexId].Position += destPos * weight.strength;
+            skinnedVertex[bufferId][vertexId].Normal += destNormal * weight.strength;
+        }
+    }
+
+    // And apply on the mesh
+    for (u32 i = 0; i < AnimatedMesh->getMeshBufferCount(); ++i)
+    {
+        scene::IMeshBuffer* buffer = AnimatedMesh->getMeshBuffer(i);
+        for (u32 j = 0; j < buffer->getVertexCount(); ++j)
+        {
+            if (skinnedVertex[i][j].Moved)
+            {
+                buffer->getPosition(j) = skinnedVertex[i][j].Position;
+                buffer->getNormal(j) = skinnedVertex[i][j].Normal;
+            }
+        }
+    }
+}
 
 void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 {
@@ -599,6 +655,8 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
                 joint->Animatedposition = joint->LocalMatrix.getTranslation();
                 joint->Animatedrotation = core::quaternion(joint->LocalMatrix.getRotationDegrees()).makeInverse();
                 joint->Animatedscale = joint->LocalMatrix.getScale();
+
+                BonesOffsetMatrix.insert(std::make_pair(joint, boneMatrix));
             }
 
             boneNames.push_back(boneName);
@@ -880,7 +938,7 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
                         ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
                         wt->strength = ((f32)strength) / 255.0f;
                         wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
-                        wt->vertex_id = i;
+                        wt->vertex_id = j;
 
                         if (wt->strength > 1.0f || wt->strength < 0.0f)
                             log->addLineAndFlush(formatString("Error, strength range : %f", wt->strength));

@@ -342,6 +342,7 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
     boneNameSizes.set_used(nbBones);
     u32 totalNamesSize = 0;
 
+    // Search bone names size
     file->seek(dataStartAdress + endOfBonesNamesAdress-1);
     for (u32 i = 0; i < nbBones; ++i)
     {
@@ -367,9 +368,25 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
             textSize++;
         }
     }
-
     long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - totalNamesSize;
-    long bonesTransformChunkAdress = bonesNameChunkAdress - (/*16 +*/48 + nbBones * 48);
+
+
+    // really a piece of crap but couldn't find a way to get the info any other way yet
+    u32 offset = 0;
+    file->seek(bonesNameChunkAdress - 8);
+    while (1)
+    {
+        f32 f = readF32(file);
+        if (f > 0.09f && f < 10.1f)
+        {
+            break;
+        }
+        file->seek(-8, true);
+        offset += 4;
+    }
+    long bonesTransformChunkAdress = bonesNameChunkAdress - (offset + nbBones * 48);
+
+
 
     core::array<scene::ISkinnedMesh::SJoint*> bones;
     file->seek(bonesNameChunkAdress);

@@ -60,6 +60,33 @@ struct Material
     video::SMaterial material;
 };
 
+struct TW2_CSkeleton
+{
+    void setBonesCount(u32 size)
+    {
+        names.reallocate(size);
+        parentId.reallocate(size);
+        matrix.reallocate(size);
+        
+        positions.reallocate(size);
+        rotations.reallocate(size);
+        scales.reallocate(size);
+    }
+
+    u32 getBonesCount()
+    {
+        return names.size();
+    }
+    
+    core::array<core::stringc> names;
+    core::array<s16> parentId;
+    core::array<core::matrix4> matrix;
+
+    core::array<core::vector3df> positions;
+    core::array<core::quaternion> rotations;
+    core::array<core::vector3df> scales;
+};
+
 /*
 struct BoneData
 {
@@ -115,7 +142,8 @@ private:
     void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
     void generateDDSFromXBM(core::stringc filepath, core::stringc ddsFilepath);
 
-    void CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
+    TW2_CSkeleton CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
+    void createCSkeleton(TW2_CSkeleton skeleton);
 
     void SkinMesh();
 
@@ -147,6 +175,8 @@ private:
     // Bones data
     //core::array<core::stringc> BonesName;
     std::map<scene::ISkinnedMesh::SJoint*, core::matrix4> BonesOffsetMatrix;
+
+    core::array<TW2_CSkeleton> Skeletons;
 
     //DEBUG
     Log* log;

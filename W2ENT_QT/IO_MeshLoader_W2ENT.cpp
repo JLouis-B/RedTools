@@ -145,7 +145,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     Strings = header.Strings;
     Files = header.Files;
 
-    log->addLineAndFlush("Table 1 & 2 OK");
+    log->addLineAndFlush("Strings and filenames OK");
 
     core::array<s32> headerData = readDataArray<s32>(file, 10);
 
@@ -172,7 +172,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     int nMat = 0, nModel = 0;
     core::array<core::stringc> chunks;
     core::array<MeshData> meshesToLoad;
-    core::array<ChunkDescriptor> skeletonsToLoad;
+    //core::array<ChunkDescriptor> skeletonsToLoad;
 
     // Ok, now we can read the materials and meshes
     file->seek(back + headerData[4]);
@@ -253,7 +253,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         }
         else if (dataTypeName == "CSkeleton")
         {
-            skeletonsToLoad.push_back(chunkInfos);
+            Skeletons.push_back(CSkeleton(file, chunkInfos));
+            //skeletonsToLoad.push_back(chunkInfos);
             //std::cout << "CSkeleton" << std::endl;
         }
         else if (dataTypeName == "CSkeletalAnimation")
@@ -276,18 +277,27 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     }
 
     // Finally we load the skeletons
-    for (u32 i = 0; i < skeletonsToLoad.size(); ++i)
+    for (u32 i = 0; i < Skeletons.size(); ++i)
     {
-        CSkeleton(file, skeletonsToLoad[i]);
+        createCSkeleton(Skeletons[i]);
     }
+
+    core::array<scene::ISkinnedMesh::SJoint*> roots = JointHelper::GetRoots(AnimatedMesh);
+    for (u32 i = 0; i < roots.size(); ++i)
+    {
+        JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
+    }
+
     SkinMesh();
 
     log->addLineAndFlush("All is loaded");
 	return true;
 }
 
-void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
+TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
 {
+    TW2_CSkeleton skeleton;
+
     file->seek(infos.adress);
 
     //std::cout << "begin at " << infos.adress << " and end at " << infos.adress + infos.size << ", so size = " << infos.size << std::endl;
@@ -325,6 +335,7 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
     log->addLineAndFlush(formatString("dataStartAdress = %d", dataStartAdress));
     file->seek(8, true);
     u32 nbBones = readU32(file);
+    skeleton.setBonesCount(nbBones);
     log->addLineAndFlush(formatString("%d bones at %d", nbBones, file->getPos()-4));
     file->seek(20, true); // 3x bones count
 
@@ -388,65 +399,23 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
 
 
 
-    core::array<scene::ISkinnedMesh::SJoint*> bones;
     file->seek(bonesNameChunkAdress);
     for (u32 i = 0; i < nbBones; ++i)
     {
         core::stringc boneName = readStringFixedSize(file, boneNameSizes[i]);
-        //core::stringc boneName = readStringFixedSize(file, 48);
-        scene::ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
-
-        if (!bone)
-        {
-            log->addLineAndFlush(formatString("Bone %s doesn't exist (@%d)", boneName.c_str(), file->getPos()));
-            bone = AnimatedMesh->addJoint();
-            bone->Name = boneName;
-        }
-        else
-        {
-            log->addLineAndFlush(formatString("Bone %s exist (@%d)", boneName.c_str(), file->getPos()));
-        }
-        bones.push_back(bone);
+        skeleton.names.push_back(boneName);
+        log->addLineAndFlush(formatString("Bone %s (@%d)", boneName.c_str(), file->getPos() - boneNameSizes[i]));
     }
 
-    core::array<scene::ISkinnedMesh::SJoint*> roots;
     file->seek(bonesParentIdChunkAdress);
     for (u32 i = 0; i < nbBones; ++i)
     {
         const s16 parentId = readS16(file); // -1 if root
-        scene::ISkinnedMesh::SJoint* joint = bones[i];
-        if (!joint)
-        {
-            continue;
-        }
-
-        if (parentId >= 0)
-        {
-            scene::ISkinnedMesh::SJoint* parent = bones[parentId];
-            if (!parent)
-            {
-                log->addLineAndFlush(formatString("Parent %d doesn't exist", parentId));
-                continue;
-            }
-            else
-            {
-                parent->Children.push_back(joint);
-                log->addLineAndFlush(formatString("%s -> %s", parent->Name.c_str(), joint->Name.c_str()));
-            }
-        }
-        else if (parentId == -1)
-        {
-            roots.push_back(joint);
-            //scene::ISkinnedMesh::SJoint* parent = JointHelper::GetJointByName(AnimatedMesh, rootName);
-            //parent->Children.push_back(joint);
-        }
-        else
-        {
-            log->addLineAndFlush(formatString("Invalid parent ID: %d", parentId));
-        }
+        skeleton.parentId.push_back(parentId);
+        log->addLineAndFlush(formatString("Parent %d", parentId));
     }
 
-    std::cout << "needed size is " << nbBones * 48 << std::endl;
+    log->addLineAndFlush(formatString("needed size is %d", nbBones * 48));
     log->addLineAndFlush(formatString("Transform: %d", bonesTransformChunkAdress));
     file->seek(bonesTransformChunkAdress);
     for (u32 i = 0; i < nbBones; ++i)
@@ -490,13 +459,81 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
 
         core::matrix4 localTransform = posMat * rotMat * scaleMat;
         orientation.makeInverse();
-        /*
+
+
         skeleton.matrix.push_back(localTransform);
         skeleton.positions.push_back(position);
         skeleton.rotations.push_back(orientation);
         skeleton.scales.push_back(scale);
-        */
+    }
 
+    return skeleton;
+}
+
+void IO_MeshLoader_W2ENT::createCSkeleton(TW2_CSkeleton skeleton)
+{
+    const u32 nbBones = skeleton.getBonesCount();
+
+    core::array<scene::ISkinnedMesh::SJoint*> bones;
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        const core::stringc boneName = skeleton.names[i];
+        scene::ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
+
+        if (!bone)
+        {
+            log->addLineAndFlush(formatString("Bone %s doesn't exist", boneName.c_str()));
+            bone = AnimatedMesh->addJoint();
+            bone->Name = boneName;
+        }
+        else
+        {
+            log->addLineAndFlush(formatString("Bone %s exist", boneName.c_str()));
+        }
+        bones.push_back(bone);
+    }
+
+
+    core::array<scene::ISkinnedMesh::SJoint*> roots;
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        const s16 parentId = skeleton.parentId[i];
+        scene::ISkinnedMesh::SJoint* joint = bones[i];
+        if (!joint)
+        {
+            continue;
+        }
+
+        if (parentId >= 0)
+        {
+            scene::ISkinnedMesh::SJoint* parent = bones[parentId];
+            if (!parent)
+            {
+                log->addLineAndFlush(formatString("Parent %d doesn't exist", parentId));
+                continue;
+            }
+            else
+            {
+                parent->Children.push_back(joint);
+                log->addLineAndFlush(formatString("%s -> %s", parent->Name.c_str(), joint->Name.c_str()));
+            }
+        }
+        else if (parentId == -1)
+        {
+            roots.push_back(joint);
+            //scene::ISkinnedMesh::SJoint* parent = JointHelper::GetJointByName(AnimatedMesh, rootName);
+            //parent->Children.push_back(joint);
+        }
+        else
+        {
+            log->addLineAndFlush(formatString("Invalid parent ID: %d", parentId));
+        }
+    }
+
+
+
+    for (u32 i = 0; i < nbBones; ++i)
+    {
         scene::ISkinnedMesh::SJoint* joint = bones[i];
         if (!joint)
         {
@@ -505,17 +542,12 @@ void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
         }
         else
         {
-            joint->LocalMatrix = localTransform;
+            joint->LocalMatrix = skeleton.matrix[i];
 
-            joint->Animatedposition = position;
-            joint->Animatedrotation = orientation;
-            joint->Animatedscale = scale;
+            joint->Animatedposition = skeleton.positions[i];
+            joint->Animatedrotation = skeleton.rotations[i];
+            joint->Animatedscale = skeleton.scales[i];
         }
-    }
-
-    for (u32 i = 0; i < roots.size(); ++i)
-    {
-        JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
     }
 }
 

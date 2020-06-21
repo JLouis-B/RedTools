@@ -49,7 +49,6 @@ void chechNaNErrors(core::vector3df& vector3)
 
     if (std::isnan(vector3.Z) || std::isinf(vector3.Z))
         vector3.Z = 0.f;
-
 }
 
 
@@ -101,3 +100,29 @@ void JointHelper::ComputeGlobalMatrixRecursive(const scene::ISkinnedMesh* mesh, 
         ComputeGlobalMatrixRecursive(mesh, joint->Children[i]);
     }
 }
+
+core::array<scene::ISkinnedMesh::SJoint*> JointHelper::GetRoots(const scene::ISkinnedMesh* mesh)
+{
+    core::array<scene::ISkinnedMesh::SJoint*> roots;
+
+    core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
+    for (u32 i = 0; i < allJoints.size(); i++)
+    {
+        bool isRoot = true;
+        scene::ISkinnedMesh::SJoint* testedJoint = allJoints[i];
+        for (u32 j = 0; j < allJoints.size(); j++)
+        {
+           scene::ISkinnedMesh::SJoint* testedJoint2 = allJoints[j];
+           for (u32 k = 0; k < testedJoint2->Children.size(); k++)
+           {
+               if (testedJoint == testedJoint2->Children[k])
+                    isRoot = false;
+           }
+        }
+        if (isRoot)
+            roots.push_back(testedJoint);
+    }
+
+    return roots;
+}
+

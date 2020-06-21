@@ -46,6 +46,7 @@ public:
     static scene::ISkinnedMesh::SJoint* GetJointByName(const scene::ISkinnedMesh* mesh, const core::stringc jointName);
     static scene::ISkinnedMesh::SJoint* GetParent(const scene::ISkinnedMesh* mesh, const scene::ISkinnedMesh::SJoint* joint);
     static void ComputeGlobalMatrixRecursive(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint);
+    static core::array<scene::ISkinnedMesh::SJoint*> GetRoots(const scene::ISkinnedMesh* mesh);
 };
 
 #endif // UTILS_LOADERS_H

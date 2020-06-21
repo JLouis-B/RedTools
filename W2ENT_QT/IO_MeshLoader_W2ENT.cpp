@@ -205,8 +205,6 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             // Seem to be always 0
             const u8 unk = readU8(file) - 128;
             log->addLineAndFlush(formatString("Unk is %d", unk));
-
-            //file->seek(1, true);
         }
 
         if (!find(chunks, dataTypeName))    //check if 'name' is already in 'chunks'. If this is not the case, name is added in chunk
@@ -276,7 +274,23 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         CMesh(file, meshesToLoad[i]);
     }
 
-    // Finally we load the skeletons
+    // some skeletons aren't in CSkeleton
+    for (u32 i = 0; i < Files.size(); ++i)
+    {
+        core::stringc filename = Files[i];
+        if (core::hasFileExtension(filename, "w2rig"))
+        {
+            io::IReadFile* skeletonFile = FileSystem->createAndOpenFile(ConfigGamePath + filename);
+            IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
+            loader.createMesh(skeletonFile);
+
+            for (u32 i = 0; i < loader.Skeletons.size(); ++i)
+                Skeletons.push_back(loader.Skeletons[i]);
+
+            skeletonFile->drop();
+        }
+    }
+
     for (u32 i = 0; i < Skeletons.size(); ++i)
     {
         createCSkeleton(Skeletons[i]);

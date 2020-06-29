@@ -152,6 +152,8 @@ private:
     void addVectorToLog(core::stringc name, core::vector3df vec);
     void addMatrixToLog(core::matrix4 mat);
 
+    void CUnknown(io::IReadFile* file, ChunkDescriptor infos);
+
 
     //void SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting);
 

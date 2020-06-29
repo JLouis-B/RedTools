@@ -204,7 +204,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         {
             // Seem to be always 0
             const u8 unk = readU8(file) - 128;
-            log->addLineAndFlush(formatString("Unk is %d", unk));
+            //log->addLineAndFlush(formatString("Unk is %d", unk));
         }
 
         if (!find(chunks, dataTypeName))    //check if 'name' is already in 'chunks'. If this is not the case, name is added in chunk
@@ -252,17 +252,18 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         else if (dataTypeName == "CSkeleton")
         {
             Skeletons.push_back(CSkeleton(file, chunkInfos));
-            //skeletonsToLoad.push_back(chunkInfos);
-            //std::cout << "CSkeleton" << std::endl;
         }
         else if (dataTypeName == "CSkeletalAnimation")
         {
-            //std::cout << "CSkeletalAnimation" << std::endl;
+            // TODO
         }
-        else if (dataTypeName == "CLayer")
+        else
         {
-            //std::cout << "CLayer" << std::endl;
+#ifdef IS_A_DEVELOPMENT_BUILD
+            CUnknown(file, chunkInfos);
+#endif
         }
+
         file->seek(back2);
     }
     log->addLineAndFlush("Textures and mesh data OK");
@@ -299,6 +300,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     core::array<scene::ISkinnedMesh::SJoint*> roots = JointHelper::GetRoots(AnimatedMesh);
     for (u32 i = 0; i < roots.size(); ++i)
     {
+        std::cout << "root : " << roots[i]->Name.c_str() << std::endl;
         JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
     }
 
@@ -306,6 +308,59 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
     log->addLineAndFlush("All is loaded");
 	return true;
+}
+
+void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
+{
+    const long back = file->getPos();
+    file->seek(infos.adress);
+
+    while(1)
+    {
+        PropertyHeader propHeader;
+        if (!ReadPropertyHeader(file, propHeader))
+            break;
+
+
+        log->addLineAndFlush(propHeader.toString());
+
+        if (propHeader.propName == "boneMapping" && propHeader.propType == "@SBoneMapping")
+        {
+            u32 bonesCount = readU32(file);
+            std::cout << "bonesCount = " << bonesCount << std::endl;
+            file->seek(6, true);
+            for (u32 i = 0; i < bonesCount; ++i)
+            {
+                while (1)
+                {
+                    PropertyHeader boneMappingProp;
+                    if (!ReadPropertyHeader(file, boneMappingProp))
+                        break;
+
+                    std::cout << "---> " << boneMappingProp.toString().c_str() << std::endl;
+                    u32 value = readU32(file);
+                    std::cout << "Value: " << value << std::endl;
+                }
+                file->seek(-2, true);
+                std::cout << std::endl;
+            }
+        }
+        if (propHeader.propName == "boneMapping" && propHeader.propType == "@Int")
+        {
+            u32 bonesCount = readU32(file);
+            std::cout << "bonesCount = " << bonesCount << std::endl;
+            file->seek(8, true);
+            for (u32 i = 0; i < bonesCount; ++i)
+            {
+                u32 value = readU32(file);
+                std::cout << "Value: " << value << std::endl;
+            }
+        }
+
+        file->seek(propHeader.endPos);
+    }
+
+    file->seek(back);
 }
 
 TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
@@ -387,7 +442,7 @@ TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescripto
                 file->seek(1, true);
                 boneNameSizes[nbBones-(i+1)] = textSize;
                 totalNamesSize += textSize;
-                log->addLineAndFlush(formatString("Text size is : %d", textSize));
+                //log->addLineAndFlush(formatString("Text size is : %d", textSize));
                 break;
             }
             textSize++;
@@ -440,21 +495,21 @@ TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescripto
         position.Y = readF32(file);
         position.Z = readF32(file);
         readF32(file); // the w component
-        addVectorToLog("position", position);
+        //addVectorToLog("position", position);
 
         core::quaternion orientation;
         orientation.X = readF32(file);
         orientation.Y = readF32(file);
         orientation.Z = readF32(file);
         orientation.W = readF32(file);
-        log->addLineAndFlush(formatString("Orientation : %f, %f, %f, %f", orientation.X, orientation.Y, orientation.Z, orientation.W));
+        //log->addLineAndFlush(formatString("Orientation : %f, %f, %f, %f", orientation.X, orientation.Y, orientation.Z, orientation.W));
 
         core::vector3df scale;
         scale.X = readF32(file);
         scale.Y = readF32(file);
         scale.Z = readF32(file);
         readF32(file); // the w component
-        addVectorToLog("scale", scale);
+        //addVectorToLog("scale", scale);
 
         core::matrix4 posMat;
         posMat.setTranslation(position);
@@ -723,6 +778,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
             }
 
             boneNames.push_back(boneName);
+            log->addLineAndFlush(formatString("Mesh BONENAME : %s", boneName.c_str()));
 
 
             //BonesName.push_back(boneName);

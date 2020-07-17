@@ -181,7 +181,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         // Read data
         const u16 dataTypeId = readU16(file) - 1;
         core::stringc dataTypeName = Strings[dataTypeId];
-        log->addLineAndFlush(formatString("dataTypeName=%s", dataTypeName.c_str()));
+        log->addLineAndFlush(formatString("[%d] dataTypeName=%s", i, dataTypeName.c_str()));
 
         core::array<s32> data2 = readDataArray<s32>(file, 5);             // Data info (adress...)
 
@@ -324,10 +324,11 @@ void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
 
         log->addLineAndFlush(propHeader.toString());
 
+        // CAnimatedAttachment
         if (propHeader.propName == "boneMapping" && propHeader.propType == "@SBoneMapping")
         {
             u32 bonesCount = readU32(file);
-            std::cout << "bonesCount = " << bonesCount << std::endl;
+            std::cout << "@SBoneMapping bonesCount = " << bonesCount << std::endl;
             file->seek(6, true);
             for (u32 i = 0; i < bonesCount; ++i)
             {
@@ -345,14 +346,29 @@ void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
                 std::cout << std::endl;
             }
         }
+
+        /* CMeshSkinningAttachment
+         * Link the bone of a CMesh with the corresponding bones of a CSkeleton
+         * For each bone of the followinf CMesh, we have the ID of the corresponding bone in the previous CSkeleton
+         *
+         * Basically the structure of a model is the following :
+         * CSekeleton
+         * CMeshSkinningAttachment 1
+         * CmeshComponent 1
+         * CMesh 1
+         * CMeshSkinningAttachment 2
+         * CmeshComponent 2
+         * CMesh 2
+         * ...
+         */
         if (propHeader.propName == "boneMapping" && propHeader.propType == "@Int")
         {
             u32 bonesCount = readU32(file);
-            std::cout << "bonesCount = " << bonesCount << std::endl;
-            file->seek(8, true);
+            //std::cout << "bonesCount = " << bonesCount << std::endl;
+            file->seek(4, true);
             for (u32 i = 0; i < bonesCount; ++i)
             {
-                u32 value = readU32(file);
+                s32 value = readS32(file);
                 std::cout << "Value: " << value << std::endl;
             }
         }
@@ -1009,13 +1025,15 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
 
 
         int vertexSize = 0;
-        switch (submesh.vertexType) {
+        switch (submesh.vertexType)
+        {
         case 1:
+        case 11:
             vertexSize = 44;
             break;
 
-        case 11:
-            vertexSize = 44;
+        case 7:
+            vertexSize = 52;
             break;
 
         default:

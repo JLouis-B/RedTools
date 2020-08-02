@@ -103,6 +103,7 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     Strings.clear();
     Materials.clear();
     BonesOffsetMatrix.clear();
+    Skeletons.clear();
 
 	return AnimatedMesh;
 }
@@ -172,7 +173,6 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     int nMat = 0, nModel = 0;
     core::array<core::stringc> chunks;
     core::array<MeshData> meshesToLoad;
-    //core::array<ChunkDescriptor> skeletonsToLoad;
 
     // Ok, now we can read the materials and meshes
     file->seek(back + headerData[4]);

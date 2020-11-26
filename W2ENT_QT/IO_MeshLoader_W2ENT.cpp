@@ -399,6 +399,11 @@ void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
     file->seek(back);
 }
 
+bool seemToBeAnASCIICharacter(char c)
+{
+    return c != 0 && c != 1;
+}
+
 TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
 {
     TW2_CSkeleton skeleton;
@@ -469,11 +474,11 @@ TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescripto
             char c = readS8(file);
             file->seek(-2, true);
 
-            if (!isInText && c != 0)
+            if (!isInText && seemToBeAnASCIICharacter(c))
             {
                 isInText = true;
             }
-            if (isInText && c == 0)
+            if (isInText && !seemToBeAnASCIICharacter(c))
             {
                 file->seek(1, true);
                 boneNameSizes[nbBones-(i+1)] = textSize;
@@ -1034,7 +1039,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
 
 void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames)
 {
-    log->addLineAndFlush("Drawmesh");
+    log->addLineAndFlush("loadSkinnedSubmeshes");
 
     int back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
@@ -1153,7 +1158,7 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
         buffer->recalculateBoundingBox();
     }
 
-    log->addLineAndFlush("Drawmesh OK");
+    log->addLineAndFlush("loadSkinnedSubmeshes OK");
 }
 
 video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc textureFilepath)

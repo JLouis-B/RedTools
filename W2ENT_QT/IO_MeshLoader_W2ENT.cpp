@@ -287,11 +287,10 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
             loader.m_skeletonsLoaderMode = true;
             loader.createMesh(skeletonFile);
-            std::cout << "Load external skel" << std::endl;
 
             for (u32 i = 0; i < loader.Skeletons.size(); ++i)
             {
-                std::cout << "Add a skeleton loaded from external file" << std::endl;
+                log->addLine("Add a skeleton loaded from external file");
                 Skeletons.push_back(loader.Skeletons[i]);
             }
 
@@ -604,7 +603,6 @@ void IO_MeshLoader_W2ENT::createCSkeleton(TW2_CSkeleton skeleton)
     }
 
 
-    core::array<scene::ISkinnedMesh::SJoint*> roots;
     for (u32 i = 0; i < nbBones; ++i)
     {
         const s16 parentId = skeleton.parentId[i];
@@ -625,20 +623,15 @@ void IO_MeshLoader_W2ENT::createCSkeleton(TW2_CSkeleton skeleton)
             else
             {
                 JointHelper::SetParent(AnimatedMesh, joint, parent);
-
-                //parent->Children.push_back(joint);
                 log->addLineAndFlush(formatString("%s -> %s", parent->Name.c_str(), joint->Name.c_str()));
             }
         }
-        else if (parentId == -1)
-        {
-            roots.push_back(joint);
-            //scene::ISkinnedMesh::SJoint* parent = JointHelper::GetJointByName(AnimatedMesh, rootName);
-            //parent->Children.push_back(joint);
-        }
         else
         {
-            log->addLineAndFlush(formatString("Invalid parent ID: %d", parentId));
+            if (parentId == -1)
+                log->addLineAndFlush(formatString("%s is root", joint->Name.c_str()));
+            else
+                log->addLineAndFlush(formatString("Invalid parent ID: %d", parentId));
         }
     }
 
@@ -768,7 +761,6 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 
         for (int i = 0; i < nbBones; i++)
         {
-            //BoneData bone;
             core::matrix4 boneMatrix;
             file->read(boneMatrix.pointer(), 4 * 16);
 
@@ -823,16 +815,6 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
             boneNames.push_back(boneName);
             log->addLineAndFlush(formatString("Mesh BONENAME : %s", boneName.c_str()));
 
-
-            //BonesName.push_back(boneName);
-            /*
-            if (!boneAlreadyCreated)
-            {
-                bone.name = name;
-                BonesData.push_back(bone);
-            }
-            */
-
             file->seek(4, true); //float data12 = readFloats(file, 1)[0];
         }
         nbBones = readU8(file);
@@ -864,15 +846,6 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
             submesh.bonesId = readDataArray<u16>(file, readU8(file));
             submesh.unk = readU32(file);
             subMeshesData.push_back(submesh);
-
-            /*
-            if ((s_data.dataI[2] < 0 || s_data.dataI[2] > 100000 || error_with_bones ) && magic == false) // Can crash here
-            {
-                // We reload with 'the magic button'
-                GEOMETRY(file, tmp, true);
-                return;
-            }
-            */
 
             log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.dataI[2], submesh.vertexType));
         }
@@ -1151,9 +1124,6 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
 
         buffer->Material = Materials[result].material;
 
-        // TODO
-        //(subMeshesData[i], weighting);
-
         SceneManager->getMeshManipulator()->recalculateNormals(buffer);
         buffer->recalculateBoundingBox();
     }
@@ -1170,8 +1140,6 @@ video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc textureFilepath)
         io::path ddsFilepath;
         core::cutFilenameExtension(ddsFilepath, textureFilepath);
         ddsFilepath += ".dds";
-
-        //ddsfile = GamePath + ddsfile;
 
         if (FileSystem->existFile(ddsFilepath))
             texture = SceneManager->getVideoDriver()->getTexture(ddsFilepath.c_str());
@@ -1472,20 +1440,7 @@ void IO_MeshLoader_W2ENT::XBM_CBitmapTexture(io::IReadFile* xbmFile, core::strin
     else
     {
         log->addLineAndFlush("TODO: Empty texture !");
-        // Case of an empty file
-        // TODO
-        /*  new = Blender.Image.New(file.split('.')[0]+'.dds',height1,width1,24)
-
-            for (int m = 0 ; m < height1; m++)//m in range(height1)
-                for (int n = 0 ; n < width1; n++)//for n in range(width1)
-                {
-                    pix = readUnsignedChars(file, 4);
-
-                    fileDDS.setPixelI(m,n,[pix[0],pix[1],pix[2],pix[3]]);
-                }
-        */
     }
-
 }
 
 void IO_MeshLoader_W2ENT::vert_format(io::IReadFile* file)

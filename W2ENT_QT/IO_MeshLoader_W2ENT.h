@@ -87,15 +87,6 @@ struct TW2_CSkeleton
     core::array<core::vector3df> scales;
 };
 
-/*
-struct BoneData
-{
-    core::stringc name;
-    core::matrix4 offsetMatrix;
-};
-*/
-
-
 
 namespace io
 {

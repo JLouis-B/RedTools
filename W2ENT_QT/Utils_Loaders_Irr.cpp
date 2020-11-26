@@ -1,4 +1,5 @@
 #include "Utils_Loaders_Irr.h"
+#include <iostream>
 
 bool readBool(io::IReadFile* file)
 {
@@ -53,7 +54,7 @@ void chechNaNErrors(core::vector3df& vector3)
 
 
 // JointHelper functions
-bool JointHelper::HasJoint(const scene::ISkinnedMesh *mesh, const core::stringc jointName)
+bool JointHelper::HasJoint(const scene::ISkinnedMesh* mesh, const core::stringc jointName)
 {
     return mesh->getJointNumber(jointName.c_str()) != -1;
 }
@@ -85,6 +86,24 @@ scene::ISkinnedMesh::SJoint* JointHelper::GetParent(const scene::ISkinnedMesh* m
     }
 
     return nullptr;
+}
+
+void JointHelper::SetParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint, scene::ISkinnedMesh::SJoint* parent)
+{
+    // First, search if we already have a parent and remove it
+    core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
+    for (u32 j = 0; j < allJoints.size(); j++)
+    {
+       scene::ISkinnedMesh::SJoint* parentJoint = allJoints[j];
+       for (u32 k = 0; k < parentJoint->Children.size(); k++)
+       {
+           if (joint == parentJoint->Children[k])
+                parentJoint->Children.erase(k);
+       }
+    }
+
+    // And add to the parent
+    parent->Children.push_back(joint);
 }
 
 void JointHelper::ComputeGlobalMatrixRecursive(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
@@ -124,5 +143,26 @@ core::array<scene::ISkinnedMesh::SJoint*> JointHelper::GetRoots(const scene::ISk
     }
 
     return roots;
+}
+
+void debugJointRecursive(scene::ISkinnedMesh::SJoint* joint, int depth)
+{
+    for (int i = 0; i < depth; ++i)
+        std::cout << "-";
+    std::cout << "> " << joint->Name.c_str() << std::endl;
+
+    for (u32 i = 0; i < joint->Children.size(); ++i)
+    {
+        debugJointRecursive(joint->Children[i], depth+1);
+    }
+}
+
+void JointHelper::DebugJointsHierarchy(const scene::ISkinnedMesh* mesh)
+{
+    core::array<scene::ISkinnedMesh::SJoint*> roots = GetRoots(mesh);
+    for (u32 i = 0; i < roots.size(); ++i)
+    {
+        debugJointRecursive(roots[i], 0);
+    }
 }
 

@@ -124,6 +124,7 @@ public:
 	//! See IReferenceCounted::drop() for more information.
 	virtual IAnimatedMesh* createMesh(io::IReadFile* file);
 
+    bool m_skeletonsLoaderMode = false;
 
 private:
 
@@ -154,9 +155,6 @@ private:
 
     void CUnknown(io::IReadFile* file, ChunkDescriptor infos);
 
-
-    //void SkinSubmesh(SubmeshData dataSubMesh, core::array<core::array<unsigned char> > weighting);
-
     video::ITexture* getTexture(core::stringc textureFilepath);
 
     // Attributes
@@ -175,7 +173,6 @@ private:
     io::path ConfigGamePath;
 
     // Bones data
-    //core::array<core::stringc> BonesName;
     std::map<scene::ISkinnedMesh::SJoint*, core::matrix4> BonesOffsetMatrix;
 
     core::array<TW2_CSkeleton> Skeletons;

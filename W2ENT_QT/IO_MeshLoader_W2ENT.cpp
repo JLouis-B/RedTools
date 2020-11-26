@@ -103,7 +103,9 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     Strings.clear();
     Materials.clear();
     BonesOffsetMatrix.clear();
-    Skeletons.clear();
+
+    if (!m_skeletonsLoaderMode)
+        Skeletons.clear();
 
 	return AnimatedMesh;
 }
@@ -283,29 +285,39 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         {
             io::IReadFile* skeletonFile = FileSystem->createAndOpenFile(ConfigGamePath + filename);
             IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
+            loader.m_skeletonsLoaderMode = true;
             loader.createMesh(skeletonFile);
+            std::cout << "Load external skel" << std::endl;
 
             for (u32 i = 0; i < loader.Skeletons.size(); ++i)
+            {
+                std::cout << "Add a skeleton loaded from external file" << std::endl;
                 Skeletons.push_back(loader.Skeletons[i]);
+            }
 
             skeletonFile->drop();
         }
     }
 
-    for (u32 i = 0; i < Skeletons.size(); ++i)
+    if (!m_skeletonsLoaderMode)
     {
-        createCSkeleton(Skeletons[i]);
+
+        for (u32 i = 0; i < Skeletons.size(); ++i)
+        {
+            createCSkeleton(Skeletons[i]);
+        }
+
+        core::array<scene::ISkinnedMesh::SJoint*> roots = JointHelper::GetRoots(AnimatedMesh);
+        for (u32 i = 0; i < roots.size(); ++i)
+        {
+            std::cout << "root : " << roots[i]->Name.c_str() << std::endl;
+            JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
+        }
+
+        SkinMesh();
+
+        JointHelper::DebugJointsHierarchy(AnimatedMesh);
     }
-
-    core::array<scene::ISkinnedMesh::SJoint*> roots = JointHelper::GetRoots(AnimatedMesh);
-    for (u32 i = 0; i < roots.size(); ++i)
-    {
-        std::cout << "root : " << roots[i]->Name.c_str() << std::endl;
-        JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
-    }
-
-    SkinMesh();
-
     log->addLineAndFlush("All is loaded");
 	return true;
 }
@@ -349,17 +361,19 @@ void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
 
         /* CMeshSkinningAttachment
          * Link the bone of a CMesh with the corresponding bones of a CSkeleton
-         * For each bone of the followinf CMesh, we have the ID of the corresponding bone in the previous CSkeleton
+         * For each bone of the following CMesh, we have the ID of the corresponding bone in the previous CSkeleton
          *
          * Basically the structure of a model is the following :
          * CSekeleton
          * CMeshSkinningAttachment 1
-         * CmeshComponent 1
+         * CMeshComponent 1
          * CMesh 1
          * CMeshSkinningAttachment 2
-         * CmeshComponent 2
+         * CMeshComponent 2
          * CMesh 2
          * ...
+         *
+         * In fact, we can simply check by looking the name of the bones
          */
         if (propHeader.propName == "boneMapping" && propHeader.propType == "@Int")
         {
@@ -371,6 +385,12 @@ void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
                 s32 value = readS32(file);
                 std::cout << "Value: " << value << std::endl;
             }
+        }
+
+        if (propHeader.propType == "*CSkeleton")
+        {
+            u32 value = readU32(file);
+            std::cout << "*CSkeleton value: " << value << std::endl;
         }
 
         file->seek(propHeader.endPos);
@@ -599,7 +619,9 @@ void IO_MeshLoader_W2ENT::createCSkeleton(TW2_CSkeleton skeleton)
             }
             else
             {
-                parent->Children.push_back(joint);
+                JointHelper::SetParent(AnimatedMesh, joint, parent);
+
+                //parent->Children.push_back(joint);
                 log->addLineAndFlush(formatString("%s -> %s", parent->Name.c_str(), joint->Name.c_str()));
             }
         }

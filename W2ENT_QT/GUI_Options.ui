@@ -42,7 +42,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_export">
     <attribute name="title">
@@ -224,7 +224,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Load High def terrains</string>
+      <string>Load painted meshes (used for high def terrains)</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="checkBox_TW1_loadSkinnedMeshes">
@@ -392,27 +392,17 @@
     <widget class="QPushButton" name="button_view_backgroundColorSelector">
      <property name="geometry">
       <rect>
-       <x>120</x>
+       <x>20</x>
        <y>140</y>
-       <width>51</width>
+       <width>141</width>
        <height>41</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Change</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_view_backgroundColorSelector">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>160</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
+     <property name="autoFillBackground">
+      <bool>true</bool>
      </property>
      <property name="text">
-      <string>Background color</string>
+      <string>Change background color</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_view_movementSpeed">

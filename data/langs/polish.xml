@@ -58,12 +58,9 @@
 	
 	
 	<!-- Options -->
-	<element id="options_view" text="Widok"/>
 	<element id="options_camera" text="Kamera"/>
 	<element id="options_camera_movement_speed" text="Prędkość poruszania"/>
 	<element id="options_camera_rot_speed" text="Prędkość Obracania"/>
-	<element id="options_background" text="Kolor Tła"/>
-	<element id="options_export" text="Eksportuj"/>
 	<element id="options_export_to_pack0" text="Eksportuj do folderu pack0"/>
 	<element id="options_export_to_other" text="Eksportuj do innego folderu"/>
 	<element id="options_export_target" text="Wybierz folder do eksportu"/>

@@ -21,7 +21,9 @@ GUI_Options::GUI_Options(QWidget *parent) :
 
     _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
     _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
-    _backgroundColor = Settings::_backgroundColor;
+
+    _originalBackgroundColor = Settings::_backgroundColor;
+    updateBackgroundColorButtonColor();
 
     _ui->checkBox_export_copyTextures->setChecked(Settings::_copyTexturesEnabled);
     _ui->checkBox_export_copyTexturesSlot1->setChecked(Settings::_copyTexturesSlot1);
@@ -52,6 +54,8 @@ GUI_Options::GUI_Options(QWidget *parent) :
 
 
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(ok()));
+    QObject::connect(_ui->buttonBox, SIGNAL(rejected()), this, SLOT(cancel()));
+
     QObject::connect(_ui->button_view_backgroundColorSelector, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
     QObject::connect(_ui->pushButton_view_reset, SIGNAL(clicked()), this, SLOT(resetViewPanel()));
 
@@ -76,20 +80,17 @@ GUI_Options::~GUI_Options()
 
 void GUI_Options::translate()
 {
-    _ui->View->setTabText(0, Translator::get("options_export"));
     _ui->radioButton_export_exportCustomDir->setText(Translator::get("options_export_to_other"));
     _ui->radioButton_export_exportBaseDir->setText(Translator::get("options_export_to_pack0"));
 
     _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
     _ui->checkBox_TW3_loadSkel->setText(Translator::get("options_tw3_skeleton"));
 
-    _ui->View->setTabText(2, Translator::get("options_view"));
     _ui->label_view_camera->setText(Translator::get("options_camera"));
     _ui->label_view_movementSpeed->setText(Translator::get("options_camera_movement_speed"));
     _ui->label_view_rotSpeed->setText(Translator::get("options_camera_rot_speed"));
     _ui->checkBox_debug_log->setText(Translator::get("options_debug_log"));
     _ui->label_debug_log->setText(Translator::get("options_debug_log_label"));
-    _ui->label_view_backgroundColorSelector->setText(Translator::get("options_background"));
 }
 
 void GUI_Options::resetViewPanel()
@@ -97,7 +98,16 @@ void GUI_Options::resetViewPanel()
     _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
     _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
 
-    _backgroundColor = QColor(0, 0, 0);
+    Settings::_backgroundColor = QColor(0, 0, 0);
+    updateBackgroundColorButtonColor();
+}
+
+void GUI_Options::updateBackgroundColorButtonColor()
+{
+    QPalette pal = _ui->button_view_backgroundColorSelector->palette();
+    pal.setColor(QPalette::Button, Settings::_backgroundColor);
+    _ui->button_view_backgroundColorSelector->setPalette(pal);
+    _ui->button_view_backgroundColorSelector->update();
 }
 
 void GUI_Options::ok()
@@ -128,18 +138,23 @@ void GUI_Options::ok()
 
     Settings::_debugLog = _ui->checkBox_debug_log->isChecked();
 
-    Settings::_backgroundColor = _backgroundColor;
-
     accept();
     emit optionsValidation();
 }
 
+void GUI_Options::cancel()
+{
+    Settings::_backgroundColor = _originalBackgroundColor;
+    reject();
+}
+
 void GUI_Options::selectBackgroundColor()
 {
-    QColor color = QColorDialog::getColor(_backgroundColor, this, "Select the background color");
+    QColor color = QColorDialog::getColor(Settings::_backgroundColor, this, "Select the background color");
     if(color.isValid())
     {
-        _backgroundColor = color;
+        Settings::_backgroundColor = color;
+        updateBackgroundColorButtonColor();
     }
 }
 

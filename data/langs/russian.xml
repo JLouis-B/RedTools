@@ -61,12 +61,9 @@
 	
 	
 	<!-- Options -->
-	<element id="options_view" text="Вид"/>
 	<element id="options_camera" text="Камера"/>
 	<element id="options_camera_movement_speed" text="Скорость передвижения"/>
 	<element id="options_camera_rot_speed" text="Скорость вращения"/>
-	<element id="options_background" text="Цвет фона"/>
-	<element id="options_export" text="Экспорт"/>
 	<element id="options_export_to_pack0" text="Экспортировать в папку 'базовый каталог'"/>
 	<element id="options_export_to_other" text="Экспорт в другую папку"/>
 	<element id="options_export_target" text="Выбрать папку экспорта"/>

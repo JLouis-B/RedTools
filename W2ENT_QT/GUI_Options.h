@@ -18,6 +18,8 @@ public:
 
 public slots:
     void ok();
+    void cancel();
+
     void resetViewPanel();
     void selectBackgroundColor();
     void changeExportMode();
@@ -26,8 +28,9 @@ public slots:
 
 private:
     Ui::GUI_Options* _ui;
-    QColor _backgroundColor;
+    QColor _originalBackgroundColor;
     void translate();
+    void updateBackgroundColorButtonColor();
 
 signals:
     void optionsValidation();

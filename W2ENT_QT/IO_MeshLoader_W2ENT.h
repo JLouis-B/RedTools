@@ -11,7 +11,7 @@
 #include "IMeshManipulator.h"
 #include "ISkinnedMesh.h"
 
-//#include "os.h"
+#include <map>
 
 #include "Log.h"
 
@@ -20,46 +20,72 @@
 namespace irr
 {
 
-struct DataInfos
+struct ChunkDescriptor
 {
     int size;
     int adress;
 };
 
-struct W2_PropertyHeader
+struct PropertyHeader
 {
     core::stringc propName;
     core::stringc propType;
     s32 propSize;
     u32 endPos;
+
+    core::stringc toString()
+    {
+        return formatString("W2_PropertyHeader: propName = %s, propType = %s, propSize = %d, endPos = %d, startPos = %d", propName.c_str(), propType.c_str(), propSize, endPos, endPos-propSize);
+    }
 };
 
-struct Meshdata
+struct MeshData
 {
     int nModel;
     core::array<int> nMat;
-    DataInfos infos;
+    ChunkDescriptor infos;
 };
 
-struct Submesh_data
+struct SubmeshData
 {
-    int vertype;
-    core::array <int> dataI;
-    core::array <unsigned short> dataH;
+    int vertexType;
+    core::array<s32> dataI;
+    core::array<u16> bonesId;
+    u32 unk;
 };
 
-struct Mat
+struct Material
 {
     int id;
     video::SMaterial material;
 };
 
-struct bone_data
+struct TW2_CSkeleton
 {
-    core::stringc name;
-    irr::core::matrix4 matr;
-};
+    void setBonesCount(u32 size)
+    {
+        names.reallocate(size);
+        parentId.reallocate(size);
+        matrix.reallocate(size);
+        
+        positions.reallocate(size);
+        rotations.reallocate(size);
+        scales.reallocate(size);
+    }
 
+    u32 getBonesCount()
+    {
+        return names.size();
+    }
+    
+    core::array<core::stringc> names;
+    core::array<s16> parentId;
+    core::array<core::matrix4> matrix;
+
+    core::array<core::vector3df> positions;
+    core::array<core::quaternion> rotations;
+    core::array<core::vector3df> scales;
+};
 
 
 namespace io
@@ -89,66 +115,58 @@ public:
 	//! See IReferenceCounted::drop() for more information.
 	virtual IAnimatedMesh* createMesh(io::IReadFile* file);
 
+    bool m_skeletonsLoaderMode = false;
 
 private:
 
-    bool ReadPropertyHeader(io::IReadFile* file, W2_PropertyHeader& propHeader);
+    bool ReadPropertyHeader(io::IReadFile* file, PropertyHeader& propHeader);
 
     // Main function
 	bool load(io::IReadFile* file);
 
-    void CMesh(io::IReadFile* file, Meshdata tmp);
-    void CSkeleton(io::IReadFile* file, DataInfos infos);
-
-    void skeleton(io::IReadFile* file);
-    void drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats);
-    void CMaterialInstance(io::IReadFile* file, DataInfos infos, int nMats);
-    void TEXTURE(io::IReadFile* file, core::stringc xbm_file, core::array<int> data, core::array<core::stringc> stringsXBM);
-    void convertXBMToDDS(core::stringc xbm_file);
-    void drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats);
+    void CMesh(io::IReadFile* file, MeshData tmp);
+    void loadStaticMesh(io::IReadFile* file, core::array<int> mats);
+    void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
     void vert_format(io::IReadFile* file);
-    void static_meshes(io::IReadFile* file, core::array<int> mats);
+    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames);
+
+    void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats);
+    void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
+    void generateDDSFromXBM(core::stringc filepath, core::stringc ddsFilepath);
+
+    TW2_CSkeleton CSkeleton(io::IReadFile* file, ChunkDescriptor infos);
+    void createCSkeleton(TW2_CSkeleton skeleton);
+
+    void SkinMesh();
 
 	bool find (core::array<core::stringc> stringVect, core::stringc name);
-	core::stringc searchParent(core::stringc bonename);
 
-	void check_armature(io::IReadFile* file);
-    void make_bone();
-    void make_bone_parent();
-    void make_bone_position();
-    void make_localMatrix_from_global();
-    void computeLocal(scene::ISkinnedMesh::SJoint* joint);
-
-    void addVectorToLog(core::vector3df vec);
+    void addVectorToLog(core::stringc name, core::vector3df vec);
     void addMatrixToLog(core::matrix4 mat);
 
+    void CUnknown(io::IReadFile* file, ChunkDescriptor infos);
 
-    void make_vertex_group(Submesh_data dataSubMesh, core::array<core::array<unsigned char> > weighting);
-
-    video::ITexture* getTexture(core::stringc filename);
+    video::ITexture* getTexture(core::stringc textureFilepath);
 
     // Attributes
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
-	unsigned int NbSubMesh;
 
-    core::array<Submesh_data> SubMeshData;
     core::array<core::array<unsigned char> >IdLOD;
 
     s32 Version;
     core::array<core::stringc> Strings;
     core::array<core::stringc> Files;
-    // Informations about a CMesh
-    core::array<Meshdata> MeshesToLoad;
     // Materials of the meshes
-    core::array<Mat> Materials;
+    core::array<Material> Materials;
 
     io::path ConfigGamePath;
 
     // Bones data
-    core::array<core::stringc> bonenames;
-    core::array<bone_data> bones_data;
+    std::map<scene::ISkinnedMesh::SJoint*, core::matrix4> BonesOffsetMatrix;
+
+    core::array<TW2_CSkeleton> Skeletons;
 
     //DEBUG
     Log* log;

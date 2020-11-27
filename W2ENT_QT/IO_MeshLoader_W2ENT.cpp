@@ -21,8 +21,9 @@
 
 #include "Settings.h"
 
-
+#include <vector>
 #include <sstream>
+#include "IrrAssimp/IrrAssimpImport.h" // SkinnedVertex struct
 
 
 namespace irr
@@ -35,7 +36,6 @@ IO_MeshLoader_W2ENT::IO_MeshLoader_W2ENT(scene::ISceneManager* smgr, io::IFileSy
 : SceneManager(smgr),
   FileSystem(fs),
   AnimatedMesh(nullptr),
-  NbSubMesh(0),
   log(nullptr)
 {
 	#ifdef _DEBUG
@@ -102,144 +102,20 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
     Files.clear();
     Strings.clear();
     Materials.clear();
-    MeshesToLoad.clear();
-    NbSubMesh = 0;
+    BonesOffsetMatrix.clear();
+
+    if (!m_skeletonsLoaderMode)
+        Skeletons.clear();
 
 	return AnimatedMesh;
 }
 
-
-void printVector(core::vector3df vect)
+void IO_MeshLoader_W2ENT::addVectorToLog(core::stringc name, core::vector3df vec)
 {
-    std::cout << "Vector : " << vect.X << ", " << vect.Y << ", " << vect.Z << std::endl;
+    log->addLineAndFlush(formatString("Vector %s : %f %f %f", name.c_str(), vec.X, vec.Y, vec.Z));
 }
 
-
-void IO_MeshLoader_W2ENT::make_vertex_group(Submesh_data dataSubMesh, core::array<core::array<unsigned char> > weighting)
-{
-    core::array <unsigned short> vertex_groups = dataSubMesh.dataH;
-
-    for (unsigned int id_0 = 0; id_0 < weighting.size(); id_0++)
-    {
-        core::array<unsigned char> data = weighting[id_0]; // weights list of a vertex
-        for (int id_1 = 0; id_1 < 4; id_1++)
-        {
-            unsigned char w  = data[id_1+4]; // # strength
-            if (w != 0)
-            {
-                unsigned short gr = vertex_groups[data[id_1]];
-                core::stringc grName = bonenames[gr];
-
-                ISkinnedMesh::SJoint* bone = nullptr;
-                // Loop to find the bone with the bonename
-                for (unsigned int i = 0; i < AnimatedMesh->getJointCount(); i++)
-                {
-                    if (grName == AnimatedMesh->getAllJoints()[i]->Name)
-                    {
-                        bone = AnimatedMesh->getAllJoints()[i];
-                        break;
-                    }
-                }
-                if (! bone)
-                    ; //std::cout << "bone not found " << grName.c_str()  << std::endl;
-                else
-                {
-
-                    ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
-                    wt->strength = ((float)w)/255.0f;
-                    wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1; // TODO
-                    wt->vertex_id = id_0; // TODO
-
-                    if (wt->strength > 1.0f || wt->strength < 0.0f)
-                        std::cout << "Error, strength range : " << wt->strength << std::endl;
-                    if (wt->buffer_id >= AnimatedMesh->getMeshBufferCount())
-                        std::cout << "Error, mesh buffer range" << std::endl;
-                    if (wt->vertex_id >= AnimatedMesh->getMeshBuffer(wt->buffer_id)->getVertexCount() )
-                        std::cout << "Error, vertex ID range" << std::endl;
-
-                }
-
-
-                /*irr::core::stringc vertexGroupName = "vertexGroupName = ";
-                for (int tmpStr = 0; tmpStr < data2[id_1].size(); ++tmpStr)
-                    vertexGroupName.append(data2[id_1][tmpStr]);
-
-                */
-
-            }
-        }
-    }
-}
-
-
-
-void IO_MeshLoader_W2ENT::skeleton(io::IReadFile* file)
-{
-    make_bone();                            // std::cout << "make_bone" <<std::endl;
-    make_bone_parent();                     // std::cout << "make_bone_parent" <<std::endl;
-    make_bone_position();                   // std::cout << "make_bone_position" <<std::endl;
-    make_localMatrix_from_global();         // std::cout << "make_localMatrix_from_global" <<std::endl;
-}
-
-void IO_MeshLoader_W2ENT::make_bone()
-{
-    for (u32 i = 0; i < bones_data.size(); ++i)
-    {
-        ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
-        joint->Name = bones_data[i].name;
-
-        log->addLineAndFlush(joint->Name);
-    }
-}
-
-void IO_MeshLoader_W2ENT::make_bone_parent()
-{
-    for (u32 i = 0; i < bones_data.size(); ++i)
-    {
-        bone_data data = bones_data[i];
-        core::stringc parentName = "pelvis";
-        core::stringc boneName = data.name;
-
-        parentName = searchParent(boneName);
-        if (parentName.size() > 0)
-        {
-            //std::cout << "bone : " << parentName.c_str() << " -> " << boneName.c_str() << std::endl;
-
-            ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(boneName.c_str())];
-            if (AnimatedMesh->getJointNumber(parentName.c_str()) != -1)
-            {
-                ISkinnedMesh::SJoint* jointParent = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(parentName.c_str())];
-                if (jointParent)
-                    jointParent->Children.push_back(joint);
-            }
-
-        }
-        else
-            ; //std::cout << "Root bone : " << parentName.c_str() << " from " << boneName.c_str() << std::endl;
-    }
-
-    /*
-    newarm.makeEditable()
-    for bone_id in range(len(bones_data)):
-        bonedata = bones_data[bone_id]
-        parentname = 'pelvis'
-        bonename = bonedata[1]
-
-        parentname = searchParent(bonename)
-        if len(parentname)>0:
-            bone = newarm.bones[bonename]
-            boneparent = newarm.bones[parentname]
-            bone.parent = boneparent
-    newarm.update()
-    */
-}
-
-void IO_MeshLoader_W2ENT::addVectorToLog(irr::core::vector3df vec)
-{
-    log->addLineAndFlush(formatString("Vector : %f %f %f", vec.X, vec.Y, vec.Z));
-}
-
-void IO_MeshLoader_W2ENT::addMatrixToLog(irr::core::matrix4 mat)
+void IO_MeshLoader_W2ENT::addMatrixToLog(core::matrix4 mat)
 {
     core::stringc logContent = "Matrix4 : \n";
     for (u32 i = 0; i < 16; ++i)
@@ -253,155 +129,18 @@ void IO_MeshLoader_W2ENT::addMatrixToLog(irr::core::matrix4 mat)
     logContent += "\n";
     log->addAndFlush(logContent);
 
-    addVectorToLog(mat.getTranslation());
-    addVectorToLog(mat.getRotationDegrees());
+    addVectorToLog("mat translation", mat.getTranslation());
+    addVectorToLog("mat euler", mat.getRotationDegrees());
 
     logContent = "End matrix4\n\n";
 
     log->addAndFlush(logContent);
 }
 
-void IO_MeshLoader_W2ENT::make_bone_position()
-{
-    for (u32 i = 0; i < bones_data.size(); ++i)
-    {
-        bone_data data = bones_data[i];
-        core::stringc boneName = data.name;
-        irr::core::matrix4 matr = data.matr;
-
-        ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(boneName.c_str())];
-
-        irr::core::vector3df position = matr.getTranslation();
-        irr::core::matrix4 invRot;
-        matr.getInverse(invRot);
-        invRot.rotateVect(position);
-
-        core::matrix4 axisMatrix;
-        axisMatrix.setInverseRotationDegrees(core::vector3df(90, 0,  180));
-        axisMatrix.rotateVect(position);
-
-        core::vector3df rotation = invRot.getRotationDegrees();
-        rotation = core::vector3df(0, 0, 0);
-        position = - position;
-        irr::core::vector3df scale = core::vector3df(1, 1, 1);//invRot.getScale();
-
-        if (joint)
-        {
-
-            if (log->isEnabled())
-            {
-                log->addLine(formatString("Joint %s", joint->Name.c_str()));
-                log->addLine(formatString("Position : X=%f, Y=%f, Z=%f", position.X, position.Y, position.Z));
-                log->addLine(formatString("Rotation : X=%f, Y=%f, Z=%f", rotation.X, rotation.Y, rotation.Z));
-                log->addLine(formatString("Scale : X=%f, Y=%f, Z=%f", scale.X, scale.Y, scale.Z));
-                log->flush();
-            }
-
-            //Build GlobalMatrix:
-            core::matrix4 positionMatrix;
-            positionMatrix.setTranslation( position );
-            core::matrix4 scaleMatrix;
-            scaleMatrix.setScale( scale );
-            core::matrix4 rotationMatrix;
-            rotationMatrix.setRotationDegrees(rotation);
-
-            //printVector(axisMatrix.getRotationDegrees());
-
-            joint->GlobalMatrix = scaleMatrix * rotationMatrix * positionMatrix;
-        }
-    }
-    /*
-    for bone_id in range(len(bones_data)):
-        newarm.makeEditable()
-        bonedata = bones_data[bone_id]
-        bonename = bonedata[1]
-        bonematrix = bonedata[0]
-        bone = newarm.bones[bonename]
-        pos = bonematrix.translationPart()
-        rot = bonematrix.rotationPart().invert()
-        pos = pos*rot
-        bone.head = Vector(pos.negate())
-        bvec = bone.tail- bone.head
-        bvec.normalize()
-        bone.tail = bone.head + 0.1 * bvec
-        newarm.update()
-    */
-
-}
-
-void IO_MeshLoader_W2ENT::computeLocal(ISkinnedMesh::SJoint* joint)
-{
-    // Get parent
-    const core::stringc parentName = searchParent(joint->Name.c_str());
-    ISkinnedMesh::SJoint* jointParent = 0;
-    if (AnimatedMesh->getJointNumber(parentName.c_str()) != -1)
-    {
-        jointParent = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(parentName.c_str())];
-    }
-
-    if (jointParent)
-    {
-        irr::core::matrix4 globalParent = jointParent->GlobalMatrix;
-        irr::core::matrix4 invGlobalParent;
-        globalParent.getInverse(invGlobalParent);
-
-        joint->LocalMatrix = invGlobalParent * joint->GlobalMatrix;
-    }
-    else
-        joint->LocalMatrix = joint->GlobalMatrix;
-}
-
-void IO_MeshLoader_W2ENT::make_localMatrix_from_global()
-{
-    for (u32 i = 0; i < bones_data.size(); ++i)
-    {
-        bone_data data = bones_data[i];
-        core::stringc boneName = data.name;
-
-        ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[AnimatedMesh->getJointNumber(boneName.c_str())];
-        computeLocal(joint);
-
-
-        /*
-        logContent += "Joint ";
-        logContent += joint->Name;
-        logContent += "\n";
-
-        logContent += "Globale lue : \n";
-        addMatrixToLog(joint->GlobalMatrix);
-        logContent += "\nGlobale from locale : \n";
-        */
-
-        //addMatrixToLog(globalComputed);
-        //logContent += "\n\n\n\n";
-
-        irr::core::matrix4 localMatrix = joint->LocalMatrix;
-
-        irr::core::matrix4 invRot;
-        localMatrix.getInverse(invRot);
-
-        irr::core::vector3df rotatedVect = joint->LocalMatrix.getTranslation();
-
-        irr::core::matrix4 translationMat;
-        translationMat.setTranslation(rotatedVect);
-        irr::core::matrix4 rotationMat;
-        rotationMat.setRotationDegrees(joint->LocalMatrix.getRotationDegrees());
-        //joint->LocalMatrix.getInverse(rotationMat);
-        //printVector(invRot.getRotationDegrees());
-
-        //joint->LocalMatrix = rotationMat * translationMat;
-
-        joint->Animatedposition = rotatedVect;
-        joint->Animatedscale = joint->LocalMatrix.getScale();
-        joint->Animatedrotation = core::vector3df(0, 0, 0);
-    }
-}
-
 bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 {
-    int back = file->getPos();
-
-    readString(file, 4); // CR2W
+    long back = file->getPos();
+    file->seek(4, true); // "CR2W" magic string
 
     RedEngineFileHeader header;
     loadTW2FileHeader(file, header, false);
@@ -409,7 +148,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     Strings = header.Strings;
     Files = header.Files;
 
-    log->addLineAndFlush("Table 1 & 2 OK");
+    log->addLineAndFlush("Strings and filenames OK");
 
     core::array<s32> headerData = readDataArray<s32>(file, 10);
 
@@ -434,45 +173,44 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     // useless for the loader
 
     int nMat = 0, nModel = 0;
-    core::array <core::stringc> chunks;
+    core::array<core::stringc> chunks;
+    core::array<MeshData> meshesToLoad;
 
     // Ok, now we can read the materials and meshes
     file->seek(back + headerData[4]);
     for(int i = 0; i < headerData[5]; ++i) // Now, the list of all the components of the files
     {
         // Read data
-        u16 dataTypeId = readU16(file) - 1;    // Data type
-        core::stringc dataType = Strings[dataTypeId];
+        const u16 dataTypeId = readU16(file) - 1;
+        core::stringc dataTypeName = Strings[dataTypeId];
+        log->addLineAndFlush(formatString("[%d] dataTypeName=%s", i, dataTypeName.c_str()));
 
         core::array<s32> data2 = readDataArray<s32>(file, 5);             // Data info (adress...)
 
-        DataInfos infos;
-        infos.size = data2[1];
-        infos.adress = data2[2];
+        ChunkDescriptor chunkInfos;
+        chunkInfos.size = data2[1];
+        chunkInfos.adress = data2[2];
 
-        core::stringc mesh_source;                              // mesh source ? useless
+        core::stringc meshSource;
 
         if (data2[0] == 0)
         {
-            u8 size = readU8(file) - 128;
+            const u8 size = readU8(file) - 128;
+            const u8 offset = readU8(file);
+            if (offset != 1)
+                file->seek(-1, true);
 
-            unsigned char offset;
-            file->read(&offset, 1);
-            file->seek(-1, true);
-
-            // decalage of 1 octet in this case
-            if (offset == 1)
-                file->seek(1, true);
-
-            mesh_source = readString(file, size);
+            meshSource = readString(file, size);
         }
         else
         {
-            file->seek(1, true);    //readUnsignedChars(file, 1)[0]-128;
+            // Seem to be always 0
+            const u8 unk = readU8(file) - 128;
+            //log->addLineAndFlush(formatString("Unk is %d", unk));
         }
 
-        if (!find(chunks, dataType))    //check if 'name' is already in 'chuncks'. If this is not the case, name is added in chunk
-            chunks.push_back(dataType);
+        if (!find(chunks, dataTypeName))    //check if 'name' is already in 'chunks'. If this is not the case, name is added in chunk
+            chunks.push_back(dataTypeName);
 
         // Now we check the type of the data, and if we have a CMaterialInstance or CMesh we read it
         //std::cout << name.c_str() << std::endl;
@@ -481,110 +219,515 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         // now all stuff readed
         const int back2 = file->getPos();
 
-        if (dataType == "CMaterialInstance")
+        if (dataTypeName == "CMaterialInstance")
         {
             log->addAndFlush("\nCMaterialInstance\n");
 
-            CMaterialInstance(file, infos, nMat);
-            MeshesToLoad[MeshesToLoad.size()-1].nMat.push_back(nMat);
+            CMaterialInstance(file, chunkInfos, nMat);
+            meshesToLoad[meshesToLoad.size()-1].nMat.push_back(nMat);
             nMat++;
 
             log->addLineAndFlush("CMaterialInstance OK");
         }
-        else if (dataType == "CMesh")
+        else if (dataTypeName == "CMesh")
         {
             //std::cout << "CMesh" << std::endl;            
             log->addAndFlush("\nCMesh\n");
 
             // Just get the filename from the filepath
-            int index = mesh_source.findLast('\\');
-            core::stringc mesh_name = mesh_source.subString(index, mesh_source.size() - index);
+            int index = meshSource.findLast('\\');
+            core::stringc meshName = meshSource.subString(index, meshSource.size() - index);
 
             // if there is no filepath ? we set a default name
-            if(mesh_name.size() == 0)
-                mesh_name = "model";
+            if(meshName.size() == 0)
+                meshName = "model";
 
-            Meshdata m_data;
-            m_data.nModel = nModel;             // The index of the mesh (useful if there are many meshes)
-            m_data.infos = infos;
-            MeshesToLoad.push_back(m_data);
+            MeshData meshData;
+            meshData.nModel = nModel;             // The index of the mesh (useful if there are many meshes)
+            meshData.infos = chunkInfos;
+            meshesToLoad.push_back(meshData);
 
             nModel++;
 
             log->addLineAndFlush("CMesh OK");
         }
-        else if (dataType == "CSkeleton")
+        else if (dataTypeName == "CSkeleton")
         {
-            //std::cout << "CSkeleton" << std::endl;
-            CSkeleton(file, infos);
+            Skeletons.push_back(CSkeleton(file, chunkInfos));
         }
-        else if (dataType == "CSkeletalAnimation")
+        else if (dataTypeName == "CSkeletalAnimation")
         {
-            //std::cout << "CSkeletalAnimation" << std::endl;
+            // TODO
         }
-        else if (dataType == "CLayer")
+        else
         {
-            //std::cout << "CLayer" << std::endl;
+#ifdef IS_A_DEVELOPMENT_BUILD
+            CUnknown(file, chunkInfos);
+#endif
         }
+
         file->seek(back2);
     }
     log->addLineAndFlush("Textures and mesh data OK");
 
     // When we have loaded all the materials and all the 'mesh headers', we load the meshes
-    for (unsigned int i = 0; i < MeshesToLoad.size(); i++)
+    for (u32 i = 0; i < meshesToLoad.size(); ++i)
     {
         // Create mesh
-        CMesh(file, MeshesToLoad[i]);
+        CMesh(file, meshesToLoad[i]);
     }
 
+    // some skeletons aren't in CSkeleton
+    for (u32 i = 0; i < Files.size(); ++i)
+    {
+        core::stringc filename = Files[i];
+        if (core::hasFileExtension(filename, "w2rig"))
+        {
+            io::IReadFile* skeletonFile = FileSystem->createAndOpenFile(ConfigGamePath + filename);
+            IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
+            loader.m_skeletonsLoaderMode = true;
+            loader.createMesh(skeletonFile);
+
+            for (u32 i = 0; i < loader.Skeletons.size(); ++i)
+            {
+                log->addLine("Add a skeleton loaded from external file");
+                Skeletons.push_back(loader.Skeletons[i]);
+            }
+
+            skeletonFile->drop();
+        }
+    }
+
+    if (!m_skeletonsLoaderMode)
+    {
+
+        for (u32 i = 0; i < Skeletons.size(); ++i)
+        {
+            createCSkeleton(Skeletons[i]);
+        }
+
+        core::array<scene::ISkinnedMesh::SJoint*> roots = JointHelper::GetRoots(AnimatedMesh);
+        for (u32 i = 0; i < roots.size(); ++i)
+        {
+            std::cout << "root : " << roots[i]->Name.c_str() << std::endl;
+            JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
+        }
+
+        SkinMesh();
+
+        JointHelper::DebugJointsHierarchy(AnimatedMesh);
+    }
     log->addLineAndFlush("All is loaded");
 	return true;
 }
 
-bool checkIfBoneDontExist(core::stringc name, irr::core::array<bone_data> datas)
+void IO_MeshLoader_W2ENT::CUnknown(io::IReadFile* file, ChunkDescriptor infos)
 {
-    for (int i = 0; i < datas.size(); i++)
+    const long back = file->getPos();
+    file->seek(infos.adress);
+
+    while(1)
     {
-        if (datas[i].name == name)
-            return false;
+        PropertyHeader propHeader;
+        if (!ReadPropertyHeader(file, propHeader))
+            break;
+
+
+        log->addLineAndFlush(propHeader.toString());
+
+        // CAnimatedAttachment
+        if (propHeader.propName == "boneMapping" && propHeader.propType == "@SBoneMapping")
+        {
+            u32 bonesCount = readU32(file);
+            std::cout << "@SBoneMapping bonesCount = " << bonesCount << std::endl;
+            file->seek(6, true);
+            for (u32 i = 0; i < bonesCount; ++i)
+            {
+                while (1)
+                {
+                    PropertyHeader boneMappingProp;
+                    if (!ReadPropertyHeader(file, boneMappingProp))
+                        break;
+
+                    std::cout << "---> " << boneMappingProp.toString().c_str() << std::endl;
+                    u32 value = readU32(file);
+                    std::cout << "Value: " << value << std::endl;
+                }
+                file->seek(-2, true);
+                std::cout << std::endl;
+            }
+        }
+
+        /* CMeshSkinningAttachment
+         * Link the bone of a CMesh with the corresponding bones of a CSkeleton
+         * For each bone of the following CMesh, we have the ID of the corresponding bone in the previous CSkeleton
+         *
+         * Basically the structure of a model is the following :
+         * CSekeleton
+         * CMeshSkinningAttachment 1
+         * CMeshComponent 1
+         * CMesh 1
+         * CMeshSkinningAttachment 2
+         * CMeshComponent 2
+         * CMesh 2
+         * ...
+         *
+         * In fact, we can simply check by looking the name of the bones
+         */
+        if (propHeader.propName == "boneMapping" && propHeader.propType == "@Int")
+        {
+            u32 bonesCount = readU32(file);
+            //std::cout << "bonesCount = " << bonesCount << std::endl;
+            file->seek(4, true);
+            for (u32 i = 0; i < bonesCount; ++i)
+            {
+                s32 value = readS32(file);
+                std::cout << "Value: " << value << std::endl;
+            }
+        }
+
+        if (propHeader.propType == "*CSkeleton")
+        {
+            u32 value = readU32(file);
+            std::cout << "*CSkeleton value: " << value << std::endl;
+        }
+
+        file->seek(propHeader.endPos);
     }
-    return true;
+
+    file->seek(back);
 }
 
-void IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, DataInfos infos)
+bool seemToBeAnASCIICharacter(char c)
 {
+    return c != 0 && c != 1;
+}
+
+TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescriptor infos)
+{
+    TW2_CSkeleton skeleton;
+
     file->seek(infos.adress);
 
     //std::cout << "begin at " << infos.adress << " and end at " << infos.adress + infos.size << ", so size = " << infos.size << std::endl;
     while(1)
     {
-        W2_PropertyHeader propHeader;
+        PropertyHeader propHeader;
         if (!ReadPropertyHeader(file, propHeader))
             break;
 
+
+        log->addLineAndFlush(propHeader.toString());
         file->seek(propHeader.endPos);
     }
     file->seek(-4, true);
+
+    log->addLineAndFlush(formatString("CSKeleton start at %d", file->getPos()));
+    file->seek(3, true);
+    u32 chunkSize = readU32(file);
+    file->seek(36, true); // unk
+    file->seek(28, true); // app info : version (4 bytes) + 24 bytes string
+    file->seek(116, true); // "__classname__", "__type__"...
+
+    u32 unk = readU32(file);
+    u32 endOfBonesNamesAdress = readU32(file);
+    u32 endOfBonesUnk1Adress = readU32(file);
+    u32 endOfBonesUnk2Adress = readU32(file);
+    u32 dataSize = readU32(file);
+    file->seek(8, true); // 2x dataSize
+    log->addLineAndFlush(formatString("unk = %d, endOfBonesNamesAdress = %d, endOfBonesUnk1Adress = %d, endOfBonesUnk2Adress = %d, dataSize = %d", unk, endOfBonesNamesAdress, endOfBonesUnk1Adress, endOfBonesUnk2Adress, dataSize));
+
+    file->seek(112, true);
+
+    //  Data chunk start
+    const long dataStartAdress = file->getPos();
+    log->addLineAndFlush(formatString("dataStartAdress = %d", dataStartAdress));
+    file->seek(8, true);
+    u32 nbBones = readU32(file);
+    skeleton.setBonesCount(nbBones);
+    log->addLineAndFlush(formatString("%d bones at %d", nbBones, file->getPos()-4));
+    file->seek(20, true); // 3x bones count
+
+    file->seek(16, true);
+
+    core::stringc rootName = readStringFixedSize(file, 16);
+    log->addLineAndFlush(formatString("Root = %s", rootName.c_str()));
+
+    long bonesParentIdChunkAdress = file->getPos();
+    //long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - totalNamesSize;
+    //long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - (nbBones * 48);
+
+
+    core::array<u32> boneNameSizes;
+    boneNameSizes.set_used(nbBones);
+    u32 totalNamesSize = 0;
+
+    // Search bone names size
+    file->seek(dataStartAdress + endOfBonesNamesAdress-1);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        bool isInText = false;
+        u32 textSize = 0;
+        while (1)
+        {
+            char c = readS8(file);
+            file->seek(-2, true);
+
+            if (!isInText && seemToBeAnASCIICharacter(c))
+            {
+                isInText = true;
+            }
+            if (isInText && !seemToBeAnASCIICharacter(c))
+            {
+                file->seek(1, true);
+                boneNameSizes[nbBones-(i+1)] = textSize;
+                totalNamesSize += textSize;
+                //log->addLineAndFlush(formatString("Text size is : %d", textSize));
+                break;
+            }
+            textSize++;
+        }
+    }
+    long bonesNameChunkAdress = (dataStartAdress + endOfBonesNamesAdress) - totalNamesSize;
+
+
+    // really a piece of crap but couldn't find a way to get the info any other way yet
+    u32 offset = 0;
+    file->seek(bonesNameChunkAdress - 8);
+    while (1)
+    {
+        f32 f = readF32(file);
+        if (f > 0.09f && f < 10.1f)
+        {
+            break;
+        }
+        file->seek(-8, true);
+        offset += 4;
+    }
+    long bonesTransformChunkAdress = bonesNameChunkAdress - (offset + nbBones * 48);
+
+
+
+    file->seek(bonesNameChunkAdress);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        core::stringc boneName = readStringFixedSize(file, boneNameSizes[i]);
+        skeleton.names.push_back(boneName);
+        log->addLineAndFlush(formatString("Bone %s (@%d)", boneName.c_str(), file->getPos() - boneNameSizes[i]));
+    }
+
+    file->seek(bonesParentIdChunkAdress);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        const s16 parentId = readS16(file); // -1 if root
+        skeleton.parentId.push_back(parentId);
+        log->addLineAndFlush(formatString("Parent %d", parentId));
+    }
+
+    log->addLineAndFlush(formatString("needed size is %d", nbBones * 48));
+    log->addLineAndFlush(formatString("Transform: %d", bonesTransformChunkAdress));
+    file->seek(bonesTransformChunkAdress);
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        // position (vector 4) + quaternion (4 float) + scale (vector 4)
+        core::vector3df position;
+        position.X = readF32(file);
+        position.Y = readF32(file);
+        position.Z = readF32(file);
+        readF32(file); // the w component
+        //addVectorToLog("position", position);
+
+        core::quaternion orientation;
+        orientation.X = readF32(file);
+        orientation.Y = readF32(file);
+        orientation.Z = readF32(file);
+        orientation.W = readF32(file);
+        //log->addLineAndFlush(formatString("Orientation : %f, %f, %f, %f", orientation.X, orientation.Y, orientation.Z, orientation.W));
+
+        core::vector3df scale;
+        scale.X = readF32(file);
+        scale.Y = readF32(file);
+        scale.Z = readF32(file);
+        readF32(file); // the w component
+        //addVectorToLog("scale", scale);
+
+        core::matrix4 posMat;
+        posMat.setTranslation(position);
+
+        core::matrix4 rotMat;
+        core::vector3df euler;
+        orientation.toEuler(euler);
+        //std::cout << "Position = " << position.X << ", " << position.Y << ", " << position.Z << std::endl;
+        //std::cout << "Rotation (radians) = " << euler.X << ", " << euler.Y << ", " << euler.Z << std::endl;
+        chechNaNErrors(euler);
+
+        rotMat.setRotationRadians(euler);
+
+        core::matrix4 scaleMat;
+        scaleMat.setScale(scale);
+
+        core::matrix4 localTransform = posMat * rotMat * scaleMat;
+        orientation.makeInverse();
+
+
+        skeleton.matrix.push_back(localTransform);
+        skeleton.positions.push_back(position);
+        skeleton.rotations.push_back(orientation);
+        skeleton.scales.push_back(scale);
+    }
+
+    return skeleton;
 }
 
-void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
+void IO_MeshLoader_W2ENT::createCSkeleton(TW2_CSkeleton skeleton)
+{
+    const u32 nbBones = skeleton.getBonesCount();
+
+    core::array<scene::ISkinnedMesh::SJoint*> bones;
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        const core::stringc boneName = skeleton.names[i];
+        scene::ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
+
+        if (!bone)
+        {
+            log->addLineAndFlush(formatString("Bone %s doesn't exist", boneName.c_str()));
+            bone = AnimatedMesh->addJoint();
+            bone->Name = boneName;
+        }
+        else
+        {
+            log->addLineAndFlush(formatString("Bone %s exist", boneName.c_str()));
+        }
+        bones.push_back(bone);
+    }
+
+
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        const s16 parentId = skeleton.parentId[i];
+        scene::ISkinnedMesh::SJoint* joint = bones[i];
+        if (!joint)
+        {
+            continue;
+        }
+
+        if (parentId >= 0)
+        {
+            scene::ISkinnedMesh::SJoint* parent = bones[parentId];
+            if (!parent)
+            {
+                log->addLineAndFlush(formatString("Parent %d doesn't exist", parentId));
+                continue;
+            }
+            else
+            {
+                JointHelper::SetParent(AnimatedMesh, joint, parent);
+                log->addLineAndFlush(formatString("%s -> %s", parent->Name.c_str(), joint->Name.c_str()));
+            }
+        }
+        else
+        {
+            if (parentId == -1)
+                log->addLineAndFlush(formatString("%s is root", joint->Name.c_str()));
+            else
+                log->addLineAndFlush(formatString("Invalid parent ID: %d", parentId));
+        }
+    }
+
+
+
+    for (u32 i = 0; i < nbBones; ++i)
+    {
+        scene::ISkinnedMesh::SJoint* joint = bones[i];
+        if (!joint)
+        {
+            log->addLineAndFlush("Transform : joint dont exist!");
+            continue;
+        }
+        else
+        {
+            joint->LocalMatrix = skeleton.matrix[i];
+
+            joint->Animatedposition = skeleton.positions[i];
+            joint->Animatedrotation = skeleton.rotations[i];
+            joint->Animatedscale = skeleton.scales[i];
+        }
+    }
+}
+
+void IO_MeshLoader_W2ENT::SkinMesh()
+{
+    // prepare the skinning array
+    std::vector<std::vector<SkinnedVertex> > skinnedVertex;
+    skinnedVertex.resize(AnimatedMesh->getMeshBufferCount());
+    for (u32 i = 0; i < AnimatedMesh->getMeshBufferCount(); ++i)
+    {
+        const scene::IMeshBuffer* buffer = AnimatedMesh->getMeshBuffer(i);
+        skinnedVertex[i].resize(buffer->getVertexCount());
+    }
+
+
+    // Skin
+    for (u32 i = 0; i < AnimatedMesh->getJointCount(); ++i)
+    {
+        scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->getAllJoints()[i];
+
+        core::matrix4 jointOffset = BonesOffsetMatrix[joint];
+
+        const core::matrix4 boneMat = joint->GlobalMatrix * jointOffset; //* InverseRootNodeWorldTransform;
+
+        for (u32 j = 0; j < joint->Weights.size(); ++j)
+        {
+            const scene::ISkinnedMesh::SWeight weight = joint->Weights[j];
+            const u16 bufferId = weight.buffer_id;
+            const u32 vertexId = weight.vertex_id;
+
+            core::vector3df sourcePos = AnimatedMesh->getMeshBuffer(bufferId)->getPosition(vertexId);
+            core::vector3df sourceNorm = AnimatedMesh->getMeshBuffer(bufferId)->getNormal(vertexId);
+            core::vector3df destPos, destNormal;
+            boneMat.transformVect(destPos, sourcePos);
+            boneMat.rotateVect(destNormal, sourceNorm);
+
+            skinnedVertex[bufferId][vertexId].Moved = true;
+            skinnedVertex[bufferId][vertexId].Position += destPos * weight.strength;
+            skinnedVertex[bufferId][vertexId].Normal += destNormal * weight.strength;
+        }
+    }
+
+    // And apply on the mesh
+    for (u32 i = 0; i < AnimatedMesh->getMeshBufferCount(); ++i)
+    {
+        scene::IMeshBuffer* buffer = AnimatedMesh->getMeshBuffer(i);
+        for (u32 j = 0; j < buffer->getVertexCount(); ++j)
+        {
+            if (skinnedVertex[i][j].Moved)
+            {
+                buffer->getPosition(j) = skinnedVertex[i][j].Position;
+                buffer->getNormal(j) = skinnedVertex[i][j].Normal;
+            }
+        }
+    }
+}
+
+void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 {
     log->addLineAndFlush("Load a mesh...");
 
-    core::array<int> mats = tmp.nMat;
+    core::array<int> mats = meshChunk.nMat;
 
     // ?
     //for (unsigned int i = 0; i < tmp.nMat.size(); i++)
     //    mats.push_back(tmp.nMat[i]);
 
     // we go to the adress of the data
-    file->seek(tmp.infos.adress);
-    int nModel = tmp.nModel;    // we get the mesh index
+    file->seek(meshChunk.infos.adress);
+    int nModel = meshChunk.nModel;    // we get the mesh index
 
     // Read all the properties of the mesh
     while(1)
     {
-        W2_PropertyHeader propHeader;
+        PropertyHeader propHeader;
         if (!ReadPropertyHeader(file, propHeader))
             break;
 
@@ -599,67 +742,78 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
 
     int back = file->getPos();
 
-    /*
-    if  (magic == 1)
-        readU8(file);
-    else
-        rigged = 1;
-    */
-
-    u8 magicData = readU8(file);
-    if (magicData != 1)
+    u8 unk = readU8(file);
+    if (unk != 1)
         file->seek(-1, true);
 
     if (nbBones == 128)
     {
+        log->addLineAndFlush("Static mesh");
         file->seek(1, true); //readUnsignedChars(file, 1);
-        static_meshes(file, mats);
+        loadStaticMesh(file, mats);
     }
     else // If the mesh isn't static
     {
-        log->addLineAndFlush("Loop");
+        log->addLineAndFlush("Skinned mesh");
 
-        bonenames.clear();
-        bones_data.clear();
+        core::array<core::stringc> boneNames;
+        boneNames.reallocate(nbBones);
 
         for (int i = 0; i < nbBones; i++)
         {
-            bone_data tmpData;
-            // read matrix
-            for (u32 j = 0; j < 16; ++j)
-            {
-                float value;
-                file->read(&value, 4);
-                tmpData.matr[j] = value;
-            }
+            core::matrix4 boneMatrix;
+            file->read(boneMatrix.pointer(), 4 * 16);
 
-            // bone name
-            u16 nameId = readU16(file) - 1;
-
-            core::stringc name = "";
-            if (nameId < Strings.size())
+            u16 boneNameId = readU16(file) - 1;
+            core::stringc boneName = "";
+            if (boneNameId < Strings.size())
             {
-                name = Strings[nameId];
+                boneName = Strings[boneNameId];
             }
             else
             {
-                log->addLineAndFlush("error_with_bones OK");
-                name = "bone-";
-                name += i;
+                // Is it still necessary ?
+                log->addLineAndFlush(formatString("Wrong bone ID : %d (max=%d", boneNameId, Strings.size()-1));
+                boneName = "bone-";
+                boneName += i;
             }
 
-            bool ok = true;
-            for (u32 j = 0; j < AnimatedMesh->getJointCount(); j++)
+            bool boneAlreadyCreated = JointHelper::HasJoint(AnimatedMesh, boneName);
+            if (!boneAlreadyCreated)
             {
-                if (AnimatedMesh->getAllJoints()[j]->Name == name)
-                    ok = false;
+                scene::ISkinnedMesh::SJoint* joint = AnimatedMesh->addJoint();
+                joint->Name = boneName;
+
+
+                core::vector3df position = boneMatrix.getTranslation();
+                core::matrix4 invBoneMatrix;
+                boneMatrix.getInverse(invBoneMatrix);
+
+                core::vector3df rotation = invBoneMatrix.getRotationDegrees();
+                position = -position;
+                core::vector3df scale = boneMatrix.getScale();
+
+
+                //Build GlobalMatrix:
+                core::matrix4 positionMatrix;
+                positionMatrix.setTranslation(position);
+                core::matrix4 rotationMatrix;
+                rotationMatrix.setRotationDegrees(rotation);
+                core::matrix4 scaleMatrix;
+                scaleMatrix.setScale(scale);
+
+                joint->GlobalMatrix = scaleMatrix * rotationMatrix * positionMatrix;
+                joint->LocalMatrix = joint->GlobalMatrix;
+
+                joint->Animatedposition = joint->LocalMatrix.getTranslation();
+                joint->Animatedrotation = core::quaternion(joint->LocalMatrix.getRotationDegrees()).makeInverse();
+                joint->Animatedscale = joint->LocalMatrix.getScale();
+
+                BonesOffsetMatrix.insert(std::make_pair(joint, boneMatrix));
             }
-            bonenames.push_back(name);
-            if (ok)
-            {
-                tmpData.name = name;
-                bones_data.push_back(tmpData);
-            }
+
+            boneNames.push_back(boneName);
+            log->addLineAndFlush(formatString("Mesh BONENAME : %s", boneName.c_str()));
 
             file->seek(4, true); //float data12 = readFloats(file, 1)[0];
         }
@@ -681,35 +835,24 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
         back = file->getPos();
         file->seek(seek);
         core::array<s32> data = readDataArray<s32>(file, 6);
-        NbSubMesh = readU8(file);
-        SubMeshData.clear();
-        for (unsigned int i = 0; i < NbSubMesh; i++)
+        u8 nbSubMesh = readU8(file);
+
+        core::array<SubmeshData> subMeshesData;
+        for (u8 i = 0; i < nbSubMesh; i++)
         {
-            Submesh_data s_data;
-            s_data.vertype = readU8(file);
-            s_data.dataI = readDataArray<s32>(file, 4);
-            s_data.dataH = readDataArray<u16>(file, readU8(file)+2);
-            SubMeshData.push_back(s_data);
+            SubmeshData submesh;
+            submesh.vertexType = readU8(file);
+            submesh.dataI = readDataArray<s32>(file, 4);
+            submesh.bonesId = readDataArray<u16>(file, readU8(file));
+            submesh.unk = readU32(file);
+            subMeshesData.push_back(submesh);
 
-            /*
-            if ((s_data.dataI[2] < 0 || s_data.dataI[2] > 100000 || error_with_bones ) && magic == false) // Can crash here
-            {
-                // We reload with 'the magic button'
-                GEOMETRY(file, tmp, true);
-                return;
-            }
-            */
-
-            log->addLineAndFlush(formatString("Submesh : vertEnd = %d, vertype = %d", s_data.dataI[2], s_data.vertype));
+            log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.dataI[2], submesh.vertexType));
         }
 
         file->seek(back);
 
-        // Skeleton called before drawmesh to avoid crash
-        skeleton(file);
-
-
-        drawmesh(file, data, mats);
+        loadSkinnedSubmeshes(file, data, subMeshesData, mats, boneNames);
 
     }
 
@@ -717,102 +860,149 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, Meshdata tmp)
 }
 
 
-void IO_MeshLoader_W2ENT::static_meshes(io::IReadFile* file, core::array<int> mats)
+void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<int> mats)
 {
-    // We read submesh infos
-    int back = file->getPos();
-    int seek = readS32(file);
-    file->seek(back + seek);
+    // We read submeshes infos
+    long back = file->getPos();
+    int subMeshesInfosOffset = readS32(file);
+    file->seek(back + subMeshesInfosOffset);
 
-    file->seek(4, true); //readUnsignedShorts(file, 2);
-    readS32(file);
+    file->seek(4, true); // readUnsignedShorts(file, 2);
+    file->seek(4, true); // int
 
-    core::array<s32> data = readDataArray<s32>(file, 4);
-    NbSubMesh = readU8(file);
-    SubMeshData.clear();
-    int Vert_Type = readU8(file);
+    core::array<s32> meshData = readDataArray<s32>(file, 4); // Indices adress + unks
+    u8 nbSubMesh = readU8(file);
+    u8 vertexType = readU8(file);
 
-    for (unsigned int i = 0; i < NbSubMesh; i++)
+    core::array<SubmeshData> subMeshesData;
+    for (u8 i = 0; i < nbSubMesh; i++)
     {
-        Submesh_data s_data;
-        s_data.vertype = Vert_Type;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
-        s_data.dataI = readDataArray<s32>(file, 5);
-        s_data.dataH = readDataArray<u16>(file, 1);
-        SubMeshData.push_back(s_data);
+        SubmeshData submesh;
+        submesh.vertexType = vertexType;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
+        submesh.dataI = readDataArray<s32>(file, 5);
+        submesh.unk = readU16(file);
+        subMeshesData.push_back(submesh);
     }
 
-    file->seek(back+4);
-    drawmesh_static(file, data, mats);
+    file->seek(back + 4);
+    loadSubmeshes(file, meshData, subMeshesData, mats);
 }
 
 
-void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> data, core::array<int> mats)
+void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats)
 {
-    log->addLineAndFlush("Drawmesh_static");
+    log->addLineAndFlush("loadSubmeshes (static)");
 
-    int back = file->getPos();
+    long back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
-    for (unsigned int n = 0; n < NbSubMesh; n++)
+    for (u32 i = 0; i < subMeshesData.size(); i++)
     {
-        if (n >= IdLOD[0][0])
+        SubmeshData submesh = subMeshesData[i];
+        if (i >= IdLOD[0][0])
             continue;
 
-        log->addLineAndFlush("submesh");
-        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
 
-        Submesh_data var = SubMeshData[n];
-        //std::cout << "var.vertype = " << var.vertype << std::endl;
+        int vertexSize = 0;
+        bool hasSecondUVLayer = false;
+        switch (submesh.vertexType) {
+        case 0:
+            vertexSize = 36;
+            break;
 
-        int vertsize = 0;
-        if (var.vertype == 0)
-            vertsize = 36;
-        else if (var.vertype == 6)
-            vertsize = 44;
-        else if (var.vertype == 9 || var.vertype  == 5)
-            vertsize = 60;
+        case 6:
+            vertexSize = 44;
+            hasSecondUVLayer = true;
+            break;
 
-        int VertStart = var.dataI[0];
-        int VertEnd = var.dataI[2];
+        case 9:
+        case 5:
+            vertexSize = 60;
+            break;
 
-        file->seek(back+VertStart*vertsize);
-        buf->Vertices_Standard.reallocate(VertEnd);
+        default:
+            log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
+            break;
+        }
+        int verticesStart = submesh.dataI[0];
+        int verticesCount = submesh.dataI[2];
 
-        for (int i = 0; i < VertEnd; i++)
+        log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
+        file->seek(back + verticesStart * vertexSize);
+
+        SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+        if (hasSecondUVLayer)
         {
-            int back1 = file->getPos();
-            video::S3DVertex vertex;
-            core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
+            buffer->VertexType = video::EVT_2TCOORDS;
+            buffer->Vertices_2TCoords.reallocate(verticesCount);
+        }
+        else
+        {
+            buffer->VertexType = video::EVT_STANDARD;
+            buffer->Vertices_Standard.reallocate(verticesCount);
+        }
 
+        for (int j = 0; j < verticesCount; j++)
+        {
+            long vertexAdress = file->getPos();
+            core::array<f32> position = readDataArray<f32>(file, 3);
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
-            vertex.TCoords = core::vector2df(uv[0], uv[1]);
-            vertex.Color = defaultColor;
-            buf->Vertices_Standard.push_back(vertex);
 
-            file->seek(back1 + vertsize);
+            if (hasSecondUVLayer)
+            {
+                core::array<f32> uv2 = readDataArray<f32>(file, 2);
+                video::S3DVertex2TCoords vertex;
+                vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+                vertex.TCoords = core::vector2df(uv[0], uv[1]);
+                vertex.TCoords2 = core::vector2df(uv2[0], uv2[1]);
+                vertex.Color = defaultColor;
+                buffer->Vertices_2TCoords.push_back(vertex);
+                //std::cout << "UV2: " << uv2[0] << ", " << uv2[1] << std::endl;
+            }
+            else
+            {
+                video::S3DVertex vertex;
+                vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+                vertex.TCoords = core::vector2df(uv[0], uv[1]);
+                vertex.Color = defaultColor;
+                buffer->Vertices_Standard.push_back(vertex);
+            }
+
+            file->seek(vertexAdress + vertexSize);
         }
-        int FacesStart = var.dataI[1];
-        int FacesEnd = var.dataI[3];
 
-        file->seek(back+data[0]+FacesStart*2);
+        int indicesStart = submesh.dataI[1];
+        int indicesCount = submesh.dataI[3];
 
-        buf->Indices.set_used(FacesEnd);
-        file->read(buf->Indices.pointer(), FacesEnd * 2);
+        file->seek(back + meshData[0] + indicesStart * 2);
+        buffer->Indices.set_used(indicesCount);
+        for (u32 j = 0; j < indicesCount; ++j)
+        {
+            const u16 indice = readU16(file);
+
+            // Indice need to be inversed for the normals
+            if (j % 3 == 0)
+                buffer->Indices[j] = indice;
+            else if (j % 3 == 1)
+                buffer->Indices[j+1] = indice;
+            else if (j % 3 == 2)
+                buffer->Indices[j-1] = indice;
+        }
+
 
 
         int result = 0;
-        if (n < mats.size())
-            if ((unsigned int)mats[n] < Materials.size())
-                result = mats[n];
+        if (i < mats.size())
+            if ((unsigned int)mats[i] < Materials.size())
+                result = mats[i];
         //std::cout << "MaterialSize= " << Materials.size() << std::endl;
         //std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;
 
-        buf->Material = Materials[result].material;
+        buffer->Material = Materials[result].material;
 
-        SceneManager->getMeshManipulator()->recalculateNormals(buf);
-        buf->recalculateBoundingBox();
+        SceneManager->getMeshManipulator()->recalculateNormals(buffer);
+        buffer->recalculateBoundingBox();
     }
     AnimatedMesh->setDirty();
 
@@ -820,114 +1010,157 @@ void IO_MeshLoader_W2ENT::drawmesh_static(io::IReadFile* file, core::array<int> 
 }
 
 
-void IO_MeshLoader_W2ENT::drawmesh(io::IReadFile* file, core::array<int> data, core::array<int> mats)
+void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames)
 {
-    log->addLineAndFlush("Drawmesh");
+    log->addLineAndFlush("loadSkinnedSubmeshes");
 
     int back = file->getPos();
     const video::SColor defaultColor(255, 255, 255, 255);
 
-    for (unsigned int n = 0; n < NbSubMesh; n++)
+    for (u32 i = 0; i < subMeshesData.size(); i++)
     {
-        if (n >= IdLOD[0][0])
+        SubmeshData submesh = subMeshesData[i];
+        if (i >= IdLOD[0][0])
             continue;
 
-        SSkinMeshBuffer* buf = AnimatedMesh->addMeshBuffer();
 
-        core::array<core::array<u8> > weighting;
-        // std::cout << "var.vertype = " << SubMeshData[n].vertype << std::endl;
-        int vertsize = 0;
-        if (SubMeshData[n].vertype == 1)
-            vertsize = 44;
-        else if (SubMeshData[n].vertype == 11)
-            vertsize = 44;
-        else
-            vertsize = 52;
-
-        Submesh_data var = SubMeshData[n];
-        int VertStart  = var.dataI[0];
-        int VertEnd = var.dataI[2];
-
-        file->seek(back+VertStart*vertsize);
-        buf->Vertices_Standard.reallocate(VertEnd);
-        weighting.reallocate(VertEnd);
-        for (int i = 0; i < VertEnd; i++)
+        int vertexSize = 0;
+        switch (submesh.vertexType)
         {
-            int back1 = file->getPos();
+        case 1:
+        case 11:
+            vertexSize = 44;
+            break;
+
+        case 7:
+            vertexSize = 52;
+            break;
+
+        default:
+            vertexSize = 52;
+            log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
+            break;
+        }
+
+        int verticesStart = submesh.dataI[0];
+        int verticesCount = submesh.dataI[2];
+
+        log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
+        file->seek(back + verticesStart * vertexSize);
+
+        SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+        buffer->Vertices_Standard.reallocate(verticesCount);
+        for (int j = 0; j < verticesCount; j++)
+        {
+            int vertexAdress = file->getPos();
             video::S3DVertex vertex;
             core::array<f32> position = readDataArray<f32>(file, 3);
-            vertex.Pos = core::vector3df(position[0], position[2], position[1]);
+            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
 
-            weighting.push_back(readDataArray<u8>(file, 8));
+
+            // Skinning
+            core::array<u8> weightsData = readDataArray<u8>(file, 8);
+            for (int vertexWeightsId = 0; vertexWeightsId < 4; vertexWeightsId++)
+            {
+                u8 strength = weightsData[vertexWeightsId + 4];
+                if (strength != 0)
+                {
+                    u16 boneId = submesh.bonesId[weightsData[vertexWeightsId]];
+                    core::stringc boneName = boneNames[boneId];
+
+                    ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
+                    if (bone)
+                    {
+
+                        ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
+                        wt->strength = ((f32)strength) / 255.0f;
+                        wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
+                        wt->vertex_id = j;
+
+                        if (wt->strength > 1.0f || wt->strength < 0.0f)
+                            log->addLineAndFlush(formatString("Error, strength range : %f", wt->strength));
+
+                    }
+                }
+            }
+
 
             file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
             vertex.TCoords = core::vector2df(uv[0], uv[1]);
             vertex.Color = defaultColor;
-            buf->Vertices_Standard.push_back(vertex);
+            buffer->Vertices_Standard.push_back(vertex);
 
-            file->seek(back1+vertsize);
+            file->seek(vertexAdress + vertexSize);
         }
 
-        int FacesStart = var.dataI[1];
-        int FacesEnd = var.dataI[3];
+        int indicesStart = submesh.dataI[1];
+        int indicesCount = submesh.dataI[3];
 
         // Faces
-        file->seek(back + data[2] + FacesStart*2);
-        buf->Indices.set_used(FacesEnd);
-        file->read(buf->Indices.pointer(), FacesEnd * 2);
+        file->seek(back + meshData[2] + indicesStart * 2);
+        buffer->Indices.set_used(indicesCount);
+        for (u32 j = 0; j < indicesCount; ++j)
+        {
+            const u16 indice = readU16(file);
+
+            // Indice need to be inversed for the normals
+            if (j % 3 == 0)
+                buffer->Indices[j] = indice;
+            else if (j % 3 == 1)
+                buffer->Indices[j+1] = indice;
+            else if (j % 3 == 2)
+                buffer->Indices[j-1] = indice;
+        }
 
 
         int result = 0;
-        if (n < mats.size())
-            if ((unsigned int)mats[n] < Materials.size())
-                result = mats[n];
+        if (i < mats.size())
+            if ((unsigned int)mats[i] < Materials.size())
+                result = mats[i];
 
         /*std::cout << "MaterialSize= " << Materials.size() << std::endl;
         std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;*/
 
-        buf->Material = Materials[result].material;
+        buffer->Material = Materials[result].material;
 
-        make_vertex_group(SubMeshData[n], weighting);
-
-        SceneManager->getMeshManipulator()->recalculateNormals(buf);
-        buf->recalculateBoundingBox();
+        SceneManager->getMeshManipulator()->recalculateNormals(buffer);
+        buffer->recalculateBoundingBox();
     }
 
-    log->addLineAndFlush("Drawmesh OK");
+    log->addLineAndFlush("loadSkinnedSubmeshes OK");
 }
 
-video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc filename)
+video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc textureFilepath)
 {
     video::ITexture* texture = nullptr;
 
-    if (core::hasFileExtension(filename.c_str(), "xbm"))
+    if (core::hasFileExtension(textureFilepath.c_str(), "xbm"))
     {
-        io::path ddsfile;
-        core::cutFilenameExtension(ddsfile, filename);
-        ddsfile += ".dds";
+        io::path ddsFilepath;
+        core::cutFilenameExtension(ddsFilepath, textureFilepath);
+        ddsFilepath += ".dds";
 
-        //ddsfile = GamePath + ddsfile;
-
-        if (FileSystem->existFile(ddsfile))
-            texture = SceneManager->getVideoDriver()->getTexture(ddsfile.c_str());
+        if (FileSystem->existFile(ddsFilepath))
+            texture = SceneManager->getVideoDriver()->getTexture(ddsFilepath.c_str());
 
         if (!texture)
         {
             // Make a DDS file from the XBM file
-            convertXBMToDDS(filename);
-            texture = SceneManager->getVideoDriver()->getTexture(ddsfile.c_str());
+            generateDDSFromXBM(textureFilepath, ddsFilepath);
+            texture = SceneManager->getVideoDriver()->getTexture(ddsFilepath.c_str());
         }
     }
     else
     {
-        texture = SceneManager->getVideoDriver()->getTexture(filename.c_str());
+        if (FileSystem->existFile(textureFilepath))
+            texture = SceneManager->getVideoDriver()->getTexture(textureFilepath.c_str());
     }
 
     return texture;
 }
 
-bool IO_MeshLoader_W2ENT::ReadPropertyHeader(io::IReadFile* file, W2_PropertyHeader& propHeader)
+bool IO_MeshLoader_W2ENT::ReadPropertyHeader(io::IReadFile* file, PropertyHeader &propHeader)
 {
     u16 propName = readU16(file);
     u16 propType = readU16(file);
@@ -948,7 +1181,7 @@ bool IO_MeshLoader_W2ENT::ReadPropertyHeader(io::IReadFile* file, W2_PropertyHea
     return true;
 }
 
-void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos, int nMats)
+void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats)
 {
     int back = file->getPos();
     file->seek(infos.adress);
@@ -960,7 +1193,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos
 
     while (1)
     {
-        W2_PropertyHeader propHeader;
+        PropertyHeader propHeader;
         if (!ReadPropertyHeader(file, propHeader))
             break;
 
@@ -992,7 +1225,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos
                     {
                         // ImageID is the index of the texture file in the FilesTable
                         //std::cout << "Image ID : " << imageID << ", image name : " << FilesTable[255-imageID] << std::endl;
-                        core::stringc texturePath = ConfigGamePath + Files[255-imageID];
+                        core::stringc texturePath = ConfigGamePath + Files[255 - imageID];
                         file->seek(3, true); //readUnsignedChars(file, 3);
 
                         if (propertyName == "diffusemap" || propertyName == "tex_Diffuse" || propertyName == "Diffuse" || propertyName == "sptTexDiffuse")
@@ -1022,7 +1255,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos
         }
         file->seek(propHeader.endPos);
     }
-    Mat w2Mat;
+    Material w2Mat;
     w2Mat.id = nMats;
     w2Mat.material = material;
 
@@ -1030,94 +1263,86 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, DataInfos infos
     //std::cout << "Texture : " << FilesTable[255-readUnsignedChars(1)[0]] << std::endl;
 }
 
-void IO_MeshLoader_W2ENT::convertXBMToDDS(core::stringc xbm_file)
+void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc xbmFilepath, core::stringc ddsFilepath)
 {
     log->addLineAndFlush("XBM to DDS");
 
-    // Make the name of the DDS file
-    io::path ddsfile;
-    core::cutFilenameExtension(ddsfile, xbm_file);
-    ddsfile += ".dds";
-
     // Open the XBM file
-    io::IReadFile* fileXBM = FileSystem->createAndOpenFile((xbm_file).c_str());
-    if (!fileXBM)
+    io::IReadFile* xbmFile = FileSystem->createAndOpenFile((xbmFilepath).c_str());
+    if (!xbmFile)
     {
         SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, check your 'Base directory'.");
-        log->addAndFlush(core::stringc("Error : the file ") + xbm_file + core::stringc(" can't be opened.\n"));
+        log->addAndFlush(core::stringc("Error : the file ") + xbmFilepath + core::stringc(" can't be opened.\n"));
         return;
     }
 
     log->addLineAndFlush("XBM file opened");
+    xbmFile->seek(4); // the magic
 
+    core::array<s32> data = readDataArray<s32>(xbmFile, 10);
+    xbmFile->seek(data[2]);
 
-    /* This format works like the w2ent format
-    The first character (4octets) are the ID of the file type, and next there are the adress and the size of the differents sections of the file :
-    - The string list : begin at data[2] and data[3] size
-    - The data : begin at data[4] and data[5] size
-    */
-    fileXBM->seek(0);
-    readString(fileXBM, 4);
-    core::array<s32> data = readDataArray<s32>(fileXBM, 10);
-
-    //string list
-    fileXBM->seek(data[2]);
-    core::array<core::stringc> stringsXBM;//Strings = []
-
+    core::array<core::stringc> stringsXBM;
     for (int i = 0; i < data[3]; i++)
-        stringsXBM.push_back(readString(fileXBM, readU8(fileXBM)-128));
+        stringsXBM.push_back(readString(xbmFile, readU8(xbmFile)-128));
 
     log->addLineAndFlush("List ok");
 
 
     // data
-    fileXBM->seek(data[4]);
+    xbmFile->seek(data[4]);
     for (int i = 0; i < data[5]; i++)
     {
-        // The type of the data (cf stringsXBM)
-        unsigned short var = readU16(fileXBM);
-        // Others informations
-        core::array<s32> dataInfos = readDataArray<s32>(fileXBM, 5);
+        const u16 dataTypeId = readU16(xbmFile) - 1;
+        const core::stringc dataTypeName = stringsXBM[dataTypeId];
+        log->addLineAndFlush(formatString("dataTypeName=%s", dataTypeName.c_str()));
 
-        int back1 = fileXBM->getPos();
-        core::array<u8> data1 = readDataArray<u8>(fileXBM, 2);
-        fileXBM->seek(back1);
+        core::array<s32> data2 = readDataArray<s32>(xbmFile, 5);
 
-        if (dataInfos[0]==0)
+        ChunkDescriptor chunkInfos;
+        chunkInfos.size = data2[1];
+        chunkInfos.adress = data2[2];
+
+        if (data2[0] == 0)
         {
-            unsigned char size;
-            fileXBM->read(&size, 1);
-            size -= 128;
+            const u8 size = readU8(xbmFile) - 128;
+            const u8 offset = readU8(xbmFile);
+            if (offset != 1)
+                xbmFile->seek(-1, true);
 
-            if (data1[1]==1)
-                fileXBM->seek(1, true);
-
-            const core::stringc mesh_source = readString(fileXBM, size);
+            const core::stringc meshSource = readString(xbmFile, size);
         }
         else
-            fileXBM->seek(1, true); // readUnsignedChars(file2, 1)[0]-128;
+        {
+            // Seem to be always 0
+            const u8 unk = readU8(xbmFile) - 128;
+            log->addLineAndFlush(formatString("Unk is %d", unk));
 
-        int back3 = fileXBM->getPos();
+            //file->seek(1, true);
+        }
+
+
+        int back3 = xbmFile->getPos();
 
         // If the data is a CBitmapTexture, we read the data
-        if (stringsXBM[var-1] == "CBitmapTexture")
-            TEXTURE(fileXBM, ddsfile, dataInfos, stringsXBM);
+        if (dataTypeName == "CBitmapTexture")
+            XBM_CBitmapTexture(xbmFile, ddsFilepath, chunkInfos, stringsXBM);
 
-        fileXBM->seek(back3);
+        xbmFile->seek(back3);
     }
-    fileXBM->drop();
+    xbmFile->drop();
 
     log->addLineAndFlush("XBM to DDS OK");
 }
 
-void IO_MeshLoader_W2ENT::TEXTURE(io::IReadFile* fileXBM, core::stringc filenameDDS, core::array<int> data, core::array<core::stringc> stringsXBM)
+void IO_MeshLoader_W2ENT::XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc filenameDDS, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings)
 {
     // int back = file->getPos();
     log->addLineAndFlush("CBitmapTexture");
 
-    fileXBM->seek(data[2]);
+    xbmFile->seek(chunk.adress);
 
-    char ddsheader[] = "\x44\x44\x53\x20\x7C\x00\x00\x00\x07\x10\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x00\x00\x00\x05\x00\x00\x00\x44\x58\x54\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x10\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    const u8 ddsheader[] = "\x44\x44\x53\x20\x7C\x00\x00\x00\x07\x10\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x00\x00\x00\x05\x00\x00\x00\x44\x58\x54\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x10\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
 
     core::stringc dxt;
     int height1, width1;
@@ -1127,28 +1352,26 @@ void IO_MeshLoader_W2ENT::TEXTURE(io::IReadFile* fileXBM, core::stringc filename
     {
         log->addLineAndFlush("Read header data...");
 
-        // name of the element
-        core::stringc propertyName = stringsXBM[readU16(fileXBM)-1];
-        // type of the element
-        core::stringc propertyType = stringsXBM[readU16(fileXBM)-1];
+        core::stringc propertyName = XbmStrings[readU16(xbmFile)-1];
+        core::stringc propertyType = XbmStrings[readU16(xbmFile)-1];
 
-        fileXBM->seek(2, true);  //readUnsignedChars(fileXBM, 2);
-        int back2 = fileXBM->getPos();
+        xbmFile->seek(2, true);  //readUnsignedChars(fileXBM, 2);
+        int back2 = xbmFile->getPos();
 
-        s32 seek = readS32(fileXBM); // size of the property
+        s32 seek = readS32(xbmFile); // size of the property
         // The dimensions of the textures
         if (propertyName == "width" && propertyType == "Uint")
         {
-            width1 = readS32(fileXBM);
+            width1 = readS32(xbmFile);
         }
         else if (propertyName == "height" && propertyType == "Uint")
         {
-            height1 = readS32(fileXBM);
+            height1 = readS32(xbmFile);
         }
         // Compression format
         else if (propertyType == "ETextureCompression")
         {
-            dxt = stringsXBM[readU16(fileXBM)-1];
+            dxt = XbmStrings[readU16(xbmFile)-1];
 
             if  (dxt == "TCM_DXTNoAlpha")
                 dxt = "\x44\x58\x54\x31";
@@ -1160,13 +1383,13 @@ void IO_MeshLoader_W2ENT::TEXTURE(io::IReadFile* fileXBM, core::stringc filename
                 dxt = "\x44\x58\x54\x31";
         }
 
-        fileXBM->seek(back2+seek);
+        xbmFile->seek(back2+seek);
         if (propertyName == "importFile")
             break;
     }
     log->addLineAndFlush("Read header ok");
 
-    fileXBM->seek(27, true); //readUnsignedChars(fileXBM, 27);
+    xbmFile->seek(27, true); //readUnsignedChars(fileXBM, 27);
 
     // If a compression method has been found
     if (dxt.size() > 0)
@@ -1199,11 +1422,11 @@ void IO_MeshLoader_W2ENT::TEXTURE(io::IReadFile* fileXBM, core::stringc filename
         log->addLineAndFlush("DDS header OK");
 
         // copy the content of the file
-        const long sizeToCopy = fileXBM->getSize() - fileXBM->getPos();
+        const long sizeToCopy = xbmFile->getSize() - xbmFile->getPos();
 
 
         char* buffer = new char[sizeToCopy];
-        fileXBM->read(buffer, sizeToCopy);
+        xbmFile->read(buffer, sizeToCopy);
 
         log->addLineAndFlush("Read XBM OK");
 
@@ -1216,25 +1439,12 @@ void IO_MeshLoader_W2ENT::TEXTURE(io::IReadFile* fileXBM, core::stringc filename
     }
     else
     {
-        // Case of an empty file
-        // TODO
-        /*  new = Blender.Image.New(file.split('.')[0]+'.dds',height1,width1,24)
-
-            for (int m = 0 ; m < height1; m++)//m in range(height1)
-                for (int n = 0 ; n < width1; n++)//for n in range(width1)
-                {
-                    pix = readUnsignedChars(file, 4);
-
-                    fileDDS.setPixelI(m,n,[pix[0],pix[1],pix[2],pix[3]]);
-                }
-        */
+        log->addLineAndFlush("TODO: Empty texture !");
     }
-
 }
 
 void IO_MeshLoader_W2ENT::vert_format(io::IReadFile* file)
 {
-    // clear the vector
     IdLOD.clear();
 
     core::array<u8> data = readDataArray<u8>(file, 8);
@@ -1255,293 +1465,9 @@ void IO_MeshLoader_W2ENT::vert_format(io::IReadFile* file)
 }
 
 
-
-
-//this part of scripts thanks bm1 from xentax
-core::stringc IO_MeshLoader_W2ENT::searchParent(core::stringc bonename)
-{
-        irr::core::stringc parentname = "torso";
-        if (bonename == "pelvis")
-            return "";
-        if (bonename == "torso2")
-            return "torso";
-        if (bonename == "torso")
-            return "pelvis";
-        if (bonename == "neck")
-             return "torso2";
-        if (bonename == "head")
-             return "neck";
-
-        if (bonename == "l_thigh")
-            return "pelvis";
-        if (bonename == "l_shin")
-             return "l_thigh";
-        if (bonename == "l_foot")
-             return "l_shin";
-        if (bonename == "l_toe")
-             return "l_foot";
-
-        if (bonename == "l_legRoll")
-            return "torso";
-        if (bonename == "l_legRoll2")
-             return "l_thigh";
-        if (bonename == "l_kneeRoll")
-             return "l_shin";
-
-
-        if (bonename == "l_shoulder")
-            return "torso2";
-        if (bonename == "l_shoulderRoll")
-             return "l_shoulder";
-        if (bonename == "l_bicep")
-             return "l_shoulder";
-        if (bonename == "l_bicep2")
-             return "l_bicep";
-
-        if (bonename == "l_elbowRoll")
-             return "l_bicep";
-        if (bonename == "l_forearmRoll1")
-             return "l_bicep";
-        if (bonename == "l_forearmRoll2")
-             return "l_forearmRoll1";
-        if (bonename == "l_forearm") // addition
-             return "l_elbowRoll";
-        if (bonename == "l_handRoll")
-             return "l_hand";
-        if (bonename == "l_hand")
-             return "l_forearmRoll2";
-
-        if (bonename == "l_thumb1")
-             return "l_hand";
-        if (bonename == "l_index1")
-             return "l_hand";
-        if (bonename == "l_middle1")
-             return "l_hand";
-        if (bonename == "l_ring1")
-             return "l_hand";
-        if (bonename == "l_pinky1")
-             return "l_hand";
-
-        if (bonename == "l_thumb2")
-             return "l_thumb1";
-        if (bonename == "l_index2")
-             return "l_index1";
-        if (bonename == "l_middle2")
-             return "l_middle1";
-        if (bonename == "l_ring2")
-             return "l_ring1";
-        if (bonename == "l_pinky2")
-             return "l_pinky1";
-
-        if (bonename == "l_thumb3")
-             return "l_thumb2";
-        if (bonename == "l_index3")
-             return "l_index2";
-        if (bonename == "l_middle3")
-             return "l_middle2";
-        if (bonename == "l_ring3")
-             return "l_ring2";
-        if (bonename == "l_pinky3")
-             return "l_pinky2";
-
-
-        if (bonename == "l_thumb4")
-             return "l_thumb3";
-        if (bonename == "l_index4")
-             return "l_index3";
-        if (bonename == "l_middle4")
-             return "l_middle3";
-        if (bonename == "l_ring4")
-             return "l_ring3";
-        if (bonename == "l_pinky4")
-             return "l_pinky3";
-
-        if (bonename == "r_thigh")
-            return "pelvis";
-        if (bonename == "r_shin")
-             return "r_thigh";
-        if (bonename == "r_foot")
-             return "r_shin";
-        if (bonename == "r_toe")
-             return "r_foot";
-
-        if (bonename == "r_legRoll")
-            return "torso";
-        if (bonename == "r_legRoll2")
-             return "r_thigh";
-        if (bonename == "r_kneeRoll")
-             return "r_shin";
-
-
-        if (bonename == "r_shoulder")
-            return "torso2";
-        if (bonename == "r_shoulderRoll")
-             return "r_shoulder";
-        if (bonename == "r_bicep")
-             return "r_shoulder";
-        if (bonename == "r_bicep2")
-             return "r_bicep";
-
-        if (bonename == "r_elbowRoll")
-             return "r_bicep";
-        if (bonename == "r_forearmRoll1")
-             return "r_bicep";
-        if (bonename == "r_forearm")
-             return "r_elbowRoll";
-        if (bonename == "r_forearmRoll2")
-             //return "r_forearm";         //# r_forearmRoll1 missing !
-             return "r_forearmRoll1";
-        if (bonename == "r_handRoll")
-             return "r_hand";
-        if (bonename == "r_hand")
-             return "r_forearmRoll2";
-
-        if (bonename == "r_thumb1")
-             return "r_hand";
-        if (bonename == "r_index1")
-             return "r_hand";
-        if (bonename == "r_middle1")
-             return "r_hand";
-        if (bonename == "r_ring1")
-             return "r_hand";
-        if (bonename == "r_pinky1")
-             return "r_hand";
-
-        if (bonename == "r_thumb2")
-             return "r_thumb1";
-        if (bonename == "r_index2")
-             return "r_index1";
-        if (bonename == "r_middle2")
-             return "r_middle1";
-        if (bonename == "r_ring2")
-             return "r_ring1";
-        if (bonename == "r_pinky2")
-             return "r_pinky1";
-
-        if (bonename == "r_thumb3")
-             return "r_thumb2";
-        if (bonename == "r_index3")
-             return "r_index2";
-        if (bonename == "r_middle3")
-             return "r_middle2";
-        if (bonename == "r_ring3")
-             return "r_ring2";
-        if (bonename == "r_pinky3")
-             return "r_pinky2";
-
-        if (bonename == "r_thumb4")
-             return "r_thumb3";
-        if (bonename == "r_index4")
-             return "r_index3";
-        if (bonename == "r_middle4")
-             return "r_middle3";
-        if (bonename == "r_ring4")
-             return "r_ring3";
-        if (bonename == "r_pinky4")
-             return "r_pinky3";
-
-        if (bonename == "Hair_R_01")
-             return "head";
-        if (bonename == "Hair_R_02")
-             return "Hair_R_01";
-        if (bonename == "Hair_R_03")
-             return "Hair_R_02";
-
-        if (bonename == "Hair_L_01")
-             return "head";
-        if (bonename == "Hair_L_02")
-             return "Hair_L_01";
-        if (bonename == "Hair_L_03")
-             return "Hair_L_02";
-
-
-        if (bonename == "jaw")
-             return "head_face";
-        if (bonename == "head_face")
-             return "head";
-
-        if (bonename == "lowwer_lip")
-             return "jaw";
-        if (bonename == "lowwer_right_lip")
-             return "jaw";
-        if (bonename == "lowwer_left_lip")
-             return "jaw";
-        if (bonename == "right_mouth3")
-             return "jaw";
-        if (bonename == "left_mouth3")
-             return "jaw";
-        if (bonename == "tongue")
-             return "jaw";
-
-        if (bonename == "right_corner_lip")
-             return "head_face";
-        if (bonename == "left_corner_lip")
-             return "head_face";
-
-        if (bonename == "lowwer_right_eyelid")
-             return "head_face";
-        if (bonename == "upper_right_eyelid")
-             return "head_face";
-        if (bonename == "right_eye")
-             return "head_face";
-
-        if (bonename == "lowwer_left_eyelid")
-             return "head_face";
-        if (bonename == "upper_left_eyelid")
-             return "head_face";
-        if (bonename == "left_eye")
-             return "head_face";
-
-        if (bonename == "right_chick3")
-             return "head_face";
-        if (bonename == "right_chick2")
-             return "head_face";
-        if (bonename == "left_chick3")
-             return "head_face";
-        if (bonename == "left_chick2")
-             return "head_face";
-        if (bonename == "left_chick1")
-             return "head_face";
-        if (bonename == "right_chick1")
-             return "head_face";
-
-        if (bonename == "eyebrow_left")
-             return "head_face";
-        if (bonename == "eyebrow_right")
-             return "head_face";
-        if (bonename == "eyebrow2_left")
-             return "head_face";
-        if (bonename == "eyebrow2_right")
-             return "head_face";
-        if (bonename == "left_mouth1")
-             return "head_face";
-        if (bonename == "right_mouth1")
-             return "head_face";
-        if (bonename == "right_nose")
-             return "head_face";
-        if (bonename == "left_nose")
-             return "head_face";
-
-
-        if (bonename == "right_mouth2")
-             return "head_face";
-        if (bonename == "left_mouth2")
-             return "head_face";
-        if (bonename == "upper_left_lip")
-             return "head_face";
-        if (bonename == "upper_lip")
-             return "head_face";
-        if (bonename == "upper_right_lip")
-             return "head_face";
-
-        return parentname;
-
-}
-
-
 bool IO_MeshLoader_W2ENT::find (core::array<core::stringc> stringVect, core::stringc name)
 {
-    for (unsigned int i = 0; i < stringVect.size(); ++i)
+    for (u32 i = 0; i < stringVect.size(); ++i)
     {
         if (stringVect[i] == name)
             return true;

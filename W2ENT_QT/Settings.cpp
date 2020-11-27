@@ -26,6 +26,10 @@ QString Settings::_convertTexturesFormat = ".jpg";
 
 QString Settings::_baseDir = QString();
 
+bool Settings::_TW1LoadStaticMesh = true;
+bool Settings::_TW1LoadSkinnedMesh = true;
+bool Settings::_TW1LoadPaintedMesh = true;
+
 QString Settings::_TW3TexPath = QString();
 bool Settings::_TW3LoadSkeletonEnabled = false;
 bool Settings::_TW3LoadBestLODEnabled = false;
@@ -176,7 +180,13 @@ void Settings::loadFromXML(QString filename)
         {
             Settings::_debugLog = node.toElement().text().toInt();
         }
-        else if(nodeName == "TW3")
+        else if (nodeName == "TW1")
+        {
+            Settings::_TW1LoadStaticMesh = node.firstChildElement("TW1_loadStaticMeshes").text().toInt();
+            Settings::_TW1LoadSkinnedMesh = node.firstChildElement("TW1_loadSkinnedMeshes").text().toInt();
+            Settings::_TW1LoadPaintedMesh = node.firstChildElement("TW1_loadPaintedMeshes").text().toInt();
+        }
+        else if (nodeName == "TW3")
         {
             Settings::_TW3TexPath = node.firstChildElement("TW3_textures").text();
             Settings::_TW3LoadSkeletonEnabled = node.firstChildElement("TW3_loadSkel").text().toInt();
@@ -318,10 +328,16 @@ void Settings::saveToXML(QString filename)
     // debug.log
     appendNewBoolElement(dom, configElem, "debug_log", Settings::_debugLog);
 
+    // TW1
+    QDomElement TW1Elem = dom.createElement("TW1");
+    configElem.appendChild(TW1Elem);
+    appendNewBoolElement(dom, TW1Elem, "TW1_loadStaticMeshes", Settings::_TW1LoadStaticMesh);
+    appendNewBoolElement(dom, TW1Elem, "TW1_loadSkinnedMeshes", Settings::_TW1LoadSkinnedMesh);
+    appendNewBoolElement(dom, TW1Elem, "TW1_loadPaintedMeshes", Settings::_TW1LoadPaintedMesh);
+
     // TW3
     QDomElement TW3Elem = dom.createElement("TW3");
     configElem.appendChild(TW3Elem);
-
     appendNewStringElement(dom, TW3Elem, "TW3_textures", Settings::_TW3TexPath);
     appendNewBoolElement(dom, TW3Elem, "TW3_loadSkel", Settings::_TW3LoadSkeletonEnabled);
     appendNewBoolElement(dom, TW3Elem, "TW3_loadBestLOD", Settings::_TW3LoadBestLODEnabled);

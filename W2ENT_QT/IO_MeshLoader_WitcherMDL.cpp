@@ -1271,29 +1271,39 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
         joint->Animatedscale = controllersData.scale;
     }
 
+    ConfigNodeType toLoad = (ConfigNodeType)SceneManager->getParameters()->getAttributeAsInt("TW_TW1_NODE_TYPES_TO_LOAD");
     switch (type)
     {
         case kNodeTypeTrimesh:
-            readMeshNode(file, controllersData);
+            if (toLoad & ConfigNodeTrimesh)
+            {
+                readMeshNode(file, controllersData);
 #ifdef TW1_ATTACH_MESHES_TO_NODES
-            joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
+                joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
 #endif
+            }
         break;
 
         case kNodeTypeTexturePaint:
-            readTexturePaintNode(file, controllersData);
+            if (toLoad & ConfigNodeTexturePaint)
+            {
+                readTexturePaintNode(file, controllersData);
 #ifdef TW1_ATTACH_MESHES_TO_NODES
-            joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
+                joint->AttachedMeshes.push_back(AnimatedMesh->getMeshBufferCount() - 1);
 #endif
+            }
         break;
 
         case kNodeTypeSkin:
         {
-            SkinMeshToLoadEntry skinMesh;
-            skinMesh.Seek = file->getPos();
-            skinMesh.ControllersData = controllersData;
-            skinMesh.Joint = joint;
-            SkinMeshToLoad.push_back(skinMesh);
+            if (toLoad & ConfigNodeSkin)
+            {
+                SkinMeshToLoadEntry skinMesh;
+                skinMesh.Seek = file->getPos();
+                skinMesh.ControllersData = controllersData;
+                skinMesh.Joint = joint;
+                SkinMeshToLoad.push_back(skinMesh);
+            }
         }
         break;
 

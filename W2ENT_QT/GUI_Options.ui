@@ -42,7 +42,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_export">
     <attribute name="title">
@@ -207,6 +207,69 @@
      </property>
      <property name="text">
       <string>Convert textures to another format :</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_tw1">
+    <attribute name="title">
+     <string>TW1 settings</string>
+    </attribute>
+    <widget class="QCheckBox" name="checkBox_TW1_loadPaintedMeshes">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>351</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load High def terrains</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_TW1_loadSkinnedMeshes">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>351</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load skinned meshes</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_TW1_loadStaticMeshes">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>351</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load static meshes</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>141</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Loading options</string>
      </property>
     </widget>
    </widget>

@@ -23,6 +23,16 @@
 
 using namespace irr;
 
+
+enum ConfigNodeType
+{
+    ConfigNodeTrimesh = 1,
+    ConfigNodeSkin = 2,
+    ConfigNodeTexturePaint = 4
+};
+
+
+
 struct ArrayDef
 {
     u32 firstElemOffest;

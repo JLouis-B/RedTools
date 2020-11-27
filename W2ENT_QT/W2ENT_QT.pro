@@ -135,13 +135,13 @@ FORMS    += \
     GUI_Extractor_Dishonored2.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5898-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5898-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r6108-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r6108-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-5.0.0\Builds\CB_build\code\libassimp.dll.a
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-5.0.0\include" \
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-5.0.0\Builds\CB_build\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\lib\libassimp.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\include" \
 
 # We use the zlib bundled with Qt
 LIBS += -lz

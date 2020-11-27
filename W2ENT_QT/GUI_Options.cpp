@@ -40,6 +40,10 @@ GUI_Options::GUI_Options(QWidget *parent) :
 
     _ui->lineEdit_export_exportDir->setText(Settings::_exportDest);
 
+    _ui->checkBox_TW1_loadStaticMeshes->setChecked(Settings::_TW1LoadStaticMesh);
+    _ui->checkBox_TW1_loadSkinnedMeshes->setChecked(Settings::_TW1LoadSkinnedMesh);
+    _ui->checkBox_TW1_loadPaintedMeshes->setChecked(Settings::_TW1LoadPaintedMesh);
+
     _ui->lineEdit_TW3_texFolder->setText(Settings::_TW3TexPath);
     _ui->checkBox_TW3_loadSkel->setChecked(Settings::_TW3LoadSkeletonEnabled);
     _ui->checkBox_TW3_loadBestLOD->setChecked(Settings::_TW3LoadBestLODEnabled);
@@ -113,6 +117,10 @@ void GUI_Options::ok()
 
     Settings::_convertTexturesEnabled = _ui->checkBox_export_convertTextures->isChecked();
     Settings::_convertTexturesFormat = _ui->comboBox_export_texturesFormat->currentText();
+
+    Settings::_TW1LoadStaticMesh = _ui->checkBox_TW1_loadStaticMeshes->isChecked();
+    Settings::_TW1LoadSkinnedMesh = _ui->checkBox_TW1_loadSkinnedMeshes->isChecked();
+    Settings::_TW1LoadPaintedMesh = _ui->checkBox_TW1_loadPaintedMeshes->isChecked();
 
     Settings::_TW3TexPath = _ui->lineEdit_TW3_texFolder->text();
     Settings::_TW3LoadSkeletonEnabled = _ui->checkBox_TW3_loadSkel->isChecked();

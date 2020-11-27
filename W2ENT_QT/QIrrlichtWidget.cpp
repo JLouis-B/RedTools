@@ -542,6 +542,12 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc 
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkeletonEnabled);
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLODEnabled);
 
+    ConfigNodeType tw1ToLoad = (ConfigNodeType)0;
+    if (Settings::_TW1LoadStaticMesh) tw1ToLoad = (ConfigNodeType)((int)tw1ToLoad | (int)ConfigNodeTrimesh);
+    if (Settings::_TW1LoadSkinnedMesh) tw1ToLoad = (ConfigNodeType)((int)tw1ToLoad | (int)ConfigNodeSkin);
+    if (Settings::_TW1LoadPaintedMesh) tw1ToLoad = (ConfigNodeType)((int)tw1ToLoad | (int)ConfigNodeTexturePaint);
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW1_NODE_TYPES_TO_LOAD", (int)tw1ToLoad);
+
     // Clear the previous data
     TW3_DataCache::_instance.clear();
 

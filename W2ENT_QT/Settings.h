@@ -70,6 +70,10 @@ public:
 
     static QString _language;
 
+    static bool _TW1LoadStaticMesh;
+    static bool _TW1LoadSkinnedMesh;
+    static bool _TW1LoadPaintedMesh;
+
     static QString _TW3TexPath;
     static bool _TW3LoadSkeletonEnabled;
     static bool _TW3LoadBestLODEnabled;

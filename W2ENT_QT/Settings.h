@@ -49,6 +49,8 @@ struct SearchSettings
 class Settings
 {
 public:
+    static QString _theme;
+
     static double _cameraSpeed;
     static double _cameraRotationSpeed;
 

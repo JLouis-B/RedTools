@@ -361,7 +361,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>50</y>
+       <y>80</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -377,7 +377,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>80</y>
+       <y>110</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -409,7 +409,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>50</y>
+       <y>80</y>
        <width>151</width>
        <height>16</height>
       </rect>
@@ -422,7 +422,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>80</y>
+       <y>110</y>
        <width>151</width>
        <height>16</height>
       </rect>
@@ -442,6 +442,16 @@
      </property>
      <property name="text">
       <string>Reset</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox_theme">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>50</y>
+       <width>131</width>
+       <height>22</height>
+      </rect>
      </property>
     </widget>
    </widget>

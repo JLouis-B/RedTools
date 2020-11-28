@@ -7,6 +7,7 @@
 
 #include "Settings.h"
 #include "Translator.h"
+#include "UIThemeManager.h"
 
 
 GUI_Options::GUI_Options(QWidget *parent) :
@@ -71,6 +72,16 @@ GUI_Options::GUI_Options(QWidget *parent) :
     QObject::connect(_ui->checkBox_export_convertTextures, SIGNAL(clicked(bool)), _ui->comboBox_export_texturesFormat, SLOT(setEnabled(bool)));
 
     QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
+
+
+    QList<QString> themes = UIThemeManager::GetAvailableThemes();
+    for (int i = 0; i < themes.size(); ++i)
+    {
+        _ui->comboBox_theme->addItem(themes[i]);
+    }
+    _ui->comboBox_theme->setCurrentText(Settings::_theme);
+    QObject::connect(_ui->comboBox_theme, SIGNAL(currentTextChanged(QString)), this, SLOT(changeTheme(QString)));
+
 }
 
 GUI_Options::~GUI_Options()
@@ -112,6 +123,8 @@ void GUI_Options::updateBackgroundColorButtonColor()
 
 void GUI_Options::ok()
 {
+    Settings::_theme = _ui->comboBox_theme->currentText();
+
     Settings::_cameraRotationSpeed = _ui->doubleSpinBox_view_cameraRotSpeed->value();
     Settings::_cameraSpeed = _ui->doubleSpinBox_view_cameraSpeed->value();
 
@@ -146,6 +159,11 @@ void GUI_Options::cancel()
 {
     Settings::_backgroundColor = _originalBackgroundColor;
     reject();
+}
+
+void GUI_Options::changeTheme(QString newThemeName)
+{
+    UIThemeManager::SetTheme(newThemeName);
 }
 
 void GUI_Options::selectBackgroundColor()

@@ -3,6 +3,7 @@
 #include <QtXml>
 #include <QMessageBox>
 
+QString Settings::_theme;
 
 QString Settings::_language = QString();
 
@@ -130,18 +131,22 @@ void Settings::loadFromXML(QString filename)
     {
         const QString nodeName = node.nodeName();
 
-        if(nodeName == "language")
+        if (nodeName == "language")
             Settings::_language = node.toElement().text();
-        else if(nodeName == "base_directory")
+        else if (nodeName == "theme")
+        {
+            Settings::_theme = node.toElement().text();
+        }
+        else if (nodeName == "base_directory")
         {
             Settings::_baseDir = node.toElement().text();
         }
-        else if(nodeName == "camera")
+        else if (nodeName == "camera")
         {
             Settings::_cameraSpeed = node.firstChildElement("speed").text().toDouble();
             Settings::_cameraRotationSpeed = node.firstChildElement("rotation_speed").text().toDouble();
         }
-        else if(nodeName == "background_color")
+        else if (nodeName == "background_color")
         {
             QColor backgroundColor;
             backgroundColor.setRed(node.firstChildElement("r").text().toInt());
@@ -149,12 +154,12 @@ void Settings::loadFromXML(QString filename)
             backgroundColor.setBlue(node.firstChildElement("b").text().toInt());
             Settings::_backgroundColor = backgroundColor;
         }
-        else if(nodeName == "textures_conversion")
+        else if (nodeName == "textures_conversion")
         {
             Settings::_convertTexturesEnabled = node.firstChildElement("enabled").text().toInt();
             Settings::_convertTexturesFormat = node.firstChildElement("format").text();
         }
-        else if(nodeName == "export")
+        else if (nodeName == "export")
         {
             QString exportType = node.firstChildElement("type").text();
             if (exportType == "base_directory")
@@ -168,7 +173,7 @@ void Settings::loadFromXML(QString filename)
             Settings::_copyTexturesSlot1 = node.firstChildElement("copy_normals_map").text().toInt();
             Settings::_copyTexturesSlot2 = node.firstChildElement("copy_specular_map").text().toInt();
         }
-        else if(nodeName == "unit")
+        else if (nodeName == "unit")
         {
             QString unit = node.toElement().text();
             if (unit == "m")
@@ -176,7 +181,7 @@ void Settings::loadFromXML(QString filename)
             else if (unit == "cm")
                 Settings::_unit = Unit_cm;
         }
-        else if(nodeName == "debug_log")
+        else if (nodeName == "debug_log")
         {
             Settings::_debugLog = node.toElement().text().toInt();
         }
@@ -280,6 +285,9 @@ void Settings::saveToXML(QString filename)
     QDomDocument dom("config");
     QDomElement configElem = dom.createElement("config");
     dom.appendChild(configElem);
+
+    // theme
+    appendNewStringElement(dom, configElem, "theme", Settings::_theme);
 
     // language
     appendNewStringElement(dom, configElem, "language", Settings::_language);

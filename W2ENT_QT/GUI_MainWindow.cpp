@@ -33,8 +33,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     _ui->setupUi(this);
     _ui->textEdit_log->setReadOnly (true);
 
-    // Load setting.xml
-    Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");
     _ui->lineEdit_folder->setText(Settings::_baseDir);
 
     WindowState window = Settings::_windowState;

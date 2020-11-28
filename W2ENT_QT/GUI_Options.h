@@ -20,6 +20,8 @@ public slots:
     void ok();
     void cancel();
 
+    void changeTheme(QString newThemeName);
+
     void resetViewPanel();
     void selectBackgroundColor();
     void changeExportMode();

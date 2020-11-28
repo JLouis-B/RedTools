@@ -97,9 +97,6 @@ void GUI_Options::translate()
     _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
     _ui->checkBox_TW3_loadSkel->setText(Translator::get("options_tw3_skeleton"));
 
-    _ui->label_view_camera->setText(Translator::get("options_camera"));
-    _ui->label_view_movementSpeed->setText(Translator::get("options_camera_movement_speed"));
-    _ui->label_view_rotSpeed->setText(Translator::get("options_camera_rot_speed"));
     _ui->checkBox_debug_log->setText(Translator::get("options_debug_log"));
     _ui->label_debug_log->setText(Translator::get("options_debug_log_label"));
 }

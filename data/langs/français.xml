@@ -60,9 +60,6 @@
 	
 	
 	<!-- Options -->
-	<element id="options_camera" text="Caméra"/>
-	<element id="options_camera_movement_speed" text="Vitesse de mouvement"/>
-	<element id="options_camera_rot_speed" text="Vitesse de rotation"/>
 	<element id="options_export_to_pack0" text="Exporter vers le dossier 'Repertoire de base'"/>
 	<element id="options_export_to_other" text="Exporter vers un autre dossier"/>
 	<element id="options_export_target" text="Choisissez le dossier d'export"/>

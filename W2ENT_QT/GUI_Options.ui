@@ -19,8 +19,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>250</y>
+     <x>50</x>
+     <y>270</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -38,12 +38,119 @@
      <x>10</x>
      <y>10</y>
      <width>381</width>
-     <height>231</height>
+     <height>261</height>
     </rect>
    </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
+   <widget class="QWidget" name="tab_view">
+    <attribute name="title">
+     <string>General</string>
+    </attribute>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>50</y>
+       <width>361</width>
+       <height>181</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Viewport</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_cameraMovementSpeed">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_view_movementSpeed">
+          <property name="text">
+           <string>Camera movement speed</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_view_cameraSpeed">
+          <property name="suffix">
+           <string/>
+          </property>
+          <property name="minimum">
+           <double>-9999.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>9999.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_cameraRotationSpeed">
+        <item>
+         <widget class="QLabel" name="label_view_rotSpeed">
+          <property name="text">
+           <string>Camera rotation speed</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_view_cameraRotSpeed">
+          <property name="minimum">
+           <double>-9999.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>9999.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_view_backgroundColorSelector">
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Change background color</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_view_reset">
+        <property name="text">
+         <string>Reset viewport settings</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>351</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_theme">
+      <item>
+       <widget class="QLabel" name="label_theme">
+        <property name="text">
+         <string>UI Theme</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_theme"/>
+      </item>
+     </layout>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tab_export">
     <attribute name="title">
      <string>Export</string>
@@ -340,121 +447,6 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab_view">
-    <attribute name="title">
-     <string>View</string>
-    </attribute>
-    <widget class="QLabel" name="label_view_camera">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>20</y>
-       <width>341</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Caméra</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_view_cameraSpeed">
-     <property name="geometry">
-      <rect>
-       <x>180</x>
-       <y>80</y>
-       <width>62</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="minimum">
-      <double>-9999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>9999.000000000000000</double>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_view_cameraRotSpeed">
-     <property name="geometry">
-      <rect>
-       <x>180</x>
-       <y>110</y>
-       <width>62</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="minimum">
-      <double>-9999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>9999.000000000000000</double>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="button_view_backgroundColorSelector">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>140</y>
-       <width>141</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Change background color</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_view_movementSpeed">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>80</y>
-       <width>151</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Movement Speed</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_view_rotSpeed">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>110</y>
-       <width>151</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Rotation speed</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_view_reset">
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>180</y>
-       <width>75</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Reset</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_theme">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>50</y>
-       <width>131</width>
-       <height>22</height>
-      </rect>
-     </property>
-    </widget>
-   </widget>
    <widget class="QWidget" name="tab_debug">
     <attribute name="title">
      <string>Debug</string>
@@ -492,22 +484,5 @@
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>GUI_Options</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

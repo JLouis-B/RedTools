@@ -11,48 +11,57 @@ UIThemeManager::UIThemeManager()
 
 }
 
-QString getWindowsStyleName()
-{
-    // Just verify that windowsvista is available
-    QStringList styles = QStyleFactory::keys();
-    if (styles.contains("windowsvista"))
-        return "windowsvista";
-    else
-        return "windows";
-}
-
 void UIThemeManager::Init()
 {
-    // Build the theme list
+    QStringList styles = QStyleFactory::keys();
+    bool hasFusionStyle = false;
+    QString windowsStyleName = "Windows";
+    if (styles.contains("windowsvista"))
+        windowsStyleName = "windowsvista";
 
+    if (styles.contains("Fusion"))
+        hasFusionStyle = true;
+
+
+    // Build the theme list
     // Default
     Theme defaultTheme;
-    defaultTheme._name = "Default";
-    defaultTheme._styleName = getWindowsStyleName();
+    defaultTheme._name = "Windows";
+    defaultTheme._styleName = windowsStyleName;
     defaultTheme._palette = qApp->palette();
     _themes.insert(defaultTheme._name, defaultTheme);
 
-    // Dark
-    Theme darkTheme;
-    darkTheme._name = "Dark";
-    darkTheme._styleName = "fusion";
-    QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(53,53,53));
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
-    darkPalette.setColor(QPalette::Base, QColor(15,15,15));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(53,53,53));
-    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
-    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-    darkPalette.setColor(QPalette::Text, Qt::white);
-    darkPalette.setColor(QPalette::Button, QColor(53,53,53));
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
-    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    if (hasFusionStyle)
+    {
+        // Fusion
+        Theme fusionTheme;
+        fusionTheme._name = "Fusion";
+        fusionTheme._styleName = "Fusion";
+        fusionTheme._palette = qApp->palette();
+        _themes.insert(fusionTheme._name, fusionTheme);
 
-    darkPalette.setColor(QPalette::Highlight, QColor(142,45,197).lighter());
-    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+        // Dark Fusion
+        Theme darkFusionTheme;
+        darkFusionTheme._name = "Fusion Dark";
+        darkFusionTheme._styleName = "Fusion";
+        QPalette darkPalette;
+        darkPalette.setColor(QPalette::Window, QColor(53,53,53));
+        darkPalette.setColor(QPalette::WindowText, Qt::white);
+        darkPalette.setColor(QPalette::Base, QColor(15,15,15));
+        darkPalette.setColor(QPalette::AlternateBase, QColor(53,53,53));
+        darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+        darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+        darkPalette.setColor(QPalette::Text, Qt::white);
+        darkPalette.setColor(QPalette::Button, QColor(53,53,53));
+        darkPalette.setColor(QPalette::ButtonText, Qt::white);
+        darkPalette.setColor(QPalette::BrightText, Qt::red);
 
-    darkTheme._palette = darkPalette;
-    _themes.insert(darkTheme._name, darkTheme);
+        darkPalette.setColor(QPalette::Highlight, QColor(142,45,197).lighter());
+        darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+
+        darkFusionTheme._palette = darkPalette;
+        _themes.insert(darkFusionTheme._name, darkFusionTheme);
+    }
 }
 
 QList<QString> UIThemeManager::GetAvailableThemes()

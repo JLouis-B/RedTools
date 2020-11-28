@@ -1,3 +1,7 @@
-You can easily make and propose your own translations, you just have to copy and paste an existing translation file, and to change the "text" fields.
+Thanks to the people who contributed to the project through these translations!
 
-If you want submit a new translation for the software (or correct the english version, my english is not very good), you can contact me via The Witcher forum if you have an account or at jeanlouis.boudrand@hotmail.fr, or you can send it directly via the git repo of the soft (cf the website), it can be useful for the other people :)
+However, as the system is time-consuming to maintain and the translations are now largely out of date, this translation system will be discontinued on a gradual basis as new versions of the software are released.
+
+Therefore, while I sincerely thank those who have contributed, please do not submit new translations of the software.
+
+Thank you

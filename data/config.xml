@@ -1,5 +1,6 @@
 <!DOCTYPE config>
 <config>
+ <theme>Windows</theme>
  <language>langs/english.xml</language>
  <base_directory></base_directory>
  <background_color>
@@ -24,6 +25,11 @@
   <format>.jpg</format>
  </textures_conversion>
  <debug_log>0</debug_log>
+ <TW1>
+  <TW1_loadStaticMeshes>1</TW1_loadStaticMeshes>
+  <TW1_loadSkinnedMeshes>1</TW1_loadSkinnedMeshes>
+  <TW1_loadPaintedMeshes>1</TW1_loadPaintedMeshes>
+ </TW1>
  <TW3>
   <TW3_textures></TW3_textures>
   <TW3_loadSkel>0</TW3_loadSkel>

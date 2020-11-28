@@ -150,12 +150,12 @@
      <x>0</x>
      <y>0</y>
      <width>768</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuMenu">
+   <widget class="QMenu" name="menu_General">
     <property name="title">
-     <string>Menu</string>
+     <string>General tools and settings</string>
     </property>
     <addaction name="action_main_Search"/>
     <addaction name="separator"/>
@@ -165,12 +165,12 @@
     <addaction name="separator"/>
     <addaction name="action_main_Quitter"/>
    </widget>
-   <widget class="QMenu" name="menuLanguages">
+   <widget class="QMenu" name="menu_Languages">
     <property name="title">
      <string>Languages</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuDisplay">
+   <widget class="QMenu" name="menu_Display">
     <property name="title">
      <string>Display</string>
     </property>
@@ -178,13 +178,13 @@
     <addaction name="action_display_Rigging"/>
     <addaction name="action_display_Normals"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menu_Help">
     <property name="title">
      <string>Help</string>
     </property>
     <addaction name="action_help_About"/>
    </widget>
-   <widget class="QMenu" name="menu_RE_tools">
+   <widget class="QMenu" name="menu_Redkit_tools">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -207,11 +207,11 @@
     <addaction name="action_redkit_Size"/>
     <addaction name="menuLOD"/>
    </widget>
-   <widget class="QMenu" name="menuThe_Witcher_1_tools">
+   <widget class="QMenu" name="menu_GameTools">
     <property name="title">
-     <string>The Witcher tools</string>
+     <string>Game tools</string>
     </property>
-    <widget class="QMenu" name="menuThe_Witcher_1">
+    <widget class="QMenu" name="menu_GameTools_The_Witcher_1">
      <property name="title">
       <string>The Witcher 1</string>
      </property>
@@ -219,7 +219,7 @@
      <addaction name="separator"/>
      <addaction name="action_TW1_Load_animations"/>
     </widget>
-    <widget class="QMenu" name="menuThe_Witcher_2">
+    <widget class="QMenu" name="menu_GameTools_The_Witcher_2">
      <property name="title">
       <string>The Witcher 2</string>
      </property>
@@ -228,7 +228,7 @@
      <addaction name="action_TW2_Materials_explorer"/>
      <addaction name="action_TW2_Show_linked_files"/>
     </widget>
-    <widget class="QMenu" name="menuThe_Witcher_3">
+    <widget class="QMenu" name="menu_GameTools_The_Witcher_3">
      <property name="title">
       <string>The Witcher 3</string>
      </property>
@@ -241,31 +241,25 @@
      <addaction name="action_TW3_Show_linked_files"/>
      <addaction name="action_TW3_LUA_utils_Clean_textures_path_depreciated"/>
     </widget>
-    <addaction name="menuThe_Witcher_1"/>
-    <addaction name="menuThe_Witcher_2"/>
-    <addaction name="menuThe_Witcher_3"/>
-   </widget>
-   <widget class="QMenu" name="menumiscellaneous_tools">
-    <property name="title">
-     <string>Other games tools</string>
-    </property>
-    <widget class="QMenu" name="menu_other_TheCouncil">
+    <widget class="QMenu" name="menu_GameTools_TheCouncil">
      <property name="title">
-      <string>The council (probably works with the other Cyanide games)</string>
+      <string>The Council (probably works with the other Cyanide games)</string>
      </property>
      <addaction name="action_other_TheCouncil_unpacker"/>
      <addaction name="action_other_TheCouncil_Load_template"/>
     </widget>
-    <addaction name="menu_other_TheCouncil"/>
+    <addaction name="menu_GameTools_The_Witcher_1"/>
+    <addaction name="menu_GameTools_The_Witcher_2"/>
+    <addaction name="menu_GameTools_The_Witcher_3"/>
+    <addaction name="menu_GameTools_TheCouncil"/>
     <addaction name="action_other_Dishonored_2_unpacker"/>
    </widget>
-   <addaction name="menuMenu"/>
-   <addaction name="menuThe_Witcher_1_tools"/>
-   <addaction name="menu_RE_tools"/>
-   <addaction name="menumiscellaneous_tools"/>
-   <addaction name="menuDisplay"/>
-   <addaction name="menuLanguages"/>
-   <addaction name="menuHelp"/>
+   <addaction name="menu_General"/>
+   <addaction name="menu_GameTools"/>
+   <addaction name="menu_Redkit_tools"/>
+   <addaction name="menu_Display"/>
+   <addaction name="menu_Languages"/>
+   <addaction name="menu_Help"/>
   </widget>
   <action name="action_main_Quitter">
    <property name="text">

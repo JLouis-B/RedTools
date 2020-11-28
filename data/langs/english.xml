@@ -17,7 +17,6 @@
 
 	
 	<!-- Menus -->
-	<element id="menu_menu" text="Menu"/>
 	<element id="menu_menu_options" text="Options"/>
 	<element id="menu_menu_search" text="Search"/>
 	<element id="menu_menu_addMesh" text="Add mesh(es)"/>
@@ -28,13 +27,9 @@
 	<element id="menu_re_lod_empty" text="empty"/>
 	<element id="menu_re_lod_clear" text="Clear current LOD"/>
 	<element id="menu_re_lod_clear_all" text="Clear all LODs"/>
-	
-	<element id="menu_tw" text="The Witcher tools"/>
-	
-	<element id="menu_tw1" text="The Witcher 1 tools"/>
+		
 	<element id="menu_tw1_bif" text="BIF extractor"/>
 	
-	<element id="menu_tw2_dzipExtractor" text="DZIP extractor"/>
 	<element id="menu_tw2_3_linkedFiles" text="Show linked files (TW2 and TW3)"/>
 	<element id="menu_tw2_3_materialsExplorer" text="Materials explorer (TW2 and TW3)"/>
 	
@@ -48,7 +43,6 @@
 	<element id="menu_language" text="Language"/>
 	
 	<element id="menu_help" text="Help"/>
-	<element id="menu_help_webpage" text="WebPage"/>
 	
 	
 	<!-- Search tool -->

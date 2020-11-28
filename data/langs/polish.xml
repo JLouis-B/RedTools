@@ -17,7 +17,6 @@
 
 	
 	<!-- Menus -->
-	<element id="menu_menu" text="Menu"/>
 	<element id="menu_menu_options" text="Opcje"/>
 	<element id="menu_menu_search" text="Szukaj"/>
 	<element id="menu_menu_addMesh" text="Ajouter d'autres meshes"/>
@@ -31,7 +30,6 @@
 	
 	<element id="menu_tw1_bif" text="BIF extractor"/>
 	
-	<element id="menu_tw2_dzipExtractor" text="DZIP extractor"/>
 	<element id="menu_tw2_3_linkedFiles" text="Pokaż połączone pliki (TW2 and TW3)"/>
 	<element id="menu_tw2_3_materialsExplorer" text="Materials explorer (TW2 and TW3)"/>
 	
@@ -45,7 +43,6 @@
 	<element id="menu_language" text="Język"/>
 	
 	<element id="menu_help" text="Pomoc"/>
-	<element id="menu_help_webpage" text="Strona www"/>
 	
 	
 	<!-- Search tool -->

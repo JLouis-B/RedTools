@@ -62,11 +62,11 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QStringList files = dir.entryList();
     foreach( QString file, files )
     {
-        QAction* menuitem = new QAction(file, _ui->menuLanguages);
+        QAction* menuitem = new QAction(file, _ui->menu_Languages);
         menuitem->setCheckable(true);
         if ("langs/" + menuitem->text() == Settings::_language)
             menuitem->setChecked(true);
-        _ui->menuLanguages->addAction(menuitem);
+        _ui->menu_Languages->addAction(menuitem);
     }
 
     // Translator
@@ -130,8 +130,8 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
     QObject::connect(_ui->comboBox_exportFormat, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
 
-    for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
-        QObject::connect(_ui->menuLanguages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
+    for (int i = 0; i < _ui->menu_Languages->actions().size(); i++)
+        QObject::connect(_ui->menu_Languages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
 }
 
 GUI_MainWindow::~GUI_MainWindow()
@@ -237,8 +237,8 @@ void GUI_MainWindow::updateWindowTitle()
 
 void GUI_MainWindow::changeLanguage()
 {
-    for (int i = 0; i < _ui->menuLanguages->actions().size(); i++)
-        _ui->menuLanguages->actions().at(i)->setChecked(false);
+    for (int i = 0; i < _ui->menu_Languages->actions().size(); i++)
+        _ui->menu_Languages->actions().at(i)->setChecked(false);
 
     QAction* q = (QAction*)QObject::sender();
     q->setChecked(true);
@@ -397,13 +397,12 @@ void GUI_MainWindow::translate()
     _ui->label_exportedFilename->setText(Translator::get("label_exported_file_name") + " :");
 
     // Menus
-    _ui->menuMenu->setTitle(Translator::get("menu_menu"));
     _ui->action_main_Search->setText(Translator::get("menu_menu_search"));
     _ui->action_main_Options->setText(Translator::get("menu_menu_options"));
     _ui->action_main_Add_mesh->setText(Translator::get("menu_menu_addMesh"));
     _ui->action_main_Quitter->setText(Translator::get("menu_menu_quit"));
 
-    _ui->menu_RE_tools->setTitle(Translator::get("menu_re"));
+    _ui->menu_Redkit_tools->setTitle(Translator::get("menu_re"));
     _ui->action_redkit_Clear_current_LOD->setText(Translator::get("menu_re_lod_clear"));
     _ui->action_redkit_Clear_all_LODs->setText(Translator::get("menu_re_lod_clear_all"));
     _ui->action_redkit_Size->setText(Translator::get("menu_re_size"));
@@ -419,12 +418,12 @@ void GUI_MainWindow::translate()
     _ui->action_TW3_Materials_explorer->setText(Translator::get("menu_tw2_3_materialsExplorer"));
     _ui->action_TW3_LUA_utils_Clean_textures_path_depreciated->setText(Translator::get("menu_tw3_tex_path"));
 
-    _ui->menuLanguages->setTitle(Translator::get("menu_language"));
+    _ui->menu_Languages->setTitle(Translator::get("menu_language"));
 
-    _ui->menuDisplay->setTitle(Translator::get("menu_display"));
+    _ui->menu_Display->setTitle(Translator::get("menu_display"));
     _ui->action_display_Wireframe->setText(Translator::get("menu_display_wireframe"));
 
-    _ui->menuHelp->setTitle(Translator::get("menu_help"));
+    _ui->menu_Help->setTitle(Translator::get("menu_help"));
 
 
     if (_ui->action_redkit_LOD0->text() != "LOD0")

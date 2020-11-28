@@ -74,6 +74,7 @@ GUI_Options::GUI_Options(QWidget *parent) :
     QObject::connect(_ui->pushButton_TW3_selectTexFolder, SIGNAL(clicked()), this, SLOT(selectTW3TexDir()));
 
 
+    _originalTheme = Settings::_theme;
     QList<QString> themes = UIThemeManager::GetAvailableThemes();
     for (int i = 0; i < themes.size(); ++i)
     {
@@ -87,35 +88,6 @@ GUI_Options::GUI_Options(QWidget *parent) :
 GUI_Options::~GUI_Options()
 {
     delete _ui;
-}
-
-void GUI_Options::translate()
-{
-    _ui->radioButton_export_exportCustomDir->setText(Translator::get("options_export_to_other"));
-    _ui->radioButton_export_exportBaseDir->setText(Translator::get("options_export_to_pack0"));
-
-    _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
-    _ui->checkBox_TW3_loadSkel->setText(Translator::get("options_tw3_skeleton"));
-
-    _ui->checkBox_debug_log->setText(Translator::get("options_debug_log"));
-    _ui->label_debug_log->setText(Translator::get("options_debug_log_label"));
-}
-
-void GUI_Options::resetViewPanel()
-{
-    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
-    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
-
-    Settings::_backgroundColor = QColor(0, 0, 0);
-    updateBackgroundColorButtonColor();
-}
-
-void GUI_Options::updateBackgroundColorButtonColor()
-{
-    QPalette pal = _ui->button_view_backgroundColorSelector->palette();
-    pal.setColor(QPalette::Button, Settings::_backgroundColor);
-    _ui->button_view_backgroundColorSelector->setPalette(pal);
-    _ui->button_view_backgroundColorSelector->update();
 }
 
 void GUI_Options::ok()
@@ -155,7 +127,25 @@ void GUI_Options::ok()
 void GUI_Options::cancel()
 {
     Settings::_backgroundColor = _originalBackgroundColor;
+    UIThemeManager::SetTheme(_originalTheme);
     reject();
+}
+
+void GUI_Options::resetViewPanel()
+{
+    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
+    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
+
+    Settings::_backgroundColor = QColor(0, 0, 0);
+    updateBackgroundColorButtonColor();
+}
+
+void GUI_Options::updateBackgroundColorButtonColor()
+{
+    QPalette pal = _ui->button_view_backgroundColorSelector->palette();
+    pal.setColor(QPalette::Button, Settings::_backgroundColor);
+    _ui->button_view_backgroundColorSelector->setPalette(pal);
+    _ui->button_view_backgroundColorSelector->update();
 }
 
 void GUI_Options::changeTheme(QString newThemeName)
@@ -215,4 +205,16 @@ void GUI_Options::selectTW3TexDir()
         else
             QMessageBox::critical(this, "Error", "Error : Check that you don't use special characters in your path.");
     }
+}
+
+void GUI_Options::translate()
+{
+    _ui->radioButton_export_exportCustomDir->setText(Translator::get("options_export_to_other"));
+    _ui->radioButton_export_exportBaseDir->setText(Translator::get("options_export_to_pack0"));
+
+    _ui->label_TW3_texFolder->setText(Translator::get("options_tw3_textures_folder"));
+    _ui->checkBox_TW3_loadSkel->setText(Translator::get("options_tw3_skeleton"));
+
+    _ui->checkBox_debug_log->setText(Translator::get("options_debug_log"));
+    _ui->label_debug_log->setText(Translator::get("options_debug_log_label"));
 }

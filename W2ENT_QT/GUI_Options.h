@@ -30,9 +30,12 @@ public slots:
 
 private:
     Ui::GUI_Options* _ui;
+
     QColor _originalBackgroundColor;
-    void translate();
+    QString _originalTheme;
+
     void updateBackgroundColorButtonColor();
+    void translate();
 
 signals:
     void optionsValidation();

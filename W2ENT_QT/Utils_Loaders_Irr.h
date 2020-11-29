@@ -39,6 +39,9 @@ core::stringc readStringFixedSize(io::IReadFile* file, int nbChars);
 
 void chechNaNErrors(core::vector3df& vector3);
 
+// for debugging purposes
+core::stringc getBinaryRepresentation(u8 byte);
+
 class JointHelper
 {
 public:

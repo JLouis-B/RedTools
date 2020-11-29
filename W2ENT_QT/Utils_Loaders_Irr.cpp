@@ -52,6 +52,17 @@ void chechNaNErrors(core::vector3df& vector3)
         vector3.Z = 0.f;
 }
 
+core::stringc getBinaryRepresentation(u8 byte)
+{
+    core::stringc output;
+    output.reserve(8);
+
+    for(int i = 7; i >= 0; i--)
+           output.append((byte & (1 << i)) ? '1' : '0');
+
+    return output;
+}
+
 
 // JointHelper functions
 bool JointHelper::HasJoint(const scene::ISkinnedMesh* mesh, const core::stringc jointName)

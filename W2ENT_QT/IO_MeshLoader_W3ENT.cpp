@@ -113,7 +113,6 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
         //Feedback += "done";
         // No feedback = 'done' feedback so it's necesseray to fill it
 
-		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
         //SceneManager->getMeshManipulator()->flipSurfaces(AnimatedMesh);
 	}
 	else
@@ -354,7 +353,7 @@ bool IO_MeshLoader_W3ENT::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffer
         buffer->Vertices_Standard.push_back(video::S3DVertex());
         buffer->Vertices_Standard[i].Pos = core::vector3df(x, y, z) / 65535.f * bufferInfos.quantizationScale + bufferInfos.quantizationOffset;
         buffer->Vertices_Standard[i].Color = defaultColor;
-        //std::cout << "Position=" << x << ", " << y << ", " << z << std::endl;
+        //std::cout << "Position=" << buffer->Vertices_Standard[i].Pos.X << ", " << buffer->Vertices_Standard[i].Pos.Y << ", " << buffer->Vertices_Standard[i].Pos.Z << std::endl;
     }
     bufferFile->seek(vBufferInf.uvOffset + firstVertexOffset * 4);
     //std::cout << "POS vUV=" << bufferFile->getPos() << std::endl;
@@ -372,24 +371,27 @@ bool IO_MeshLoader_W3ENT::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffer
     }
 
 
-    // Not sure...
-    /*
     bufferFile->seek(vBufferInf.normalsOffset + firstVertexOffset * 8);
-    std::cout << "POS vNormals=" << bufferFile->getPos() << std::endl;
+    //std::cout << "POS vNormals=" << bufferFile->getPos() << std::endl;
     for (u32 i = 0; i < meshInfos.numVertices; ++i)
     {
-        s16 x, y, z, w;
+        core::array<u8> bytes = readDataArray<u8>(bufferFile, 4);
+        bufferFile->seek(4, true);
 
-        bufferFile->read(&x, 2);
-        bufferFile->read(&y, 2);
-        bufferFile->read(&z, 2);
-        bufferFile->read(&w, 2);
+        u16 x = ((bytes[0]&0b11111111) | ((bytes[1]&0b11) << 8));
+        u16 y = ((bytes[1]&0b11111100) | ((bytes[2]&0b00001111) << 8)) >> 2;
+        u16 z = ((bytes[2]&0b11110000) | ((bytes[3]&0b00111111) << 8)) >> 4;
 
-        //std::cout << "Position=" << x * infos.quantizationScale.X<< ", " << y * infos.quantizationScale.Y<< ", " << z << std::endl;
-        buffer->Vertices_Standard[i].Normal = core::vector3df(x, y, z);
+        f32 fx = ((s16)x - 512) / 512.f;
+        f32 fy = ((s16)y - 512) / 512.f;
+        f32 fz = ((s16)z - 512) / 512.f;
+
+        //std::cout << "Normal : fX=" << fx << ", fY=" << fy << ", fZ=" << fz << std::endl;
+
+        buffer->Vertices_Standard[i].Normal = core::vector3df(fx, fy, fz);
         buffer->Vertices_Standard[i].Normal.normalize();
     }
-    */
+
 
 
     // Indices -------------------------------------------------------------------
@@ -411,7 +413,6 @@ bool IO_MeshLoader_W3ENT::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffer
             buffer->Indices[i-1] = indice;
     }
 
-    SceneManager->getMeshManipulator()->recalculateNormals(buffer);
     bufferFile->drop();
 
     return true;

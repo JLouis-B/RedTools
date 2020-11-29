@@ -217,7 +217,6 @@ private:
     u32 NbBonesPos;
 
     int getTextureLayerFromTextureType(core::stringc textureType);
-    core::stringc searchParent(core::stringc bonename);
 
     // To read the properties
     bool ReadPropertyHeader(io::IReadFile* file, SPropertyHeader& propHeader);
@@ -243,8 +242,6 @@ private:
     video::SMaterial ReadMaterialFile(core::stringc filename);
     video::SMaterial ReadW2MIFile(core::stringc filename);
     ISkinnedMesh* ReadW2MESHFile(core::stringc filename);
-
-    void computeLocal(ISkinnedMesh::SJoint* joint);
 
     bool checkBones(io::IReadFile* file, char nbBones);
 

@@ -90,7 +90,6 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
 	if (load(f))
 	{
 		AnimatedMesh->finalize();
-		//SceneManager->getMeshManipulator()->recalculateNormals(AnimatedMesh);
 	}
 	else
 	{
@@ -946,17 +945,25 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
         {
             long vertexAdress = file->getPos();
             core::array<f32> position = readDataArray<f32>(file, 3);
-            file->seek(8, true);
+            //file->seek(8, true);
+
+            core::array<u8> bytes = readDataArray<u8>(file, 8);
+            f32 fx = ((s16)bytes[0] - 127) / 127.f;
+            f32 fy = ((s16)bytes[1] - 127) / 127.f;
+            f32 fz = ((s16)bytes[2] - 127) / 127.f;
+
             core::array<f32> uv = readDataArray<f32>(file, 2);
 
             if (hasSecondUVLayer)
             {
                 core::array<f32> uv2 = readDataArray<f32>(file, 2);
+
                 video::S3DVertex2TCoords vertex;
                 vertex.Pos = core::vector3df(position[0], position[1], position[2]);
                 vertex.TCoords = core::vector2df(uv[0], uv[1]);
                 vertex.TCoords2 = core::vector2df(uv2[0], uv2[1]);
                 vertex.Color = defaultColor;
+                vertex.Normal = core::vector3df(fx, fy, fz);
                 buffer->Vertices_2TCoords.push_back(vertex);
                 //std::cout << "UV2: " << uv2[0] << ", " << uv2[1] << std::endl;
             }
@@ -966,6 +973,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
                 vertex.Pos = core::vector3df(position[0], position[1], position[2]);
                 vertex.TCoords = core::vector2df(uv[0], uv[1]);
                 vertex.Color = defaultColor;
+                vertex.Normal = core::vector3df(fx, fy, fz);
                 buffer->Vertices_Standard.push_back(vertex);
             }
 
@@ -1001,7 +1009,6 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
 
         buffer->Material = Materials[result].material;
 
-        SceneManager->getMeshManipulator()->recalculateNormals(buffer);
         buffer->recalculateBoundingBox();
     }
     AnimatedMesh->setDirty();
@@ -1084,10 +1091,15 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
                 }
             }
 
+            core::array<u8> bytes = readDataArray<u8>(file, 8);
+            f32 fx = ((s16)bytes[0] - 127) / 127.f;
+            f32 fy = ((s16)bytes[1] - 127) / 127.f;
+            f32 fz = ((s16)bytes[2] - 127) / 127.f;
+            //file->seek(8, true);
 
-            file->seek(8, true);
             core::array<f32> uv = readDataArray<f32>(file, 2);
             vertex.TCoords = core::vector2df(uv[0], uv[1]);
+            vertex.Normal = core::vector3df(fx, fy, fz);
             vertex.Color = defaultColor;
             buffer->Vertices_Standard.push_back(vertex);
 
@@ -1124,7 +1136,6 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
 
         buffer->Material = Materials[result].material;
 
-        SceneManager->getMeshManipulator()->recalculateNormals(buffer);
         buffer->recalculateBoundingBox();
     }
 

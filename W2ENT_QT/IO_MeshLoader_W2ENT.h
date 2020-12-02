@@ -39,24 +39,12 @@ struct PropertyHeader
     }
 };
 
-struct MeshData
-{
-    core::array<int> materialIds; // Index of the materials of the mesh in Materials
-    ChunkDescriptor infos;
-};
-
 struct SubmeshData
 {
     int vertexType;
     core::array<s32> dataI;
     core::array<u16> bonesId;
     u32 unk;
-};
-
-struct Material
-{
-    int id;
-    video::SMaterial material;
 };
 
 struct TW2_CSkeleton
@@ -123,11 +111,11 @@ private:
     // Main function
 	bool load(io::IReadFile* file);
 
-    void CMesh(io::IReadFile* file, MeshData tmp);
-    void loadStaticMesh(io::IReadFile* file, core::array<int> mats);
-    void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds);
+    void CMesh(io::IReadFile* file, ChunkDescriptor infos);
+    void loadStaticMesh(io::IReadFile* file, core::array<u32> materialIds);
+    void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds);
     void vert_format(io::IReadFile* file);
-    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds, core::array<core::stringc> boneNames);
+    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds, core::array<core::stringc> boneNames);
 
     void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, u32 matId);
     void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
@@ -158,7 +146,8 @@ private:
     core::array<core::stringc> Strings;
     core::array<core::stringc> Files;
     // Materials of the meshes
-    core::array<Material> Materials;
+
+    std::map<int, video::SMaterial> Materials;
 
     io::path ConfigGamePath;
 

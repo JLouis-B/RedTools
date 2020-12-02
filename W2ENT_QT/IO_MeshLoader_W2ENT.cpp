@@ -171,9 +171,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     }*/
     // useless for the loader
 
-    int materialCount = 0;
     core::array<core::stringc> chunks;
-    core::array<MeshData> meshesToLoad;
+    core::array<ChunkDescriptor> meshesToLoad;
 
     // Ok, now we can read the materials and meshes
     file->seek(back + headerData[4]);
@@ -222,9 +221,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         {
             log->addAndFlush("\nCMaterialInstance\n");
 
-            CMaterialInstance(file, chunkInfos, materialCount);
-            meshesToLoad[meshesToLoad.size()-1].materialIds.push_back(materialCount);
-            materialCount++;
+            CMaterialInstance(file, chunkInfos, i+1);
 
             log->addLineAndFlush("CMaterialInstance OK");
         }
@@ -241,9 +238,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             if(meshName.size() == 0)
                 meshName = "model";
 
-            MeshData meshData;
-            meshData.infos = chunkInfos;
-            meshesToLoad.push_back(meshData);
+            meshesToLoad.push_back(chunkInfos);
 
             log->addLineAndFlush("CMesh OK");
         }
@@ -258,7 +253,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         else
         {
 #ifdef IS_A_DEVELOPMENT_BUILD
-            CUnknown(file, chunkInfos);
+            //CUnknown(file, chunkInfos);
 #endif
         }
 
@@ -706,14 +701,14 @@ void IO_MeshLoader_W2ENT::SkinMesh()
     }
 }
 
-void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
+void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
 {
     log->addLineAndFlush("Load a mesh...");
 
-    core::array<int> mats = meshChunk.materialIds;
-
     // we go to the adress of the data
-    file->seek(meshChunk.infos.adress);
+    file->seek(infos.adress);
+
+    core::array<u32> materialIds;
 
     // Read all the properties of the mesh
     while(1)
@@ -721,6 +716,19 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
         PropertyHeader propHeader;
         if (!ReadPropertyHeader(file, propHeader))
             break;
+        log->addLineAndFlush(propHeader.toString());
+
+        if (propHeader.propName == "materials" && propHeader.propType == "@*IMaterial")
+        {
+            u32 nbMaterials = readU32(file);
+            file->seek(4, true);
+            for (u32 i = 0; i < nbMaterials; ++i)
+            {
+                u32 matId = readU32(file); // aka the data index of the corresponding CMaterial
+                materialIds.push_back(matId);
+                //std::cout << "Material: " << value << std::endl;
+            }
+        }
 
         file->seek(propHeader.endPos);
     }
@@ -741,7 +749,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
     {
         log->addLineAndFlush("Static mesh");
         file->seek(1, true); //readUnsignedChars(file, 1);
-        loadStaticMesh(file, mats);
+        loadStaticMesh(file, materialIds);
     }
     else // If the mesh isn't static
     {
@@ -843,7 +851,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 
         file->seek(back);
 
-        loadSkinnedSubmeshes(file, data, subMeshesData, mats, boneNames);
+        loadSkinnedSubmeshes(file, data, subMeshesData, materialIds, boneNames);
 
     }
 
@@ -851,7 +859,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 }
 
 
-void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<int> mats)
+void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<u32> materialIds)
 {
     // We read submeshes infos
     long back = file->getPos();
@@ -876,11 +884,11 @@ void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<int> m
     }
 
     file->seek(back + 4);
-    loadSubmeshes(file, meshData, subMeshesData, mats);
+    loadSubmeshes(file, meshData, subMeshesData, materialIds);
 }
 
 
-void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds)
+void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds)
 {
     log->addLineAndFlush("loadSubmeshes (static)");
 
@@ -994,7 +1002,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
         // It seems to work in many cases but it's probably incorrect.
         if (i < materialIds.size()) // a mesh may have no associated material
             //if ((unsigned int)mats[i] < Materials.size()) // it doesn't seem necessary
-                buffer->Material = Materials[materialIds[i]].material;
+                buffer->Material = Materials[materialIds[i]];
 
         buffer->recalculateBoundingBox();
     }
@@ -1004,7 +1012,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
 }
 
 
-void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds, core::array<core::stringc> boneNames)
+void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds, core::array<core::stringc> boneNames)
 {
     log->addLineAndFlush("loadSkinnedSubmeshes");
 
@@ -1116,7 +1124,7 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
         // It seems to work in many cases but it's probably incorrect.
         if (i < materialIds.size()) // a mesh may have no associated material
             //if ((unsigned int)mats[i] < Materials.size()) // it doesn't seem necessary
-                buffer->Material = Materials[materialIds[i]].material;
+                buffer->Material = Materials[materialIds[i]];
 
         buffer->recalculateBoundingBox();
     }
@@ -1248,11 +1256,8 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor
         }
         file->seek(propHeader.endPos);
     }
-    Material w2Mat;
-    w2Mat.id = matId;
-    w2Mat.material = material;
 
-    Materials.push_back(w2Mat);
+    Materials.insert(std::make_pair(matId, material));
     //std::cout << "Texture : " << FilesTable[255-readUnsignedChars(1)[0]] << std::endl;
 }
 

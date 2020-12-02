@@ -41,8 +41,7 @@ struct PropertyHeader
 
 struct MeshData
 {
-    int nModel;
-    core::array<int> nMat;
+    core::array<int> materialIds; // Index of the materials of the mesh in Materials
     ChunkDescriptor infos;
 };
 
@@ -126,11 +125,11 @@ private:
 
     void CMesh(io::IReadFile* file, MeshData tmp);
     void loadStaticMesh(io::IReadFile* file, core::array<int> mats);
-    void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats);
+    void loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds);
     void vert_format(io::IReadFile* file);
-    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames);
+    void loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds, core::array<core::stringc> boneNames);
 
-    void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats);
+    void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, u32 matId);
     void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
     void generateDDSFromXBM(core::stringc filepath, core::stringc ddsFilepath);
 

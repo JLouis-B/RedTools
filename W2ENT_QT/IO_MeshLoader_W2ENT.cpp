@@ -171,7 +171,7 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     }*/
     // useless for the loader
 
-    int nMat = 0, nModel = 0;
+    int materialCount = 0;
     core::array<core::stringc> chunks;
     core::array<MeshData> meshesToLoad;
 
@@ -222,9 +222,9 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         {
             log->addAndFlush("\nCMaterialInstance\n");
 
-            CMaterialInstance(file, chunkInfos, nMat);
-            meshesToLoad[meshesToLoad.size()-1].nMat.push_back(nMat);
-            nMat++;
+            CMaterialInstance(file, chunkInfos, materialCount);
+            meshesToLoad[meshesToLoad.size()-1].materialIds.push_back(materialCount);
+            materialCount++;
 
             log->addLineAndFlush("CMaterialInstance OK");
         }
@@ -242,11 +242,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
                 meshName = "model";
 
             MeshData meshData;
-            meshData.nModel = nModel;             // The index of the mesh (useful if there are many meshes)
             meshData.infos = chunkInfos;
             meshesToLoad.push_back(meshData);
-
-            nModel++;
 
             log->addLineAndFlush("CMesh OK");
         }
@@ -713,15 +710,10 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, MeshData meshChunk)
 {
     log->addLineAndFlush("Load a mesh...");
 
-    core::array<int> mats = meshChunk.nMat;
-
-    // ?
-    //for (unsigned int i = 0; i < tmp.nMat.size(); i++)
-    //    mats.push_back(tmp.nMat[i]);
+    core::array<int> mats = meshChunk.materialIds;
 
     // we go to the adress of the data
     file->seek(meshChunk.infos.adress);
-    int nModel = meshChunk.nModel;    // we get the mesh index
 
     // Read all the properties of the mesh
     while(1)
@@ -888,7 +880,7 @@ void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<int> m
 }
 
 
-void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats)
+void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds)
 {
     log->addLineAndFlush("loadSubmeshes (static)");
 
@@ -998,26 +990,21 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
                 buffer->Indices[j-1] = indice;
         }
 
-
-
-        int result = 0;
-        if (i < mats.size())
-            if ((unsigned int)mats[i] < Materials.size())
-                result = mats[i];
-        //std::cout << "MaterialSize= " << Materials.size() << std::endl;
-        //std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;
-
-        buffer->Material = Materials[result].material;
+        // here we just assume that the material associated with the buffer is the following material in the file.
+        // It seems to work in many cases but it's probably incorrect.
+        if (i < materialIds.size()) // a mesh may have no associated material
+            //if ((unsigned int)mats[i] < Materials.size()) // it doesn't seem necessary
+                buffer->Material = Materials[materialIds[i]].material;
 
         buffer->recalculateBoundingBox();
     }
     AnimatedMesh->setDirty();
 
-    log->addLineAndFlush("Drawmesh_static OK");
+    log->addLineAndFlush("loadSubmeshes (static) OK");
 }
 
 
-void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> mats, core::array<core::stringc> boneNames)
+void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<int> materialIds, core::array<core::stringc> boneNames)
 {
     log->addLineAndFlush("loadSkinnedSubmeshes");
 
@@ -1125,16 +1112,11 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
                 buffer->Indices[j-1] = indice;
         }
 
-
-        int result = 0;
-        if (i < mats.size())
-            if ((unsigned int)mats[i] < Materials.size())
-                result = mats[i];
-
-        /*std::cout << "MaterialSize= " << Materials.size() << std::endl;
-        std::cout << "Result : " << result << ", mat id : " << Materials[result].id << ", mat[n]" << mats[n] << std::endl;*/
-
-        buffer->Material = Materials[result].material;
+        // here we just assume that the material associated with the buffer is the following material in the file.
+        // It seems to work in many cases but it's probably incorrect.
+        if (i < materialIds.size()) // a mesh may have no associated material
+            //if ((unsigned int)mats[i] < Materials.size()) // it doesn't seem necessary
+                buffer->Material = Materials[materialIds[i]].material;
 
         buffer->recalculateBoundingBox();
     }
@@ -1192,7 +1174,7 @@ bool IO_MeshLoader_W2ENT::ReadPropertyHeader(io::IReadFile* file, PropertyHeader
     return true;
 }
 
-void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, int nMats)
+void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, u32 matId)
 {
     int back = file->getPos();
     file->seek(infos.adress);
@@ -1267,7 +1249,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor
         file->seek(propHeader.endPos);
     }
     Material w2Mat;
-    w2Mat.id = nMats;
+    w2Mat.id = matId;
     w2Mat.material = material;
 
     Materials.push_back(w2Mat);

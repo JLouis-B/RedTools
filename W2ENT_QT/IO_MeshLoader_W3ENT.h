@@ -4,6 +4,8 @@
 #ifndef __C_W3ENT_MESH_FILE_LOADER_H_INCLUDED__
 #define __C_W3ENT_MESH_FILE_LOADER_H_INCLUDED__
 
+#include <map>
+
 #include "IMeshLoader.h"
 #include "irrString.h"
 #include "SMesh.h"
@@ -168,8 +170,7 @@ public:
 	//! See IReferenceCounted::drop() for more information.
 	virtual IAnimatedMesh* createMesh(io::IReadFile* file);
 
-
-    core::array<video::SMaterial> Materials;
+    std::map<int, video::SMaterial> Materials;
     TW3_CSkeleton Skeleton;
     scene::ISkinnedMesh* meshToAnimate;
 
@@ -233,7 +234,7 @@ private:
     EMeshVertexType ReadEMVTProperty(io::IReadFile* file);
     SAnimationBufferOrientationCompressionMethod ReadAnimationBufferOrientationCompressionMethodProperty(io::IReadFile* file);
     void ReadRenderChunksProperty(io::IReadFile* file, SBufferInfos* buffer);
-    void ReadMaterialsProperty(io::IReadFile* file);
+    core::array<video::SMaterial> ReadMaterialsProperty(io::IReadFile* file);
     video::SMaterial ReadIMaterialProperty(io::IReadFile* file);
     core::array<core::vector3df> ReadBonesPosition(io::IReadFile* file);
     void ReadRenderLODSProperty(io::IReadFile* file);

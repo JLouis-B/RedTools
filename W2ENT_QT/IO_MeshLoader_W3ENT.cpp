@@ -151,9 +151,9 @@ void IO_MeshLoader_W3ENT::writeLogHeader(const io::IReadFile* f)
 void checkMaterial(video::SMaterial mat)
 {
     if (mat.getTexture(0))
-        ;//std::cout << "SLOT 1 = " <<mat.getTexture(0)->getName().getPath().c_str() << std::endl;
+        std::cout << "SLOT 1 = " <<mat.getTexture(0)->getName().getPath().c_str() << std::endl;
     else
-        ;//std::cout << "Le material n'a pas de tex slot 1" << std::endl;
+        std::cout << "Le material n'a pas de tex slot 1" << std::endl;
 }
 
 bool IO_MeshLoader_W3ENT::W3_load(io::IReadFile* file)
@@ -177,7 +177,7 @@ bool IO_MeshLoader_W3ENT::W3_load(io::IReadFile* file)
         W3_DataInfos infos;
         u16 dataType = readU16(file);
         core::stringc dataTypeName = Strings[dataType];
-        log->addLineAndFlush(formatString("dataTypeName=%s", dataTypeName.c_str()));
+        log->addLineAndFlush(formatString("[%d] dataTypeName=%s", i, dataTypeName.c_str()));
 
         file->seek(6, true);
 
@@ -198,9 +198,9 @@ bool IO_MeshLoader_W3ENT::W3_load(io::IReadFile* file)
         {
             log->addLineAndFlush("Find a material");
             video::SMaterial mat = W3_CMaterialInstance(file, infos);
-            //checkMaterial(mat);
+            checkMaterial(mat);
             log->addLineAndFlush("Material loaded");
-            Materials.push_back(mat);
+            Materials.insert(std::make_pair(i+1, mat));
             log->addLineAndFlush("Added to mat list");
         }
         else if (dataTypeName == "CEntityTemplate")
@@ -554,38 +554,40 @@ core::vector3df IO_MeshLoader_W3ENT::ReadVector3Property(io::IReadFile* file)
     return core::vector3df(x, y, z);
 }
 
-void IO_MeshLoader_W3ENT::ReadMaterialsProperty(io::IReadFile* file)
+core::array<video::SMaterial> IO_MeshLoader_W3ENT::ReadMaterialsProperty(io::IReadFile* file)
 {
     s32 nbChunks = readS32(file);
 
     //std::cout << "NB material = -> " << nbChunks << std::endl;
     //file->seek(1, true);
 
-    core::array<video::SMaterial> matMats;
+    core::array<video::SMaterial> materials;
 
     for (u32 i = 0; i < nbChunks; ++i)
     {
-        u32 matValue = readU32(file);
-        u32 matFileID = 0xFFFFFFFF - matValue;
+        u32 matID = readU32(file);
+        u32 matFileID = 0xFFFFFFFF - matID;
 
         if (matFileID < Files.size()) // Refer to a w2mi file
         {
-            //std::cout << "w2mi file = " << Files[matFileID].c_str() << std::endl;
-            matMats.push_back(ReadMaterialFile(ConfigGamePath + Files[matFileID]));
+            std::cout << "w2mi file = " << Files[matFileID].c_str() << std::endl;
+            materials.push_back(ReadMaterialFile(ConfigGamePath + Files[matFileID]));
             //file->seek(3, true);
         }
         else
         {
-            u32 value = matValue;
-            //std::cout << "val = " << value << std::endl;
+            std::cout << "MATERIAL VALUE = " << matID << std::endl;
+            if (Materials.find(matID) != Materials.end())
+                materials.push_back(Materials[matID]);
+            else
+                std::cout << "Mat not found ! " << matID << std::endl;
+
             //Materials.push_back(Materials[value-1]);
         }
 
     }
-    for (u32 i = 0; i < matMats.size(); ++i)
-    {
-        Materials.push_front(matMats[matMats.size() - 1 - i]);
-    }
+
+    return materials;
 }
 
 EMeshVertexType IO_MeshLoader_W3ENT::ReadEMVTProperty(io::IReadFile* file)
@@ -686,7 +688,7 @@ core::array<SMeshInfos> IO_MeshLoader_W3ENT::ReadSMeshChunkPackedProperty(io::IR
         else if (propHeader.propName == "materialID")
         {
             meshInfos.materialID = ReadUInt32Property(file);
-            //std::cout << "material ID = " << meshInfos.materialID << std::endl;
+            std::cout << "material ID = " << meshInfos.materialID << std::endl;
         }
 
         file->seek(propHeader.endPos);
@@ -738,7 +740,7 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadIMaterialProperty(io::IReadFile* file)
     mat.MaterialType = video::EMT_SOLID;
 
     s32 nbProperty = readS32(file);
-    //std::cout << "nb property = " << nbProperty << std::endl;
+    std::cout << "nb property = " << nbProperty << std::endl;
     //std::cout << "adress = " << file->getPos() << std::endl;
 
     // Read the properties of the material
@@ -1396,6 +1398,7 @@ void IO_MeshLoader_W3ENT::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
 
     SBufferInfos bufferInfos;
     core::array<SMeshInfos> meshes;
+    core::array<video::SMaterial> materials;
 
     bool isStatic = false;
 
@@ -1418,7 +1421,7 @@ void IO_MeshLoader_W3ENT::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
         else if (propHeader.propName == "materials")
         {
             log->addLineAndFlush("Mats");
-            ReadMaterialsProperty(file);
+            materials = ReadMaterialsProperty(file);
         }
         else if (propHeader.propName == "isStatic")
         {
@@ -1441,6 +1444,11 @@ void IO_MeshLoader_W3ENT::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
         if (!W3_ReadBuffer(file, bufferInfos, meshes[i]))
             continue;
 
+        //AnimatedMesh->getMeshBuffer(AnimatedMesh->getMeshBufferCount() - 1)->getMaterial() = materials[meshes[i].materialID];
+        AnimatedMesh->getMeshBuffer(AnimatedMesh->getMeshBufferCount() - 1)->getMaterial() = materials[meshes[i].materialID];
+        //std::cout << "Read a buffer, Material ID = "  << meshes[i].materialID << std::endl;
+        /*
+
         //std::cout << "Read a buffer, Material ID = "  << meshes[i].materialID << std::endl;
         if (meshes[i].materialID < Materials.size())
         {
@@ -1450,11 +1458,9 @@ void IO_MeshLoader_W3ENT::W3_CMesh(io::IReadFile* file, W3_DataInfos infos)
         else
         {
             //std::cout << "Error, mat " << meshes[i].materialID << "doesn't exist" << std::endl;
-            /*
-            if (Materials.size() >= 1)
-                AnimatedMesh->getMeshBuffer(AnimatedMesh->getMeshBufferCount() - 1)->getMaterial() = Materials[0];
-            */
+
         }
+   */
         log->addLineAndFlush("OK");
    }
    log->addLineAndFlush("W3_CMesh end");
@@ -1615,8 +1621,7 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadMaterialFile(core::stringc filename)
     else
         log->addLineAndFlush(formatString("Unknown type of file for a material : %s", filename.c_str()));
 
-    video::SMaterial material;
-    return material;
+    return video::SMaterial();
 }
 
 video::SMaterial IO_MeshLoader_W3ENT::ReadW2MIFile(core::stringc filename)
@@ -1667,8 +1672,7 @@ video::SMaterial IO_MeshLoader_W3ENT::W3_CMaterialInstance(io::IReadFile* file, 
         if (!ReadPropertyHeader(file, propHeader))
         {
             file->seek(-2, true);
-            mat = ReadIMaterialProperty(file);
-            return mat;
+            return ReadIMaterialProperty(file);
         }
 
         // material in a w2mi file

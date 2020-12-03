@@ -171,7 +171,6 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
     }*/
     // useless for the loader
 
-    core::array<core::stringc> chunks;
     core::array<ChunkDescriptor> meshesToLoad;
 
     // Ok, now we can read the materials and meshes
@@ -206,13 +205,6 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             const u8 unk = readU8(file) - 128;
             //log->addLineAndFlush(formatString("Unk is %d", unk));
         }
-
-        if (!find(chunks, dataTypeName))    //check if 'name' is already in 'chunks'. If this is not the case, name is added in chunk
-            chunks.push_back(dataTypeName);
-
-        // Now we check the type of the data, and if we have a CMaterialInstance or CMesh we read it
-        //std::cout << name.c_str() << std::endl;
-
 
         // now all stuff readed
         const int back2 = file->getPos();
@@ -1184,7 +1176,6 @@ bool IO_MeshLoader_W2ENT::ReadPropertyHeader(io::IReadFile* file, PropertyHeader
 
 void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, u32 matId)
 {
-    int back = file->getPos();
     file->seek(infos.adress);
 
     log->addLineAndFlush("Read material...");
@@ -1210,8 +1201,8 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor
 
             for (int n = 0; n < nMatElement; n++)
             {
-                back = file->getPos();
-                int seek = readS32(file);
+                long propertyStart = file->getPos();
+                int propertySize = readS32(file);
 
                 u16 propertyIndex = readU16(file) - 1;
                 u16 propertyTypeIndex = readU16(file) - 1;
@@ -1251,7 +1242,7 @@ void IO_MeshLoader_W2ENT::CMaterialInstance(io::IReadFile* file, ChunkDescriptor
                     }
 
                 }
-                file->seek(back + seek);
+                file->seek(propertyStart + propertySize);
             }
         }
         file->seek(propHeader.endPos);
@@ -1460,17 +1451,6 @@ void IO_MeshLoader_W2ENT::vert_format(io::IReadFile* file)
         readDataArray<u8>(file, 6);
         IdLOD.push_back(data);
     }
-}
-
-
-bool IO_MeshLoader_W2ENT::find (core::array<core::stringc> stringVect, core::stringc name)
-{
-    for (u32 i = 0; i < stringVect.size(); ++i)
-    {
-        if (stringVect[i] == name)
-            return true;
-    }
-    return false;
 }
 
 } // end namespace scene

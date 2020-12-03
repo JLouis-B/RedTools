@@ -91,7 +91,7 @@ void GUI_MaterialsExplorer::selectMaterial(int row)
 }
 
 
-QString parseData(core::array<core::stringc>& strings, core::array<core::stringc>& files, QString type, io::IReadFile* file, int size)
+QString parseTW3Data(core::array<core::stringc>& strings, core::array<core::stringc>& files, QString type, io::IReadFile* file, int size)
 {
 
     if (type == "Float")
@@ -190,7 +190,7 @@ void GUI_MaterialsExplorer::ReadIMaterialProperty(io::IReadFile* file, core::arr
         Property p;
         p.name = strings[propId].c_str();
         p.type = strings[propTypeId].c_str();
-        p.data = parseData(strings, files, p.type, file, propSize);
+        p.data = parseTW3Data(strings, files, p.type, file, propSize);
 
 
         materialProps.push_back(p);
@@ -298,6 +298,169 @@ void GUI_MaterialsExplorer::loadTW3Materials(io::IReadFile* file)
 }
 
 
+// TW2 -------------------------------
+
+bool W2_ReadPropertyHeader(io::IReadFile* file, SPropertyHeader& propHeader, core::array<core::stringc>& strings)
+{
+    u16 propName = readU16(file);
+    u16 propType = readU16(file);
+
+    if (propName == 0 || propType == 0 || propName > strings.size() || propType > strings.size())
+        return false;
+
+    propHeader.propName = strings[propName - 1];
+    propHeader.propType = strings[propType - 1];
+
+    // The difference with TW3
+    file->seek(2, true);
+
+    const long back = file->getPos();
+    propHeader.propSize = readS32(file);
+    propHeader.endPos = back + propHeader.propSize;
+
+    return true;
+}
+
+QString parseTW2Data(core::array<core::stringc>& strings, core::array<core::stringc>& files, QString type, io::IReadFile* file, int size)
+{
+
+    if (type == "Float")
+        return QString::number(readF32(file));
+    else if (type == "*ITexture")
+    {
+        u8 texId = 255 - readU8(file);
+        if (texId < files.size())
+            return files[texId].c_str();
+        else
+            return "Invalid file";
+    }
+    else if (type == "Color")
+    {
+        file->seek(9, true);
+        QString r = QString::number(readU8(file));
+        file->seek(8, true);
+        QString g = QString::number(readU8(file));
+        file->seek(8, true);
+        QString b = QString::number(readU8(file));
+        file->seek(8, true);
+        QString a = QString::number(readU8(file));
+
+        return "RGBA = " + r + ", " + g + ", " + b + ", " + a;
+    }
+    else
+    {
+        return QString("Type not implemented. Adress : ") + QString::number(file->getPos());
+    }
+}
+
+
+void GUI_MaterialsExplorer::W2_CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, core::array<core::stringc>& strings, core::array<core::stringc>& files)
+{
+    file->seek(infos.adress);
+
+    std::vector<Property> materialProps;
+
+    video::SMaterial material;
+    material.MaterialType = video::EMT_SOLID;
+
+    while (1)
+    {
+        SPropertyHeader propHeader;
+        if (!W2_ReadPropertyHeader(file, propHeader, strings))
+            break;
+
+        //std::cout << propHeader.propName.c_str() << std::endl;
+        //std::cout << propHeader.propType.c_str() << std::endl;
+        if (propHeader.propType == "*IMaterial")
+        {
+            file->seek(1, true); //FilesTable[255-readU8(file)];
+            file->seek(6, true); //readUnsignedChars(file, 6);
+
+            s32 nMatElement = readS32(file);
+
+            for (int n = 0; n < nMatElement; n++)
+            {
+                long propertyStart = file->getPos();
+                int propertySize = readS32(file);
+
+                u16 propertyIndex = readU16(file) - 1;
+                u16 propertyTypeIndex = readU16(file) - 1;
+
+                core::stringc propertyName = strings[propertyIndex];
+                core::stringc propertyType = strings[propertyTypeIndex];
+
+
+                Property p;
+                p.name = strings[propertyIndex].c_str();
+                p.type = strings[propertyTypeIndex].c_str();
+                p.data = parseTW2Data(strings, files, p.type, file, propertySize);
+
+
+                materialProps.push_back(p);
+
+                file->seek(propertyStart + propertySize);
+            }
+        }
+        file->seek(propHeader.endPos);
+    }
+    _materials.push_back(materialProps);
+    //std::cout << "Texture : " << FilesTable[255-readUnsignedChars(1)[0]] << std::endl;
+}
+
+
+
+void GUI_MaterialsExplorer::loadTW2Materials(io::IReadFile* file)
+{
+    file->seek(4);
+    RedEngineFileHeader header;
+    loadTW2FileHeader(file, header, true);
+
+    core::array<s32> headerData = readDataArray<s32>(file, 10);
+
+
+    file->seek(headerData[4]);
+    for(int i = 0; i < headerData[5]; ++i) // Now, the list of all the components of the files
+    {
+        // Read data
+        const u16 dataTypeId = readU16(file) - 1;
+        core::stringc dataTypeName = header.Strings[dataTypeId];
+
+        core::array<s32> data2 = readDataArray<s32>(file, 5);             // Data info (adress...)
+
+        ChunkDescriptor chunkInfos;
+        chunkInfos.size = data2[1];
+        chunkInfos.adress = data2[2];
+
+        core::stringc meshSource;
+
+        if (data2[0] == 0)
+        {
+            const u8 size = readU8(file) - 128;
+            const u8 offset = readU8(file);
+            if (offset != 1)
+                file->seek(-1, true);
+
+            meshSource = readString(file, size);
+        }
+        else
+        {
+            readU8(file);
+        }
+
+
+        // now all stuff readed
+        const int back2 = file->getPos();
+
+        if (dataTypeName == "CMaterialInstance")
+        {
+            _ui->listWidget_materials->addItem("Material " + QString::number(i));
+            W2_CMaterialInstance(file, chunkInfos, header.Strings, header.Files);
+        }
+
+        file->seek(back2);
+    }
+}
+
 void GUI_MaterialsExplorer::read(QString filename)
 {
     _ui->lineEdit_selectedFile->setText(filename);
@@ -317,7 +480,8 @@ void GUI_MaterialsExplorer::read(QString filename)
             break;
 
         case REV_WITCHER_2:
-            _ui->label_fileType->setText("File type : The Witcher 2 file (not supported yet)");
+            loadTW2Materials(file);
+            _ui->label_fileType->setText("File type : The Witcher 2 file");
             break;
 
         case REV_WITCHER_3:

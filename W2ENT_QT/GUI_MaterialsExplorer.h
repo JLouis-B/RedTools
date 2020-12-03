@@ -64,6 +64,9 @@ private:
     void ReadIMaterialProperty(io::IReadFile* file, core::array<core::stringc>& strings, core::array<core::stringc>& files);
     void W3_CMaterialInstance(io::IReadFile* file, W3_DataInfos infos, core::array<core::stringc>& strings, core::array<core::stringc>& files);
 
+    void loadTW2Materials(io::IReadFile* file);
+    void W2_CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, core::array<core::stringc>& strings, core::array<core::stringc>& files);
+
     std::vector<std::vector<Property>> _materials;
 };
 

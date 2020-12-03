@@ -44,7 +44,7 @@ struct SubmeshData
     int vertexType;
     core::array<s32> dataI;
     core::array<u16> bonesId;
-    u32 unk;
+    u32 materialId;
 };
 
 struct TW2_CSkeleton

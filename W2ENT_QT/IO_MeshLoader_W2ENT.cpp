@@ -835,7 +835,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
             submesh.vertexType = readU8(file);
             submesh.dataI = readDataArray<s32>(file, 4);
             submesh.bonesId = readDataArray<u16>(file, readU8(file));
-            submesh.unk = readU32(file);
+            submesh.materialId = readU32(file);
             subMeshesData.push_back(submesh);
 
             log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.dataI[2], submesh.vertexType));
@@ -870,8 +870,11 @@ void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<u32> m
     {
         SubmeshData submesh;
         submesh.vertexType = vertexType;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
-        submesh.dataI = readDataArray<s32>(file, 5);
-        submesh.unk = readU16(file);
+        submesh.dataI = readDataArray<s32>(file, 4);
+        file->seek(1, true);
+        submesh.materialId = readU32(file);
+        file->seek(1, true);
+
         subMeshesData.push_back(submesh);
     }
 
@@ -990,11 +993,9 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
                 buffer->Indices[j-1] = indice;
         }
 
-        // here we just assume that the material associated with the buffer is the following material in the file.
-        // It seems to work in many cases but it's probably incorrect.
-        if (i < materialIds.size()) // a mesh may have no associated material
-            //if ((unsigned int)mats[i] < Materials.size()) // it doesn't seem necessary
-                buffer->Material = Materials[materialIds[i]];
+        u32 materialKey = materialIds[submesh.materialId];
+        if (Materials.find(materialKey) != Materials.end())
+            buffer->Material = Materials[materialIds[submesh.materialId]];
 
         buffer->recalculateBoundingBox();
     }
@@ -1112,11 +1113,9 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
                 buffer->Indices[j-1] = indice;
         }
 
-        // here we just assume that the material associated with the buffer is the following material in the file.
-        // It seems to work in many cases but it's probably incorrect.
-        if (i < materialIds.size()) // a mesh may have no associated material
-            //if ((unsigned int)mats[i] < Materials.size()) // it doesn't seem necessary
-                buffer->Material = Materials[materialIds[i]];
+        u32 materialKey = materialIds[submesh.materialId];
+        if (Materials.find(materialKey) != Materials.end())
+            buffer->Material = Materials[materialIds[submesh.materialId]];
 
         buffer->recalculateBoundingBox();
     }

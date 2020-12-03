@@ -292,13 +292,13 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         core::array<scene::ISkinnedMesh::SJoint*> roots = JointHelper::GetRoots(AnimatedMesh);
         for (u32 i = 0; i < roots.size(); ++i)
         {
-            std::cout << "root : " << roots[i]->Name.c_str() << std::endl;
+            //std::cout << "root : " << roots[i]->Name.c_str() << std::endl;
             JointHelper::ComputeGlobalMatrixRecursive(AnimatedMesh, roots[i]);
         }
 
         SkinMesh();
 
-        JointHelper::DebugJointsHierarchy(AnimatedMesh);
+        //JointHelper::DebugJointsHierarchy(AnimatedMesh);
     }
     log->addLineAndFlush("All is loaded");
 	return true;
@@ -693,6 +693,25 @@ void IO_MeshLoader_W2ENT::SkinMesh()
     }
 }
 
+SubmeshData readSubmeshData(io::IReadFile* file)
+{
+    SubmeshData submesh;
+    submesh.vertexType = readU8(file);
+
+    submesh.verticesStart = readU32(file);
+    submesh.indicesStart = readU32(file);
+    submesh.verticesCount = readU32(file);
+    submesh.indicesCount = readU32(file);
+
+    s8 bonesCount = readS8(file);
+    if (bonesCount > 0)
+        submesh.bonesId = readDataArray<u16>(file, bonesCount);
+
+    submesh.materialId = readU32(file);
+
+    return submesh;
+}
+
 void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
 {
     log->addLineAndFlush("Load a mesh...");
@@ -825,31 +844,30 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
         s32 seek = file->getPos() + readS32(file);
         back = file->getPos();
         file->seek(seek);
-        core::array<s32> data = readDataArray<s32>(file, 6);
+
+
+        file->seek(8, true);
+        u32 meshIndicesOffset = readU32(file);
+        file->seek(12, true);
         u8 nbSubMesh = readU8(file);
 
         core::array<SubmeshData> subMeshesData;
         for (u8 i = 0; i < nbSubMesh; i++)
         {
-            SubmeshData submesh;
-            submesh.vertexType = readU8(file);
-            submesh.dataI = readDataArray<s32>(file, 4);
-            submesh.bonesId = readDataArray<u16>(file, readU8(file));
-            submesh.materialId = readU32(file);
+            SubmeshData submesh = readSubmeshData(file);
             subMeshesData.push_back(submesh);
 
-            log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.dataI[2], submesh.vertexType));
+            log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.verticesCount, submesh.vertexType));
         }
 
         file->seek(back);
 
-        loadSkinnedSubmeshes(file, data, subMeshesData, materialIds, boneNames);
+        loadSkinnedSubmeshes(file, meshIndicesOffset, subMeshesData, materialIds, boneNames);
 
     }
 
     log->addLineAndFlush("Mesh loaded");
 }
-
 
 void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<u32> materialIds)
 {
@@ -858,32 +876,26 @@ void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<u32> m
     int subMeshesInfosOffset = readS32(file);
     file->seek(back + subMeshesInfosOffset);
 
-    file->seek(4, true); // readUnsignedShorts(file, 2);
-    file->seek(4, true); // int
-
-    core::array<s32> meshData = readDataArray<s32>(file, 4); // Indices adress + unks
+    file->seek(8, true);
+    u32 meshIndicesOffset = readU32(file);
+    file->seek(12, true);
     u8 nbSubMesh = readU8(file);
-    u8 vertexType = readU8(file);
 
     core::array<SubmeshData> subMeshesData;
     for (u8 i = 0; i < nbSubMesh; i++)
     {
-        SubmeshData submesh;
-        submesh.vertexType = vertexType;                 // The type of vertice determine the size of a vertices (it depend of the number of informations stored in the vertice)
-        submesh.dataI = readDataArray<s32>(file, 4);
-        file->seek(1, true);
-        submesh.materialId = readU32(file);
-        file->seek(1, true);
-
+        SubmeshData submesh = readSubmeshData(file);
         subMeshesData.push_back(submesh);
+
+        log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.verticesCount, submesh.vertexType));
     }
 
     file->seek(back + 4);
-    loadSubmeshes(file, meshData, subMeshesData, materialIds);
+    loadSubmeshes(file, meshIndicesOffset, subMeshesData, materialIds);
 }
 
 
-void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds)
+void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, u32 meshIndicesOffset, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds)
 {
     log->addLineAndFlush("loadSubmeshes (static)");
 
@@ -918,25 +930,23 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
             log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
             break;
         }
-        int verticesStart = submesh.dataI[0];
-        int verticesCount = submesh.dataI[2];
 
         log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
-        file->seek(back + verticesStart * vertexSize);
+        file->seek(back + submesh.verticesStart * vertexSize);
 
         SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
         if (hasSecondUVLayer)
         {
             buffer->VertexType = video::EVT_2TCOORDS;
-            buffer->Vertices_2TCoords.reallocate(verticesCount);
+            buffer->Vertices_2TCoords.reallocate(submesh.verticesCount);
         }
         else
         {
             buffer->VertexType = video::EVT_STANDARD;
-            buffer->Vertices_Standard.reallocate(verticesCount);
+            buffer->Vertices_Standard.reallocate(submesh.verticesCount);
         }
 
-        for (int j = 0; j < verticesCount; j++)
+        for (u32 j = 0; j < submesh.verticesCount; j++)
         {
             long vertexAdress = file->getPos();
             core::array<f32> position = readDataArray<f32>(file, 3);
@@ -975,12 +985,9 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
             file->seek(vertexAdress + vertexSize);
         }
 
-        int indicesStart = submesh.dataI[1];
-        int indicesCount = submesh.dataI[3];
-
-        file->seek(back + meshData[0] + indicesStart * 2);
-        buffer->Indices.set_used(indicesCount);
-        for (u32 j = 0; j < indicesCount; ++j)
+        file->seek(back + meshIndicesOffset + submesh.indicesStart * 2);
+        buffer->Indices.set_used(submesh.indicesCount);
+        for (u32 j = 0; j < submesh.indicesCount; ++j)
         {
             const u16 indice = readU16(file);
 
@@ -1005,7 +1012,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<int> me
 }
 
 
-void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<int> meshData, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds, core::array<core::stringc> boneNames)
+void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, u32 meshIndicesOffset, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds, core::array<core::stringc> boneNames)
 {
     log->addLineAndFlush("loadSkinnedSubmeshes");
 
@@ -1037,15 +1044,12 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
             break;
         }
 
-        int verticesStart = submesh.dataI[0];
-        int verticesCount = submesh.dataI[2];
-
         log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
-        file->seek(back + verticesStart * vertexSize);
+        file->seek(back + submesh.verticesStart * vertexSize);
 
         SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
-        buffer->Vertices_Standard.reallocate(verticesCount);
-        for (int j = 0; j < verticesCount; j++)
+        buffer->Vertices_Standard.reallocate(submesh.verticesCount);
+        for (int j = 0; j < submesh.verticesCount; j++)
         {
             int vertexAdress = file->getPos();
             video::S3DVertex vertex;
@@ -1094,13 +1098,10 @@ void IO_MeshLoader_W2ENT::loadSkinnedSubmeshes(io::IReadFile* file, core::array<
             file->seek(vertexAdress + vertexSize);
         }
 
-        int indicesStart = submesh.dataI[1];
-        int indicesCount = submesh.dataI[3];
-
         // Faces
-        file->seek(back + meshData[2] + indicesStart * 2);
-        buffer->Indices.set_used(indicesCount);
-        for (u32 j = 0; j < indicesCount; ++j)
+        file->seek(back + meshIndicesOffset + submesh.indicesStart * 2);
+        buffer->Indices.set_used(submesh.indicesCount);
+        for (u32 j = 0; j < submesh.indicesCount; ++j)
         {
             const u16 indice = readU16(file);
 

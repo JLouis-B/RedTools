@@ -116,8 +116,7 @@ private:
 	bool load(io::IReadFile* file);
 
     void CMesh(io::IReadFile* file, ChunkDescriptor infos);
-    void loadStaticMesh(io::IReadFile* file, core::array<u32> materialIds);
-    void loadSubmeshes(io::IReadFile* file, u32 meshIndicesOffset, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds, core::array<core::stringc> boneNames);
+    void loadSubmeshes(io::IReadFile* file, core::array<u32> materialIds, core::array<core::stringc> boneNames);
     void vert_format(io::IReadFile* file);
 
     void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, u32 matId);

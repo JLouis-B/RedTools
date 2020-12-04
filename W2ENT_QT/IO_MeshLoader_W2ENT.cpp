@@ -932,10 +932,10 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, u32 meshIndicesOffs
                 isSkinned = true;
                 break;
 
-            case 7: // POS + SKIN + 2 UV ?
+            case 7: // POS + SKIN + 2 UV
                 vertexSize = 52;
                 isSkinned = true;
-                log->addLineAndFlush(formatString("Vertex type 7"));
+                hasSecondUVLayer = true;
                 break;
 
             default: // ?

@@ -693,25 +693,6 @@ void IO_MeshLoader_W2ENT::SkinMesh()
     }
 }
 
-SubmeshData readSubmeshData(io::IReadFile* file)
-{
-    SubmeshData submesh;
-    submesh.vertexType = readU8(file);
-
-    submesh.verticesStart = readU32(file);
-    submesh.indicesStart = readU32(file);
-    submesh.verticesCount = readU32(file);
-    submesh.indicesCount = readU32(file);
-
-    s8 bonesCount = readS8(file);
-    if (bonesCount > 0)
-        submesh.bonesId = readDataArray<u16>(file, bonesCount);
-
-    submesh.materialId = readU32(file);
-
-    return submesh;
-}
-
 void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
 {
     log->addLineAndFlush("Load a mesh...");
@@ -749,6 +730,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
     vert_format(file);
 
     u8 nbBones = readU8(file);
+    const bool hasBones = nbBones != 128;
 
     int back = file->getPos();
 
@@ -756,20 +738,13 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
     if (unk != 1)
         file->seek(-1, true);
 
-    if (nbBones == 128)
-    {
-        log->addLineAndFlush("Static mesh");
-        file->seek(1, true); //readUnsignedChars(file, 1);
-        loadStaticMesh(file, materialIds);
-    }
-    else // If the mesh isn't static
-    {
-        log->addLineAndFlush("Skinned mesh");
 
-        core::array<core::stringc> boneNames;
+
+    core::array<core::stringc> boneNames;
+    if (hasBones)
+    {
         boneNames.reallocate(nbBones);
-
-        for (int i = 0; i < nbBones; i++)
+        for (u8 i = 0; i < nbBones; i++)
         {
             core::matrix4 boneMatrix;
             file->read(boneMatrix.pointer(), 4 * 16);
@@ -827,8 +802,12 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
 
             file->seek(4, true); //float data12 = readFloats(file, 1)[0];
         }
-        nbBones = readU8(file);
-        back = file->getPos();
+    }
+    nbBones = readU8(file);
+    back = file->getPos();
+
+    if (hasBones)
+    {
         if (readS32(file) > 128 || readS32(file) > 128)
         {
             if (nbBones != 1)
@@ -840,37 +819,36 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
             file->seek(back);
 
         readDataArray<s32>(file, nbBones);
-
-        s32 seek = file->getPos() + readS32(file);
-        back = file->getPos();
-        file->seek(seek);
-
-
-        file->seek(8, true);
-        u32 meshIndicesOffset = readU32(file);
-        file->seek(12, true);
-        u8 nbSubMesh = readU8(file);
-
-        core::array<SubmeshData> subMeshesData;
-        for (u8 i = 0; i < nbSubMesh; i++)
-        {
-            SubmeshData submesh = readSubmeshData(file);
-            subMeshesData.push_back(submesh);
-
-            log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.verticesCount, submesh.vertexType));
-        }
-
-        file->seek(back);
-
-        loadSubmeshes(file, meshIndicesOffset, subMeshesData, materialIds, boneNames);
-
     }
+
+    loadSubmeshes(file, materialIds, boneNames);
 
     log->addLineAndFlush("Mesh loaded");
 }
 
-void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<u32> materialIds)
+SubmeshData readSubmeshData(io::IReadFile* file)
 {
+    SubmeshData submesh;
+    submesh.vertexType = readU8(file);
+
+    submesh.verticesStart = readU32(file);
+    submesh.indicesStart = readU32(file);
+    submesh.verticesCount = readU32(file);
+    submesh.indicesCount = readU32(file);
+
+    s8 bonesCount = readS8(file);
+    if (bonesCount > 0)
+        submesh.bonesId = readDataArray<u16>(file, bonesCount);
+
+    submesh.materialId = readU32(file);
+
+    return submesh;
+}
+
+void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<u32> materialIds, core::array<core::stringc> boneNames)
+{
+    log->addLineAndFlush("loadSubmeshes");
+
     // We read submeshes infos
     long back = file->getPos();
     int subMeshesInfosOffset = readS32(file);
@@ -890,169 +868,164 @@ void IO_MeshLoader_W2ENT::loadStaticMesh(io::IReadFile* file, core::array<u32> m
         log->addLineAndFlush(formatString("submesh : vertEnd = %d, vertype = %d", submesh.verticesCount, submesh.vertexType));
     }
 
-    file->seek(back + 4);
-    loadSubmeshes(file, meshIndicesOffset, subMeshesData, materialIds, core::array<core::stringc>());
-}
-
-void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, u32 meshIndicesOffset, core::array<SubmeshData> subMeshesData, core::array<u32> materialIds, core::array<core::stringc> boneNames)
-{
-    log->addLineAndFlush("loadSubmeshes");
-
-    const long submeshStartPos = file->getPos();
-    const video::SColor defaultColor(255, 255, 255, 255);
-
-    for (u32 i = 0; i < subMeshesData.size(); i++)
+    for (u8 i = 0; i < nbSubMesh; i++)
     {
-        const SubmeshData submesh = subMeshesData[i];
         if (i >= IdLOD[0][0]) // Load only the first LOD ?
             continue;
 
-        u8 vertexSize = 0;
-        bool hasSecondUVLayer = false;
-        bool isSkinned = false;
-        switch (submesh.vertexType)
-        {
-            case 0: // POS
-                vertexSize = 36;
-                break;
-
-            case 6: // POS + 2 UV
-                vertexSize = 44;
-                hasSecondUVLayer = true;
-                break;
-
-            case 9: // POS + ?
-            case 5: // POS + ?
-                vertexSize = 60;
-                break;
-
-            case 1: // POS + SKIN
-            case 11:// POS + SKIN ?
-                vertexSize = 44;
-                isSkinned = true;
-                break;
-
-            case 7: // POS + SKIN + 2 UV
-                vertexSize = 52;
-                isSkinned = true;
-                hasSecondUVLayer = true;
-                break;
-
-            default: // ?
-                vertexSize = 52;
-                isSkinned = true;
-                log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
-                break;
-        }
-
-        log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
-        file->seek(submeshStartPos + submesh.verticesStart * vertexSize);
-
-        SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
-        if (hasSecondUVLayer)
-        {
-            buffer->VertexType = video::EVT_2TCOORDS;
-            buffer->Vertices_2TCoords.reallocate(submesh.verticesCount);
-        }
-        else
-        {
-            buffer->VertexType = video::EVT_STANDARD;
-            buffer->Vertices_Standard.reallocate(submesh.verticesCount);
-        }
-
-        // Vertices
-        for (u32 j = 0; j < submesh.verticesCount; j++)
-        {
-            long vertexAdress = file->getPos();
-            core::array<f32> position = readDataArray<f32>(file, 3);
-
-            // Weights
-            if (isSkinned)
-            {
-                core::array<u8> weightsData = readDataArray<u8>(file, 8);
-                for (int vertexWeightsId = 0; vertexWeightsId < 4; vertexWeightsId++)
-                {
-                    u8 strength = weightsData[vertexWeightsId + 4];
-                    if (strength != 0)
-                    {
-                        u16 boneId = submesh.bonesId[weightsData[vertexWeightsId]];
-                        core::stringc boneName = boneNames[boneId];
-
-                        ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
-                        if (bone)
-                        {
-
-                            ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
-                            wt->strength = ((f32)strength) / 255.0f;
-                            wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
-                            wt->vertex_id = j;
-
-                            if (wt->strength > 1.0f || wt->strength < 0.0f)
-                                log->addLineAndFlush(formatString("Error, strength range : %f", wt->strength));
-
-                        }
-                    }
-                }
-            }
-
-            // Normals. + bi-normal/tangent ?
-            core::array<u8> bytes = readDataArray<u8>(file, 8);
-            f32 nx = ((s16)bytes[0] - 127) / 127.f;
-            f32 ny = ((s16)bytes[1] - 127) / 127.f;
-            f32 nz = ((s16)bytes[2] - 127) / 127.f;
-
-            core::array<f32> uv = readDataArray<f32>(file, 2);
-            if (hasSecondUVLayer)
-            {
-                core::array<f32> uv2 = readDataArray<f32>(file, 2);
-
-                video::S3DVertex2TCoords vertex;
-                vertex.Pos = core::vector3df(position[0], position[1], position[2]);
-                vertex.TCoords = core::vector2df(uv[0], uv[1]);
-                vertex.TCoords2 = core::vector2df(uv2[0], uv2[1]);
-                vertex.Color = defaultColor;
-                vertex.Normal = core::vector3df(nx, ny, nz);
-                buffer->Vertices_2TCoords.push_back(vertex);
-                //std::cout << "UV2: " << uv2[0] << ", " << uv2[1] << std::endl;
-            }
-            else
-            {
-                video::S3DVertex vertex;
-                vertex.Pos = core::vector3df(position[0], position[1], position[2]);
-                vertex.TCoords = core::vector2df(uv[0], uv[1]);
-                vertex.Color = defaultColor;
-                vertex.Normal = core::vector3df(nx, ny, nz);
-                buffer->Vertices_Standard.push_back(vertex);
-            }
-
-            file->seek(vertexAdress + vertexSize);
-        }
-
-        // Faces
-        file->seek(submeshStartPos + meshIndicesOffset + submesh.indicesStart * 2);
-        buffer->Indices.set_used(submesh.indicesCount);
-        for (u32 j = 0; j < submesh.indicesCount; ++j)
-        {
-            const u16 indice = readU16(file);
-
-            // Indice need to be inversed for the normals
-            if (j % 3 == 0)
-                buffer->Indices[j] = indice;
-            else if (j % 3 == 1)
-                buffer->Indices[j+1] = indice;
-            else if (j % 3 == 2)
-                buffer->Indices[j-1] = indice;
-        }
-
-        // Material
-        u32 materialKey = materialIds[submesh.materialId];
-        if (Materials.find(materialKey) != Materials.end())
-            buffer->Material = Materials[materialIds[submesh.materialId]];
-
-        buffer->recalculateBoundingBox();
+        file->seek(back + 4);
+        loadSubmesh(file, subMeshesData[i], meshIndicesOffset, materialIds, boneNames);
     }
 
     log->addLineAndFlush("loadSubmeshes OK");
+}
+
+void IO_MeshLoader_W2ENT::loadSubmesh(io::IReadFile* file, SubmeshData submesh, u32 meshIndicesOffset, core::array<u32> materialIds, core::array<core::stringc> boneNames)
+{
+    const long submeshStartPos = file->getPos();
+    const video::SColor defaultColor(255, 255, 255, 255);
+
+    u8 vertexSize = 0;
+    bool hasSecondUVLayer = false;
+    bool isSkinned = false;
+    switch (submesh.vertexType)
+    {
+        case 0: // POS
+            vertexSize = 36;
+            break;
+
+        case 6: // POS + 2 UV
+            vertexSize = 44;
+            hasSecondUVLayer = true;
+            break;
+
+        case 9: // POS + ?
+        case 5: // POS + ?
+            vertexSize = 60;
+            break;
+
+        case 1: // POS + SKIN
+        case 11:// POS + SKIN ?
+            vertexSize = 44;
+            isSkinned = true;
+            break;
+
+        case 7: // POS + SKIN + 2 UV
+            vertexSize = 52;
+            isSkinned = true;
+            hasSecondUVLayer = true;
+            break;
+
+        default: // ?
+            vertexSize = 52;
+            isSkinned = true;
+            log->addLineAndFlush(formatString("Unknown vertexType: %d", submesh.vertexType));
+            break;
+    }
+
+    log->addLineAndFlush(formatString("submesh (vertype: %d, vertsize: %d, vertStart = %d)", submesh.vertexType, vertexSize, file->getPos()));
+    file->seek(submeshStartPos + submesh.verticesStart * vertexSize);
+
+    SSkinMeshBuffer* buffer = AnimatedMesh->addMeshBuffer();
+    if (hasSecondUVLayer)
+    {
+        buffer->VertexType = video::EVT_2TCOORDS;
+        buffer->Vertices_2TCoords.reallocate(submesh.verticesCount);
+    }
+    else
+    {
+        buffer->VertexType = video::EVT_STANDARD;
+        buffer->Vertices_Standard.reallocate(submesh.verticesCount);
+    }
+
+    // Vertices
+    for (u32 i = 0; i < submesh.verticesCount; ++i)
+    {
+        long vertexAdress = file->getPos();
+        core::array<f32> position = readDataArray<f32>(file, 3);
+
+        // Weights
+        if (isSkinned)
+        {
+            core::array<u8> weightsData = readDataArray<u8>(file, 8);
+            for (int vertexWeightsId = 0; vertexWeightsId < 4; vertexWeightsId++)
+            {
+                u8 strength = weightsData[vertexWeightsId + 4];
+                if (strength != 0)
+                {
+                    u16 boneId = submesh.bonesId[weightsData[vertexWeightsId]];
+                    core::stringc boneName = boneNames[boneId];
+
+                    ISkinnedMesh::SJoint* bone = JointHelper::GetJointByName(AnimatedMesh, boneName);
+                    if (bone)
+                    {
+                        ISkinnedMesh::SWeight* wt = AnimatedMesh->addWeight(bone);
+                        wt->strength = ((f32)strength) / 255.0f;
+                        wt->buffer_id = AnimatedMesh->getMeshBufferCount() - 1;
+                        wt->vertex_id = i;
+
+                        if (wt->strength > 1.0f || wt->strength < 0.0f)
+                            log->addLineAndFlush(formatString("Error, strength range : %f", wt->strength));
+                    }
+                }
+            }
+        }
+
+        // Normals. + bi-normal/tangent ?
+        core::array<u8> bytes = readDataArray<u8>(file, 8);
+        f32 nx = ((s16)bytes[0] - 127) / 127.f;
+        f32 ny = ((s16)bytes[1] - 127) / 127.f;
+        f32 nz = ((s16)bytes[2] - 127) / 127.f;
+
+        core::array<f32> uv = readDataArray<f32>(file, 2);
+        if (hasSecondUVLayer)
+        {
+            core::array<f32> uv2 = readDataArray<f32>(file, 2);
+
+            video::S3DVertex2TCoords vertex;
+            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+            vertex.TCoords = core::vector2df(uv[0], uv[1]);
+            vertex.TCoords2 = core::vector2df(uv2[0], uv2[1]);
+            vertex.Color = defaultColor;
+            vertex.Normal = core::vector3df(nx, ny, nz);
+            buffer->Vertices_2TCoords.push_back(vertex);
+            //std::cout << "UV2: " << uv2[0] << ", " << uv2[1] << std::endl;
+        }
+        else
+        {
+            video::S3DVertex vertex;
+            vertex.Pos = core::vector3df(position[0], position[1], position[2]);
+            vertex.TCoords = core::vector2df(uv[0], uv[1]);
+            vertex.Color = defaultColor;
+            vertex.Normal = core::vector3df(nx, ny, nz);
+            buffer->Vertices_Standard.push_back(vertex);
+        }
+
+        file->seek(vertexAdress + vertexSize);
+    }
+
+    // Faces
+    file->seek(submeshStartPos + meshIndicesOffset + submesh.indicesStart * 2);
+    buffer->Indices.set_used(submesh.indicesCount);
+    for (u32 j = 0; j < submesh.indicesCount; ++j)
+    {
+        const u16 indice = readU16(file);
+
+        // Indice need to be inversed for the normals
+        if (j % 3 == 0)
+            buffer->Indices[j] = indice;
+        else if (j % 3 == 1)
+            buffer->Indices[j+1] = indice;
+        else if (j % 3 == 2)
+            buffer->Indices[j-1] = indice;
+    }
+
+    // Material
+    u32 materialKey = materialIds[submesh.materialId];
+    if (Materials.find(materialKey) != Materials.end())
+        buffer->Material = Materials[materialIds[submesh.materialId]];
+
+    buffer->recalculateBoundingBox();
 }
 
 video::ITexture* IO_MeshLoader_W2ENT::getTexture(core::stringc textureFilepath)

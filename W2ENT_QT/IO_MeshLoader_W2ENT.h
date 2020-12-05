@@ -54,6 +54,10 @@ struct SubmeshData
 struct TW2_LOD
 {
     core::array<u16> submeshesIds;
+    f32 distancePC;
+    f32 distanceXenon;
+    bool useOnPC;
+    bool useOnXenon;
 };
 
 struct TW2_CSkeleton

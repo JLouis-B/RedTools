@@ -852,10 +852,10 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<TW2_LOD
 {
     log->addLineAndFlush("loadSubmeshes");
 
-    // We read submeshes infos
-    long back = file->getPos();
-    int subMeshesInfosOffset = readS32(file);
-    file->seek(back + subMeshesInfosOffset);
+    long subMeshesStartAdress = file->getPos();
+    u32 subMeshesInfosOffset = readU32(file);
+
+    file->seek(subMeshesStartAdress + subMeshesInfosOffset);
 
     file->seek(8, true);
     u32 meshIndicesOffset = readU32(file);
@@ -876,7 +876,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<TW2_LOD
         if (ConfigLoadOnlyBestLOD && LODs[0].submeshesIds.binary_search(i) == -1) // Load only the first LOD
             continue;
 
-        file->seek(back + 4);
+        file->seek(subMeshesStartAdress + 4);
         loadSubmesh(file, subMeshesData[i], meshIndicesOffset, materialIds, boneNames);
     }
 
@@ -1339,10 +1339,9 @@ void IO_MeshLoader_W2ENT::XBM_CBitmapTexture(io::IReadFile* xbmFile, core::strin
     }
 }
 
-void IO_MeshLoader_W2ENT::readLODs(io::IReadFile *file, core::array<TW2_LOD>& LODs)
+void IO_MeshLoader_W2ENT::readLODs(io::IReadFile* file, core::array<TW2_LOD>& LODs)
 {
     core::array<u8> data = readDataArray<u8>(file, 8);
-
     if (data[3] != 5) // ?
         return;
 
@@ -1357,12 +1356,16 @@ void IO_MeshLoader_W2ENT::readLODs(io::IReadFile *file, core::array<TW2_LOD>& LO
         u8 nbSubmeshes = readU8(file);
         lod.submeshesIds = readDataArray<u16>(file, nbSubmeshes);
 
-        /*for (int j = 0; j < nbSubmeshes; ++j)
-        {
-            std::cout << "values: " << lod.submeshesIds[j] << std::endl;
-        }*/
+        //for (int j = 0; j < nbSubmeshes; ++j)
+        //{
+        //    std::cout << "values: " << lod.submeshesIds[j] << std::endl;
+        //}
 
-        file->seek(10, true);
+        lod.distancePC = readF32(file);
+        lod.distanceXenon = readF32(file);
+        lod.useOnPC = readU8(file);
+        lod.useOnXenon = readU8(file);
+
         LODs.push_back(lod);
     }
 }

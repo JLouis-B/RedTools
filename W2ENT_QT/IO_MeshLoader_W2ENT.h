@@ -156,6 +156,7 @@ private:
     std::map<int, video::SMaterial> Materials;
 
     io::path ConfigGamePath;
+    bool ConfigLoadOnlyBestLOD;
 
     // Bones data
     std::map<scene::ISkinnedMesh::SJoint*, core::matrix4> BonesOffsetMatrix;

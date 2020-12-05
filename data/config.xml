@@ -30,6 +30,9 @@
   <TW1_loadSkinnedMeshes>1</TW1_loadSkinnedMeshes>
   <TW1_loadPaintedMeshes>1</TW1_loadPaintedMeshes>
  </TW1>
+ <TW2>
+  <TW2_loadBestLOD>1</TW2_loadBestLOD>
+ </TW2>
  <TW3>
   <TW3_textures></TW3_textures>
   <TW3_loadSkel>0</TW3_loadSkel>

@@ -76,6 +76,8 @@ public:
     static bool _TW1LoadSkinnedMesh;
     static bool _TW1LoadPaintedMesh;
 
+    static bool _TW2LoadBestLODEnabled;
+
     static QString _TW3TexPath;
     static bool _TW3LoadSkeletonEnabled;
     static bool _TW3LoadBestLODEnabled;

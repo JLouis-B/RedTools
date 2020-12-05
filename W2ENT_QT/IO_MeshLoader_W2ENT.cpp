@@ -76,6 +76,8 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
         ConfigGamePath = SceneManager->getParameters()->getAttributeAsString("TW_GAME_PATH");
     #endif
 
+    ConfigLoadOnlyBestLOD = SceneManager->getParameters()->getAttributeAsBool("TW_TW2_LOAD_BEST_LOD_ONLY");
+
     // log
     log->addLine("");
     log->addLine(formatString("-> File : %s", f->getFileName().c_str()));
@@ -871,7 +873,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<TW2_LOD
 
     for (u8 i = 0; i < nbSubMesh; i++)
     {
-        if (LODs[0].submeshesIds.binary_search(i) == -1) // Load only the first LOD
+        if (ConfigLoadOnlyBestLOD && LODs[0].submeshesIds.binary_search(i) == -1) // Load only the first LOD
             continue;
 
         file->seek(back + 4);

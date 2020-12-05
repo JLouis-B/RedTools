@@ -31,6 +31,8 @@ bool Settings::_TW1LoadStaticMesh = true;
 bool Settings::_TW1LoadSkinnedMesh = true;
 bool Settings::_TW1LoadPaintedMesh = true;
 
+bool Settings::_TW2LoadBestLODEnabled = true;
+
 QString Settings::_TW3TexPath = QString();
 bool Settings::_TW3LoadSkeletonEnabled = false;
 bool Settings::_TW3LoadBestLODEnabled = false;
@@ -191,6 +193,10 @@ void Settings::loadFromXML(QString filename)
             Settings::_TW1LoadSkinnedMesh = node.firstChildElement("TW1_loadSkinnedMeshes").text().toInt();
             Settings::_TW1LoadPaintedMesh = node.firstChildElement("TW1_loadPaintedMeshes").text().toInt();
         }
+        else if (nodeName == "TW2")
+        {
+            Settings::_TW2LoadBestLODEnabled = node.firstChildElement("TW2_loadBestLOD").text().toInt();
+        }
         else if (nodeName == "TW3")
         {
             Settings::_TW3TexPath = node.firstChildElement("TW3_textures").text();
@@ -342,6 +348,11 @@ void Settings::saveToXML(QString filename)
     appendNewBoolElement(dom, TW1Elem, "TW1_loadStaticMeshes", Settings::_TW1LoadStaticMesh);
     appendNewBoolElement(dom, TW1Elem, "TW1_loadSkinnedMeshes", Settings::_TW1LoadSkinnedMesh);
     appendNewBoolElement(dom, TW1Elem, "TW1_loadPaintedMeshes", Settings::_TW1LoadPaintedMesh);
+
+    // TW2
+    QDomElement TW2Elem = dom.createElement("TW2");
+    configElem.appendChild(TW2Elem);
+    appendNewBoolElement(dom, TW2Elem, "TW2_loadBestLOD", Settings::_TW2LoadBestLODEnabled);
 
     // TW3
     QDomElement TW3Elem = dom.createElement("TW3");

@@ -51,6 +51,11 @@ struct SubmeshData
     u32 materialId;
 };
 
+struct TW2_LOD
+{
+    core::array<u16> submeshesIds;
+};
+
 struct TW2_CSkeleton
 {
     void setBonesCount(u32 size)
@@ -116,9 +121,9 @@ private:
 	bool load(io::IReadFile* file);
 
     void CMesh(io::IReadFile* file, ChunkDescriptor infos);
-    void loadSubmeshes(io::IReadFile* file, core::array<u32> materialIds, core::array<core::stringc> boneNames);
+    void loadSubmeshes(io::IReadFile* file, core::array<TW2_LOD> LODs, core::array<u32> materialIds, core::array<core::stringc> boneNames);
     void loadSubmesh(io::IReadFile* file, SubmeshData submesh, u32 meshIndicesOffset, core::array<u32> materialIds, core::array<core::stringc> boneNames);
-    void vert_format(io::IReadFile* file);
+    void readLODs(io::IReadFile* file, core::array<TW2_LOD>& LODs);
 
     void CMaterialInstance(io::IReadFile* file, ChunkDescriptor infos, u32 matId);
     void XBM_CBitmapTexture(io::IReadFile* xbmFile, core::stringc xbm_file, ChunkDescriptor chunk, core::array<core::stringc> XbmStrings);
@@ -142,8 +147,6 @@ private:
     scene::ISceneManager* SceneManager;
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
-
-    core::array<core::array<unsigned char> >IdLOD;
 
     s32 Version;
     core::array<core::stringc> Strings;

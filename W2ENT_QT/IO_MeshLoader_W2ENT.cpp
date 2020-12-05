@@ -726,8 +726,9 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
     }
     file->seek(-4, true);
 
-    // Read the LODS data ?
-    vert_format(file);
+    // LOD
+    core::array<TW2_LOD> LODs;
+    readLODs(file, LODs);
 
     u8 nbBones = readU8(file);
     const bool hasBones = nbBones != 128;
@@ -821,7 +822,7 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
         readDataArray<s32>(file, nbBones);
     }
 
-    loadSubmeshes(file, materialIds, boneNames);
+    loadSubmeshes(file, LODs, materialIds, boneNames);
 
     log->addLineAndFlush("Mesh loaded");
 }
@@ -845,7 +846,7 @@ SubmeshData readSubmeshData(io::IReadFile* file)
     return submesh;
 }
 
-void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<u32> materialIds, core::array<core::stringc> boneNames)
+void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<TW2_LOD> LODs, core::array<u32> materialIds, core::array<core::stringc> boneNames)
 {
     log->addLineAndFlush("loadSubmeshes");
 
@@ -870,7 +871,7 @@ void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<u32> ma
 
     for (u8 i = 0; i < nbSubMesh; i++)
     {
-        if (i >= IdLOD[0][0]) // Load only the first LOD ?
+        if (LODs[0].submeshesIds.binary_search(i) == -1) // Load only the first LOD
             continue;
 
         file->seek(back + 4);
@@ -1336,24 +1337,31 @@ void IO_MeshLoader_W2ENT::XBM_CBitmapTexture(io::IReadFile* xbmFile, core::strin
     }
 }
 
-void IO_MeshLoader_W2ENT::vert_format(io::IReadFile* file)
+void IO_MeshLoader_W2ENT::readLODs(io::IReadFile *file, core::array<TW2_LOD>& LODs)
 {
-    IdLOD.clear();
-
     core::array<u8> data = readDataArray<u8>(file, 8);
 
-    // ???
-    if (data[3] != 5)
+    if (data[3] != 5) // ?
         return;
 
     // Read the LODS data
-    u8 nLODS = readU8(file);
-    for (u8 i = 0; i < nLODS; i++)
+    u8 LODCount = readU8(file);
+    LODs.reallocate(LODCount);
+
+    for (u8 i = 0; i < LODCount; i++)
     {
-        data = readDataArray<u8>(file, 5);
-        readDataArray<u8>(file, data[0]*2);
-        readDataArray<u8>(file, 6);
-        IdLOD.push_back(data);
+        //std::cout << "Lod[" << (int)i << "] @" << file->getPos() << std::endl;
+        TW2_LOD lod;
+        u8 nbSubmeshes = readU8(file);
+        lod.submeshesIds = readDataArray<u16>(file, nbSubmeshes);
+
+        /*for (int j = 0; j < nbSubmeshes; ++j)
+        {
+            std::cout << "values: " << lod.submeshesIds[j] << std::endl;
+        }*/
+
+        file->seek(10, true);
+        LODs.push_back(lod);
     }
 }
 

@@ -17,7 +17,6 @@
 
 	
 	<!-- Menus -->
-	<element id="menu_menu_options" text="Options"/>
 	<element id="menu_menu_search" text="Search"/>
 	<element id="menu_menu_addMesh" text="Add mesh(es)"/>
 	<element id="menu_menu_quit" text="Quit"/>

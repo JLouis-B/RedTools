@@ -42,7 +42,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_view">
     <attribute name="title">
@@ -181,67 +181,6 @@
       <string>Export to an other folder</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot0">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>100</y>
-       <width>201</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Texture0 : Diffuse map</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot1">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>120</y>
-       <width>201</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Texture1 : Normals map</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_export_copyTextures">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>100</y>
-       <width>141</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Copy textures :</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot2">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>140</y>
-       <width>201</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Texture2 : Specular map</string>
-     </property>
-    </widget>
     <widget class="QWidget" name="horizontalLayoutWidget_2">
      <property name="geometry">
       <rect>
@@ -312,6 +251,59 @@
          <string>...</string>
         </property>
        </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_5">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>100</y>
+       <width>451</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="checkBox_export_copyTextures">
+        <property name="text">
+         <string>Copy textures :</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot0">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Texture0 : Diffuse map</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot1">
+          <property name="text">
+           <string>Texture1 : Normals map</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox_export_copyTexturesSlot2">
+          <property name="text">
+           <string>Texture2 : Specular map</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

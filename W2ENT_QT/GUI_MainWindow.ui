@@ -292,7 +292,7 @@
   </action>
   <action name="action_main_Options">
    <property name="text">
-    <string>Options</string>
+    <string>Settings</string>
    </property>
   </action>
   <action name="action_redkit_Size">
@@ -356,7 +356,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Collision mesh (empty)</string>
+    <string>Convex collision mesh (empty)</string>
    </property>
   </action>
   <action name="action_main_Add_mesh">

@@ -398,7 +398,6 @@ void GUI_MainWindow::translate()
 
     // Menus
     _ui->action_main_Search->setText(Translator::get("menu_menu_search"));
-    _ui->action_main_Options->setText(Translator::get("menu_menu_options"));
     _ui->action_main_Add_mesh->setText(Translator::get("menu_menu_addMesh"));
     _ui->action_main_Quitter->setText(Translator::get("menu_menu_quit"));
 

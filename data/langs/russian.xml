@@ -17,7 +17,6 @@
 
 	
 	<!-- Menus -->
-	<element id="menu_menu_options" text="Опции"/>
 	<element id="menu_menu_search" text="Поиск"/>
 	<element id="menu_menu_addMesh" text="Добавить меш(и)"/>
 	<element id="menu_menu_quit" text="Выход"/>

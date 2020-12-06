@@ -36,6 +36,7 @@ IO_MeshLoader_W2ENT::IO_MeshLoader_W2ENT(scene::ISceneManager* smgr, io::IFileSy
 : SceneManager(smgr),
   FileSystem(fs),
   AnimatedMesh(nullptr),
+  ConfigLoadOnlyBestLOD(false),
   log(nullptr)
 {
 	#ifdef _DEBUG
@@ -273,10 +274,10 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
             loader.m_skeletonsLoaderMode = true;
             loader.createMesh(skeletonFile);
 
-            for (u32 i = 0; i < loader.Skeletons.size(); ++i)
+            for (u32 j = 0; j < loader.Skeletons.size(); ++j)
             {
                 log->addLine("Add a skeleton loaded from external file");
-                Skeletons.push_back(loader.Skeletons[i]);
+                Skeletons.push_back(loader.Skeletons[j]);
             }
 
             skeletonFile->drop();
@@ -735,13 +736,9 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
     u8 nbBones = readU8(file);
     const bool hasBones = nbBones != 128;
 
-    int back = file->getPos();
-
     u8 unk = readU8(file);
     if (unk != 1)
         file->seek(-1, true);
-
-
 
     core::array<core::stringc> boneNames;
     if (hasBones)
@@ -806,9 +803,9 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
             file->seek(4, true); //float data12 = readFloats(file, 1)[0];
         }
     }
-    nbBones = readU8(file);
-    back = file->getPos();
 
+    nbBones = readU8(file);
+    long back = file->getPos();
     if (hasBones)
     {
         if (readS32(file) > 128 || readS32(file) > 128)
@@ -1292,15 +1289,13 @@ void IO_MeshLoader_W2ENT::XBM_CBitmapTexture(io::IReadFile* xbmFile, core::strin
     {
         // Create the DDS file
         io::IWriteFile* fileDDS = FileSystem->createAndWriteFile((filenameDDS).c_str());
-
         if (!fileDDS)
         {
             log->addLineAndFlush(formatString("Error : the file %s can't be created.", filenameDDS.c_str()));
+            return;
         }
-        else
-        {
-            log->addLineAndFlush(formatString("File %s created", filenameDDS.c_str()));
-        }
+
+        log->addLineAndFlush(formatString("File %s created", filenameDDS.c_str()));
 
         // The static part of the header
         fileDDS->write(ddsheader, 128);
@@ -1321,7 +1316,7 @@ void IO_MeshLoader_W2ENT::XBM_CBitmapTexture(io::IReadFile* xbmFile, core::strin
         const long sizeToCopy = xbmFile->getSize() - xbmFile->getPos();
 
 
-        char* buffer = new char[sizeToCopy];
+        u8* buffer = new u8[sizeToCopy];
         xbmFile->read(buffer, sizeToCopy);
 
         log->addLineAndFlush("Read XBM OK");

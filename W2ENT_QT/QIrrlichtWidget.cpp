@@ -129,8 +129,8 @@ void QIrrlichtWidget::init()
 
 void QIrrlichtWidget::initNormalsMaterial()
 {
-    io::path vsFileName = "shaders/normals.vert";
-    io::path psFileName = "shaders/normals.frag";
+    io::path vsFileName = QSTRING_TO_PATH(QCoreApplication::applicationDirPath()) + "/shaders/normals.vert";
+    io::path psFileName = QSTRING_TO_PATH(QCoreApplication::applicationDirPath()) + "/shaders/normals.frag";
 
     _normalsMaterial = new NormalsDebuggerShaderCallBack();
     _normalsMaterial->SetDevice(_device);

@@ -40,11 +40,6 @@ class IrrAssimp
         */
         void exportMesh(irr::scene::IMesh* mesh, irr::core::stringc format, irr::core::stringc path);
 
-
-        // Return the list of available export formats
-        irr::core::array<ExportFormat> getExportFormats();
-
-
         // Return the error of the last loading. Return an empty string if no error.
         irr::core::stringc getError();
 
@@ -52,6 +47,8 @@ class IrrAssimp
         // Check if the file has a loadable extension
         bool isLoadable(irr::io::path path);
 
+        // Return the list of available export formats
+        static irr::core::array<ExportFormat> getExportFormats();
 
     private:
 		irr::scene::ISceneManager* Smgr;

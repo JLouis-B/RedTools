@@ -24,6 +24,8 @@ class IrrAssimpExport
         void createMaterials(const irr::scene::IMesh* mesh);
         void createAnimations(const irr::scene::ISkinnedMesh* mesh);
         aiNode* createNode(const irr::scene::ISkinnedMesh::SJoint* joint);
+
+        irr::core::array<irr::u16> getMeshesMovedByBone(const irr::scene::ISkinnedMesh::SJoint* joint);
 };
 
 #endif // IRRASSIMPEXPORT_H

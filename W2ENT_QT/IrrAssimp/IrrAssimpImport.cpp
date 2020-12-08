@@ -223,64 +223,86 @@ void IrrAssimpImport::createMeshes()
     {
         //std::cout << "i=" << i << " of " << AssimpScene->mNumMeshes << std::endl;
         aiMesh* paiMesh = AssimpScene->mMeshes[i];
+        const unsigned int uvCount = paiMesh->GetNumUVChannels();
+        const unsigned int verticesCount = paiMesh->mNumVertices;
+        const bool irrHasNormal = paiMesh->HasNormals();
 
         scene::SSkinMeshBuffer* buffer = Mesh->addMeshBuffer();
+        buffer->VertexType = (uvCount > 1) ? video::EVT_2TCOORDS : (paiMesh->HasTangentsAndBitangents() ? video::EVT_TANGENTS : video::EVT_STANDARD);
 
-        buffer->Vertices_Standard.reallocate(paiMesh->mNumVertices);
-        buffer->Vertices_Standard.set_used(paiMesh->mNumVertices);
-
-        for (unsigned int j = 0; j < paiMesh->mNumVertices; ++j)
+        // Resize Buffer
+        switch (buffer->VertexType)
         {
-            const aiVector3D vertex = paiMesh->mVertices[j];
-            buffer->Vertices_Standard[j].Pos = core::vector3df(vertex.x, vertex.y, vertex.z);
+        case video::EVT_STANDARD:
+            buffer->Vertices_Standard.set_used(verticesCount);
+            break;
+        case video::EVT_2TCOORDS:
+            buffer->Vertices_2TCoords.set_used(verticesCount);
+            break;
+        case video::EVT_TANGENTS:
+            buffer->Vertices_Tangents.set_used(verticesCount);
+            break;
+        }
 
-            if (paiMesh->HasNormals())
+
+        for (unsigned int j = 0; j < verticesCount; ++j)
+        {
+            // Get common vertex attributes
+            const aiVector3D vertex = paiMesh->mVertices[j];
+            core::vector3df irrPosition = core::vector3df(vertex.x, vertex.y, vertex.z);
+
+            core::vector3df irrNormal;
+            if (irrHasNormal)
             {
                 const aiVector3D normal = paiMesh->mNormals[j];
-                buffer->Vertices_Standard[j].Normal = core::vector3df(normal.x, normal.y, normal.z);
+                irrNormal = core::vector3df(normal.x, normal.y, normal.z);
             }
 
+            video::SColor irrColor = video::SColor(255, 255, 255, 255);
             if (paiMesh->HasVertexColors(0))
             {
                 const aiColor4D color = paiMesh->mColors[0][j];
-                buffer->Vertices_Standard[j].Color = AssimpToIrrColor(color);
-            }
-            else
-            {
-                buffer->Vertices_Standard[j].Color = video::SColor(255, 255, 255, 255);
+                irrColor = AssimpToIrrColor(color);
             }
 
-            if (paiMesh->GetNumUVChannels() > 0)
+            core::vector2df irrUv = core::vector2df(0.f, 0.f);
+            if (uvCount > 0)
             {
                 const aiVector3D uv = paiMesh->mTextureCoords[0][j];
-                buffer->Vertices_Standard[j].TCoords = core::vector2df(uv.x, uv.y);
+                irrUv = core::vector2df(uv.x, uv.y);
             }
-        }
-        if (paiMesh->HasTangentsAndBitangents())
-        {
-            buffer->convertToTangents();
-            for (unsigned int j = 0; j < paiMesh->mNumVertices; ++j)
+
+            // Fill the buffer
+            buffer->getPosition(j) = irrPosition;
+            buffer->getTCoords(j) = irrUv;
+            if (irrHasNormal) buffer->getNormal(j) = irrNormal;
+
+            switch (buffer->VertexType)
             {
-                aiVector3D tangent = paiMesh->mTangents[j];
-                aiVector3D bitangent = paiMesh->mBitangents[j];
+            case video::EVT_STANDARD:
+                buffer->Vertices_Standard[j].Color = irrColor;
+                break;
+            case video::EVT_2TCOORDS:
+            {
+                buffer->Vertices_2TCoords[j].Color = irrColor;
+                const aiVector3D uv2 = paiMesh->mTextureCoords[1][j];
+                buffer->Vertices_2TCoords[j].TCoords2 = core::vector2df(uv2.x, uv2.y);
+                break;
+            }
+            case video::EVT_TANGENTS:
+            {
+                buffer->Vertices_Tangents[j].Color = irrColor;
+                const aiVector3D tangent = paiMesh->mTangents[j];
+                const aiVector3D bitangent = paiMesh->mBitangents[j];
                 buffer->Vertices_Tangents[j].Tangent = core::vector3df(tangent.x, tangent.y, tangent.z);
                 buffer->Vertices_Tangents[j].Binormal = core::vector3df(bitangent.x, bitangent.y, bitangent.z);
+                break;
             }
-        }
-        if (paiMesh->GetNumUVChannels() > 1)
-        {
-            buffer->convertTo2TCoords();
-            for (unsigned int j = 0; j < paiMesh->mNumVertices; ++j)
-            {
-                const aiVector3D uv = paiMesh->mTextureCoords[0][j];
-                buffer->Vertices_2TCoords[j].TCoords2 = core::vector2df(uv.x, uv.y);
             }
         }
 
 
-        buffer->Indices.reallocate(paiMesh->mNumFaces * 3);
         buffer->Indices.set_used(paiMesh->mNumFaces * 3);
-
         for (unsigned int j = 0; j < paiMesh->mNumFaces; ++j)
         {
             const aiFace face = paiMesh->mFaces[j];
@@ -293,7 +315,7 @@ void IrrAssimpImport::createMeshes()
         buffer->Material = Mats[paiMesh->mMaterialIndex];
         buffer->recalculateBoundingBox();
 
-        if (!paiMesh->HasNormals())
+        if (!irrHasNormal)
             Smgr->getMeshManipulator()->recalculateNormals(buffer);
 
 
@@ -332,11 +354,11 @@ void IrrAssimpImport::createMeshes()
 
             for (unsigned int h = 0; h < bone->mNumWeights; ++h)
             {
-                aiVertexWeight weight = bone->mWeights[h];
-                scene::ISkinnedMesh::SWeight* w = Mesh->addWeight(joint);
-                w->buffer_id = Mesh->getMeshBufferCount() - 1;
-                w->strength = weight.mWeight;
-                w->vertex_id = weight.mVertexId;
+                const aiVertexWeight weight = bone->mWeights[h];
+                scene::ISkinnedMesh::SWeight* irrWeight = Mesh->addWeight(joint);
+                irrWeight->buffer_id = Mesh->getMeshBufferCount() - 1;
+                irrWeight->strength = weight.mWeight;
+                irrWeight->vertex_id = weight.mVertexId;
             }
 
             skinJoint(joint, bone);

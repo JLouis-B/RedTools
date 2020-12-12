@@ -40,7 +40,6 @@ public slots :
     void extFiles();
 
 
-    void addMesh();
     void bifExtractor();
     void dzipExtractor();
     void bundleExtractor();
@@ -49,7 +48,6 @@ public slots :
     void changeBaseDir(QString newDir);
 
 
-    void selectMeshFile();
     void selectRigFile();
     void selectAnimationsFile();
 
@@ -58,9 +56,13 @@ public slots :
     void selectTheCouncilTemplate();
 
     void loadFileGeneric(QString path);
-    void loadMesh(QString path);
+    void onLoadMeshClicked();
+    void replaceMesh(QString path);
     void loadRig(QString path);
     void loadAnimations(QString path);
+
+    void onAddMeshClicked();
+    void addMesh(QStringList files);
 
     void loadTW1Animations(QString path);
 
@@ -72,8 +74,8 @@ private:
     void addToUILog(QString log);
     void registerExporters();
 
-    Ui::GUI_MainWindow *_ui;
-    QIrrlichtWidget *_irrWidget;
+    Ui::GUI_MainWindow* _ui;
+    QIrrlichtWidget* _irrWidget;
 
     bool _firstSelection;
     LOD _currentLOD;

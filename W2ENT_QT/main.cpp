@@ -15,8 +15,17 @@ int main(int argc, char *argv[])
     w.show();
     w.initIrrlicht();
 
-    if (QCoreApplication::arguments().size() > 1)
-        w.loadMesh(QCoreApplication::arguments().at(1));
+    for (int i = 1; i < QCoreApplication::arguments().size(); ++i)
+    {
+        if (i == 1)
+        {
+            w.replaceMesh(QCoreApplication::arguments().at(1));
+        }
+        else
+        {
+            w.addMesh(QStringList(QCoreApplication::arguments().at(i)));
+        }
+    }
 
     return a.exec();
 }

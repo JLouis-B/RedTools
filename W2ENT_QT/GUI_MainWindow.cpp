@@ -89,7 +89,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     // Events
     // Menu
     QObject::connect(_ui->action_main_Search, SIGNAL(triggered()), this, SLOT(search()));
-    QObject::connect(_ui->action_main_Add_mesh, SIGNAL(triggered(bool)), this, SLOT(addMesh()));
+    QObject::connect(_ui->action_main_Add_mesh, SIGNAL(triggered()), this, SLOT(onAddMeshClicked()));
     QObject::connect(_ui->action_main_Options, SIGNAL(triggered()), this, SLOT(options()));
     QObject::connect(_ui->action_main_Quitter, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -124,7 +124,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
 
 
     // UI
-    QObject::connect(_ui->button_fileSelector, SIGNAL(clicked()), this, SLOT(selectMeshFile()));
+    QObject::connect(_ui->button_fileSelector, SIGNAL(clicked()), this, SLOT(onLoadMeshClicked()));
     QObject::connect(_ui->button_convert, SIGNAL(clicked()), this, SLOT(convert()));
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectFolder()));
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
@@ -160,10 +160,16 @@ void GUI_MainWindow::addToUILog(QString log)
     Log::Instance()->addAndFlush(logLogFile.toStdString().c_str());
 }
 
-void GUI_MainWindow::addMesh()
+
+void GUI_MainWindow::onAddMeshClicked()
 {
     QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_baseDir, Settings::getFilters(), &Settings::_selectedFilter);
+    if (files.size() > 0)
+        addMesh(files);
+}
 
+void GUI_MainWindow::addMesh(QStringList files)
+{
     for (int i = 0; i < files.size(); ++i)
     {
         const QString file = files.at(i);
@@ -205,7 +211,7 @@ void GUI_MainWindow::addMesh()
                 _ui->action_redkit_LOD2->setText("LOD2");
             break;
             case Collision:
-                _ui->action_redkit_Collision_mesh->setText("Collision mesh");
+                _ui->action_redkit_Collision_mesh->setText("Convex collision mesh");
             break;
         }
     }
@@ -318,7 +324,7 @@ void GUI_MainWindow::registerExporters()
     }
 }
 
-void GUI_MainWindow::selectMeshFile()
+void GUI_MainWindow::onLoadMeshClicked()
 {
     QString defaultFolder = _ui->lineEdit_ImportedFile->text();
     if (_firstSelection)
@@ -326,7 +332,7 @@ void GUI_MainWindow::selectMeshFile()
 
     QString file = QFileDialog::getOpenFileName(this, "Select the file to load", defaultFolder, Settings::getFilters(), &Settings::_selectedFilter);
     if (file != "")
-        loadMesh(file);
+        replaceMesh(file);
 }
 
 void GUI_MainWindow::selectRigFile()
@@ -521,7 +527,7 @@ void GUI_MainWindow::clearLOD()
             _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
         break;
         case Collision:
-            _ui->action_redkit_LOD2->setText("Collision mesh (" + Translator::get("re_lod_empty") + ")");
+            _ui->action_redkit_LOD2->setText("Convex collision mesh (" + Translator::get("re_lod_empty") + ")");
         break;
     }
 
@@ -615,7 +621,7 @@ void GUI_MainWindow::loadFileGeneric(QString path)
         file->drop();
 
     if (type == REV_UNKNOWN)
-        loadMesh(path);
+        replaceMesh(path);
     else if (contentType == RECT_WITCHER_RIG)
     {
         if (type == REV_WITCHER_3)
@@ -631,10 +637,10 @@ void GUI_MainWindow::loadFileGeneric(QString path)
             QMessageBox::warning(nullptr, "Load fail", "The Witcher 2 animations files not supported");
     }
     else
-        loadMesh(path);
+        replaceMesh(path);
 }
 
-void GUI_MainWindow::loadMesh(QString path)
+void GUI_MainWindow::replaceMesh(QString path)
 {
     if (!_irrWidget->fileIsOpenableByIrrlicht(path))
     {
@@ -668,7 +674,7 @@ void GUI_MainWindow::loadMesh(QString path)
                 _ui->action_redkit_LOD2->setText("LOD2");
             break;
             case Collision:
-                _ui->action_redkit_Collision_mesh->setText("Collision mesh");
+                _ui->action_redkit_Collision_mesh->setText("Convex collision mesh");
             break;
         }
         _firstSelection = false;

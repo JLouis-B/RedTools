@@ -1375,7 +1375,7 @@ void IO_MeshLoader_WitcherMDL::readAnimations(io::IReadFile* file)
     const long chunkStart = file->getPos();
 
     file->seek(4, true);
-    std::cout << "ADRESS = " << file->getPos() << std::endl;
+    //std::cout << "ADRESS = " << file->getPos() << std::endl;
 
     ArrayDef animArrayDef = readArrayDef(file);
     file->seek(chunkStart + animArrayDef.firstElemOffest);
@@ -1389,14 +1389,14 @@ void IO_MeshLoader_WitcherMDL::readAnimations(io::IReadFile* file)
         file->seek(8, true);
         core::stringc animationName = readStringFixedSize(file, 64);
         u32 offsetRootNode = readU32(file);
-        std::cout << "offsetRootNode : " << offsetRootNode << std::endl;
+        //std::cout << "offsetRootNode : " << offsetRootNode << std::endl;
         file->seek(32, true);
         u8 geometryType = readU8(file);
         file->seek(3, true);
 
         // Anim header
         f32 animationLength = readF32(file);
-        std::cout << "animationLength : " << animationLength << std::endl;
+        //std::cout << "animationLength : " << animationLength << std::endl;
         f32 transitionTime = readF32(file);
         core::stringc animationRootName = readStringFixedSize(file, 64);
         ArrayDef eventArrayDef = readArrayDef(file);

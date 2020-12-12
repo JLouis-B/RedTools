@@ -13,6 +13,6 @@
 
 
 #define VERSION_MAJOR 2
-#define VERSION_MINOR 12
+#define VERSION_MINOR 13
 
 #endif // COMPILECONFIG_H

@@ -1101,7 +1101,7 @@ void IO_MeshLoader_W3ENT::W3_CAnimationBufferBitwiseCompressed(io::IReadFile* fi
 
     core::array<core::array<SAnimationBufferBitwiseCompressedData> > inf;
     core::array<s8> data;
-    io::IReadFile* dataFile = 0;
+    io::IReadFile* dataFile = nullptr;
     SAnimationBufferOrientationCompressionMethod compress;
 
     f32 animDuration = 1.0f;

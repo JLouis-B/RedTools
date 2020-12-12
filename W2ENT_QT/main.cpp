@@ -15,16 +15,10 @@ int main(int argc, char *argv[])
     w.show();
     w.initIrrlicht();
 
-    for (int i = 1; i < QCoreApplication::arguments().size(); ++i)
+    const QStringList arguments = QCoreApplication::arguments();
+    for (int i = 1; i < arguments.size(); ++i)
     {
-        if (i == 1)
-        {
-            w.replaceMesh(QCoreApplication::arguments().at(1));
-        }
-        else
-        {
-            w.addMesh(QStringList(QCoreApplication::arguments().at(i)));
-        }
+        w.addFileGeneric(arguments.at(i));
     }
 
     return a.exec();

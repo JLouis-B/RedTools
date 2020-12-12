@@ -15,7 +15,7 @@ class GUI_MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit GUI_MainWindow(QWidget *parent = nullptr);
+    explicit GUI_MainWindow(QWidget* parent = nullptr);
     ~GUI_MainWindow();
     void initIrrlicht();
 
@@ -56,13 +56,14 @@ public slots :
     void selectTheCouncilTemplate();
 
     void loadFileGeneric(QString path);
+    void addFileGeneric(QString path);
     void onLoadMeshClicked();
     void replaceMesh(QString path);
     void loadRig(QString path);
     void loadAnimations(QString path);
 
     void onAddMeshClicked();
-    void addMesh(QStringList files);
+    void addMeshes(QStringList filenames);
 
     void loadTW1Animations(QString path);
 

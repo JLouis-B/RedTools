@@ -165,14 +165,14 @@ void GUI_MainWindow::onAddMeshClicked()
 {
     QStringList files = QFileDialog::getOpenFileNames(this, "Select the file(s) to load", Settings::_baseDir, Settings::getFilters(), &Settings::_selectedFilter);
     if (files.size() > 0)
-        addMesh(files);
+        addMeshes(files);
 }
 
-void GUI_MainWindow::addMesh(QStringList files)
+void GUI_MainWindow::addMeshes(QStringList filenames)
 {
-    for (int i = 0; i < files.size(); ++i)
+    for (int i = 0; i < filenames.size(); ++i)
     {
-        const QString file = files.at(i);
+        const QString file = filenames.at(i);
         if (!_irrWidget->fileIsOpenableByIrrlicht(file))
         {
             QMessageBox::critical(this, "Error", "Error : The file " + file + " can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
@@ -215,7 +215,6 @@ void GUI_MainWindow::addMesh(QStringList files)
             break;
         }
     }
-
     updateWindowTitle();
 }
 
@@ -639,6 +638,38 @@ void GUI_MainWindow::loadFileGeneric(QString path)
     else
         replaceMesh(path);
 }
+
+void GUI_MainWindow::addFileGeneric(QString path)
+{
+    const io::path filenamePath = QSTRING_TO_PATH(path);
+    io::IReadFile* file = _irrWidget->getFileSystem()->createAndOpenFile(filenamePath);
+
+    RedEngineVersion type = getRedEngineFileType(file);
+    RedEngineContentType contentType = getRedEngineFileContentType(filenamePath);
+    if (file)
+        file->drop();
+
+    if (type == REV_UNKNOWN)
+        addMeshes(QStringList(path));
+    else if (contentType == RECT_WITCHER_RIG)
+    {
+        if (type == REV_WITCHER_3)
+            loadRig(path);
+        else
+            QMessageBox::warning(nullptr, "Load fail", "The Witcher 2 rig files not supported");
+    }
+    else if (contentType == RECT_WITCHER_ANIMATIONS)
+    {
+        if (type == REV_WITCHER_3)
+            loadAnimations(path);
+        else
+            QMessageBox::warning(nullptr, "Load fail", "The Witcher 2 animations files not supported");
+    }
+    else
+        addMeshes(QStringList(path));
+}
+
+
 
 void GUI_MainWindow::replaceMesh(QString path)
 {

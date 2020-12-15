@@ -137,7 +137,7 @@ aiNode* IrrAssimpExport::createNode(const scene::ISkinnedMesh::SJoint* joint)
             }
         }
 
-        bone->mOffsetMatrix = IrrToAssimpMatrix(joint->GlobalMatrix);
+        bone->mOffsetMatrix = IrrToAssimpMatrix(joint->GlobalMatrix).Inverse();
         bone->mNode = node;
 
         AssimpScene->mMeshes[meshId]->mBones[AssimpScene->mMeshes[meshId]->mNumBones] = bone;

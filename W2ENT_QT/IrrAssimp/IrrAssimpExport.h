@@ -18,7 +18,7 @@ class IrrAssimpExport
 
     protected:
     private:
-        aiScene* AssimpScene;
+        aiScene* m_assimpScene;
 
         void createMeshes(const irr::scene::IMesh* mesh);
         void createMaterials(const irr::scene::IMesh* mesh);
@@ -28,6 +28,7 @@ class IrrAssimpExport
         irr::core::array<irr::u16> getMeshesMovedByBone(const irr::scene::ISkinnedMesh::SJoint* joint);
         std::map<irr::u16, irr::core::array<const irr::scene::ISkinnedMesh::SJoint*> > m_bonesPerMesh;
         std::map<std::pair<irr::u16, const irr::scene::ISkinnedMesh::SJoint*>, irr::u32> m_weightsCountPerMeshesAndBones;
+        irr::core::array<irr::u32> m_attachedBuffers;
 };
 
 #endif // IRRASSIMPEXPORT_H

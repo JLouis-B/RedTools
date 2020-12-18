@@ -675,9 +675,9 @@ void IO_MeshLoader_W2ENT::SkinMesh()
             boneMat.transformVect(destPos, sourcePos);
             boneMat.rotateVect(destNormal, sourceNorm);
 
-            skinnedVertex[bufferId][vertexId].Moved = true;
-            skinnedVertex[bufferId][vertexId].Position += destPos * weight.strength;
-            skinnedVertex[bufferId][vertexId].Normal += destNormal * weight.strength;
+            skinnedVertex[bufferId][vertexId].moved = true;
+            skinnedVertex[bufferId][vertexId].position += destPos * weight.strength;
+            skinnedVertex[bufferId][vertexId].normal += destNormal * weight.strength;
         }
     }
 
@@ -687,10 +687,10 @@ void IO_MeshLoader_W2ENT::SkinMesh()
         scene::IMeshBuffer* buffer = AnimatedMesh->getMeshBuffer(i);
         for (u32 j = 0; j < buffer->getVertexCount(); ++j)
         {
-            if (skinnedVertex[i][j].Moved)
+            if (skinnedVertex[i][j].moved)
             {
-                buffer->getPosition(j) = skinnedVertex[i][j].Position;
-                buffer->getNormal(j) = skinnedVertex[i][j].Normal;
+                buffer->getPosition(j) = skinnedVertex[i][j].position;
+                buffer->getNormal(j) = skinnedVertex[i][j].normal;
             }
         }
     }

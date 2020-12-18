@@ -1,9 +1,12 @@
 #include "IrrAssimpImport.h"
-#include <iostream>
+
+#include <ISceneManager.h>
+#include <IVideoDriver.h>
+#include <IMeshManipulator.h>
 
 using namespace irr;
 
-IrrAssimpImport::IrrAssimpImport(scene::ISceneManager* smgr) : Smgr(smgr), FileSystem(smgr->getFileSystem())
+IrrAssimpImport::IrrAssimpImport(scene::ISceneManager* smgr) : m_sceneManager(smgr), m_fileSystem(smgr->getFileSystem())
 {
     //ctor
 }
@@ -13,12 +16,27 @@ IrrAssimpImport::~IrrAssimpImport()
     //dtor
 }
 
-void Log(core::vector3df vect)
+core::stringc assimpToIrrString(aiString str)
 {
-    std::cout << "Vector = " << vect.X << ", " << vect.Y << ", " << vect.Z << std::endl;
+    return core::stringc(str.C_Str());
 }
 
-core::matrix4 AssimpToIrrMatrix(aiMatrix4x4 assimpMatrix)
+core::vector3df assimpToIrrVector3(const aiVector3D& vect)
+{
+    return core::vector3df(vect.x, vect.y, vect.z);
+}
+
+core::vector2df assimpToIrrVector2(const aiVector3D& vect)
+{
+    return core::vector2df(vect.x, vect.y);
+}
+
+core::quaternion assimpToIrrQuaternion(const aiQuaternion& quat)
+{
+    return core::quaternion(quat.x, quat.y, quat.z, -quat.w);
+}
+
+core::matrix4 assimpToIrrMatrix(aiMatrix4x4 assimpMatrix)
 {
     core::matrix4 irrMatrix;
 
@@ -45,24 +63,29 @@ core::matrix4 AssimpToIrrMatrix(aiMatrix4x4 assimpMatrix)
     return irrMatrix;
 }
 
+video::SColor assimpToIrrColor4(const aiColor4D& color)
+{
+    return video::SColor(static_cast<u32>(color.a * 255), static_cast<u32>(color.r * 255), static_cast<u32>(color.g * 255), static_cast<u32>(color.b * 255));
+}
+
 
 scene::ISkinnedMesh::SJoint* IrrAssimpImport::findJoint(const core::stringc jointName)
 {
-    for (unsigned int i = 0; i < Mesh->getJointCount(); ++i)
+    for (unsigned int i = 0; i < m_irrMesh->getJointCount(); ++i)
     {
-        if (core::stringc(Mesh->getJointName(i)) == jointName)
-            return Mesh->getAllJoints()[i];
+        if (core::stringc(m_irrMesh->getJointName(i)) == jointName)
+            return m_irrMesh->getAllJoints()[i];
     }
-    std::cout << "Error, no joint" << std::endl;
+    //std::cout << "Error, no joint" << std::endl;
     return 0;
 }
 
 aiNode* IrrAssimpImport::findNode(const aiString jointName)
 {
-    if (AssimpScene->mRootNode->mName == jointName)
-        return AssimpScene->mRootNode;
+    if (m_assimpScene->mRootNode->mName == jointName)
+        return m_assimpScene->mRootNode;
 
-    return AssimpScene->mRootNode->FindNode(jointName);
+    return m_assimpScene->mRootNode->FindNode(jointName);
 }
 
 void IrrAssimpImport::createNode(const aiNode* node)
@@ -71,12 +94,12 @@ void IrrAssimpImport::createNode(const aiNode* node)
 
     if (node->mParent != 0)
     {
-        jointParent = findJoint(node->mParent->mName.C_Str());
+        jointParent = findJoint(assimpToIrrString(node->mParent->mName));
     }
 
-    scene::ISkinnedMesh::SJoint* joint = Mesh->addJoint(jointParent);
-    joint->Name = node->mName.C_Str();
-    joint->LocalMatrix = AssimpToIrrMatrix(node->mTransformation);
+    scene::ISkinnedMesh::SJoint* joint = m_irrMesh->addJoint(jointParent);
+    joint->Name = assimpToIrrString(node->mName);
+    joint->LocalMatrix = assimpToIrrMatrix(node->mTransformation);
 
     if (jointParent)
         joint->GlobalMatrix = jointParent->GlobalMatrix * joint->LocalMatrix;
@@ -95,21 +118,16 @@ void IrrAssimpImport::createNode(const aiNode* node)
     }
 }
 
-video::SColor AssimpToIrrColor(const aiColor4D color)
-{
-    return video::SColor(static_cast<u32>(color.a * 255), static_cast<u32>(color.r * 255), static_cast<u32>(color.g * 255), static_cast<u32>(color.b * 255));
-}
-
 video::ITexture* IrrAssimpImport::getTexture(core::stringc path, core::stringc fileDir)
 {
     video::ITexture* texture = 0;
 
-    if (FileSystem->existFile(path.c_str()))
-        texture = Smgr->getVideoDriver()->getTexture(path.c_str());
-    else if (FileSystem->existFile(fileDir + "/" + path.c_str()))
-        texture = Smgr->getVideoDriver()->getTexture(fileDir + "/" + path.c_str());
-    else if (FileSystem->existFile(fileDir + "/" + FileSystem->getFileBasename(path.c_str())))
-        texture = Smgr->getVideoDriver()->getTexture(fileDir + "/" + FileSystem->getFileBasename(path.c_str()));
+    if (m_fileSystem->existFile(path.c_str()))
+        texture = m_sceneManager->getVideoDriver()->getTexture(path.c_str());
+    else if (m_fileSystem->existFile(fileDir + "/" + path.c_str()))
+        texture = m_sceneManager->getVideoDriver()->getTexture(fileDir + "/" + path.c_str());
+    else if (m_fileSystem->existFile(fileDir + "/" + m_fileSystem->getFileBasename(path.c_str())))
+        texture = m_sceneManager->getVideoDriver()->getTexture(fileDir + "/" + m_fileSystem->getFileBasename(path.c_str()));
 
     return texture;
     // TODO after 1.9 release : Rewrite this with IMeshTextureLoader
@@ -122,31 +140,31 @@ bool IrrAssimpImport::isALoadableFileExtension(const io::path& filename) const
 
     io::path extension;
     core::getFileNameExtension(extension, filename);
-    return importer.IsExtensionSupported (to_char_string(extension).c_str());
+    return importer.IsExtensionSupported (extension.c_str());
 }
 
 scene::IAnimatedMesh* IrrAssimpImport::createMesh(io::IReadFile* file)
 {
-    FilePath = file->getFileName();
+    m_filePath = file->getFileName();
+    Assimp::Importer importer;
 
-    Assimp::Importer Importer;
-    AssimpScene = Importer.ReadFile(to_char_string(FilePath).c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
-    if (!AssimpScene)
+    m_assimpScene = importer.ReadFile(irrToAssimpPath(file->getFileName()).C_Str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+    if (!m_assimpScene)
     {
-        Error = Importer.GetErrorString();
+        error = importer.GetErrorString();
         return 0;
     }
     else
-        Error = "";
+        error = "";
 
     // Create mesh
-    Mesh = Smgr->createSkinnedMesh();
+    m_irrMesh = m_sceneManager->createSkinnedMesh();
 
     // Load materials
     createMaterials();
 
     // Load nodes
-    const aiNode* root = AssimpScene->mRootNode;
+    const aiNode* root = m_assimpScene->mRootNode;
     createNode(root);
 
     // Load meshes
@@ -155,180 +173,167 @@ scene::IAnimatedMesh* IrrAssimpImport::createMesh(io::IReadFile* file)
     // Load animations
     createAnimation();
 
-    Mesh->setDirty();
-    Mesh->finalize();
+    m_irrMesh->setDirty();
+    m_irrMesh->finalize();
 
-    return Mesh;
+    return m_irrMesh;
 }
 
 void IrrAssimpImport::createMaterials()
 {
     // Basic material support
-    const core::stringc fileDir = FileSystem->getFileDir(FilePath);
-    Mats.clear();
-    for (unsigned int i = 0; i < AssimpScene->mNumMaterials; ++i)
+    const core::stringc fileDir = m_fileSystem->getFileDir(m_filePath);
+    m_materials.clear();
+    for (unsigned int i = 0; i < m_assimpScene->mNumMaterials; ++i)
     {
-        video::SMaterial material;
-        material.MaterialType = video::EMT_SOLID;
+        video::SMaterial irrMaterial;
+        irrMaterial.MaterialType = video::EMT_SOLID;
 
-        aiMaterial* mat = AssimpScene->mMaterials[i];
+        aiMaterial* material = m_assimpScene->mMaterials[i];
 
         aiColor4D color;
-        if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &color)) {
-            material.DiffuseColor = AssimpToIrrColor(color);
+        if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color)) {
+            irrMaterial.DiffuseColor = assimpToIrrColor4(color);
         }
-        if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_AMBIENT, &color)) {
-            material.AmbientColor = AssimpToIrrColor(color);
+        if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &color)) {
+            irrMaterial.AmbientColor = assimpToIrrColor4(color);
         }
-        if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_EMISSIVE, &color)) {
-            material.EmissiveColor = AssimpToIrrColor(color);
+        if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &color)) {
+            irrMaterial.EmissiveColor = assimpToIrrColor4(color);
         }
-        if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_SPECULAR, &color)) {
-            material.SpecularColor = AssimpToIrrColor(color);
+        if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &color)) {
+            irrMaterial.SpecularColor = assimpToIrrColor4(color);
         }
         float shininess;
-        if(AI_SUCCESS == aiGetMaterialFloat(mat, AI_MATKEY_SHININESS, &shininess)) {
-            material.Shininess = shininess;
+        if (AI_SUCCESS == aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess)) {
+            irrMaterial.Shininess = shininess;
         }
 
 
-        if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+        if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
         {
             aiString path;
-            mat->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+            material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 
-            video::ITexture* diffuseTexture = getTexture(path.C_Str(), fileDir);
-            material.setTexture(0, diffuseTexture);
+            video::ITexture* diffuseTexture = getTexture(assimpToIrrString(path), fileDir);
+            irrMaterial.setTexture(0, diffuseTexture);
         }
-        if (mat->GetTextureCount(aiTextureType_NORMALS) > 0)
+        if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
         {
             aiString path;
-            mat->GetTexture(aiTextureType_NORMALS, 0, &path);
+            material->GetTexture(aiTextureType_NORMALS, 0, &path);
 
-            video::ITexture* normalsTexture = getTexture(path.C_Str(), fileDir);
+            video::ITexture* normalsTexture = getTexture(assimpToIrrString(path), fileDir);
             if (normalsTexture)
             {
-                material.setTexture(1, normalsTexture);
-                material.MaterialType = video::EMT_PARALLAX_MAP_SOLID;
+                irrMaterial.setTexture(1, normalsTexture);
+                irrMaterial.MaterialType = video::EMT_PARALLAX_MAP_SOLID;
             }
         }
 
-        Mats.push_back(material);
+        m_materials.push_back(irrMaterial);
     }
 }
 
 void IrrAssimpImport::createMeshes()
 {
-    for (unsigned int i = 0; i < AssimpScene->mNumMeshes; ++i)
+    for (unsigned int i = 0; i < m_assimpScene->mNumMeshes; ++i)
     {
-        //std::cout << "i=" << i << " of " << AssimpScene->mNumMeshes << std::endl;
-        aiMesh* paiMesh = AssimpScene->mMeshes[i];
-        const unsigned int uvCount = paiMesh->GetNumUVChannels();
-        const unsigned int verticesCount = paiMesh->mNumVertices;
-        const bool irrHasNormal = paiMesh->HasNormals();
+        //std::cout << "i=" << i << " of " << m_assimpScene->mNumMeshes << std::endl;
+        aiMesh* mesh = m_assimpScene->mMeshes[i];
+        const unsigned int uvCount = mesh->GetNumUVChannels();
+        const unsigned int verticesCount = mesh->mNumVertices;
 
-        scene::SSkinMeshBuffer* buffer = Mesh->addMeshBuffer();
-        buffer->VertexType = (uvCount > 1) ? video::EVT_2TCOORDS : (paiMesh->HasTangentsAndBitangents() ? video::EVT_TANGENTS : video::EVT_STANDARD);
+        scene::SSkinMeshBuffer* irrBuffer = m_irrMesh->addMeshBuffer();
+        irrBuffer->VertexType = (uvCount > 1) ? video::EVT_2TCOORDS : (mesh->HasTangentsAndBitangents() ? video::EVT_TANGENTS : video::EVT_STANDARD);
 
         // Resize Buffer
-        switch (buffer->VertexType)
+        switch (irrBuffer->VertexType)
         {
         case video::EVT_STANDARD:
-            buffer->Vertices_Standard.set_used(verticesCount);
+            irrBuffer->Vertices_Standard.set_used(verticesCount);
             break;
         case video::EVT_2TCOORDS:
-            buffer->Vertices_2TCoords.set_used(verticesCount);
+            irrBuffer->Vertices_2TCoords.set_used(verticesCount);
             break;
         case video::EVT_TANGENTS:
-            buffer->Vertices_Tangents.set_used(verticesCount);
+            irrBuffer->Vertices_Tangents.set_used(verticesCount);
             break;
         }
 
 
         for (unsigned int j = 0; j < verticesCount; ++j)
         {
-            // Get common vertex attributes
-            const aiVector3D vertex = paiMesh->mVertices[j];
-            core::vector3df irrPosition = core::vector3df(vertex.x, vertex.y, vertex.z);
-
-            core::vector3df irrNormal;
-            if (irrHasNormal)
+            irrBuffer->getPosition(j) = assimpToIrrVector3(mesh->mVertices[j]);
+            if (mesh->HasNormals())
             {
-                const aiVector3D normal = paiMesh->mNormals[j];
-                irrNormal = core::vector3df(normal.x, normal.y, normal.z);
+                irrBuffer->getNormal(j) = assimpToIrrVector3(mesh->mNormals[j]);
             }
 
             video::SColor irrColor = video::SColor(255, 255, 255, 255);
-            if (paiMesh->HasVertexColors(0))
+            if (mesh->HasVertexColors(0))
             {
-                const aiColor4D color = paiMesh->mColors[0][j];
-                irrColor = AssimpToIrrColor(color);
+                irrColor = assimpToIrrColor4(mesh->mColors[0][j]);
             }
 
             core::vector2df irrUv = core::vector2df(0.f, 0.f);
             if (uvCount > 0)
             {
-                const aiVector3D uv = paiMesh->mTextureCoords[0][j];
-                irrUv = core::vector2df(uv.x, uv.y);
+                irrUv = assimpToIrrVector2(mesh->mTextureCoords[0][j]);
             }
+            irrBuffer->getTCoords(j) = irrUv;
 
-            // Fill the buffer
-            buffer->getPosition(j) = irrPosition;
-            buffer->getTCoords(j) = irrUv;
-            if (irrHasNormal) buffer->getNormal(j) = irrNormal;
-
-            switch (buffer->VertexType)
+            switch (irrBuffer->VertexType)
             {
-            case video::EVT_STANDARD:
-                buffer->Vertices_Standard[j].Color = irrColor;
-                break;
-            case video::EVT_2TCOORDS:
-            {
-                buffer->Vertices_2TCoords[j].Color = irrColor;
-                const aiVector3D uv2 = paiMesh->mTextureCoords[1][j];
-                buffer->Vertices_2TCoords[j].TCoords2 = core::vector2df(uv2.x, uv2.y);
-                break;
-            }
-            case video::EVT_TANGENTS:
-            {
-                buffer->Vertices_Tangents[j].Color = irrColor;
-                const aiVector3D tangent = paiMesh->mTangents[j];
-                const aiVector3D bitangent = paiMesh->mBitangents[j];
-                buffer->Vertices_Tangents[j].Tangent = core::vector3df(tangent.x, tangent.y, tangent.z);
-                buffer->Vertices_Tangents[j].Binormal = core::vector3df(bitangent.x, bitangent.y, bitangent.z);
-                break;
-            }
+                case video::EVT_STANDARD:
+                {
+                    irrBuffer->Vertices_Standard[j].Color = irrColor;
+                    break;
+                }
+                case video::EVT_2TCOORDS:
+                {
+                    irrBuffer->Vertices_2TCoords[j].Color = irrColor;
+                    irrBuffer->Vertices_2TCoords[j].TCoords2 = assimpToIrrVector2(mesh->mTextureCoords[1][j]);
+                    break;
+                }
+                case video::EVT_TANGENTS:
+                {
+                    irrBuffer->Vertices_Tangents[j].Color = irrColor;
+                    irrBuffer->Vertices_Tangents[j].Tangent = assimpToIrrVector3(mesh->mTangents[j]);
+                    irrBuffer->Vertices_Tangents[j].Binormal = assimpToIrrVector3(mesh->mBitangents[j]);
+                    break;
+                }
             }
         }
 
 
-        buffer->Indices.set_used(paiMesh->mNumFaces * 3);
-        for (unsigned int j = 0; j < paiMesh->mNumFaces; ++j)
+        irrBuffer->Indices.set_used(mesh->mNumFaces * 3);
+        for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
         {
-            const aiFace face = paiMesh->mFaces[j];
+            const aiFace face = mesh->mFaces[j];
 
-            buffer->Indices[3*j] = face.mIndices[0];
-            buffer->Indices[3*j + 1] = face.mIndices[1];
-            buffer->Indices[3*j + 2] = face.mIndices[2];
+            irrBuffer->Indices[3*j] = face.mIndices[0];
+            irrBuffer->Indices[3*j + 1] = face.mIndices[1];
+            irrBuffer->Indices[3*j + 2] = face.mIndices[2];
         }
 
-        buffer->Material = Mats[paiMesh->mMaterialIndex];
-        buffer->recalculateBoundingBox();
+        irrBuffer->Material = m_materials[mesh->mMaterialIndex];
+        irrBuffer->recalculateBoundingBox();
 
-        if (!irrHasNormal)
-            Smgr->getMeshManipulator()->recalculateNormals(buffer);
+        if (!mesh->HasNormals())
+            m_sceneManager->getMeshManipulator()->recalculateNormals(irrBuffer);
 
 
         // Skinning
-        buildSkinnedVertexArray(buffer);
-        for (unsigned int j = 0; j < paiMesh->mNumBones; ++j)
+        buildSkinnedVertexArray(irrBuffer);
+        for (unsigned int j = 0; j < mesh->mNumBones; ++j)
         {
-            aiBone* bone = paiMesh->mBones[j];
+            aiBone* bone = mesh->mBones[j];
 
-            scene::ISkinnedMesh::SJoint* joint = findJoint(core::stringc(bone->mName.C_Str()));
-            if (joint == 0)
+            scene::ISkinnedMesh::SJoint* irrJoint = findJoint(assimpToIrrString(bone->mName));
+            if (irrJoint == 0)
             {
-                std::cout << "Error, no joint" << std::endl;
+                //std::cout << "Error, no joint" << std::endl;
                 continue;
             }
 
@@ -355,75 +360,59 @@ void IrrAssimpImport::createMeshes()
             for (unsigned int h = 0; h < bone->mNumWeights; ++h)
             {
                 const aiVertexWeight weight = bone->mWeights[h];
-                scene::ISkinnedMesh::SWeight* irrWeight = Mesh->addWeight(joint);
-                irrWeight->buffer_id = Mesh->getMeshBufferCount() - 1;
+                scene::ISkinnedMesh::SWeight* irrWeight = m_irrMesh->addWeight(irrJoint);
+                irrWeight->buffer_id = m_irrMesh->getMeshBufferCount() - 1;
                 irrWeight->strength = weight.mWeight;
                 irrWeight->vertex_id = weight.mVertexId;
             }
 
-            skinJoint(joint, bone);
+            skinJoint(irrJoint, bone);
         }
-        applySkinnedVertexArray(buffer);
+        applySkinnedVertexArray(irrBuffer);
     }
 }
 
 void IrrAssimpImport::createAnimation()
 {
-    int frameOffset = 0;
-    for (unsigned int i = 0; i < AssimpScene->mNumAnimations; ++i)
+    double frameOffset = 0.f;
+    for (unsigned int i = 0; i < m_assimpScene->mNumAnimations; ++i)
     {
-        aiAnimation* anim = AssimpScene->mAnimations[i];
+        aiAnimation* anim = m_assimpScene->mAnimations[i];
 
         if (anim->mTicksPerSecond != 0.f)
         {
-            Mesh->setAnimationSpeed(anim->mTicksPerSecond);
+            m_irrMesh->setAnimationSpeed(anim->mTicksPerSecond);
         }
-		// Some loader of assimp give time in second for keyframe instead of frame number, which cause bug when casted to int
-        if (anim->mTicksPerSecond == 1)
-            Mesh->setAnimationSpeed(Mesh->getAnimationSpeed() * 60.f);
 
         //std::cout << "numChannels : " << anim->mNumChannels << std::endl;
         for (unsigned int j = 0; j < anim->mNumChannels; ++j)
         {
             aiNodeAnim* nodeAnim = anim->mChannels[j];
-            scene::ISkinnedMesh::SJoint* joint = findJoint(nodeAnim->mNodeName.C_Str());
+            scene::ISkinnedMesh::SJoint* joint = findJoint(assimpToIrrString(nodeAnim->mNodeName));
 
             for (unsigned int k = 0; k < nodeAnim->mNumPositionKeys; ++k)
             {
                 aiVectorKey key = nodeAnim->mPositionKeys[k];
 
-                scene::ISkinnedMesh::SPositionKey* irrKey = Mesh->addPositionKey(joint);
-
+                scene::ISkinnedMesh::SPositionKey* irrKey = m_irrMesh->addPositionKey(joint);
                 irrKey->frame = key.mTime + frameOffset;
-                if (anim->mTicksPerSecond == 1)
-                    irrKey->frame *= 60.f;
-                irrKey->position = core::vector3df(key.mValue.x, key.mValue.y, key.mValue.z);
+                irrKey->position = assimpToIrrVector3(key.mValue);
             }
             for (unsigned int k = 0; k < nodeAnim->mNumRotationKeys; ++k)
             {
                 aiQuatKey key = nodeAnim->mRotationKeys[k];
-                aiQuaternion assimpQuat = key.mValue;
 
-                core::quaternion quat (-assimpQuat.x, -assimpQuat.y, -assimpQuat.z, assimpQuat.w);
-				quat.normalize();
-
-                scene::ISkinnedMesh::SRotationKey* irrKey = Mesh->addRotationKey(joint);
-
+                scene::ISkinnedMesh::SRotationKey* irrKey = m_irrMesh->addRotationKey(joint);
                 irrKey->frame = key.mTime + frameOffset;
-                if (anim->mTicksPerSecond == 1)
-                    irrKey->frame *= 60.f;
-                irrKey->rotation = quat;
+                irrKey->rotation = assimpToIrrQuaternion(key.mValue);
             }
             for (unsigned int k = 0; k < nodeAnim->mNumScalingKeys; ++k)
             {
                 aiVectorKey key = nodeAnim->mScalingKeys[k];
 
-                scene::ISkinnedMesh::SScaleKey* irrKey = Mesh->addScaleKey(joint);
-
+                scene::ISkinnedMesh::SScaleKey* irrKey = m_irrMesh->addScaleKey(joint);
                 irrKey->frame = key.mTime + frameOffset;
-                if (anim->mTicksPerSecond == 1)
-                    irrKey->frame *= 60.f;
-                irrKey->scale = core::vector3df(key.mValue.x, key.mValue.y, key.mValue.z);
+                irrKey->scale = assimpToIrrVector3(key.mValue);
             }
 
         }
@@ -433,41 +422,41 @@ void IrrAssimpImport::createAnimation()
 }
 
 // Adapted from http://sourceforge.net/p/assimp/discussion/817654/thread/5462cbf5
-void IrrAssimpImport::skinJoint(scene::ISkinnedMesh::SJoint *joint, aiBone* bone)
+void IrrAssimpImport::skinJoint(scene::ISkinnedMesh::SJoint* joint, aiBone* bone)
 {
 	if (bone->mNumWeights)
 	{
-	    core::matrix4 boneOffset = AssimpToIrrMatrix(bone->mOffsetMatrix);
+        core::matrix4 boneOffset = assimpToIrrMatrix(bone->mOffsetMatrix);
 	    core::matrix4 boneMat = joint->GlobalMatrix * boneOffset; //* InverseRootNodeWorldTransform;
 
-        const u32 bufferId = Mesh->getMeshBufferCount() - 1;
+        const u32 bufferId = m_irrMesh->getMeshBufferCount() - 1;
 
 		for (u32 i = 0; i < bone->mNumWeights; ++i)
 		{
 		    const aiVertexWeight weight = bone->mWeights[i];
 			const u32 vertexId = weight.mVertexId;
 
-			core::vector3df sourcePos = Mesh->getMeshBuffer(bufferId)->getPosition(vertexId);
-			core::vector3df sourceNorm = Mesh->getMeshBuffer(bufferId)->getNormal(vertexId);
+            core::vector3df sourcePos = m_irrMesh->getMeshBuffer(bufferId)->getPosition(vertexId);
+            core::vector3df sourceNorm = m_irrMesh->getMeshBuffer(bufferId)->getNormal(vertexId);
 			core::vector3df destPos, destNormal;
 			boneMat.transformVect(destPos, sourcePos);
 			boneMat.rotateVect(destNormal, sourceNorm);
 
-			skinnedVertex[vertexId].Moved = true;
-            skinnedVertex[vertexId].Position += destPos * weight.mWeight;
-            skinnedVertex[vertexId].Normal += destNormal * weight.mWeight;
+            m_skinnedVertex[vertexId].moved = true;
+            m_skinnedVertex[vertexId].position += destPos * weight.mWeight;
+            m_skinnedVertex[vertexId].normal += destNormal * weight.mWeight;
 		}
 	}
 }
 
 void IrrAssimpImport::buildSkinnedVertexArray(scene::IMeshBuffer* buffer)
 {
-    skinnedVertex.clear();
+    m_skinnedVertex.clear();
 
-    skinnedVertex.reallocate(buffer->getVertexCount());
+    m_skinnedVertex.reallocate(buffer->getVertexCount());
     for (u32 i = 0; i < buffer->getVertexCount(); ++i)
     {
-        skinnedVertex.push_back(SkinnedVertex());
+        m_skinnedVertex.push_back(SkinnedVertex());
     }
 
 }
@@ -476,11 +465,11 @@ void IrrAssimpImport::applySkinnedVertexArray(scene::IMeshBuffer* buffer)
 {
     for (u32 i = 0; i < buffer->getVertexCount(); ++i)
     {
-        if (skinnedVertex[i].Moved)
+        if (m_skinnedVertex[i].moved)
         {
-            buffer->getPosition(i) = skinnedVertex[i].Position;
-            buffer->getNormal(i) = skinnedVertex[i].Normal;
+            buffer->getPosition(i) = m_skinnedVertex[i].position;
+            buffer->getNormal(i) = m_skinnedVertex[i].normal;
         }
     }
-    skinnedVertex.clear();
+    m_skinnedVertex.clear();
 }

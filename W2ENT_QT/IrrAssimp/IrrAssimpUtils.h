@@ -1,8 +1,9 @@
 #ifndef IRRASSIMPUTILS
 #define IRRASSIMPUTILS
 
-#include <irrlicht.h>
+#include <IFileSystem.h>
+#include <assimp/Logger.hpp>
 
-irr::core::stringc to_char_string(irr::io::path path);
+aiString irrToAssimpPath(const irr::io::path& path);
 
 #endif // IRRASSIMPUTILS

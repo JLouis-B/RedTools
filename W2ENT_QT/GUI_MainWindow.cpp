@@ -309,11 +309,11 @@ void GUI_MainWindow::registerExporters()
     for (u32 i = 0; i < formats.size(); ++i)
     {
         const ExportFormat format = formats[i];
-        const QString extension = QString(".") + format.FileExtension.c_str();
+        const QString extension = QString(".") + format.fileExtension.c_str();
         if (noAssimpExportExtensions.indexOf(extension) == -1)
         {
-            const QString exportString = extension + " by Assimp library (" + format.Description.c_str() + ")";
-            _exporters.push_back({ Exporter_Assimp, exportString, extension, format.Id.c_str(), IrrlichtExporterInfos()});
+            const QString exportString = extension + " by Assimp library (" + format.description.c_str() + ")";
+            _exporters.push_back({ Exporter_Assimp, exportString, extension, format.id.c_str(), IrrlichtExporterInfos()});
         }
     }
 

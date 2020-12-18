@@ -105,9 +105,9 @@ void TW3_DataCache::skinJoint(scene::ISkinnedMesh::SJoint* joint, BoneEntry bone
         boneMat.transformVect(destPos, sourcePos);
         boneMat.rotateVect(destNormal, sourceNorm);
 
-        _skinnedVertex[bufferId][vertexId].Moved = true;
-        _skinnedVertex[bufferId][vertexId].Position += destPos * weight.strength;
-        _skinnedVertex[bufferId][vertexId].Normal += destNormal * weight.strength;
+        _skinnedVertex[bufferId][vertexId].moved = true;
+        _skinnedVertex[bufferId][vertexId].position += destPos * weight.strength;
+        _skinnedVertex[bufferId][vertexId].normal += destNormal * weight.strength;
     }
 }
 
@@ -130,10 +130,10 @@ void TW3_DataCache::applySkinnedVertexArray()
         scene::IMeshBuffer* buffer = _owner->getMeshBuffer(j);
         for (u32 i = 0; i < buffer->getVertexCount(); ++i)
         {
-            if (_skinnedVertex[j][i].Moved)
+            if (_skinnedVertex[j][i].moved)
             {
-                buffer->getPosition(i) = _skinnedVertex[j][i].Position;
-                buffer->getNormal(i) = _skinnedVertex[j][i].Normal;
+                buffer->getPosition(i) = _skinnedVertex[j][i].position;
+                buffer->getNormal(i) = _skinnedVertex[j][i].normal;
             }
         }
     }

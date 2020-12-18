@@ -1,12 +1,11 @@
 #include "IrrAssimpUtils.h"
 
-
-irr::core::stringc to_char_string(irr::io::path path)
+aiString irrToAssimpPath(const irr::io::path& path)
 {
-    #ifdef _IRR_WCHAR_FILESYSTEM
-        irr::core::stringc rPath = path;
-        return rPath;
-    #else
-        return path;
-    #endif
+#ifdef _IRR_WCHAR_FILESYSTEM
+    irr::core::stringc rPath = path;
+    return aiString(rPath.c_str());
+#else
+    return aiString(path.c_str());
+#endif
 }

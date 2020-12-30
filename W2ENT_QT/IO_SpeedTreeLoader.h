@@ -3,12 +3,9 @@
 
 #include <QObject>
 
-#include <irrString.h>
-#include <SAnimatedMesh.h>
 #include <IMeshManipulator.h>
 #include <ISkinnedMesh.h>
 #include <IFileSystem.h>
-#include <IReadFile.h>
 
 struct SpeedTreeBezierPoint
 {

@@ -1,5 +1,5 @@
-#ifndef EXTRACTORUI_TW2_DZIP_H
-#define EXTRACTORUI_TW2_DZIP_H
+#ifndef GUI_EXTRACTOR_TW2_DZIP_H
+#define GUI_EXTRACTOR_TW2_DZIP_H
 
 #include <QDialog>
 #include <QThread>
@@ -36,4 +36,4 @@ private:
     Extractor_TW2_DZIP* _extractor;
 };
 
-#endif // EXTRACTORUI_TW2_DZIP_H
+#endif // GUI_EXTRACTOR_TW2_DZIP_H

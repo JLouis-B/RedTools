@@ -1,15 +1,9 @@
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
+#ifndef IO_MESHLOADER_W2ENT_H
+#define IO_MESHLOADER_W2ENT_H
 
-#ifndef __C_W2ENT_MESH_FILE_LOADER_H_INCLUDED__
-#define __C_W2ENT_MESH_FILE_LOADER_H_INCLUDED__
-
-#include "IMeshLoader.h"
-#include "irrString.h"
-#include "SMesh.h"
-#include "SAnimatedMesh.h"
-#include "IMeshManipulator.h"
-#include "ISkinnedMesh.h"
+#include <IMeshLoader.h>
+#include <IMeshManipulator.h>
+#include <ISkinnedMesh.h>
 
 #include <map>
 

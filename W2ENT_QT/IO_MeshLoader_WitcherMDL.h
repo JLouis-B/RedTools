@@ -1,14 +1,11 @@
-#ifndef CWITCHERMDLMESHFILELOADER_H
-#define CWITCHERMDLMESHFILELOADER_H
+#ifndef IO_MESHLOADER_WICTHERMDL_H
+#define IO_MESHLOADER_WICTHERMDL_H
 
-#include "IMeshLoader.h"
-#include "irrString.h"
-#include "SMesh.h"
-#include "SAnimatedMesh.h"
-#include "IMeshManipulator.h"
-#include "ISkinnedMesh.h"
-#include "IFileSystem.h"
-#include "IReadFile.h"
+#include <IMeshLoader.h>
+#include <IMeshManipulator.h>
+#include <ISkinnedMesh.h>
+#include <IFileSystem.h>
+
 #include "Log.h"
 #include "IO_SpeedTreeLoader.h"
 
@@ -197,4 +194,4 @@ private:
     u32 _depth;
 };
 
-#endif // CWITCHERMDLMESHFILELOADER_H
+#endif // IO_MESHLOADER_WICTHERMDL_H

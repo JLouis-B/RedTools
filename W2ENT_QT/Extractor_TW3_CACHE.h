@@ -1,5 +1,5 @@
-#ifndef Extractor_TW3_CACHE_H
-#define Extractor_TW3_CACHE_H
+#ifndef EXTRACTOR_TW3_CACHE_H
+#define EXTRACTOR_TW3_CACHE_H
 
 #include <QFile>
 
@@ -32,4 +32,4 @@ signals:
     void error();
 };
 
-#endif // Extractor_TW3_CACHE_H
+#endif // EXTRACTOR_TW3_CACHE_H

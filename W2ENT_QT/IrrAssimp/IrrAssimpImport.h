@@ -13,11 +13,11 @@
 class SkinnedVertex
 {
 public:
-    SkinnedVertex()
+    SkinnedVertex() :
+        moved(false),
+        position(irr::core::vector3df(0.f, 0.f, 0.f)),
+        normal(irr::core::vector3df(0.f, 0.f, 0.f))
     {
-        moved = false;
-        position = irr::core::vector3df(0, 0, 0);
-        normal = irr::core::vector3df(0, 0, 0);
     }
 
     bool moved;
@@ -36,7 +36,6 @@ class IrrAssimpImport : public irr::scene::IMeshLoader
 
         irr::core::stringc error;
 
-    protected:
     private:
         irr::scene::ISceneManager* m_sceneManager;
         irr::io::IFileSystem* m_fileSystem;

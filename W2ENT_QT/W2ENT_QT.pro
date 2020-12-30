@@ -17,7 +17,6 @@ SOURCES += main.cpp\
     IrrAssimp/IrrAssimp.cpp \
     IrrAssimp/IrrAssimpExport.cpp \
     IrrAssimp/IrrAssimpImport.cpp \
-    IrrAssimp/IrrAssimpUtils.cpp \
     Extractor_TW1_BIF.cpp \
     Extractor_TW2_DZIP.cpp \
     GUI_ExtFilesExplorer.cpp \
@@ -26,6 +25,7 @@ SOURCES += main.cpp\
     GUI_MaterialsExplorer.cpp \
     GUI_MainWindow.cpp \
     GUI_Options.cpp \
+    IrrAssimp/IrrAssimpUtils.cpp \
     Log.cpp \
     GUI_Search.cpp \
     Settings.cpp \
@@ -70,12 +70,12 @@ HEADERS  += \
     IrrAssimp/IrrAssimp.h \
     IrrAssimp/IrrAssimpExport.h \
     IrrAssimp/IrrAssimpImport.h \
-    IrrAssimp/IrrAssimpUtils.h \
     Extractor_TW1_BIF.h \
     Extractor_TW2_DZIP.h \
     GUI_ExtFilesExplorer.h \
     GUI_Extractor_TW2_DZIP.h \
     GUI_Extractor_TW1_BIF.h \
+    IrrAssimp/IrrAssimpUtils.h \
     Settings.h \
     GUI_Search.h \
     GUI_Resize.h \
@@ -137,13 +137,13 @@ FORMS    += \
     GUI_Extractor_Dishonored2.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r6108-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r6108-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5909-trunk\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5909-trunk\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\lib\libassimp.dll.a
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\lib\libassimp.dll.a
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_build\include" \
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\include" \
 
 # We use the zlib bundled with Qt
 LIBS += -lz

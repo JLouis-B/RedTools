@@ -1,5 +1,5 @@
-#ifndef MATERIALSEXPLORER_H
-#define MATERIALSEXPLORER_H
+#ifndef GUI_MATERIALSEXPLORER_H
+#define GUI_MATERIALSEXPLORER_H
 
 #include <QDialog>
 #include <QItemDelegate>
@@ -70,4 +70,4 @@ private:
     std::vector<std::vector<Property>> _materials;
 };
 
-#endif // MATERIALSEXPLORER_H
+#endif // GUI_MATERIALSEXPLORER_H

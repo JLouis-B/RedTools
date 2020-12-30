@@ -1,10 +1,12 @@
 #ifndef TW3_DATACACHE_H
 #define TW3_DATACACHE_H
 
+#include <ISkinnedMesh.h>
 
-#include "ISkinnedMesh.h"
-#include "IrrAssimp/IrrAssimpImport.h"
 #include <vector>
+
+#include "IrrAssimp/IrrAssimpImport.h"
+
 
 using namespace irr;
 

@@ -1,13 +1,11 @@
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
-
 #ifndef IO_MESHLOADER_RE_H
 #define IO_MESHLOADER_RE_H
 
 //#define COMPILE_WITH_LODS_SUPPORT
 
-#include "IMeshLoader.h"
-#include "ISkinnedMesh.h"
+#include <IMeshLoader.h>
+#include <ISkinnedMesh.h>
+
 #include "Log.h"
 
 enum ChunkType

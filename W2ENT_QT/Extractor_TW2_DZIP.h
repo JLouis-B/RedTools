@@ -1,5 +1,5 @@
-#ifndef TW2_DZIP_EXTRACTOR_H
-#define TW2_DZIP_EXTRACTOR_H
+#ifndef EXTRACTOR_TW2_DZIP_H
+#define EXTRACTOR_TW2_DZIP_H
 
 #include <QFile>
 
@@ -41,4 +41,4 @@ signals:
     void error();
 };
 
-#endif // TW2_DZIP_EXTRACTOR_H
+#endif // EXTRACTOR_TW2_DZIP_H

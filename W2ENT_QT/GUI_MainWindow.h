@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef GUI_MAINWINDOW_H
+#define GUI_MAINWINDOW_H
 
 #include "QIrrlichtWidget.h"
 
@@ -88,4 +88,4 @@ signals:
 
 };
 
-#endif // MAINWINDOW_H
+#endif // GUI_MAINWINDOW_H

@@ -1,5 +1,5 @@
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#ifndef GUI_OPTIONS_H
+#define GUI_OPTIONS_H
 
 #include <QDialog>
 
@@ -41,4 +41,4 @@ signals:
     void optionsValidation();
 };
 
-#endif // OPTIONS_H
+#endif // GUI_OPTIONS_H

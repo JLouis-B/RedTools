@@ -6,7 +6,11 @@
 
 using namespace irr;
 
-IrrAssimpImport::IrrAssimpImport(scene::ISceneManager* smgr) : m_sceneManager(smgr), m_fileSystem(smgr->getFileSystem())
+IrrAssimpImport::IrrAssimpImport(scene::ISceneManager* smgr) :
+    m_sceneManager(smgr),
+    m_fileSystem(smgr->getFileSystem()),
+    m_assimpScene(0),
+    m_irrMesh(0)
 {
     //ctor
 }

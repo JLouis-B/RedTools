@@ -1,5 +1,5 @@
-#ifndef GUI_Extractor_TW3_CACHE_H
-#define GUI_Extractor_TW3_CACHE_H
+#ifndef GUI_EXTRACTOR_TW3_CACHE_H
+#define GUI_EXTRACTOR_TW3_CACHE_H
 
 #include <QDialog>
 #include <QQueue>
@@ -45,4 +45,4 @@ private:
     bool nextFile();
 };
 
-#endif // GUI_Extractor_TW3_CACHE_H
+#endif // GUI_EXTRACTOR_TW3_CACHE_H

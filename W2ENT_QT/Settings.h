@@ -1,13 +1,10 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "CompileConfig.h"
 #include <QString>
 #include <QColor>
-#include <vector3d.h>
 
-
-
+#include "CompileConfig.h"
 
 #define DEFAULT_CAM_ROT_SPEED 500
 #define DEFAULT_CAM_SPEED 500

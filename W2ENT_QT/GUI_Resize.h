@@ -1,7 +1,8 @@
-#ifndef RESIZE_H
-#define RESIZE_H
+#ifndef GUI_RESIZE_H
+#define GUI_RESIZE_H
 
 #include <QDialog>
+#include <vector3d.h>
 
 #include "Settings.h"
 
@@ -48,4 +49,4 @@ private:
     void enableEvents(bool enabled);
 };
 
-#endif // RESIZE_H
+#endif // GUI_RESIZE_H

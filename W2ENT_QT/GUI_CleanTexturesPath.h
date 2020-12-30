@@ -1,5 +1,5 @@
-#ifndef CLEANTEXTURESPATH_H
-#define CLEANTEXTURESPATH_H
+#ifndef GUI_CLEANTEXTURESPATH_H
+#define GUI_CLEANTEXTURESPATH_H
 
 #include <QDialog>
 
@@ -22,4 +22,4 @@ private:
     QString _texPath;
 };
 
-#endif // CLEANTEXTURESPATH_H
+#endif // GUI_CLEANTEXTURESPATH_H

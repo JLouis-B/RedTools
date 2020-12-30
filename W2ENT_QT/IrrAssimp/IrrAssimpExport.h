@@ -16,14 +16,13 @@ class IrrAssimpExport
         virtual ~IrrAssimpExport();
         void writeFile(irr::scene::IMesh* mesh, irr::core::stringc format, irr::core::stringc filename);
 
-    protected:
     private:
         aiScene* m_assimpScene;
 
-        void createMeshes(const irr::scene::IMesh* mesh);
-        void createMaterials(const irr::scene::IMesh* mesh);
-        void createAnimations(const irr::scene::ISkinnedMesh* mesh);
-        aiNode* createNode(const irr::scene::ISkinnedMesh::SJoint* joint);
+        void createMeshes(const irr::scene::IMesh* irrMesh);
+        void createMaterials(const irr::scene::IMesh* irrMesh);
+        void createAnimations(const irr::scene::ISkinnedMesh* irrMesh);
+        aiNode* createNode(const irr::scene::ISkinnedMesh::SJoint* irrJoint);
 
         irr::core::array<irr::u16> getMeshesMovedByBone(const irr::scene::ISkinnedMesh::SJoint* joint);
         std::map<irr::u16, irr::core::array<const irr::scene::ISkinnedMesh::SJoint*> > m_bonesPerMesh;

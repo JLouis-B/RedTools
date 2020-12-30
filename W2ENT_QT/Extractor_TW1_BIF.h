@@ -1,5 +1,5 @@
-#ifndef TW1BIFEXTRACTOR_H
-#define TW1BIFEXTRACTOR_H
+#ifndef EXTRACTOR_TW1_BIF_H
+#define EXTRACTOR_TW1_BIF_H
 
 // Based on the specification from http://witcher.wikia.com/wiki/KEY_BIF_V1.1_format
 
@@ -55,4 +55,4 @@ signals:
     void error();
 };
 
-#endif // TW1BIFEXTRACTOR_H
+#endif // EXTRACTOR_TW1_BIF_H

@@ -1,5 +1,5 @@
-#ifndef EXTRACTORUI_TW1_BIF_H
-#define EXTRACTORUI_TW1_BIF_H
+#ifndef GUI_EXTRACTOR_TW1_BIF_H
+#define GUI_EXTRACTOR_TW1_BIF_H
 
 #include <QDialog>
 #include <QThread>
@@ -36,4 +36,4 @@ public slots:
     void killExtractThread();
 };
 
-#endif // EXTRACTORUI_TW1_BIF_H
+#endif // GUI_EXTRACTOR_TW1_BIF_H

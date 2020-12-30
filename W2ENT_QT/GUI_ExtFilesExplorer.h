@@ -1,5 +1,5 @@
-#ifndef EXTFILES_H
-#define EXTFILES_H
+#ifndef GUI_EXTFILES_H
+#define GUI_EXTFILES_H
 
 #include <QDialog>
 #include <QFileDialog>
@@ -46,4 +46,4 @@ private:
     QString _back;
 };
 
-#endif // EXTFILES_H
+#endif // GUI_EXTFILES_H

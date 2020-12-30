@@ -1,14 +1,10 @@
 #ifndef IO_MESHLOADER_CEF_H
 #define IO_MESHLOADER_CEF_H
 
-#include "IMeshLoader.h"
-#include "irrString.h"
-#include "SMesh.h"
-#include "SAnimatedMesh.h"
-#include "IMeshManipulator.h"
-#include "ISkinnedMesh.h"
-#include "IFileSystem.h"
-#include "IReadFile.h"
+#include <IMeshLoader.h>
+#include <IMeshManipulator.h>
+#include <ISkinnedMesh.h>
+
 #include "Log.h"
 
 

@@ -1,5 +1,5 @@
-#ifndef SEARCH_H
-#define SEARCH_H
+#ifndef GUI_SEARCH_H
+#define GUI_SEARCH_H
 
 #include <QDialog>
 #include <QThread>
@@ -78,4 +78,4 @@ signals:
 
 
 
-#endif // SEARCH_H
+#endif // GUI_SEARCH_H

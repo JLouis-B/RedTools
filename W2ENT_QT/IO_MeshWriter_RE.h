@@ -1,5 +1,5 @@
-#ifndef RE_MESH_WRITER_H
-#define RE_MESH_WRITER_H
+#ifndef IO_MESHWRITER_RE_H
+#define IO_MESHWRITER_RE_H
 
 #include <IMeshWriter.h>
 #include <ISkinnedMesh.h>

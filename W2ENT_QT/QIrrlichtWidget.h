@@ -1,7 +1,11 @@
 #ifndef QIRRLICHTWIDGET_HPP
 #define QIRRLICHTWIDGET_HPP
 
-#include <irrlicht.h>
+#include <IrrlichtDevice.h>
+#include <IMaterialRendererServices.h>
+#include <IShaderConstantSetCallBack.h>
+#include <IAnimatedMeshSceneNode.h>
+#include <ICameraSceneNode.h>
 
 #include <QWidget>
 #include <QResizeEvent>

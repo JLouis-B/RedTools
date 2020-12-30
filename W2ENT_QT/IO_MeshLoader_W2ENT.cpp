@@ -1,18 +1,10 @@
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
-
-#include "IrrCompileConfig.h"
-
-#define _IRR_COMPILE_WITH_W2ENT_LOADER_
-#ifdef _IRR_COMPILE_WITH_W2ENT_LOADER_
-
 #include "IO_MeshLoader_W2ENT.h"
 
-#include "ISceneManager.h"
-#include "IVideoDriver.h"
-#include "IFileSystem.h"
-#include "IReadFile.h"
-#include "IWriteFile.h"
+#include <ISceneManager.h>
+#include <IVideoDriver.h>
+#include <IFileSystem.h>
+#include <IReadFile.h>
+#include <IWriteFile.h>
 
 #include "Utils_RedEngine.h"
 #include "Utils_Qt_Irr.h"
@@ -1367,6 +1359,4 @@ void IO_MeshLoader_W2ENT::readLODs(io::IReadFile* file, core::array<TW2_LOD>& LO
 
 } // end namespace scene
 } // end namespace irr
-
-#endif // _IRR_COMPILE_WITH_W2ENT_LOADER_
 

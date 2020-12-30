@@ -4,7 +4,6 @@
 #include <map>
 
 #include <IMeshLoader.h>
-#include <IMeshManipulator.h>
 #include <ISkinnedMesh.h>
 
 #include "TW3_CSkeleton.h"

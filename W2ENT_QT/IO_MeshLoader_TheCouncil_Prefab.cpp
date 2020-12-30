@@ -1,9 +1,7 @@
 #include "IO_MeshLoader_TheCouncil_Prefab.h"
 
-#include "ISceneManager.h"
-#include "IVideoDriver.h"
-#include "IWriteFile.h"
-#include "Settings.h"
+#include <ISceneManager.h>
+#include <IVideoDriver.h>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,6 +9,7 @@
 
 #include <iostream>
 
+#include "Settings.h"
 #include "Utils_TheCouncil.h"
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"

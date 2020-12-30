@@ -1,5 +1,6 @@
-#include "GUI_MainWindow.h"
 #include <QApplication>
+
+#include "GUI_MainWindow.h"
 #include "UIThemeManager.h"
 
 int main(int argc, char *argv[])

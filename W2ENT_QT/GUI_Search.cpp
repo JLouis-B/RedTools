@@ -1,13 +1,13 @@
 #include "GUI_Search.h"
 #include "ui_GUI_Search.h"
 
+#include <QDir>
+#include <QTextStream>
+
 #include "Settings.h"
 #include "Translator.h"
 #include "Utils_Qt_Irr.h"
 #include "Utils_RedEngine.h"
-
-#include <QDir>
-#include <QTextStream>
 
 #include <iostream>
 

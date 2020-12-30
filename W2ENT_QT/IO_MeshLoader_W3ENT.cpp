@@ -1,26 +1,15 @@
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
-
-#include "IrrCompileConfig.h"
-
-#define _IRR_COMPILE_WITH_W3ENT_LOADER_
-#ifdef _IRR_COMPILE_WITH_W3ENT_LOADER_
-
 #include "IO_MeshLoader_W3ENT.h"
 
-#include "ISceneManager.h"
-#include "IVideoDriver.h"
-#include "IFileSystem.h"
-#include "IReadFile.h"
-#include "IWriteFile.h"
+#include <ISceneManager.h>
+#include <IVideoDriver.h>
+#include <IFileSystem.h>
+#include <IMeshManipulator.h>
 
 #include "Utils_Halffloat.h"
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 
 #include "Settings.h"
-
-
 
 namespace irr
 {
@@ -1774,9 +1763,3 @@ s32 IO_MeshLoader_W3ENT::getTextureLayerFromTextureType(core::stringc textureTyp
 
 } // end namespace scene
 } // end namespace irr
-
-
-
-
-#endif // _IRR_COMPILE_WITH_W3ENT_LOADER_
-

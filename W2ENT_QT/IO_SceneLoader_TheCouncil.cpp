@@ -1,15 +1,13 @@
 #include "IO_SceneLoader_TheCouncil.h"
 
-
 #include <ISceneManager.h>
 #include <IAnimatedMeshSceneNode.h>
-
-#include "Settings.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include "Settings.h"
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 #include "Utils_TheCouncil.h"

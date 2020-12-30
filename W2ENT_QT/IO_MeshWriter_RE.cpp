@@ -1,24 +1,12 @@
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
-
-//#include "IrrCompileConfig.h"
-
-// -------------
-#define _IRR_COMPILE_WITH_RE_WRITER_
-
-#ifdef _IRR_COMPILE_WITH_RE_WRITER_
-
 #include "IO_MeshWriter_RE.h"
-//#include "os.h"
-#include "IMesh.h"
-#include "IMeshBuffer.h"
-#include "IMeshManipulator.h"
-#include "IAttributes.h"
-#include "ISceneManager.h"
-#include "IMeshCache.h"
-#include "IWriteFile.h"
-#include "IFileSystem.h"
-#include "ITexture.h"
+
+#include <IMesh.h>
+#include <IMeshBuffer.h>
+#include <IMeshManipulator.h>
+#include <ISceneManager.h>
+#include <IWriteFile.h>
+#include <IFileSystem.h>
+#include <ITexture.h>
 
 #include <iostream>
 
@@ -624,6 +612,4 @@ bool IO_MeshWriter_RE::writeMesh(io::IWriteFile* file, scene::IMesh* mesh, s32 f
 
 } // end namespace
 } // end namespace
-
-#endif
 

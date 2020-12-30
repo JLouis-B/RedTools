@@ -1,12 +1,10 @@
 #include "IO_MeshLoader_CEF.h"
 
-#include "ISceneManager.h"
-#include "IVideoDriver.h"
-#include "IWriteFile.h"
-#include "Settings.h"
+#include <ISceneManager.h>
 
 #include <iostream>
 
+#include "Settings.h"
 #include "Utils_Loaders_Irr.h"
 #include "Utils_Qt_Irr.h"
 #include "Utils_Halffloat.h"

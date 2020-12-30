@@ -1,5 +1,7 @@
 #include "QIrrlichtWidget.h"
 
+#include <irrlicht.h>
+
 #include <QApplication>
 #include <QMessageBox>
 #include <QDir>

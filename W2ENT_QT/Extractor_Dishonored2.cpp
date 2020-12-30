@@ -1,13 +1,13 @@
 #include "Extractor_Dishonored2.h"
 
-#include "Log.h"
-#include "Utils_Loaders_Qt.h"
-
 #include <iostream>
 
 #include <QVector>
 
 #include <zlib.h>
+
+#include "Log.h"
+#include "Utils_Loaders_Qt.h"
 
 Extractor_Dishonored2::Extractor_Dishonored2(QString indexFile, QString resourcesFile, QString folder)
     : _indexFile(indexFile),

@@ -2,7 +2,6 @@
 #define IO_MESHLOADER_W2ENT_H
 
 #include <IMeshLoader.h>
-#include <IMeshManipulator.h>
 #include <ISkinnedMesh.h>
 
 #include <map>

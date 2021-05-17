@@ -255,24 +255,31 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         CMesh(file, meshesToLoad[i]);
     }
 
-    // some skeletons aren't in CSkeleton
+    // some skeletons aren't stored as CSkeleton elements
     for (u32 i = 0; i < Files.size(); ++i)
     {
         core::stringc filename = Files[i];
         if (core::hasFileExtension(filename, "w2rig"))
         {
             io::IReadFile* skeletonFile = FileSystem->createAndOpenFile(ConfigGamePath + filename);
-            IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
-            loader.m_skeletonsLoaderMode = true;
-            loader.createMesh(skeletonFile);
-
-            for (u32 j = 0; j < loader.Skeletons.size(); ++j)
+            if (skeletonFile)
             {
-                log->addLine("Add a skeleton loaded from external file");
-                Skeletons.push_back(loader.Skeletons[j]);
-            }
+                IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
+                loader.m_skeletonsLoaderMode = true;
+                loader.createMesh(skeletonFile);
 
-            skeletonFile->drop();
+                for (u32 j = 0; j < loader.Skeletons.size(); ++j)
+                {
+                    log->addLine("Add a skeleton loaded from external file");
+                    Skeletons.push_back(loader.Skeletons[j]);
+                }
+
+                skeletonFile->drop();
+            }
+        }
+        else
+        {
+            SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some skeleton files havn't been found, check your 'Base directory'.");
         }
     }
 

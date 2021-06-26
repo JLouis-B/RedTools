@@ -261,7 +261,8 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
         core::stringc filename = Files[i];
         if (core::hasFileExtension(filename, "w2rig"))
         {
-            io::IReadFile* skeletonFile = FileSystem->createAndOpenFile(ConfigGamePath + filename);
+            io::path skeletonFilePath = ConfigGamePath + filename;
+            io::IReadFile* skeletonFile = FileSystem->createAndOpenFile(skeletonFilePath);
             if (skeletonFile)
             {
                 IO_MeshLoader_W2ENT loader(SceneManager, FileSystem);
@@ -276,10 +277,10 @@ bool IO_MeshLoader_W2ENT::load(io::IReadFile* file)
 
                 skeletonFile->drop();
             }
-        }
-        else
-        {
-            SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some skeleton files havn't been found, check your 'Base directory'.");
+            else
+            {
+                log->addLineAndFlush(formatString("Skeleton file %s not found, check your 'Base directory'", skeletonFilePath.c_str()), true);
+            }
         }
     }
 
@@ -1160,11 +1161,10 @@ void IO_MeshLoader_W2ENT::generateDDSFromXBM(core::stringc xbmFilepath, core::st
     log->addLineAndFlush("XBM to DDS");
 
     // Open the XBM file
-    io::IReadFile* xbmFile = FileSystem->createAndOpenFile((xbmFilepath).c_str());
+    io::IReadFile* xbmFile = FileSystem->createAndOpenFile(xbmFilepath.c_str());
     if (!xbmFile)
     {
-        SceneManager->getParameters()->setAttribute("TW_FEEDBACK", "Some textures havn't been found, check your 'Base directory'.");
-        log->addAndFlush(core::stringc("Error : the file ") + xbmFilepath + core::stringc(" can't be opened.\n"));
+        log->addLineAndFlush(formatString("Texture file %s not found, check your 'Base directory'", xbmFilepath.c_str()), true);
         return;
     }
 

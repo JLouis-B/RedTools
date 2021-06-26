@@ -180,14 +180,10 @@ void GUI_MainWindow::addMeshes(QStringList filenames)
 
         Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Read '") + file + "'... "), true);
 
-        core::stringc feedbackMessage;
-
         if (_irrWidget->isEmpty(_currentLOD))
-            _irrWidget->loadAndReplaceMesh(file, feedbackMessage);
+            _irrWidget->loadAndReplaceMesh(file);
         else
-            _irrWidget->addMesh(file, feedbackMessage);
-
-        Log::Instance()->addLineAndFlush(feedbackMessage, true);
+            _irrWidget->addMesh(file);
     }
 
     if (!_irrWidget->isEmpty(_currentLOD))
@@ -396,7 +392,7 @@ void GUI_MainWindow::convert()
     if (dir.exists())
     {
         core::stringc feedback = "";
-        _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos, feedback);
+        _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos);
         Log::Instance()->addLineAndFlush(feedback, true);
     }
     else
@@ -695,8 +691,7 @@ void GUI_MainWindow::replaceMesh(QString path)
     _ui->lineEdit_ImportedFile->setText(path);
     QCoreApplication::processEvents();
 
-    core::stringc feedbackMessage = "";
-    bool success = _irrWidget->loadAndReplaceMesh(path, feedbackMessage);
+    bool success = _irrWidget->loadAndReplaceMesh(path);
     if (success)
     {
         _irrWidget->enableWireframe(_ui->action_display_Wireframe->isChecked());
@@ -723,7 +718,8 @@ void GUI_MainWindow::replaceMesh(QString path)
         _firstSelection = false;
     }
 
-    Log::Instance()->addLineAndFlush(feedbackMessage, true);
+    logLoadingResult(success);
+
     updateWindowTitle();
 }
 
@@ -737,15 +733,9 @@ void GUI_MainWindow::loadRig(QString path)
     Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    core::stringc feedback;
-    bool success = _irrWidget->loadRig(QSTRING_TO_IRRPATH(path), feedback);
+    bool success = _irrWidget->loadRig(QSTRING_TO_IRRPATH(path));
+    logLoadingResult(success);
 
-    if (success)
-        QMessageBox::information(this, "success", feedback.c_str());
-    else
-        QMessageBox::critical(this, "Error", feedback.c_str());
-
-    Log::Instance()->addLineAndFlush(feedback, true);
     updateWindowTitle();
 }
 
@@ -759,10 +749,9 @@ void GUI_MainWindow::loadAnimations(QString path)
     Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    core::stringc feedback;
-    bool success = _irrWidget->loadAnims(QSTRING_TO_IRRPATH(path), feedback);
+    bool success = _irrWidget->loadAnims(QSTRING_TO_IRRPATH(path));
+    logLoadingResult(success);
 
-    Log::Instance()->addLineAndFlush(feedback, true);
     updateWindowTitle();
 }
 
@@ -776,10 +765,9 @@ void GUI_MainWindow::loadTW1Animations(QString path)
     Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    core::stringc feedback;
-    bool success = _irrWidget->loadTW1Anims(QSTRING_TO_IRRPATH(path), feedback);
+    bool success = _irrWidget->loadTW1Anims(QSTRING_TO_IRRPATH(path));
+    logLoadingResult(success);
 
-    Log::Instance()->addLineAndFlush(feedback, true);
     updateWindowTitle();
 }
 
@@ -793,7 +781,18 @@ void GUI_MainWindow::loadTheCouncilTemplate(QString path)
     Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    core::stringc feedback;
-    bool success = _irrWidget->loadTheCouncilTemplate(QSTRING_TO_IRRPATH(path), feedback);
-    Log::Instance()->addLineAndFlush(feedback, true);
+    bool success = _irrWidget->loadTheCouncilTemplate(QSTRING_TO_IRRPATH(path));
+    logLoadingResult(success);
+}
+
+void GUI_MainWindow::logLoadingResult(bool result)
+{
+    if (result)
+    {
+        Log::Instance()->addLineAndFlush("Loading finished", true);
+    }
+    else
+    {
+        Log::Instance()->addLineAndFlush("Loading failed", true);
+    }
 }

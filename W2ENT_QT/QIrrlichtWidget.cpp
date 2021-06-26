@@ -74,7 +74,6 @@ void QIrrlichtWidget::init()
     params.Vsync             = true;
 
     _device = createDeviceEx(params);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
 
     /* une fois initialisé, on émet le signal onInit, c'est la que nous
      * ajouterons nos modèles et nos textures.
@@ -127,6 +126,10 @@ void QIrrlichtWidget::init()
 #endif
 
     Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_IRRPATH(QCoreApplication::applicationDirPath() + "/debug.log"));
+    if (Log::Instance()->isEnabled() && !Log::Instance()->works())
+    {
+        Log::Instance()->addLineAndFlush("Error : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)");
+    }
 }
 
 void QIrrlichtWidget::initNormalsMaterial()
@@ -378,12 +381,12 @@ void setMaterialsSettings(scene::IAnimatedMeshSceneNode* node)
         node->setMaterialTexture(i, nullptr);
 }
 
-bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadAnims(const io::path filename)
 {
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        feedbackMessage = "Error : The file can't be opened.";
+        Log::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
         return false;
     }
 
@@ -407,16 +410,15 @@ bool QIrrlichtWidget::loadAnims(const io::path filename, core::stringc &feedback
 
     setMaterialsSettings(_currentLodData->_node);
 
-    feedbackMessage = "done";
     return true;
 }
 
-bool QIrrlichtWidget::loadTW1Anims(const io::path filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadTW1Anims(const io::path filename)
 {
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        feedbackMessage = "Error : The file can't be opened.";
+        Log::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
         return false;
     }
 
@@ -434,16 +436,15 @@ bool QIrrlichtWidget::loadTW1Anims(const io::path filename, core::stringc &feedb
 
     setMaterialsSettings(_currentLodData->_node);
 
-    feedbackMessage = "done";
     return true;
 }
 
-bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadRig(const io::path filename)
 {
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        feedbackMessage = "Error : The file can't be opened.";
+        Log::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
         return false;
     }
 
@@ -459,14 +460,16 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
     scene::ISkinnedMesh* newMesh = copySkinnedMesh(_device->getSceneManager(), _currentLodData->_node->getMesh(), false);
 
     bool success = skeleton.applyToModel(newMesh);
-    if (success)
-        feedbackMessage = "Rig successfully applied";
+    if (!success)
+    {
+        Log::Instance()->addLineAndFlush("The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?", true);
+    }
     else
-        feedbackMessage = "The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?";
-
-    // Apply the skinning
-    TW3_DataCache::_instance.setOwner(newMesh);
-    TW3_DataCache::_instance.apply();
+    {
+        // Apply the skinning
+        TW3_DataCache::_instance.setOwner(newMesh);
+        TW3_DataCache::_instance.apply();
+    }
 
     newMesh->setDirty();
     newMesh->finalize();
@@ -477,16 +480,16 @@ bool QIrrlichtWidget::loadRig(const io::path filename, core::stringc &feedbackMe
     return success;
 }
 
-bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename)
 {
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
     _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", cleanPath(Settings::_baseDir).toStdString().c_str());
 
     bool success = _device->getSceneManager()->loadScene(filename);
-    if (success)
-        feedbackMessage = "Template sucessfully loaded";
-    else
-        feedbackMessage = "Fail to load template";
+    if (!success)
+    {
+        Log::Instance()->addLineAndFlush("Fail to load template", true);
+    }
 
     return success;
 }
@@ -536,7 +539,7 @@ void QIrrlichtWidget::loadMeshPostProcess()
     */
 }
 
-scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc &feedbackMessage)
+scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename)
 {
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
     _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", cleanPath(Settings::_baseDir).toStdString().c_str());
@@ -570,16 +573,9 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc 
     {
         mesh = _device->getSceneManager()->getMesh(irrFilename);
 
-        // Witcher feedback
-        if (extension == ".w2mesh" || extension == ".w2ent" || extension == ".w2rig")
+        if (!mesh)
         {
-            feedbackMessage = _device->getSceneManager()->getParameters()->getAttributeAsString("TW_FEEDBACK");
-            _device->getSceneManager()->getParameters()->setAttribute("TW_FEEDBACK", "");
-        }
-
-        if (!mesh && feedbackMessage == "")
-        {
-            feedbackMessage = "\nError : loading of the mesh failed for unknown reason.";
+            Log::Instance()->addLineAndFlush("Error : loading of the mesh failed for unknown reason.", true);
         }
     }
 #ifdef COMPILE_WITH_ASSIMP
@@ -588,27 +584,28 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc 
         mesh = assimp.getMesh(irrFilename);
 
         if (!mesh)
-            feedbackMessage = assimp.getError();
+        {
+            Log::Instance()->addLineAndFlush(assimp.getError(), true);
+        }
     }
 #endif
     else        // no mesh loader for this file
     {
-        feedbackMessage = "\nError : No mesh loader found for this file. Are you sure that this file has an extension loadable by the software ? Check the website for more information.";
+        Log::Instance()->addLineAndFlush("Error : No mesh loader found for this file. Are you sure that this file has an extension loadable by the software ? Check the website for more information.", true);
     }
 
     return mesh;
 }
 
-bool QIrrlichtWidget::addMesh(QString filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::addMesh(QString filename)
 {
     _inLoading = true;
 
-    scene::IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
+    scene::IAnimatedMesh* mesh = loadMesh(filename);
 
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
-        feedbackMessage = "fail";
         _inLoading = false;
         return false;
     }
@@ -620,27 +617,23 @@ bool QIrrlichtWidget::addMesh(QString filename, core::stringc &feedbackMessage)
 
     loadMeshPostProcess();
 
-    // No error and no feedback message specified, we will simply say 'done'
-    if (feedbackMessage == "")
-        feedbackMessage = "done";
-
     _inLoading = false;
     return true;
 }
 
-bool QIrrlichtWidget::loadAndReplaceMesh(QString filename, core::stringc &feedbackMessage)
+bool QIrrlichtWidget::loadAndReplaceMesh(QString filename)
 {
     _inLoading = true;
 
     // Delete the current mesh
     clearLOD();
 
-    scene::IAnimatedMesh* mesh = loadMesh(filename, feedbackMessage);
+    scene::IAnimatedMesh* mesh = loadMesh(filename);
 
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
-        feedbackMessage = "fail";
+        Log::Instance()->addAndFlush("fail", true);
         _inLoading = false;
         return false;
     }
@@ -654,10 +647,6 @@ bool QIrrlichtWidget::loadAndReplaceMesh(QString filename, core::stringc &feedba
 
     _camera->setTarget(_currentLodData->_node->getPosition());
     loadMeshPostProcess();
-
-    // No error and no feedback message specified, we will simply say 'done'
-    if (feedbackMessage == "")
-        feedbackMessage = "done";
 
     _inLoading = false;
     return true;
@@ -677,7 +666,7 @@ void scaleSkeleton(scene::IMesh* mesh, float factor)
     }
 }
 
-void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage)
+void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, ExporterInfos exporter)
 {
     if (exporter._exporterType != Exporter_Redkit && (!_currentLodData->_node || !_currentLodData->_node->getMesh()))
     {
@@ -698,7 +687,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
     io::IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportMeshPath);
     if (!file)
     {
-        feedbackMessage = "fail. Can't create the exported file";
+        Log::Instance()->addAndFlush("fail. Can't create the exported file", true);
         return;
     }
 
@@ -825,8 +814,6 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
 
     if (file)
         file->drop();
-
-    feedbackMessage = "done";
 }
 
 

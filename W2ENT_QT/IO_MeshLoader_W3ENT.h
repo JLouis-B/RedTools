@@ -251,8 +251,6 @@ private:
 
     core::array<scene::ISkinnedMesh*> Meshes;
 
-    core::stringc Feedback;
-
 };
 
 } // end namespace scene

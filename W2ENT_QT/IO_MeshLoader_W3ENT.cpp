@@ -54,7 +54,6 @@ bool IO_MeshLoader_W3ENT::isALoadableFileExtension(const io::path& filename) con
 //! See IReferenceCounted::drop() for more information.
 IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
 {
-    Feedback = "";
 	if (!f)
         return nullptr;
 
@@ -77,12 +76,6 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
 
     log = Log::Instance();
 
-    if (log->isEnabled() && !log->works())
-    {
-        Feedback += "\nError : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)\n";
-        return nullptr;
-    }
-
     writeLogHeader(f);
     log->addLineAndFlush("Start loading");
 
@@ -99,8 +92,6 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
         */
 
 		AnimatedMesh->finalize();
-        //Feedback += "done";
-        // No feedback = 'done' feedback so it's necesseray to fill it
 
         //SceneManager->getMeshManipulator()->flipSurfaces(AnimatedMesh);
 	}
@@ -111,8 +102,6 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
 	}
 
     log->addLineAndFlush("LOADING FINISHED");
-
-    SceneManager->getParameters()->setAttribute("TW_FEEDBACK", Feedback.c_str());
 
 	return AnimatedMesh;
 }
@@ -266,11 +255,11 @@ bool IO_MeshLoader_W3ENT::W3_ReadBuffer(io::IReadFile* file, SBufferInfos buffer
     if (ConfigLoadOnlyBestLOD && vBufferInf.lod != 1)
         return false;
 
-    io::IReadFile* bufferFile = FileSystem->createAndOpenFile(file->getFileName() + ".1.buffer");
+    core::stringc bufferFilename = file->getFileName() + ".1.buffer";
+    io::IReadFile* bufferFile = FileSystem->createAndOpenFile(bufferFilename);
     if (!bufferFile)
     {
-        Feedback += "\nThe .buffer file associated to the mesh hasn't been found.\nHave you extracted the necessary bundle ?\n";
-        log->addAndFlush(" fail to open .buffer file ");
+        log->addLineAndFlush(formatString("Error : Fail to open %s file", bufferFilename.c_str()), true);
         return false;
     }
 
@@ -770,8 +759,7 @@ video::SMaterial IO_MeshLoader_W3ENT::ReadIMaterialProperty(io::IReadFile* file)
                 }
                 else
                 {
-                    Feedback += "Some textures havn't been found, have you correctly set your textures directory ?\n";
-                    log->addLineAndFlush(formatString("Error : the file %s can't be opened.", Files[texId].c_str()));
+                    log->addLineAndFlush(formatString("Error : the file %s can't be opened.", Files[texId].c_str()), true);
                 }
             }
         }
@@ -1696,8 +1684,7 @@ bool IO_MeshLoader_W3ENT::load(io::IReadFile* file)
     }
     else
     {
-        log->addLineAndFlush("Error : Incorrect file format version");
-        Feedback = "\nError : Incorrect file format version";
+        log->addLineAndFlush("Error : Incorrect file format version", true);
         return false;
     }
 }

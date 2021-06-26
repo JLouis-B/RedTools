@@ -69,6 +69,8 @@ public slots :
 
     void loadTheCouncilTemplate(QString path);
 
+    void logLoadingResult(bool result);
+
 
 private:
     void updateWindowTitle();

@@ -168,10 +168,10 @@ class QIrrlichtWidget : public QWidget
 
         io::IFileSystem* getFileSystem();
 
-        bool loadAndReplaceMesh(QString filename, core::stringc &feedbackMessage);
-        bool addMesh(QString filename, core::stringc &feedbackMessage);
+        bool loadAndReplaceMesh(QString filename);
+        bool addMesh(QString filename);
 
-        void exportMesh(QString exportFolderPath, QString filename, ExporterInfos exporter, core::stringc &feedbackMessage);
+        void exportMesh(QString exportFolderPath, QString filename, ExporterInfos exporter);
 
         unsigned int getPolysCount();
         unsigned int getJointsCount();
@@ -186,13 +186,13 @@ class QIrrlichtWidget : public QWidget
 
         bool isEmpty (LOD lod);
 
-        bool loadRig(const io::path filename, core::stringc &feedbackMessage);
-        bool loadAnims(const io::path filename, core::stringc &feedbackMessage);
+        bool loadRig(const io::path filename);
+        bool loadAnims(const io::path filename);
         bool fileIsOpenableByIrrlicht(QString filename);
 
-        bool loadTW1Anims(const io::path filename, core::stringc &feedbackMessage);
+        bool loadTW1Anims(const io::path filename);
 
-        bool loadTheCouncilTemplate(const io::path filename, core::stringc &feedbackMessage);
+        bool loadTheCouncilTemplate(const io::path filename);
 
     signals:
         void onInit (QIrrlichtWidget* irrWidget);
@@ -238,7 +238,7 @@ class QIrrlichtWidget : public QWidget
 
         bool isLoadableByIrrlicht(io::path filename);
         void loadMeshPostProcess();
-        scene::IAnimatedMesh* loadMesh(QString filename, core::stringc &feedbackMessage);
+        scene::IAnimatedMesh* loadMesh(QString filename);
 
         void initNormalsMaterial();
         NormalsDebuggerShaderCallBack* _normalsMaterial;

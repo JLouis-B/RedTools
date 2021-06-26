@@ -469,7 +469,7 @@ void GUI_MaterialsExplorer::read(QString filename)
 
     _ui->tableWidget_properties->setRowCount(0);
 
-    const io::path filenamePath = QSTRING_TO_PATH(filename);
+    const io::path filenamePath = QSTRING_TO_IRRPATH(filename);
     io::IReadFile* file = _Fs->createAndOpenFile(filenamePath);
 
     RedEngineVersion fileType = getRedEngineFileType(file);

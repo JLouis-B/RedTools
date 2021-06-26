@@ -72,7 +72,7 @@ public slots :
 
 private:
     void updateWindowTitle();
-    void addToUILog(QString log);
+    void logToUser(core::stringc log);
     void registerExporters();
 
     Ui::GUI_MainWindow* _ui;

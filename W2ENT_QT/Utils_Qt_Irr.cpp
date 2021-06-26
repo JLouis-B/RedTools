@@ -2,23 +2,33 @@
 
 #include <Keycodes.h>
 
-QString PATH_TO_QSTRING(irr::io::path path)
+QString IRRPATH_TO_QSTRING(irr::io::path irrPath)
 {
     #ifdef _IRR_WCHAR_FILESYSTEM
-        return QString::fromWCharArray(path.c_str());
+        return QString::fromWCharArray(irrPath.c_str());
     #else
-        return QString(path.c_str());
+        return QString(irrPath.c_str());
     #endif
 }
 
 
-irr::io::path QSTRING_TO_PATH(QString str)
+irr::io::path QSTRING_TO_IRRPATH(QString qString)
 {
     #ifdef _IRR_WCHAR_FILESYSTEM
-        return str.toStdWString().c_str();
+        return qString.toStdWString().c_str();
     #else
-        return str.toStdString().c_str();
+        return qString.toStdString().c_str();
     #endif
+}
+
+QString IRRSTRING_TO_QSTRING(irr::core::stringc irrString)
+{
+    return QString(irrString.c_str());
+}
+
+irr::core::stringc QSTRING_TO_IRRSTRING(QString qString)
+{
+    return qString.toStdString().c_str();
 }
 
 int QKEY_TO_IRRKEY(int qKey)

@@ -7,13 +7,6 @@
 	<element id="dialogue_folder" text="Select the folder of the game"/>
 	<element id="base_directory" text="Base directory"/>
 	<element id="label_exported_file_name" text="Name"/>
-	
-	
-	<!-- Log window -->
-	<element id="log_writingFile" text="Writing file"/>
-	<element id="log_readingFile" text="Reading file"/>
-	<element id="log_abort" text="Abort : Destination folder doesn't exist"/>
-	<element id="log_warning_empty" text="Warning : The name of the exported file is empty"/>
 
 	
 	<!-- Menus -->

@@ -35,7 +35,7 @@ void GUI_ExtFilesExplorer::read(QString filename)
     _ui->lineEdit->setText(filename);
     _ui->listWidget->clear();
 
-    const io::path filenamePath = QSTRING_TO_PATH(filename);
+    const io::path filenamePath = QSTRING_TO_IRRPATH(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
     RedEngineVersion fileType = getRedEngineFileType(file);

@@ -54,7 +54,10 @@ core::stringc formatString(core::stringc baseString, ...)
     return newString;
 }
 
-Log::Log() : FileSystem(nullptr), Filename(core::stringc()), Output(LOG_NONE)
+Log::Log() :
+    FileSystem(nullptr),
+    Filename(core::stringc()),
+    Output(LOG_NONE)
 {
     #ifdef USE_FLUSH_PATCH
         LogFile = nullptr;
@@ -98,7 +101,7 @@ void Log::close()
     #endif
 }
 
-void Log::add(core::stringc addition)
+void Log::add(core::stringc addition, bool logToUser)
 {
     if (hasOutput(LOG_CONSOLE))
         std::cout << addition.c_str();
@@ -113,11 +116,16 @@ void Log::add(core::stringc addition)
 #else
     Content += addition;
 #endif
+
+    if (logToUser)
+    {
+        logToUserCallbacks(addition);
+    }
 }
 
-void Log::addLine(core::stringc addition)
+void Log::addLine(core::stringc addition, bool logToUser)
 {
-    add(addition.append('\n'));
+    add(addition.append('\n'), logToUser);
 }
 
 void Log::flush()
@@ -146,18 +154,29 @@ void Log::flush()
 #endif
 }
 
-void Log::addLineAndFlush(core::stringc addition)
+void Log::addLineAndFlush(core::stringc addition, bool _logToUser)
 {
-    addAndFlush(addition.append('\n'));
+    addAndFlush(addition.append('\n'), _logToUser);
 }
 
-void Log::addAndFlush(core::stringc addition)
+void Log::addAndFlush(core::stringc addition, bool _logToUser)
 {
     add(addition);
     flush();
+
+    if (_logToUser)
+    {
+        logToUserCallbacks(addition);
+    }
 }
 
-
+void Log::logToUserCallbacks(core::stringc text)
+{
+    if (LogToUserCallback != nullptr)
+    {
+        LogToUserCallback(text);
+    }
+}
 
 bool Log::works()
 {
@@ -197,6 +216,16 @@ bool Log::hasOutput(LogOutput output)
 bool Log::isEnabled()
 {
     return Output != LOG_NONE;
+}
+
+void Log::registerLogToUserCallback(std::function<void(core::stringc)> callback)
+{
+    LogToUserCallback = callback;
+}
+
+void Log::unregisterLogToUserCallback()
+{
+    LogToUserCallback = nullptr;
 }
 
 Log* Log::Instance()

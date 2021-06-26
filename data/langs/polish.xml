@@ -7,13 +7,6 @@
 	<element id="dialogue_folder" text="Wybierz folder z plikami gry"/>
 	<element id="base_directory" text="Domyślna Ścieżka"/>
 	<element id="label_exported_file_name" text="Nazwa"/>
-	
-	
-	<!-- Log window -->
-	<element id="log_writingFile" text="Wczytaj Plik"/>
-	<element id="log_readingFile" text="Zapisz Plik"/>
-	<element id="log_abort" text="Przerwano : Ścieżka do folderu nie istnieje"/>
-	<element id="log_warning_empty" text="Uwaga : Nazwa eksportowanego pliku jest pusta"/>
 
 	
 	<!-- Menus -->

@@ -126,13 +126,13 @@ void QIrrlichtWidget::init()
     Log::Instance()->addOutput(LOG_CONSOLE);
 #endif
 
-    Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_PATH(QCoreApplication::applicationDirPath() + "/debug.log"));
+    Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_IRRPATH(QCoreApplication::applicationDirPath() + "/debug.log"));
 }
 
 void QIrrlichtWidget::initNormalsMaterial()
 {
-    io::path vsFileName = QSTRING_TO_PATH(QCoreApplication::applicationDirPath()) + "/shaders/normals.vert";
-    io::path psFileName = QSTRING_TO_PATH(QCoreApplication::applicationDirPath()) + "/shaders/normals.frag";
+    io::path vsFileName = QSTRING_TO_IRRPATH(QCoreApplication::applicationDirPath()) + "/shaders/normals.vert";
+    io::path psFileName = QSTRING_TO_IRRPATH(QCoreApplication::applicationDirPath()) + "/shaders/normals.frag";
 
     _normalsMaterial = new NormalsDebuggerShaderCallBack();
     _normalsMaterial->SetDevice(_device);
@@ -493,7 +493,7 @@ bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename, core::stri
 
 bool QIrrlichtWidget::fileIsOpenableByIrrlicht(QString filename)
 {
-    const io::path irrFilename = QSTRING_TO_PATH(filename);
+    const io::path irrFilename = QSTRING_TO_IRRPATH(filename);
 
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(irrFilename);
     if (!file)
@@ -520,7 +520,7 @@ void QIrrlichtWidget::loadMeshPostProcess()
             QString texturePath = QString();
             const video::ITexture* texture = material.getTexture(j);
             if (texture)
-                texturePath = PATH_TO_QSTRING(texture->getName().getPath());
+                texturePath = IRRPATH_TO_QSTRING(texture->getName().getPath());
 
             _currentLodData->_additionalTextures[i][j-1] = texturePath;
         }
@@ -556,7 +556,7 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename, core::stringc 
     TW3_DataCache::_instance.clear();
 
 
-    const io::path irrFilename = QSTRING_TO_PATH(filename);
+    const io::path irrFilename = QSTRING_TO_IRRPATH(filename);
     io::path extension;
     core::getFileNameExtension(extension, irrFilename);
 
@@ -694,7 +694,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
         dir.mkdir(exportFolderPath);
     }
 
-    const io::path exportMeshPath = QSTRING_TO_PATH(exportFolderPath + filename + exporter._extension);
+    const io::path exportMeshPath = QSTRING_TO_IRRPATH(exportFolderPath + filename + exporter._extension);
     io::IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportMeshPath);
     if (!file)
     {
@@ -957,14 +957,14 @@ bool QIrrlichtWidget::convertAndCopyTexture(QString texturePath, QString exportF
 
     if (Settings::_convertTexturesEnabled) // Convert and generate the new file in the export folder
     {
-        video::IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_PATH(texturePath));
+        video::IImage* image = _device->getVideoDriver()->createImageFromFile(QSTRING_TO_IRRPATH(texturePath));
         if (image)
         {
             outputTexturePath = exportFolder + pathInfo.baseName() + Settings::_convertTexturesFormat;
             if (!shouldCopyTextures) // we convert the texture but we keep it in it's original folder
                 outputTexturePath = pathInfo.absolutePath() + '\\' + pathInfo.baseName() + Settings::_convertTexturesFormat;
 
-            _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_PATH(outputTexturePath));
+            _device->getVideoDriver()->writeImageToFile(image, QSTRING_TO_IRRPATH(outputTexturePath));
             image->drop();
         }
     }
@@ -985,13 +985,13 @@ void QIrrlichtWidget::convertAndCopyTextures(scene::IMesh* mesh, QString exportF
         video::ITexture* diffuseTexture = buffer->getMaterial().getTexture(0);
         if (diffuseTexture)
         {
-            QString texturePath = PATH_TO_QSTRING(diffuseTexture->getName().getPath());
+            QString texturePath = IRRPATH_TO_QSTRING(diffuseTexture->getName().getPath());
             QString outputTexturePath;
             if (convertAndCopyTexture(texturePath, exportFolder, shouldCopyTextures, outputTexturePath)) // TODO: Log something if file not exist ?
             {
                 // We apply the nex texture to the mesh, so the exported file will use it
                 // TODO: Restore the original texture on the mesh after the export ?
-                video::ITexture* tex = _device->getSceneManager()->getVideoDriver()->getTexture(QSTRING_TO_PATH(outputTexturePath));
+                video::ITexture* tex = _device->getSceneManager()->getVideoDriver()->getTexture(QSTRING_TO_IRRPATH(outputTexturePath));
                 buffer->getMaterial().setTexture(0, tex);
             }
         }
@@ -1015,7 +1015,7 @@ void QIrrlichtWidget::convertAndCopyTextures(QSet<QString> paths, QString export
 QString QIrrlichtWidget::getFilename()
 {
     if (_currentLodData->_node)
-        return PATH_TO_QSTRING(_device->getFileSystem()->getFileBasename(_device->getSceneManager()->getMeshCache()->getMeshFilename(_currentLodData->_node->getMesh())));
+        return IRRPATH_TO_QSTRING(_device->getFileSystem()->getFileBasename(_device->getSceneManager()->getMeshCache()->getMeshFilename(_currentLodData->_node->getMesh())));
     else
         return "";
 }
@@ -1023,7 +1023,7 @@ QString QIrrlichtWidget::getFilename()
 QString QIrrlichtWidget::getPath()
 {
     if (_currentLodData->_node)
-        return PATH_TO_QSTRING(_device->getFileSystem()->getAbsolutePath(_device->getSceneManager()->getMeshCache()->getMeshFilename(_currentLodData->_node->getMesh())));
+        return IRRPATH_TO_QSTRING(_device->getFileSystem()->getAbsolutePath(_device->getSceneManager()->getMeshCache()->getMeshFilename(_currentLodData->_node->getMesh())));
     else
         return "";
 }

@@ -7,13 +7,6 @@
 	<element id="dialogue_folder" text="Выберать папку игры"/>
 	<element id="base_directory" text="Базовый каталог"/>
 	<element id="label_exported_file_name" text="Имя"/>
-	
-	
-	<!-- Log window -->
-	<element id="log_writingFile" text="Запись файла"/>
-	<element id="log_readingFile" text="Чтение файла"/>
-	<element id="log_abort" text="Ошибка: папка назначения не существует"/>
-	<element id="log_warning_empty" text="Предупреждение: имя экспортируемого файла пустое"/>
 
 	
 	<!-- Menus -->

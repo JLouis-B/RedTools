@@ -6,7 +6,7 @@
 
 #include <zlib.h>
 
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
 Extractor_Dishonored2::Extractor_Dishonored2(QString indexFile, QString resourcesFile, QString folder)
@@ -27,7 +27,7 @@ void Extractor_Dishonored2::run()
 
 void Extractor_Dishonored2::extract(QString exportFolder, QString indexFilename, QString resourcesFilename)
 {
-    Log::Instance()->addLineAndFlush(formatString("Dishonored extractor: Decompress file %s", indexFilename.toStdString().c_str()));
+    LoggerManager::Instance()->addLineAndFlush(formatString("Dishonored extractor: Decompress file %s", indexFilename.toStdString().c_str()));
     QFile indexFile(indexFilename);
     if (!indexFile.open(QIODevice::ReadOnly))
     {
@@ -51,7 +51,7 @@ void Extractor_Dishonored2::extract(QString exportFolder, QString indexFilename,
     // parsing
     extractFiles(indexFile, resourcesFile, sharedResourcesFile, exportFolder);
 
-    Log::Instance()->addLineAndFlush("CPK: Decompression finished");
+    LoggerManager::Instance()->addLineAndFlush("CPK: Decompression finished");
     emit finished();
 }
 
@@ -156,7 +156,7 @@ void Extractor_Dishonored2::extractFiles(QFile& indexFile, QFile& resourcesFile,
         QDir dir = newFileInfo.absoluteDir();
         if (!dir.mkpath(newFileInfo.absoluteDir().absolutePath()))
         {
-            Log::Instance()->addLineAndFlush(formatString("Dishonored2Extractor: Fail to mkdir %s", newFileInfo.absoluteDir().absolutePath().toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("Dishonored2Extractor: Fail to mkdir %s", newFileInfo.absoluteDir().absolutePath().toStdString().c_str()));
             return;
         }
 
@@ -164,7 +164,7 @@ void Extractor_Dishonored2::extractFiles(QFile& indexFile, QFile& resourcesFile,
         QFile newFile(newFileFilename);
         if (!newFile.open(QIODevice::WriteOnly))
         {
-            Log::Instance()->addLineAndFlush(formatString("Dishonored2Extractor: Fail to create a new file %s", newFileFilename.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("Dishonored2Extractor: Fail to create a new file %s", newFileFilename.toStdString().c_str()));
             return;
         }
 

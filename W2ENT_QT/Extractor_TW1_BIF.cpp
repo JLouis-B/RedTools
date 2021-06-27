@@ -1,5 +1,5 @@
 #include "Extractor_TW1_BIF.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
 #include <QDir>
@@ -40,7 +40,7 @@ QString Extractor_TW1_BIF::getExtensionFromResourceType(unsigned short resourceT
 
 void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString keyFilename)
 {
-    Log::Instance()->addLineAndFlush(formatString("BIF: Decompress file %s", keyFilename.toStdString().c_str()));
+    LoggerManager::Instance()->addLineAndFlush(formatString("BIF: Decompress file %s", keyFilename.toStdString().c_str()));
     QFile keyFile(keyFilename);
 
     QFileInfo fileInf(keyFile);
@@ -49,7 +49,7 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString keyFilename)
 
     if (!keyFile.open(QIODevice::ReadOnly))
     {
-        Log::Instance()->addLineAndFlush(formatString("BIF: Fail to open %s", keyFilename.toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("BIF: Fail to open %s", keyFilename.toStdString().c_str()));
         emit error();
         return;
     }
@@ -60,7 +60,7 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString keyFilename)
     quint32 nbFiles = readUInt32(keyFile);
     quint32 nbKeys = readUInt32(keyFile);
 
-    Log::Instance()->addLineAndFlush(formatString("nbFiles = %d", nbFiles));
+    LoggerManager::Instance()->addLineAndFlush(formatString("nbFiles = %d", nbFiles));
 
     relativeSeek(keyFile, 4);
 
@@ -110,13 +110,13 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString keyFilename)
     }
     _resources.clear();
 
-    Log::Instance()->addLineAndFlush("BIF: Decompression finished");
+    LoggerManager::Instance()->addLineAndFlush("BIF: Decompression finished");
     emit finished();
 }
 
 void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString bifFilename, unsigned int bifId)
 {
-    Log::Instance()->addLineAndFlush("Read BIF");
+    LoggerManager::Instance()->addLineAndFlush("Read BIF");
     QFile bifFile(bifFilename);
 
     QFileInfo fileInf(bifFile);
@@ -125,14 +125,14 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString bifFilename, un
 
     if (!bifFile.open(QIODevice::ReadOnly))
     {
-        Log::Instance()->addLineAndFlush(formatString("BIF: Fail to open BIF file %s", bifFilename.toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("BIF: Fail to open BIF file %s", bifFilename.toStdString().c_str()));
         return;
     }
 
     QDir dir;
     if (!dir.mkdir(newFileFolder))
     {
-        Log::Instance()->addLineAndFlush(formatString("BIF: Fail to mkdir %s", newFileFolder.toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("BIF: Fail to mkdir %s", newFileFolder.toStdString().c_str()));
         return;
     }
 
@@ -191,7 +191,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString bifFilename, un
         QFile newFile(newFileFilename);
         if (!newFile.open(QIODevice::WriteOnly))
         {
-            Log::Instance()->addLineAndFlush(formatString("BIF: Fail to open decompressed file %s", newFileFilename.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("BIF: Fail to open decompressed file %s", newFileFilename.toStdString().c_str()));
             return;
         }
         newFile.write(fileData);
@@ -211,7 +211,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString bifFilename, un
             break;
     }
     bifFile.close();
-    Log::Instance()->addLineAndFlush("Read BIF OK");
+    LoggerManager::Instance()->addLineAndFlush("Read BIF OK");
 }
 
 void Extractor_TW1_BIF::quitThread()

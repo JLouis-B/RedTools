@@ -2,10 +2,16 @@
 
 #include "GUI_MainWindow.h"
 #include "UIThemeManager.h"
+#include "Log/ConsoleLogger.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+#ifdef IS_A_DEVELOPMENT_BUILD
+    ConsoleLogger consoleLogger;
+    LoggerManager::Instance()->registerLogger(&consoleLogger, Logger_Dev);
+#endif
 
     // Load setting.xml
     Settings::loadFromXML(QCoreApplication::applicationDirPath() + "/config.xml");

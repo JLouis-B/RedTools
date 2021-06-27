@@ -1,5 +1,5 @@
 #include "Extractor_TW3_BUNDLE.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
 #include <QDir>
@@ -24,7 +24,7 @@ void Extractor_TW3_BUNDLE::run()
 
 void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
 {
-    Log::Instance()->addLineAndFlush(formatString("BUNDLE: Decompress BUNDLE file %s", filename.toStdString().c_str()));
+    LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Decompress BUNDLE file %s", filename.toStdString().c_str()));
     QFile bundleFile(filename);
     if (!bundleFile.open(QIODevice::ReadOnly))
     {
@@ -34,7 +34,7 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
     // parsing
     extractDecompressedFile(bundleFile, exportFolder);
 
-    Log::Instance()->addLineAndFlush("BUNDLE: Decompression finished");
+    LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression finished");
     emit finished();
 }
 
@@ -45,7 +45,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
 
     char magic[9] = "\0";
     file.read(magic, 8); // POTATO70
-    Log::Instance()->addLineAndFlush(magic);
+    LoggerManager::Instance()->addLineAndFlush(magic);
 
     qint32 bundleSize = readInt32(file);
     qint32 dummySize = readInt32(file);
@@ -128,7 +128,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         }
         else
         {
-            Log::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s", filename.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s", filename.toStdString().c_str()));
         }
         delete[] fileContent;
         file.seek(back);
@@ -142,7 +142,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
 
         if (_stopped)
         {
-            Log::Instance()->addLineAndFlush("BUNDLE: Decompression stopped");
+            LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression stopped");
             break;
         }
     }
@@ -165,10 +165,10 @@ bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, 
             decompressedFile.close();
         }
         else
-            Log::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to create file %s", fullPath.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to create file %s", fullPath.toStdString().c_str()));
     }
     else
-        Log::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
 
     return true;
 }

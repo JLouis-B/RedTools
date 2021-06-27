@@ -26,8 +26,12 @@ SOURCES += main.cpp\
     GUI_MainWindow.cpp \
     GUI_Options.cpp \
     IrrAssimp/IrrAssimpUtils.cpp \
-    Log.cpp \
     GUI_Search.cpp \
+    Log/CallbackLogger.cpp \
+    Log/ConsoleLogger.cpp \
+    Log/IAppLogger.cpp \
+    Log/IrrFileLogger.cpp \
+    Log/LoggerManager.cpp \
     Settings.cpp \
     GUI_Resize.cpp \
     Translator.cpp \
@@ -76,13 +80,17 @@ HEADERS  += \
     GUI_Extractor_TW2_DZIP.h \
     GUI_Extractor_TW1_BIF.h \
     IrrAssimp/IrrAssimpUtils.h \
+    Log/CallbackLogger.h \
+    Log/ConsoleLogger.h \
+    Log/IAppLogger.h \
+    Log/IrrFileLogger.h \
+    Log/LoggerManager.h \
     Settings.h \
     GUI_Search.h \
     GUI_Resize.h \
     GUI_Options.h \
     TW3_DataCache.h \
     MeshCombiner.h \
-    Log.h \
     Translator.h \
     GUI_CleanTexturesPath.h \
     QIrrlichtWidget.h \
@@ -137,8 +145,8 @@ FORMS    += \
     GUI_Extractor_Dishonored2.ui
 
 # Change the paths here :
-LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5909-trunk\lib\Win32-gcc\libIrrlicht.a"
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irrlicht-code-r5909-trunk\include" \
+LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irr-svn\lib\Win32-gcc\libIrrlicht.a"
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irr-svn\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
 LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\lib\libassimp.dll.a

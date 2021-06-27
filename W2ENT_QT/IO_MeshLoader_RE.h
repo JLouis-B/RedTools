@@ -6,7 +6,9 @@
 #include <IMeshLoader.h>
 #include <ISkinnedMesh.h>
 
-#include "Log.h"
+#include "Log/LoggerManager.h"
+
+using namespace irr;
 
 enum ChunkType
 {
@@ -79,7 +81,7 @@ private:
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
 
-    Log* log;
+    LoggerManager* log;
 };
 
 } // end namespace scene

@@ -1,5 +1,5 @@
 #include "Extractor_TW2_DZIP.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
 #include <QDir>
@@ -18,7 +18,7 @@ void Extractor_TW2_DZIP::run()
 
 void Extractor_TW2_DZIP::extractDZIP(QString exportFolder, QString filename)
 {
-    Log::Instance()->addLineAndFlush(formatString("DZIP: Decompress DZIP file %s", filename.toStdString().c_str()));
+    LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Decompress DZIP file %s", filename.toStdString().c_str()));
     QFile dzipFile(filename);
     if (!dzipFile.open(QIODevice::ReadOnly))
     {
@@ -28,7 +28,7 @@ void Extractor_TW2_DZIP::extractDZIP(QString exportFolder, QString filename)
     // parsing
     extractDecompressedFile(dzipFile, exportFolder);
 
-    Log::Instance()->addLineAndFlush("DZIP: Decompression finished");
+    LoggerManager::Instance()->addLineAndFlush("DZIP: Decompression finished");
     emit finished();
 }
 
@@ -76,14 +76,14 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
         //std::cout << "seek to  = " << realOffset << std::endl;
 
         if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, QString(filename)))
-            Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename.toStdString().c_str()));
 
         int progression = static_cast<int>(static_cast<float>((i+1) * 100) / filesCount);
         emit onProgress(progression);
 
         if (_stopped)
         {
-            Log::Instance()->addLineAndFlush("DZIP: Decompression stopped");
+            LoggerManager::Instance()->addLineAndFlush("DZIP: Decompression stopped");
             break;
         }
     }
@@ -179,15 +179,15 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
             decompressedFile.close();
         }
         else
-            Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to create file %s", fullPath.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Fail to create file %s", fullPath.toStdString().c_str()));
     }
     else
-        Log::Instance()->addLineAndFlush(formatString("DZIP: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
 
     // not supposed to happen
     if (decompressedSize != decompressedPosition)
     {
-        Log::Instance()->addLineAndFlush(formatString("DZIP: decompressedSize != decompressedPosition : %s", fullPath.toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: decompressedSize != decompressedPosition : %s", fullPath.toStdString().c_str()));
     }
 
     delete[] fileContent;

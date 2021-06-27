@@ -6,7 +6,7 @@
 #include <ISkinnedMesh.h>
 #include <IFileSystem.h>
 
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "IO_SpeedTreeLoader.h"
 
 #include <vector>
@@ -120,7 +120,7 @@ public :
     video::E_MATERIAL_TYPE getMaterialTypeFromShader();
 
 private:
-    Log* _log;
+    LoggerManager* _log;
     io::IFileSystem* FileSystem;
     core::stringc _shader;
     std::map<core::stringc, core::stringc> _textures;
@@ -190,7 +190,7 @@ private:
 
     core::array<SkinMeshToLoadEntry> SkinMeshToLoad;
 
-    Log* _log;
+    LoggerManager* _log;
     u32 _depth;
 };
 

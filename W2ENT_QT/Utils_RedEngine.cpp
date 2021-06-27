@@ -1,7 +1,7 @@
 #include "Utils_RedEngine.h"
 
 #include "Utils_Loaders_Irr.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 
 #include <iostream>
 
@@ -90,7 +90,7 @@ bool loadTW2FileHeader(io::IReadFile* file, RedEngineFileHeader& header, bool lo
     {
         core::stringc string = readString(file, readU8(file) -128);
         header.Strings.push_back(string);
-        Log::Instance()->addLineAndFlush(string);
+        LoggerManager::Instance()->addLineAndFlush(string);
     }
 
     // files
@@ -115,7 +115,7 @@ bool loadTW2FileHeader(io::IReadFile* file, RedEngineFileHeader& header, bool lo
         if (loadFilenamesWithTypes)
             filename = fileType + " : " + filename;
 
-        Log::Instance()->addLineAndFlush(filename);
+        LoggerManager::Instance()->addLineAndFlush(filename);
         //cout << file << endl;
         header.Files.push_back(filename);
     }

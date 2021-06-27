@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "Log.h"
+#include "Log/LoggerManager.h"
 
 
 
@@ -161,7 +161,7 @@ private:
     core::array<TW2_CSkeleton> Skeletons;
 
     //DEBUG
-    Log* log;
+    LoggerManager* log;
 
 
 };

@@ -10,9 +10,11 @@
 #include "ISkinnedMesh.h"
 #include "IFileSystem.h"
 #include "IReadFile.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 
 #include <QString>
+
+using namespace irr;
 
 class IO_SceneLoader_TheCouncil : public scene::ISceneLoader
 {
@@ -39,7 +41,7 @@ private:
 
     io::path ConfigGamePath;
 
-    Log* _log;
+    LoggerManager* _log;
 };
 
 #endif // IO_SCENELOADER_THECOUNCILL_H

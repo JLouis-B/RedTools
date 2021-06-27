@@ -1,5 +1,5 @@
 #include "Extractor_TheCouncil.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
 #include <QVector>
@@ -23,7 +23,7 @@ void Extractor_TheCouncil::run()
 
 void Extractor_TheCouncil::extract(QString exportFolder, QString filename)
 {
-    Log::Instance()->addLineAndFlush(formatString("CPK: Decompress CPK file %s", filename.toStdString().c_str()));
+    LoggerManager::Instance()->addLineAndFlush(formatString("CPK: Decompress CPK file %s", filename.toStdString().c_str()));
     QFile cpkFile(filename);
     if (!cpkFile.open(QIODevice::ReadOnly))
     {
@@ -33,7 +33,7 @@ void Extractor_TheCouncil::extract(QString exportFolder, QString filename)
     // parsing
     extractCPKFile(cpkFile, exportFolder);
 
-    Log::Instance()->addLineAndFlush("CPK: Decompression finished");
+    LoggerManager::Instance()->addLineAndFlush("CPK: Decompression finished");
     emit finished();
 }
 
@@ -52,7 +52,7 @@ void Extractor_TheCouncil::extractCPKFile(QFile& file, QString exportFolder)
         entry.size = readUInt32(file);
         entry.offset = readUInt64(file);
         entry.filename = readStringFixedSize(file, 512);
-        Log::Instance()->addLineAndFlush(formatString("-> %s", entry.filename.toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("-> %s", entry.filename.toStdString().c_str()));
 
         filesToUnpack.push_back(entry);
     }
@@ -72,7 +72,7 @@ void Extractor_TheCouncil::extractCPKFile(QFile& file, QString exportFolder)
         QDir dir = newFileInfo.absoluteDir();
         if (!dir.mkpath(newFileInfo.absoluteDir().absolutePath()))
         {
-            Log::Instance()->addLineAndFlush(formatString("CPK: Fail to mkdir %s", newFileInfo.absoluteDir().absolutePath().toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("CPK: Fail to mkdir %s", newFileInfo.absoluteDir().absolutePath().toStdString().c_str()));
             return;
         }
 
@@ -80,7 +80,7 @@ void Extractor_TheCouncil::extractCPKFile(QFile& file, QString exportFolder)
         QFile newFile(newFileFilename);
         if (!newFile.open(QIODevice::WriteOnly))
         {
-            Log::Instance()->addLineAndFlush(formatString("CPK: Fail to create a new file %s", newFileFilename.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("CPK: Fail to create a new file %s", newFileFilename.toStdString().c_str()));
             return;
         }
         newFile.write(fileContent);

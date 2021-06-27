@@ -25,7 +25,7 @@ scene::IAnimatedMesh* IO_MeshLoader_CEF::createMesh(io::IReadFile* file)
     if (!file)
         return nullptr;
 
-    _log = Log::Instance();
+    _log = LoggerManager::Instance();
     _log->addLine("");
     _log->addLine(formatString("-> File : %s", file->getFileName().c_str()));
     _log->add("_________________________________________________________\n\n\n");

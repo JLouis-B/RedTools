@@ -10,7 +10,7 @@
 #include "TW3_DataCache.h"
 #include "Utils_RedEngine.h"
 #include "MeshCombiner.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 
 
 using namespace irr;
@@ -240,7 +240,7 @@ private:
     bool checkBones(io::IReadFile* file, char nbBones);
 
     // debug log
-    Log* log;
+    LoggerManager* log;
     void writeLogBoolProperty(core::stringc name, bool value);
     void writeLogHeader(const io::IReadFile *f);
 

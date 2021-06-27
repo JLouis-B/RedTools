@@ -28,7 +28,8 @@ using namespace irr;
 QIrrlichtWidget::QIrrlichtWidget (QWidget *parent) :
     QWidget (parent),
     _device (nullptr),
-    _normalsMaterial(nullptr)
+    _normalsMaterial(nullptr),
+    _irrFileLogger(nullptr)
 {
     // on écrit directement dans al mémoire vidéo du widget
     //setAttribute (Qt::WA_PaintOnScreen);
@@ -52,6 +53,31 @@ QIrrlichtWidget::~QIrrlichtWidget ()
     {
         _device->closeDevice ();
         _device->drop ();
+    }
+
+    destroyIrrFileLogger();
+}
+
+void QIrrlichtWidget::createIrrFileLogger()
+{
+    _irrFileLogger = new IrrFileLogger(_device->getSceneManager()->getFileSystem(), QSTRING_TO_IRRPATH(QCoreApplication::applicationDirPath() + "/debug.log"));
+    if (_irrFileLogger->works())
+    {
+        LoggerManager::Instance()->registerLogger(_irrFileLogger, Logger_Dev);
+    }
+    else
+    {
+        LoggerManager::Instance()->addLineAndFlush("Error : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)", true);
+    }
+}
+
+void QIrrlichtWidget::destroyIrrFileLogger()
+{
+    if (_irrFileLogger)
+    {
+        LoggerManager::Instance()->unregisterLogger(_irrFileLogger);
+        delete _irrFileLogger;
+        _irrFileLogger = nullptr;
     }
 }
 
@@ -114,22 +140,14 @@ void QIrrlichtWidget::init()
     // et on lance notre timer
     startTimer (0);
 
-    // creation du fichier de log
-    Log::Instance()->setOutput(LOG_NONE);
+
+    destroyIrrFileLogger();
     if (Settings::_debugLog)
-        Log::Instance()->addOutput(LOG_FILE);
+    {
+        createIrrFileLogger();
+    }
 
     initNormalsMaterial();
-
-#ifdef IS_A_DEVELOPMENT_BUILD
-    Log::Instance()->addOutput(LOG_CONSOLE);
-#endif
-
-    Log::Instance()->create(_device->getSceneManager()->getFileSystem(), QSTRING_TO_IRRPATH(QCoreApplication::applicationDirPath() + "/debug.log"));
-    if (Log::Instance()->isEnabled() && !Log::Instance()->works())
-    {
-        Log::Instance()->addLineAndFlush("Error : The log file can't be created\nCheck that you don't use special characters in your software path. (Unicode isn't supported)");
-    }
 }
 
 void QIrrlichtWidget::initNormalsMaterial()
@@ -386,7 +404,7 @@ bool QIrrlichtWidget::loadAnims(const io::path filename)
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        Log::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
+        LoggerManager::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
         return false;
     }
 
@@ -418,7 +436,7 @@ bool QIrrlichtWidget::loadTW1Anims(const io::path filename)
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        Log::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
+        LoggerManager::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
         return false;
     }
 
@@ -444,7 +462,7 @@ bool QIrrlichtWidget::loadRig(const io::path filename)
     io::IReadFile* file = _device->getFileSystem()->createAndOpenFile(filename);
     if (!file)
     {
-        Log::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
+        LoggerManager::Instance()->addLineAndFlush("Error : The file can't be opened.", true);
         return false;
     }
 
@@ -462,7 +480,7 @@ bool QIrrlichtWidget::loadRig(const io::path filename)
     bool success = skeleton.applyToModel(newMesh);
     if (!success)
     {
-        Log::Instance()->addLineAndFlush("The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?", true);
+        LoggerManager::Instance()->addLineAndFlush("The skeleton can't be applied to the model. Are you sure that you have selected the good w2rig file ?", true);
     }
     else
     {
@@ -488,7 +506,7 @@ bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename)
     bool success = _device->getSceneManager()->loadScene(filename);
     if (!success)
     {
-        Log::Instance()->addLineAndFlush("Fail to load template", true);
+        LoggerManager::Instance()->addLineAndFlush("Fail to load template", true);
     }
 
     return success;
@@ -575,7 +593,7 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename)
 
         if (!mesh)
         {
-            Log::Instance()->addLineAndFlush("Error : loading of the mesh failed for unknown reason.", true);
+            LoggerManager::Instance()->addLineAndFlush("Error : loading of the mesh failed for unknown reason.", true);
         }
     }
 #ifdef COMPILE_WITH_ASSIMP
@@ -585,13 +603,13 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename)
 
         if (!mesh)
         {
-            Log::Instance()->addLineAndFlush(assimp.getError(), true);
+            LoggerManager::Instance()->addLineAndFlush(assimp.getError(), true);
         }
     }
 #endif
     else        // no mesh loader for this file
     {
-        Log::Instance()->addLineAndFlush("Error : No mesh loader found for this file. Are you sure that this file has an extension loadable by the software ? Check the website for more information.", true);
+        LoggerManager::Instance()->addLineAndFlush("Error : No mesh loader found for this file. Are you sure that this file has an extension loadable by the software ? Check the website for more information.", true);
     }
 
     return mesh;
@@ -633,7 +651,7 @@ bool QIrrlichtWidget::loadAndReplaceMesh(QString filename)
     // Leave here if there was a problem during the loading
     if (!mesh)
     {
-        Log::Instance()->addAndFlush("fail", true);
+        LoggerManager::Instance()->addAndFlush("fail", true);
         _inLoading = false;
         return false;
     }
@@ -687,7 +705,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
     io::IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportMeshPath);
     if (!file)
     {
-        Log::Instance()->addAndFlush("fail. Can't create the exported file", true);
+        LoggerManager::Instance()->addAndFlush("fail. Can't create the exported file", true);
         return;
     }
 

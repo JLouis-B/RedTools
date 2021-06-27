@@ -1,5 +1,5 @@
 #include "Extractor_TW3_CACHE.h"
-#include "Log.h"
+#include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
 #include <QDir>
@@ -21,7 +21,7 @@ void Extractor_TW3_CACHE::run()
 
 void Extractor_TW3_CACHE::extractCACHE(QString exportFolder, QString filename)
 {
-    Log::Instance()->addLineAndFlush(formatString("CACHE: Decompress CACHE file %s", filename.toStdString().c_str()));
+    LoggerManager::Instance()->addLineAndFlush(formatString("CACHE: Decompress CACHE file %s", filename.toStdString().c_str()));
     QFile bundleFile(filename);
     if (!bundleFile.open(QIODevice::ReadOnly))
     {
@@ -31,7 +31,7 @@ void Extractor_TW3_CACHE::extractCACHE(QString exportFolder, QString filename)
     // parsing
     extractDecompressedFile(bundleFile, exportFolder);
 
-    Log::Instance()->addLineAndFlush("CACHE: Decompression finished");
+    LoggerManager::Instance()->addLineAndFlush("CACHE: Decompression finished");
     emit finished();
 }
 
@@ -57,10 +57,10 @@ bool Extractor_TW3_CACHE::writeDecompressedFile(char* decompressedFileContent, q
             decompressedFile.close();
         }
         else
-            Log::Instance()->addLineAndFlush(formatString("CACHE: Fail to create file %s", fullPath.toStdString().c_str()));
+            LoggerManager::Instance()->addLineAndFlush(formatString("CACHE: Fail to create file %s", fullPath.toStdString().c_str()));
     }
     else
-        Log::Instance()->addLineAndFlush(formatString("CACHE: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
+        LoggerManager::Instance()->addLineAndFlush(formatString("CACHE: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
 
     return true;
 }

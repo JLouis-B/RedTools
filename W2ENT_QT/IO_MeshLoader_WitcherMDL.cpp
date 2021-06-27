@@ -47,7 +47,7 @@ TW1_MaterialParser::TW1_MaterialParser(io::IFileSystem* fs)
     : FileSystem(fs),
     _shader("")
 {
-    _log = Log::Instance();
+    _log = LoggerManager::Instance();
 }
 
 bool TW1_MaterialParser::loadFile(core::stringc filename)
@@ -309,7 +309,7 @@ scene::IAnimatedMesh* IO_MeshLoader_WitcherMDL::createMesh(io::IReadFile* file)
 
     _depth = 0;
 
-    _log = Log::Instance();
+    _log = LoggerManager::Instance();
     _log->addLine("");
     _log->addLine(formatString("-> File : %s", file->getFileName().c_str()));
     _log->add("_________________________________________________________\n\n\n");

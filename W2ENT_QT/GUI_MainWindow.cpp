@@ -29,6 +29,8 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::GUI_MainWindow)
 {
+    createUILogger();
+
     // setup the UI
     _ui->setupUi(this);
     _ui->textEdit_log->setReadOnly (true);
@@ -150,6 +152,25 @@ GUI_MainWindow::~GUI_MainWindow()
 
     if (_irrWidget)
         delete _irrWidget;
+
+    destroyUILogger();
+}
+
+void GUI_MainWindow::createUILogger()
+{
+    _UILogger = new CallbackLogger();
+    _UILogger->registerLogToUserCallback(std::bind(&GUI_MainWindow::logToUser, this, std::placeholders::_1));
+    LoggerManager::Instance()->registerLogger(_UILogger, Logger_User);
+}
+
+void GUI_MainWindow::destroyUILogger()
+{
+    if (_UILogger)
+    {
+        LoggerManager::Instance()->unregisterLogger(_UILogger);
+        delete _UILogger;
+        _UILogger = nullptr;
+    }
 }
 
 void GUI_MainWindow::logToUser(core::stringc log)
@@ -178,7 +199,7 @@ void GUI_MainWindow::addMeshes(QStringList filenames)
             continue;
         }
 
-        Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Read '") + file + "'... "), true);
+        LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Read '") + file + "'... "), true);
 
         if (_irrWidget->isEmpty(_currentLOD))
             _irrWidget->loadAndReplaceMesh(file);
@@ -271,13 +292,13 @@ void GUI_MainWindow::initIrrlicht()
     _irrWidget->show();
     _irrWidget->init();
 
-    Log::Instance()->registerLogToUserCallback(std::bind(&GUI_MainWindow::logToUser, this, std::placeholders::_1));
+    //LoggerManager::Instance()->registerLogToUserCallback(std::bind(&GUI_MainWindow::logToUser, this, std::placeholders::_1));
 
     QObject::connect(_ui->action_display_Wireframe, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableWireframe(bool)));
     QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableRigging(bool)));
     QObject::connect(_ui->action_display_Normals, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableNormals(bool)));
 
-    Log::Instance()->addLineAndFlush(QSTRING_TO_IRRSTRING(QString("The Witcher 3D models converter ") + Settings::getAppVersion()), true);
+    LoggerManager::Instance()->addLineAndFlush(QSTRING_TO_IRRSTRING(QString("The Witcher 3D models converter ") + Settings::getAppVersion()), true);
 }
 
 void GUI_MainWindow::registerExporters()
@@ -373,18 +394,18 @@ void GUI_MainWindow::convert()
 {
     if (_ui->lineEdit_exportedFilename->text().isEmpty())
     {
-        Log::Instance()->addLineAndFlush("Warning : The name of the exported file is empty", true);
+        LoggerManager::Instance()->addLineAndFlush("Warning : The name of the exported file is empty", true);
     }
 
     // Get the exporter and log the infos
     int currentIndex = _ui->comboBox_exportFormat->currentIndex();
     if (currentIndex == -1) // not supposed to happen
     {
-        Log::Instance()->addLineAndFlush("Invalid exporter", true);
+        LoggerManager::Instance()->addLineAndFlush("Invalid exporter", true);
         return;
     }
     const ExporterInfos infos = _exporters[currentIndex];
-    Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... "), true);
     QCoreApplication::processEvents();
 
     // Check if the destination folder exist
@@ -393,12 +414,12 @@ void GUI_MainWindow::convert()
     {
         core::stringc feedback = "";
         _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos);
-        Log::Instance()->addLineAndFlush(feedback, true);
+        LoggerManager::Instance()->addLineAndFlush(feedback, true);
     }
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
-        Log::Instance()->addAndFlush("\nAbort : Destination folder doesn't exist\n", true);
+        LoggerManager::Instance()->addAndFlush("\nAbort : Destination folder doesn't exist\n", true);
     }
 }
 
@@ -687,7 +708,7 @@ void GUI_MainWindow::replaceMesh(QString path)
         return;
     }
 
-    Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     _ui->lineEdit_ImportedFile->setText(path);
     QCoreApplication::processEvents();
 
@@ -730,7 +751,7 @@ void GUI_MainWindow::loadRig(QString path)
         QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
-    Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
     bool success = _irrWidget->loadRig(QSTRING_TO_IRRPATH(path));
@@ -746,7 +767,7 @@ void GUI_MainWindow::loadAnimations(QString path)
         QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
-    Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
     bool success = _irrWidget->loadAnims(QSTRING_TO_IRRPATH(path));
@@ -762,7 +783,7 @@ void GUI_MainWindow::loadTW1Animations(QString path)
         QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
-    Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
     bool success = _irrWidget->loadTW1Anims(QSTRING_TO_IRRPATH(path));
@@ -778,7 +799,7 @@ void GUI_MainWindow::loadTheCouncilTemplate(QString path)
         QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
-    Log::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QSTRING_TO_IRRSTRING(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
     bool success = _irrWidget->loadTheCouncilTemplate(QSTRING_TO_IRRPATH(path));
@@ -789,10 +810,10 @@ void GUI_MainWindow::logLoadingResult(bool result)
 {
     if (result)
     {
-        Log::Instance()->addLineAndFlush("Loading finished", true);
+        LoggerManager::Instance()->addLineAndFlush("Loading finished", true);
     }
     else
     {
-        Log::Instance()->addLineAndFlush("Loading failed", true);
+        LoggerManager::Instance()->addLineAndFlush("Loading failed", true);
     }
 }

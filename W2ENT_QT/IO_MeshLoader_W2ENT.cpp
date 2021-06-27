@@ -61,7 +61,7 @@ IAnimatedMesh* IO_MeshLoader_W2ENT::createMesh(io::IReadFile* f)
 	if (!f)
         return nullptr;
 
-    log = Log::Instance();
+    log = LoggerManager::Instance();
 
     #ifdef _IRR_WCHAR_FILESYSTEM
         ConfigGamePath = SceneManager->getParameters()->getAttributeAsStringW("TW_GAME_PATH");

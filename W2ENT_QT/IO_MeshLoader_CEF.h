@@ -4,9 +4,11 @@
 #include <IMeshLoader.h>
 #include <IMeshManipulator.h>
 #include <ISkinnedMesh.h>
+#include <IFileSystem.h>
 
-#include "Log.h"
+#include "Log/LoggerManager.h"
 
+using namespace irr;
 
 enum VertexComponentType
 {
@@ -68,7 +70,7 @@ private:
     io::IFileSystem* FileSystem;
     scene::ISkinnedMesh* AnimatedMesh;
 
-    Log* _log;
+    LoggerManager* _log;
 
 };
 

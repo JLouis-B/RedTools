@@ -74,7 +74,7 @@ IAnimatedMesh* IO_MeshLoader_W3ENT::createMesh(io::IReadFile* f)
     Files.clear();
     Meshes.clear();
 
-    log = Log::Instance();
+    log = LoggerManager::Instance();
 
     writeLogHeader(f);
     log->addLineAndFlush("Start loading");
@@ -1022,7 +1022,7 @@ void IO_MeshLoader_W3ENT::readAnimBuffer(core::array<core::array<SAnimationBuffe
                         orientation.toEuler(euler);
                         euler *= core::RADTODEG;
 
-                        if (log->isEnabled())
+                        if (log->hasActiveLoggers())
                         {
                             log->addLine(formatString("Quaternion : x=%f, y=%f, z=%f, w=%f", fx, fy, fz, fw));
                             log->addLine(formatString("Quaternion mult : x=%f, y=%f, z=%f, w=%f", fx * fx + fy * fy + fz * fz + fw * fw));

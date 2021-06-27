@@ -3,6 +3,8 @@
 
 #include "QIrrlichtWidget.h"
 
+#include "Log/CallbackLogger.h"
+
 #include <QMainWindow>
 
 namespace Ui {
@@ -84,6 +86,10 @@ private:
     LOD _currentLOD;
 
     QVector<ExporterInfos> _exporters;
+
+    CallbackLogger* _UILogger;
+    void createUILogger();
+    void destroyUILogger();
 
 signals:
     void languageChanged();

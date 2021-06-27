@@ -47,9 +47,9 @@ IAnimatedMesh* IO_MeshLoader_RE::createMesh(io::IReadFile* f)
 	if (!f)
         return nullptr;
 
-    log = Log::Instance();
+    log = LoggerManager::Instance();
 
-    if (log->isEnabled())
+    if (log->hasActiveLoggers())
     {
         log->addLine("");
         log->addLine(formatString("-> File : %s", f->getFileName().c_str()));
@@ -233,7 +233,7 @@ void IO_MeshLoader_RE::readMeshChunk(io::IReadFile* f, u32 id)
 
         s32 nbVertices = readS32(f);
         s32 nbFaces = readS32(f);
-        if (log->isEnabled())
+        if (log->hasActiveLoggers())
         {
             log->addLine(formatString("nbVertices : %d", nbVertices));
             log->addLine(formatString("nbFaces : %d", nbFaces));

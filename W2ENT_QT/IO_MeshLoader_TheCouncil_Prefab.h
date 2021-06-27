@@ -4,10 +4,13 @@
 #include <IMeshLoader.h>
 #include <IMeshManipulator.h>
 #include <ISkinnedMesh.h>
+#include <IFileSystem.h>
 
-#include "Log.h"
+#include "Log/LoggerManager.h"
 
 #include <QString>
+
+using namespace irr;
 
 class IO_MeshLoader_TheCouncil_Prefab : public scene::IMeshLoader
 {
@@ -33,7 +36,7 @@ private:
 
     io::path ConfigGamePath;
 
-    Log* _log;
+    LoggerManager* _log;
 };
 
 #endif // IO_MESHLOADER_THECOUNCIL_PREFAB_H

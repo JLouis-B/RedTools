@@ -77,7 +77,7 @@ QString Settings::getFilters()
     QRegExp rx("(\\;;)");
     QStringList filters = Settings::_formats.split(rx);
 
-    QString filter = "";
+    QString filter;
 
     bool selectedFilterFound = false;
     foreach (QString filterPart, filters)

@@ -3,8 +3,6 @@
 	<!-- Main view -->
 	<element id="button_fileSelector" text="Select a 3D model"/>
 	<element id="button_convertir" text="Convert ->"/>
-	<element id="dialogue_file" text="Select the file"/>
-	<element id="dialogue_folder" text="Select the folder of the game"/>
 	<element id="base_directory" text="Base directory"/>
 	<element id="label_exported_file_name" text="Name"/>
 

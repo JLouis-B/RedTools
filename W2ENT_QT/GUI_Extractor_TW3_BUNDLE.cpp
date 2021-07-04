@@ -40,9 +40,11 @@ void GUI_Extractor_TW3_BUNDLE::destroyWindow()
 
 void GUI_Extractor_TW3_BUNDLE::selectFolder()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
-    if (dir != "")
-        _ui->lineEdit_destFolder->setText(dir);
+    QString folderPath = QFileDialog::getExistingDirectory(this, "Select the export folder");
+    if (!folderPath.isEmpty())
+    {
+        _ui->lineEdit_destFolder->setText(folderPath);
+    }
 }
 
 void GUI_Extractor_TW3_BUNDLE::selectFile()

@@ -35,7 +35,7 @@ void GUI_ExtFilesExplorer::read(QString filename)
     _ui->lineEdit->setText(filename);
     _ui->listWidget->clear();
 
-    const io::path filenamePath = QSTRING_TO_IRRPATH(filename);
+    const io::path filenamePath = qStringToIrrPath(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
 
     RedEngineVersion fileType = getRedEngineFileType(file);
@@ -68,10 +68,10 @@ void GUI_ExtFilesExplorer::read(QString filename)
 
 void GUI_ExtFilesExplorer::selectFile()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", _ui->lineEdit->text(), "");
-    if (file != "")
+    QString filePath = QFileDialog::getOpenFileName(this, "Select the file to analyze", _ui->lineEdit->text());
+    if (!filePath.isEmpty())
     {
-        read(file);
+        read(filePath);
     }
 }
 

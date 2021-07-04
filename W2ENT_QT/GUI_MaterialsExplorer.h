@@ -49,7 +49,7 @@ class GUI_MaterialsExplorer : public QDialog
 public:
     explicit GUI_MaterialsExplorer(QWidget *parent = nullptr, irr::io::IFileSystem* fs = nullptr, QString filename = "");
     ~GUI_MaterialsExplorer();
-    void read(QString filename);
+    void read(QString path);
 
 public slots :
     void selectFile();

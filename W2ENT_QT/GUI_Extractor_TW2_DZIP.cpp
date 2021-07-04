@@ -38,16 +38,20 @@ void GUI_Extractor_TW2_DZIP::destroyWindow()
 
 void GUI_Extractor_TW2_DZIP::selectFolder()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
-    if (dir != "")
-        _ui->lineEdit_destFolder->setText(dir);
+    QString folderPath = QFileDialog::getExistingDirectory(this, "Select the export folder");
+    if (!folderPath.isEmpty())
+    {
+        _ui->lineEdit_destFolder->setText(folderPath);
+    }
 }
 
 void GUI_Extractor_TW2_DZIP::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a DZIP file", "", "*.dzip");
-    if (filename != "")
-        _ui->lineEdit_dzipFile->setText(filename);
+    QString filePath = QFileDialog::getOpenFileName(this, "Select a DZIP file", QString(), "*.dzip");
+    if (!filePath.isEmpty())
+    {
+        _ui->lineEdit_dzipFile->setText(filePath);
+    }
 }
 
 void GUI_Extractor_TW2_DZIP::extract()

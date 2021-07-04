@@ -3,8 +3,6 @@
 	<!-- Main view -->
 	<element id="button_fileSelector" text="Выбор 3D модели"/>
 	<element id="button_convertir" text="Конвертировать ->"/>
-	<element id="dialogue_file" text="Выберать файл"/>
-	<element id="dialogue_folder" text="Выберать папку игры"/>
 	<element id="base_directory" text="Базовый каталог"/>
 	<element id="label_exported_file_name" text="Имя"/>
 

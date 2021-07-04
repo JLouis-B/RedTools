@@ -38,16 +38,20 @@ void GUI_Extractor_TheCouncil::destroyWindow()
 
 void GUI_Extractor_TheCouncil::selectFolder()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
-    if (dir != "")
-        _ui->lineEdit_exportFolder->setText(dir);
+    QString folderPath = QFileDialog::getExistingDirectory(this, "Select the export folder");
+    if (!folderPath.isEmpty())
+    {
+        _ui->lineEdit_exportFolder->setText(folderPath);
+    }
 }
 
 void GUI_Extractor_TheCouncil::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a CPK file", QString(), "The Council CPK file (*.cpk)");
-    if (filename != "")
-        _ui->lineEdit_CPKFile->setText(filename);
+    QString filePath = QFileDialog::getOpenFileName(this, "Select a CPK file", QString(), "The Council CPK file (*.cpk)");
+    if (!filePath.isEmpty())
+    {
+        _ui->lineEdit_CPKFile->setText(filePath);
+    }
 }
 
 void GUI_Extractor_TheCouncil::extract()

@@ -1,13 +1,13 @@
 #include "Utils_Qt.h"
 
-void keepOnlyInDevBuild(QWidget* widget)
+void deleteInReleaseBuild(QWidget* widget)
 {
 #ifndef IS_A_DEVELOPMENT_BUILD
     widget->deleteLater();
 #endif
 }
 
-void keepOnlyInDevBuild(QAction* action)
+void deleteInReleaseBuild(QAction* action)
 {
 #ifndef IS_A_DEVELOPMENT_BUILD
     action->deleteLater();

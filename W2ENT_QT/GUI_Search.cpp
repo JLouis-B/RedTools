@@ -187,7 +187,7 @@ void GUI_Search::enableButton()
 
 
     QString selected = _ui->listWidget_results->currentItem()->text();
-    RedEngineContentType type = getRedEngineFileContentType(QSTRING_TO_IRRPATH(selected));
+    RedEngineContentType type = getRedEngineFileContentType(qStringToIrrPath(selected));
     if (type == RECT_WITCHER_ENTITY)
     {
         _ui->pushButton_load->setText("Load entity");

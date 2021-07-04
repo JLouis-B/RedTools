@@ -40,16 +40,20 @@ void GUI_Extractor_TW1_BIF::destroyWindow()
 
 void GUI_Extractor_TW1_BIF::selectFolder()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, "Select the export folder");
-    if (dir != "")
-        _ui->lineEdit_exportFolder->setText(dir);
+    QString folderPath = QFileDialog::getExistingDirectory(this, "Select the export folder");
+    if (!folderPath.isEmpty())
+    {
+        _ui->lineEdit_exportFolder->setText(folderPath);
+    }
 }
 
 void GUI_Extractor_TW1_BIF::selectFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select a KEY file", QString(), "The Witcher key file (*.key)");
-    if (filename != "")
-        _ui->lineEdit_keyFile->setText(filename);
+    QString filePath = QFileDialog::getOpenFileName(this, "Select a KEY file", QString(), "The Witcher key file (*.key)");
+    if (!filePath.isEmpty())
+    {
+        _ui->lineEdit_keyFile->setText(filePath);
+    }
 }
 
 void GUI_Extractor_TW1_BIF::extract()

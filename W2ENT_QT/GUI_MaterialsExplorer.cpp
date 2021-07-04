@@ -100,7 +100,7 @@ QString parseTW3Data(core::array<core::stringc>& strings, core::array<core::stri
     {
         u8 texId = 255 - readU8(file);
         if (texId < files.size())
-            return files[texId].c_str();
+            return irrStringToQString(files[texId]);
         else
             return "Invalid file";
     }
@@ -461,16 +461,16 @@ void GUI_MaterialsExplorer::loadTW2Materials(io::IReadFile* file)
     }
 }
 
-void GUI_MaterialsExplorer::read(QString filename)
+void GUI_MaterialsExplorer::read(QString path)
 {
-    _ui->lineEdit_selectedFile->setText(filename);
+    _ui->lineEdit_selectedFile->setText(path);
     _ui->listWidget_materials->clear();
     _materials.clear();
 
     _ui->tableWidget_properties->setRowCount(0);
 
-    const io::path filenamePath = QSTRING_TO_IRRPATH(filename);
-    io::IReadFile* file = _Fs->createAndOpenFile(filenamePath);
+    const io::path filePath = qStringToIrrPath(path);
+    io::IReadFile* file = _Fs->createAndOpenFile(filePath);
 
     RedEngineVersion fileType = getRedEngineFileType(file);
     switch (fileType)
@@ -498,12 +498,12 @@ void GUI_MaterialsExplorer::read(QString filename)
 void GUI_MaterialsExplorer::selectFile()
 {
     QString defaultDir = _ui->lineEdit_selectedFile->text();
-    if (_ui->lineEdit_selectedFile->text() == "")
+    if (_ui->lineEdit_selectedFile->text().isEmpty())
         defaultDir = Settings::_baseDir;
 
-    QString file = QFileDialog::getOpenFileName(this, "Select the file to analyze", defaultDir, "");
-    if (file != "")
+    QString filePath = QFileDialog::getOpenFileName(this, "Select the file to analyze", defaultDir, "");
+    if (!filePath.isEmpty())
     {
-        read(file);
+        read(filePath);
     }
 }

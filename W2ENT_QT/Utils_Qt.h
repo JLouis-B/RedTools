@@ -6,8 +6,8 @@
 #include <QWidget>
 #include <QAction>
 
-void keepOnlyInDevBuild(QWidget* widget);
-void keepOnlyInDevBuild(QAction* action);
+void deleteInReleaseBuild(QWidget* widget);
+void deleteInReleaseBuild(QAction* action);
 QString cleanPath(QString path);
 
 #endif // UTILS_QT_H

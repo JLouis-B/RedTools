@@ -25,7 +25,7 @@ public slots :
     void convert();
     void translate();
     void changeLanguage();
-    void selectFolder();
+    void selectBaseDir();
 
     void openAbout();
     void options();
@@ -65,7 +65,7 @@ public slots :
     void loadAnimations(QString path);
 
     void onAddMeshClicked();
-    void addMeshes(QStringList filenames);
+    void addMeshes(QStringList filePaths);
 
     void loadTW1Animations(QString path);
 

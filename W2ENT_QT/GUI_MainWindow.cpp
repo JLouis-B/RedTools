@@ -406,20 +406,20 @@ void GUI_MainWindow::convert()
         LoggerManager::Instance()->addLineAndFlush("Invalid exporter", true);
         return;
     }
-    const ExporterInfos infos = _exporters[currentIndex];
-    LoggerManager::Instance()->addAndFlush(qStringToIrrString("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... "), true);
-    QCoreApplication::processEvents();
 
     // Check if the destination folder exist
     QDir dir(Settings::getExportFolder());
     if (dir.exists())
     {
+        const ExporterInfos infos = _exporters[currentIndex];
+        LoggerManager::Instance()->addAndFlush(qStringToIrrString("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... "), true);
+        QCoreApplication::processEvents();
         _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos);
     }
     else
     {
         QMessageBox::warning(this, "Error", "The destination folder '" + Settings::_exportDest + "' doesn't exist.");
-        LoggerManager::Instance()->addLineAndFlush("\nAbort : Destination folder doesn't exist", true);
+        LoggerManager::Instance()->addLineAndFlush("Fail to export : Destination folder doesn't exist", true);
     }
 }
 

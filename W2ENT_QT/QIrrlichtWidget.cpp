@@ -688,10 +688,10 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
 {
     if (exporter._exporterType != Exporter_Redkit && (!_currentLodData->_node || !_currentLodData->_node->getMesh()))
     {
-        QMessageBox::critical(this, "Export error", "QIrrlichtWidget::writeFile : node or mesh in null");
+        LoggerManager::Instance()->addAndFlush("fail. node or mesh are null\n", true);
+        QMessageBox::critical(this, "Export error", "QIrrlichtWidget::writeFile : node or mesh are null");
         return;
     }
-
 
     if (Settings::_copyTexturesEnabled)
     {
@@ -705,7 +705,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
     io::IWriteFile* file = _device->getFileSystem()->createAndWriteFile(exportMeshPath);
     if (!file)
     {
-        LoggerManager::Instance()->addAndFlush("fail. Can't create the exported file", true);
+        LoggerManager::Instance()->addAndFlush("fail. Can't create the exported file\n", true);
         return;
     }
 
@@ -771,11 +771,14 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
     {
         scene::IMeshWriter* mw = nullptr;
         mw = _device->getSceneManager()->createMeshWriter(exporter._irrlichtInfos._irrExporter);
-
         if (mw)
         {
             mw->writeMesh(file, _currentLodData->_node->getMesh(), exporter._irrlichtInfos._irrFlags);
             mw->drop();
+        }
+        else
+        {
+            LoggerManager::Instance()->addLineAndFlush("fail to find an appropriate exporter", true);
         }
     }
     else if (exporter._exporterType == Exporter_Redkit)
@@ -832,6 +835,8 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
 
     if (file)
         file->drop();
+
+    LoggerManager::Instance()->addAndFlush("done\n", true);
 }
 
 

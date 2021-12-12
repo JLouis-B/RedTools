@@ -6,14 +6,14 @@ IrrFileLogger::IrrFileLogger(irr::io::IFileSystem *fileSystem, irr::core::string
     FileSystem(fileSystem),
     Filename(filename)
 {
-    close();
-
 #ifdef USE_FLUSH_PATCH
+    LogFile = nullptr;
     if (FileSystem)
         LogFile = FileSystem->createAndWriteFile(Filename, false);
 #else
+    Content = "";
     if (FileSystem && FileSystem->existFile(Filename))
-            remove(Filename.c_str());
+        remove(Filename.c_str());
 #endif
 }
 

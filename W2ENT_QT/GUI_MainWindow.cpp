@@ -62,13 +62,15 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     dir.setNameFilters(filter);
 
     QStringList filenames = dir.entryList();
-    foreach( QString filename, filenames )
+    foreach(QString filename, filenames)
     {
-        QAction* menuitem = new QAction(filename, _ui->menu_Languages);
+        QAction* menuitem =_ui->menu_Languages->addAction(filename);
         menuitem->setCheckable(true);
         if ("langs/" + menuitem->text() == Settings::_language)
+        {
             menuitem->setChecked(true);
-        _ui->menu_Languages->addAction(menuitem);
+        }
+        QObject::connect(menuitem, SIGNAL(triggered()), this, SLOT(changeLanguage()));
     }
 
     // Translator
@@ -131,9 +133,6 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->button_selectDir, SIGNAL(clicked()), this, SLOT(selectBaseDir()));
     QObject::connect(_ui->lineEdit_folder, SIGNAL(textChanged(QString)), this, SLOT(changeBaseDir(QString)));
     QObject::connect(_ui->comboBox_exportFormat, SIGNAL(currentTextChanged(QString)), this, SLOT(checkConvertButton()));
-
-    for (int i = 0; i < _ui->menu_Languages->actions().size(); i++)
-        QObject::connect(_ui->menu_Languages->actions().at(i), SIGNAL(triggered()), this, SLOT(changeLanguage()));
 }
 
 GUI_MainWindow::~GUI_MainWindow()
@@ -257,20 +256,25 @@ void GUI_MainWindow::updateWindowTitle()
     this->setWindowTitle(title);
 }
 
-
 void GUI_MainWindow::changeLanguage()
 {
-    for (int i = 0; i < _ui->menu_Languages->actions().size(); i++)
-        _ui->menu_Languages->actions().at(i)->setChecked(false);
-
-    QAction* q = (QAction*)QObject::sender();
-    q->setChecked(true);
-    Settings::_language = "langs/" + q->text();
-    Translator::loadCurrentLanguage();
-    translate();
-    emit languageChanged();
+    QAction* sender = static_cast<QAction*>(QObject::sender());
+    if (sender->isChecked())
+    {
+        for (int i = 0; i < _ui->menu_Languages->actions().size(); i++)
+        {
+            QAction* action = _ui->menu_Languages->actions().at(i);
+            action->setChecked(action == sender);
+            if (action == sender)
+            {
+                Settings::_language = "langs/" + action->text();
+                Translator::loadCurrentLanguage();
+                translate();
+                emit languageChanged();
+            }
+        }
+    }
 }
-
 
 void GUI_MainWindow::cleanTexturesPath()
 {
@@ -516,28 +520,32 @@ void GUI_MainWindow::re_size()
 }
 
 void GUI_MainWindow::changeLOD()
-{    
-    for (int i = 0; i < _ui->menuLOD->actions().size(); i++)
-        _ui->menuLOD->actions().at(i)->setChecked(false);
+{
+    QAction* triggeredButton = reinterpret_cast<QAction*>(QObject::sender());
+    if (triggeredButton->isChecked())
+    {
+        for (int i = 0; i < _ui->menuLOD->actions().size(); i++)
+        {
+            QAction* button = _ui->menuLOD->actions().at(i);
+            button->setChecked(button == triggeredButton);
+        }
 
-    QAction* q = (QAction*)QObject::sender();
-    q->setChecked(true);
+        LOD newlod = LOD_0;
+        if (triggeredButton == _ui->action_redkit_LOD0)
+            newlod = LOD_0;
+        else if (triggeredButton == _ui->action_redkit_LOD1)
+            newlod = LOD_1;
+        else if (triggeredButton == _ui->action_redkit_LOD2)
+            newlod = LOD_2;
+        else if (triggeredButton == _ui->action_redkit_Collision_mesh)
+            newlod = Collision;
 
-    LOD newlod = LOD_0;
-    if (q == _ui->action_redkit_LOD0)
-        newlod = LOD_0;
-    else if (q == _ui->action_redkit_LOD1)
-        newlod = LOD_1;
-    else if (q == _ui->action_redkit_LOD2)
-        newlod = LOD_2;
-    else if (q == _ui->action_redkit_Collision_mesh)
-        newlod = Collision;
+        _irrWidget->changeLOD(newlod);
+        _currentLOD = newlod;
 
-    _irrWidget->changeLOD(newlod);
-    _currentLOD = newlod;
-
-    checkConvertButton();
-    updateWindowTitle();
+        checkConvertButton();
+        updateWindowTitle();
+    }
 }
 
 void GUI_MainWindow::clearLOD()

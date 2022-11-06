@@ -433,6 +433,7 @@ bool IO_MeshLoader_WitcherMDL::hasTexture(core::stringc texPath)
     texFolders.push_back("textures01/");
     texFolders.push_back("meshes00/");
     texFolders.push_back("items00/");
+    texFolders.push_back("trees00/");
 
     core::array<io::path> possibleExtensions;
     possibleExtensions.push_back(".dds");

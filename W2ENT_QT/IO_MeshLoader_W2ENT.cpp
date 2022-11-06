@@ -728,6 +728,8 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
         file->seek(propHeader.endPos);
     }
     file->seek(-4, true);
+    long CMeshPos = file->getPos();
+    log->addLineAndFlush(formatString("CMesh pos after props : %d", CMeshPos));
 
     // LOD
     core::array<TW2_LOD> LODs;
@@ -738,7 +740,11 @@ void IO_MeshLoader_W2ENT::CMesh(io::IReadFile* file, ChunkDescriptor infos)
 
     u8 unk = readU8(file);
     if (unk != 1)
+    {
+        // This dont work in the case where the first following float start with a '1'
+        // Need to find a better way to detect that
         file->seek(-1, true);
+    }
 
     core::array<core::stringc> boneNames;
     if (hasBones)
@@ -847,9 +853,9 @@ SubmeshData readSubmeshData(io::IReadFile* file)
 
 void IO_MeshLoader_W2ENT::loadSubmeshes(io::IReadFile* file, core::array<TW2_LOD> LODs, core::array<u32> materialIds, core::array<core::stringc> boneNames)
 {
-    log->addLineAndFlush("loadSubmeshes");
-
     long subMeshesStartAdress = file->getPos();
+    log->addLineAndFlush(formatString("loadSubmeshes @%d", subMeshesStartAdress));
+
     u32 subMeshesInfosOffset = readU32(file);
 
     file->seek(subMeshesStartAdress + subMeshesInfosOffset);

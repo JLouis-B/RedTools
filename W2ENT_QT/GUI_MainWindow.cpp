@@ -258,14 +258,14 @@ void GUI_MainWindow::updateWindowTitle()
 
 void GUI_MainWindow::changeLanguage()
 {
-    QAction* sender = static_cast<QAction*>(QObject::sender());
-    if (sender->isChecked())
+    QAction* triggeredButton = static_cast<QAction*>(QObject::sender());
+    if (triggeredButton->isChecked())
     {
         for (int i = 0; i < _ui->menu_Languages->actions().size(); i++)
         {
             QAction* action = _ui->menu_Languages->actions().at(i);
-            action->setChecked(action == sender);
-            if (action == sender)
+            action->setChecked(action == triggeredButton);
+            if (action == triggeredButton)
             {
                 Settings::_language = "langs/" + action->text();
                 Translator::loadCurrentLanguage();
@@ -273,6 +273,10 @@ void GUI_MainWindow::changeLanguage()
                 emit languageChanged();
             }
         }
+    }
+    else
+    {
+        triggeredButton->setChecked(true);
     }
 }
 
@@ -545,6 +549,10 @@ void GUI_MainWindow::changeLOD()
 
         checkConvertButton();
         updateWindowTitle();
+    }
+    else
+    {
+        triggeredButton->setChecked(true);
     }
 }
 

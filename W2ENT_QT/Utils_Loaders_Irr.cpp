@@ -2,17 +2,31 @@
 
 #include <iostream>
 
-bool readBool(io::IReadFile* file)
+#include "CompileConfig.h"
+
+void checkOutOfBound(io::IReadFile* file, size_t sizeToRead)
 {
-    u8 valChar = readU8(file);
-    return (valChar > 0);
+#ifdef IS_A_DEVELOPMENT_BUILD
+    // Log the issue
+    if (file->getPos() + sizeToRead >= file->getSize())
+    {
+        std::cout << "Try to read too far into the file, we'll crash. File Pos = " << file->getPos() << ", try to read " << sizeToRead << " but file size is " << file->getSize() << std::endl;
+    }
+#endif
 }
 
-core::stringc readString(io::IReadFile* file, s32 nbChars)
+bool readBool(io::IReadFile* file)
 {
-    char returnedString[nbChars + 1];
-    file->read(returnedString, nbChars);
-    returnedString[nbChars] = '\0';
+    return readU8(file) > 0;
+}
+
+core::stringc readString(io::IReadFile* file, s32 stringSize)
+{
+    checkOutOfBound(file, stringSize);
+
+    char returnedString[stringSize + 1];
+    file->read(returnedString, stringSize);
+    returnedString[stringSize] = '\0';
     return returnedString;
 }
 
@@ -27,15 +41,6 @@ core::stringc readStringUntilNull(io::IReadFile* file)
            break;
        returnedString.append(c);
     }
-
-    return returnedString;
-}
-
-core::stringc readStringFixedSize(io::IReadFile* file, int nbChars)
-{
-    long back = file->getPos();
-    core::stringc returnedString = readString(file, nbChars);
-    file->seek(back + nbChars);
 
     return returnedString;
 }
@@ -106,12 +111,12 @@ void JointHelper::SetParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh
     core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
     for (u32 j = 0; j < allJoints.size(); j++)
     {
-       scene::ISkinnedMesh::SJoint* parentJoint = allJoints[j];
-       for (u32 k = 0; k < parentJoint->Children.size(); k++)
-       {
-           if (joint == parentJoint->Children[k])
+        scene::ISkinnedMesh::SJoint* parentJoint = allJoints[j];
+        for (u32 k = 0; k < parentJoint->Children.size(); k++)
+        {
+            if (joint == parentJoint->Children[k])
                 parentJoint->Children.erase(k);
-       }
+        }
     }
 
     // And add to the parent
@@ -143,12 +148,12 @@ core::array<scene::ISkinnedMesh::SJoint*> JointHelper::GetRoots(const scene::ISk
         scene::ISkinnedMesh::SJoint* testedJoint = allJoints[i];
         for (u32 j = 0; j < allJoints.size(); j++)
         {
-           scene::ISkinnedMesh::SJoint* testedJoint2 = allJoints[j];
-           for (u32 k = 0; k < testedJoint2->Children.size(); k++)
-           {
-               if (testedJoint == testedJoint2->Children[k])
+            scene::ISkinnedMesh::SJoint* testedJoint2 = allJoints[j];
+            for (u32 k = 0; k < testedJoint2->Children.size(); k++)
+            {
+                if (testedJoint == testedJoint2->Children[k])
                     isRoot = false;
-           }
+            }
         }
         if (isRoot)
             roots.push_back(testedJoint);

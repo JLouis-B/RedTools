@@ -53,7 +53,7 @@ VertexComponent readVertexComponent(io::IReadFile* file)
 {
     VertexComponent vComponent;
     vComponent._type = VERTEX_ERROR;
-    core::stringc component = readStringFixedSize(file, 16);
+    core::stringc component = readString(file, 16);
     if (component == "POSITION")
         vComponent._type = VERTEX_POSITION;
     else if (component == "BLENDWEIGHT")
@@ -422,7 +422,7 @@ bool IO_MeshLoader_CEF::load(io::IReadFile* file)
         }
 
         u32 unknown2 = readU32(file);
-        core::stringc effectName = readStringFixedSize(file, 256);
+        core::stringc effectName = readString(file, 256);
         _log->addLineAndFlush(formatString("Effect = %s", effectName.c_str()));
 
         if (!hasNormals)

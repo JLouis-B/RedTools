@@ -7,11 +7,17 @@
 
 using namespace irr;
 
+// Check if what we read is still in the file size (to know if we will crash!), and log if it's the case
+void checkOutOfBound(io::IReadFile* file, size_t sizeToRead);
+
 template <class T>
-T readData(io::IReadFile* f)
+T readData(io::IReadFile* file)
 {
+    size_t sizeToRead = sizeof(T);
+    checkOutOfBound(file, sizeToRead);
+
     T buf;
-    f->read(&buf, sizeof(T));
+    file->read(&buf, sizeToRead);
     return buf;
 }
 
@@ -25,17 +31,19 @@ T readData(io::IReadFile* f)
 bool readBool(io::IReadFile* file);
 
 template <class T>
-core::array<T> readDataArray(io::IReadFile* f, s32 nbElem)
+core::array<T> readDataArray(io::IReadFile* file, s32 arraySize)
 {
-    core::array<T> values(nbElem);
-    values.set_used(nbElem);
-    f->read(values.pointer(), nbElem * sizeof(T));
+    size_t sizeToRead = arraySize * sizeof(T);
+    checkOutOfBound(file, sizeToRead);
+
+    core::array<T> values(arraySize);
+    values.set_used(arraySize);
+    file->read(values.pointer(), sizeToRead);
     return values;
 }
 
 core::stringc readString(io::IReadFile* file, int nbChars);
 core::stringc readStringUntilNull(io::IReadFile* file);
-core::stringc readStringFixedSize(io::IReadFile* file, int nbChars);
 
 void chechNaNErrors(core::vector3df& vector3);
 

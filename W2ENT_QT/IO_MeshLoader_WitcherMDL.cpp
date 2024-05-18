@@ -390,7 +390,7 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
 
     file->seek(8, true);
 
-    core::stringc name = readStringFixedSize(file, 64);
+    core::stringc name = readString(file, 64);
     _log->addLineAndFlush(formatString("model name = %s", name.c_str()));
     u32 offsetRootNode = readU32(file);
 
@@ -405,14 +405,14 @@ bool IO_MeshLoader_WitcherMDL::load(io::IReadFile* file)
 
     file->seek(16, true);
 
-    core::stringc detailMap = readStringFixedSize(file, 64);
+    core::stringc detailMap = readString(file, 64);
     _log->addLineAndFlush(formatString("detail map = %s", detailMap.c_str()));
 
     file->seek(4, true);
 
     f32 modelScale = readF32(file);
 
-    core::stringc superModel = readStringFixedSize(file, 60);
+    core::stringc superModel = readString(file, 60);
     _log->addLineAndFlush(formatString("superModel = %s", superModel.c_str()));
     file->seek(4, true); // animaion scale, float
 
@@ -595,7 +595,7 @@ void IO_MeshLoader_WitcherMDL::readTexturePaintNode(io::IReadFile* file, StaticC
             continue;
 
         file->seek(7, true);
-        core::stringc texture = readStringFixedSize(file, 32);
+        core::stringc texture = readString(file, 32);
 
         ArrayDef weightsDef = readArrayDef(file);
         core::array<f32> weights = readArray<f32>(file, weightsDef);
@@ -717,7 +717,7 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
     core::stringc textureStrings[4];
     for (u32 i = 0; i < 4; ++i)
     {
-        textureStrings[i] = readStringFixedSize(file, 64);
+        textureStrings[i] = readString(file, 64);
 
         if (textureStrings[i] == "NULL")
             textureStrings[i] = "";
@@ -743,7 +743,7 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
     file->seek(3, true); // Unknown
     file->seek(9, true);
 
-    core::stringc dayNightTransition = readStringFixedSize(file, 200);
+    core::stringc dayNightTransition = readString(file, 200);
 
     file->seek(2, true);
 
@@ -752,7 +752,7 @@ void IO_MeshLoader_WitcherMDL::readMeshNode(io::IReadFile* file, StaticControlle
     file->seek(12, true);
     file->seek(8, true);
 
-    core::stringc lightMapName = readStringFixedSize(file, 64);
+    core::stringc lightMapName = readString(file, 64);
 
     // Unknown
     file->seek(4, true);
@@ -931,7 +931,7 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     core::stringc textureStrings[4];
     for (u32 i = 0; i < 4; ++i)
     {
-        textureStrings[i] = readStringFixedSize(file, 64);
+        textureStrings[i] = readString(file, 64);
 
         if (textureStrings[i] == "NULL")
             textureStrings[i] = "";
@@ -940,7 +940,7 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     }
     file->seek(61, true);
 
-    core::stringc dayNightTransition = readStringFixedSize(file, 200);
+    core::stringc dayNightTransition = readString(file, 200);
 
     file->seek(2, true);
 
@@ -949,7 +949,7 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     file->seek(12, true);
     file->seek(8, true);
 
-    core::stringc lightMapName = readStringFixedSize(file, 64);
+    core::stringc lightMapName = readString(file, 64);
 
     file->seek(8, true);
     ModelInfos.offsetTextureInfo = readU32(file);
@@ -964,7 +964,7 @@ void IO_MeshLoader_WitcherMDL::readSkinNode(io::IReadFile* file, StaticControlle
     for (u32 i = 0; i < bonesInfos.nbUsedEntries; ++i)
     {
         u32 boneId = readU32(file);
-        core::stringc boneName = readStringFixedSize(file, 92);
+        core::stringc boneName = readString(file, 92);
         _log->addLineAndFlush(formatString("Add Bone : %s", boneName.c_str()));
         scene::ISkinnedMesh::SJoint* joint = JointHelper::GetJointByName(AnimatedMesh, boneName);
         bones.push_back(joint);
@@ -1189,7 +1189,7 @@ void IO_MeshLoader_WitcherMDL::readSpeedtreeNode(io::IReadFile* file, StaticCont
 
     // Refer to a .spt file to describe the tree
     // seems complicated to use now
-    core::stringc filename = GameTexturesPath + readStringFixedSize(file, 32);
+    core::stringc filename = GameTexturesPath + readString(file, 32);
     //std::cout << "filename: " << filename.c_str() << std::endl;
 
     IO_SpeedTreeLoader loader(FileSystem);
@@ -1219,7 +1219,7 @@ void IO_MeshLoader_WitcherMDL::loadNode(io::IReadFile* file, scene::ISkinnedMesh
     file->seek(4, true); // inherit color flag
     u32 id = readU32(file);
 
-    core::stringc name = readStringFixedSize(file, 64);
+    core::stringc name = readString(file, 64);
     for (u32 i = 0; i < _depth; ++i)
         _log->add("--");
 
@@ -1387,7 +1387,7 @@ void IO_MeshLoader_WitcherMDL::readAnimations(io::IReadFile* file)
         file->seek(ModelInfos.offsetModelData + animOffset);
         // Geom header
         file->seek(8, true);
-        core::stringc animationName = readStringFixedSize(file, 64);
+        core::stringc animationName = readString(file, 64);
         u32 offsetRootNode = readU32(file);
         //std::cout << "offsetRootNode : " << offsetRootNode << std::endl;
         file->seek(32, true);
@@ -1398,7 +1398,7 @@ void IO_MeshLoader_WitcherMDL::readAnimations(io::IReadFile* file)
         f32 animationLength = readF32(file);
         //std::cout << "animationLength : " << animationLength << std::endl;
         f32 transitionTime = readF32(file);
-        core::stringc animationRootName = readStringFixedSize(file, 64);
+        core::stringc animationRootName = readString(file, 64);
         ArrayDef eventArrayDef = readArrayDef(file);
         file->seek(6 * 4, true); // animBox
         file->seek(4 * 4, true); // animSphere
@@ -1421,7 +1421,7 @@ void IO_MeshLoader_WitcherMDL::loadAnimationNode(io::IReadFile* file, f32 timeOf
     file->seek(4, true); // inherit color flag
     u32 id = readU32(file);
 
-    core::stringc name = readStringFixedSize(file, 64);
+    core::stringc name = readString(file, 64);
     for (u32 i = 0; i < _depth; ++i)
         _log->add("--");
 

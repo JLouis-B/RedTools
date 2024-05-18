@@ -436,7 +436,7 @@ TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescripto
 
     file->seek(16, true);
 
-    core::stringc rootName = readStringFixedSize(file, 16);
+    core::stringc rootName = readString(file, 16);
     log->addLineAndFlush(formatString("Root = %s", rootName.c_str()));
 
     long bonesParentIdChunkAdress = file->getPos();
@@ -497,7 +497,7 @@ TW2_CSkeleton IO_MeshLoader_W2ENT::CSkeleton(io::IReadFile* file, ChunkDescripto
     file->seek(bonesNameChunkAdress);
     for (u32 i = 0; i < nbBones; ++i)
     {
-        core::stringc boneName = readStringFixedSize(file, boneNameSizes[i]);
+        core::stringc boneName = readString(file, boneNameSizes[i]);
         skeleton.names.push_back(boneName);
         log->addLineAndFlush(formatString("Bone %s (@%d)", boneName.c_str(), file->getPos() - boneNameSizes[i]));
     }

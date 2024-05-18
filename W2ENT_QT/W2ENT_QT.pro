@@ -14,6 +14,7 @@ TEMPLATE = app
 RC_FILE = app.rc
 
 SOURCES += main.cpp\
+    DomHelper.cpp \
     IrrAssimp/IrrAssimp.cpp \
     IrrAssimp/IrrAssimpExport.cpp \
     IrrAssimp/IrrAssimpImport.cpp \
@@ -71,6 +72,7 @@ SOURCES += main.cpp\
 
 HEADERS  += \
     CompileConfig.h \
+    DomHelper.h \
     IrrAssimp/IrrAssimp.h \
     IrrAssimp/IrrAssimpExport.h \
     IrrAssimp/IrrAssimpImport.h \
@@ -149,9 +151,9 @@ LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irr-svn\lib\Win32-gcc\libIrrlicht.a"
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irr-svn\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\lib\libassimp.dll.a
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\include" \
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-master\Builds\CB_Build\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-5.4.1\Builds\CB_Build\lib\libassimp.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-5.4.1\include" \
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-5.4.1\Builds\CB_Build\include" \
 
 # We use the zlib bundled with Qt
 LIBS += -lz
@@ -161,8 +163,8 @@ LIBS += C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\native\snappy32.
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\snappy-windows-1.1.1.8\include" \
 
 # LZ4
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_3_win32\dll\liblz4.lib
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_v1_8_3_win32\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\lz4_win32_v1_9_4\dll\liblz4.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\lz4_win32_v1_9_4\include" \
 
 DISTFILES += \
     app.rc

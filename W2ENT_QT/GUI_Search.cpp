@@ -2,6 +2,7 @@
 #include "ui_GUI_Search.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QTextStream>
 
 #include "Settings.h"
@@ -77,8 +78,8 @@ void GUI_Search::translate()
 void GUI_Search::search()
 {
     QString name = _ui->lineEdit_name->text();
-    QStringList keywords = name.split(" ", QString::SkipEmptyParts);
-    QStringList extensions = _ui->lineEdit_additionalExtensions->text().split(" ", QString::SkipEmptyParts);
+    QStringList keywords = name.split(" ", Qt::SkipEmptyParts);
+    QStringList extensions = _ui->lineEdit_additionalExtensions->text().split(" ", Qt::SkipEmptyParts);
     if (_ui->checkBox_searchMeshes->isChecked())
     {
         extensions.push_back("w2mesh");
@@ -159,7 +160,15 @@ void GUI_Search::killThread()
 
 void GUI_Search::setProgress(int progress)
 {
-    _ui->progressBar_search->setValue(progress);
+    if (progress >= 0)
+    {
+        _ui->progressBar_search->setMaximum(100);
+        _ui->progressBar_search->setValue(progress);
+    }
+    else
+    {
+        _ui->progressBar_search->setMaximum(0); // infinite mode
+    }
 }
 
 void GUI_Search::addResult(QString item)
@@ -224,14 +233,14 @@ void SearchEngine::run()
     else
     {
         // classic search
-        scanFolder(_rootDir, 0);
+        scanFolder(_rootDir);
     }
 
     emit finished();
 }
 
 
-void SearchEngine::isASearchedFile(QFileInfo& fileInfo)
+void SearchEngine::checkIfIsASearchedFile(QFileInfo& fileInfo)
 {
     QString target = fileInfo.fileName();
     if (_searchFolders)
@@ -240,17 +249,15 @@ void SearchEngine::isASearchedFile(QFileInfo& fileInfo)
         target.remove(0, _rootDir.size());
     }
 
-    bool ok = true;
     for (int i = 0; i < _keywords.size(); i++)
     {
         if (!target.contains(_keywords[i], Qt::CaseInsensitive))
         {
-            ok = false;
-            break;
+            return;
         }
     }
-    if (ok)
-        emit sendItem("{Search dir}" + fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
+
+    emit sendItem("{Search dir}" + fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
 }
 
 void SearchEngine::fafSearch()
@@ -273,7 +280,7 @@ void SearchEngine::fafSearch()
         // test file
         QFileInfo fileInfo(line);
         if (_extensions.contains(QString("*.") + fileInfo.completeSuffix()))
-            isASearchedFile(fileInfo);
+            checkIfIsASearchedFile(fileInfo);
 
         // update progression
         //std::cout << line.toStdString().c_str() << std::endl;
@@ -287,36 +294,23 @@ void SearchEngine::fafSearch()
     emit onProgress(100);
 }
 
-
-void SearchEngine::scanFolder(QString repName, int level)
+void SearchEngine::scanFolder(QString repName)
 {   
-    level++;
-
-    if (_stopped)
-        return;
+    emit onProgress(-1);
 
     // search the files
-    QDir dirFiles(repName);
-    dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    dirFiles.setNameFilters(_extensions);
-
-    foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
+    QDirIterator it(repName, _extensions, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
     {
-        isASearchedFile(fileInfo);
+        it.next();
+        QFileInfo fileInfo = it.fileInfo();
+        checkIfIsASearchedFile(fileInfo);
+
+        if (_stopped)
+            return;
     }
 
-    // search in the subfolders
-    dirFiles.setNameFilters(QStringList());
-    dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Dirs);
-    int i = 0;
-    foreach (QFileInfo fileInfo, dirFiles.entryInfoList())
-    {
-        scanFolder(fileInfo.absoluteFilePath(), level);
-        if (level == 1)
-        {
-            emit onProgress(((float)++i)/dirFiles.entryInfoList().size() * 100);
-        }
-    }
+    emit onProgress(100);
 }
 
 void SearchEngine::quitThread()

@@ -23,7 +23,6 @@ T readData(QFile& f)
 
 void relativeSeek(QFile& file, int value);
 
-QString readString(QFile& file, int nbChars);
-QString readStringFixedSize(QFile& file, int nbChars);
+QString readString(QFile& file, int stringSize);
 
 #endif // UTILS_QT_LOADERS_H

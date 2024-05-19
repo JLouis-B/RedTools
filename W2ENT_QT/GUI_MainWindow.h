@@ -91,6 +91,8 @@ private:
     void createUILogger();
     void destroyUILogger();
 
+    bool isFileOpenableByIrrlicht(QString path, bool bMessageBoxIfFailed = true);
+
 signals:
     void languageChanged();
 

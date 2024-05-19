@@ -5,19 +5,10 @@ void relativeSeek(QFile& file, int value)
     file.seek(file.pos() + value);
 }
 
-QString readString(QFile& file, int nbChars)
+QString readString(QFile& file, int stringSize)
 {
-    char str[nbChars + 1];
-    file.read(str, nbChars);
-    str[nbChars] = '\0';
-    return str;
-}
-
-QString readStringFixedSize(QFile &file, int nbChars)
-{
-    qint64 back = file.pos();
-    QString str = readString(file, nbChars);
-    file.seek(back + nbChars);
-
+    char str[stringSize + 1];
+    file.read(str, stringSize);
+    str[stringSize] = '\0';
     return str;
 }

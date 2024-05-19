@@ -45,13 +45,13 @@ void Extractor_TheCouncil::extractCPKFile(QFile& file, QString exportFolder)
     QVector<TheCouncilFileEntry> filesToUnpack;
 
     quint32 nbFiles = readUInt32(file);
-    QString root = readStringFixedSize(file, 512);
+    QString root = readString(file, 512);
     for(quint32 i = 0; i < nbFiles; ++i)
     {
         TheCouncilFileEntry entry;
         entry.size = readUInt32(file);
         entry.offset = readUInt64(file);
-        entry.filename = readStringFixedSize(file, 512);
+        entry.filename = readString(file, 512);
         LoggerManager::Instance()->addLineAndFlush(formatString("-> %s", entry.filename.toStdString().c_str()));
 
         filesToUnpack.push_back(entry);

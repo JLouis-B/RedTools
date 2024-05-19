@@ -60,8 +60,8 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
     while (file.pos() < dataPosition)
     {
         //std::cout << file.pos() << std::endl;
-        QString filename = readStringFixedSize(file, 256);
-        QString hash = readStringFixedSize(file, 16);
+        QString filename = readString(file, 256);
+        QString hash = readString(file, 16);
         //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
         qint32 zero = readInt32(file);
@@ -84,7 +84,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         get TSTAMP longlong
         */
 
-        QString z = readStringFixedSize(file, 16);
+        QString z = readString(file, 16);
 
         /*
          *          get DUMMY long

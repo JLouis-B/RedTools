@@ -70,8 +70,8 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString keyFilename)
     // List of all the files packed
     keyFile.seek(keysOffset);
     for (quint32 i = 0; i < nbKeys; ++i)
-    {       
-        QString name = readStringFixedSize(keyFile, 16);
+    {
+        QString name = readString(keyFile, 16);
         //std::cout << name.toStdString().c_str() << std::endl;
 
         quint16 resourceType = readUInt16(keyFile);

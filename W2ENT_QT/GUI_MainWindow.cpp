@@ -194,9 +194,8 @@ void GUI_MainWindow::addMeshes(QStringList filePaths)
     for (int i = 0; i < filePaths.size(); ++i)
     {
         const QString filePath = filePaths.at(i);
-        if (!_irrWidget->fileIsOpenableByIrrlicht(filePath))
+        if (!isFileOpenableByIrrlicht(filePath))
         {
-            QMessageBox::critical(this, "Error", "Error : The file " + filePath + " can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
             continue;
         }
 
@@ -717,9 +716,8 @@ void GUI_MainWindow::addFileGeneric(QString path)
 
 void GUI_MainWindow::replaceMesh(QString path)
 {
-    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    if (!isFileOpenableByIrrlicht(path))
     {
-        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
 
@@ -761,9 +759,8 @@ void GUI_MainWindow::replaceMesh(QString path)
 
 void GUI_MainWindow::loadRig(QString path)
 {
-    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    if (!isFileOpenableByIrrlicht(path))
     {
-        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
     LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
@@ -777,9 +774,8 @@ void GUI_MainWindow::loadRig(QString path)
 
 void GUI_MainWindow::loadAnimations(QString path)
 {
-    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    if (!isFileOpenableByIrrlicht(path))
     {
-        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
     LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
@@ -793,9 +789,8 @@ void GUI_MainWindow::loadAnimations(QString path)
 
 void GUI_MainWindow::loadTW1Animations(QString path)
 {
-    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    if (!isFileOpenableByIrrlicht(path))
     {
-        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
     LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
@@ -809,9 +804,8 @@ void GUI_MainWindow::loadTW1Animations(QString path)
 
 void GUI_MainWindow::loadTheCouncilTemplate(QString path)
 {
-    if (!_irrWidget->fileIsOpenableByIrrlicht(path))
+    if (!isFileOpenableByIrrlicht(path))
     {
-        QMessageBox::critical(this, "Error", "Error : The file can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
         return;
     }
     LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
@@ -832,3 +826,18 @@ void GUI_MainWindow::logLoadingResult(bool result)
         LoggerManager::Instance()->addLineAndFlush("Loading failed", true);
     }
 }
+
+bool GUI_MainWindow::isFileOpenableByIrrlicht(QString path, bool bMessageBoxIfFailed)
+{
+    if (!_irrWidget || !_irrWidget->fileIsOpenableByIrrlicht(path))
+    {
+        if (bMessageBoxIfFailed)
+        {
+            QMessageBox::critical(this, "Error", QString("Error : The file ") + path + " can't be opened by Irrlicht. Check that you doesn't use special characters in your paths and that you have the reading persission in the corresponding folder.");
+        }
+        return false;
+    }
+
+    return true;
+}
+

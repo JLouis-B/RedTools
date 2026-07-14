@@ -2,7 +2,6 @@
 #define GUI_EXTRACTOR_TW2_DZIP_H
 
 #include <QDialog>
-#include <QThread>
 
 #include "Extractor_TW2_DZIP.h"
 

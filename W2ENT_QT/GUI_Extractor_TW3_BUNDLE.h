@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QQueue>
-#include <QThread>
 
 #include "Extractor_TW3_BUNDLE.h"
 
@@ -23,8 +22,8 @@ public:
 public slots:
     void destroyWindow();
     void selectFolder();
-    void selectFile();
-    void extract(QString file);
+    void selectFilesToUnpack();
+    void extractBundleFile(QString file);
 
     void extractSetProgress(int value);
     void extractEnd();
@@ -33,7 +32,7 @@ public slots:
     void killExtractThread();
 
 private:
-    Ui::GUI_Extractor_TW3_BUNDLE *_ui;
+    Ui::GUI_Extractor_TW3_BUNDLE* _ui;
     QThread* _thread;
     Extractor_TW3_BUNDLE* _extractor;
     QQueue<QString> _filesQueue;
@@ -42,7 +41,7 @@ private:
     int _nbFilesProcessed;
 
     void getFiles(QString file);
-    bool nextFile();
+    bool processNextFile();
 };
 
 #endif // GUI_EXTRACTOR_TW3_BUNDLE_H

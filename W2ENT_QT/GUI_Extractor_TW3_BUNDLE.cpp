@@ -4,6 +4,7 @@
 #include <QListView>
 #include <QTreeView>
 #include <QFileDialog>
+#include <QThread>
 
 GUI_Extractor_TW3_BUNDLE::GUI_Extractor_TW3_BUNDLE(QWidget *parent) :
     QDialog(parent),
@@ -14,11 +15,11 @@ GUI_Extractor_TW3_BUNDLE::GUI_Extractor_TW3_BUNDLE(QWidget *parent) :
     _ui->setupUi(this);
 
     QObject::connect(_ui->pushButton_selectDestFolder, SIGNAL(clicked(bool)), this, SLOT(selectFolder()));
-    QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(selectFile()));
+    QObject::connect(_ui->pushButton_extract, SIGNAL(clicked(bool)), this, SLOT(selectFilesToUnpack()));
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 
-    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GUI_Extractor_TW3_BUNDLE::~GUI_Extractor_TW3_BUNDLE()
@@ -47,35 +48,46 @@ void GUI_Extractor_TW3_BUNDLE::selectFolder()
     }
 }
 
-void GUI_Extractor_TW3_BUNDLE::selectFile()
+void GUI_Extractor_TW3_BUNDLE::selectFilesToUnpack()
 {
     QFileDialog* dialog = new QFileDialog(this);
     dialog->setFileMode(QFileDialog::Directory);
     dialog->setOption(QFileDialog::DontUseNativeDialog, true);
 
     // Try to select multiple files and directories at the same time in QFileDialog
-    QListView *l = dialog->findChild<QListView*>("listView");
+    QListView* l = dialog->findChild<QListView*>("listView");
     if (l)
-        l->setSelectionMode(QAbstractItemView::MultiSelection);
-
-    QTreeView *t = dialog->findChild<QTreeView*>();
-    if (t)
-        t->setSelectionMode(QAbstractItemView::MultiSelection);
-
-
-    dialog->exec();
-    QStringList filenames = dialog->selectedFiles();
-    delete dialog;
-
-    foreach (QString filename, filenames)
     {
-        getFiles(filename);
+        l->setSelectionMode(QAbstractItemView::MultiSelection);
     }
 
-    _nbFiles = _filesQueue.size();
-    _nbFilesProcessed = 1;
+    QTreeView* t = dialog->findChild<QTreeView*>();
+    if (t)
+    {
+        t->setSelectionMode(QAbstractItemView::MultiSelection);
+    }
 
-    nextFile();
+
+    if (dialog->exec())
+    {
+        QStringList filenames = dialog->selectedFiles();
+        delete dialog;
+
+        foreach (QString filename, filenames)
+        {
+            getFiles(filename);
+        }
+
+        _nbFiles = _filesQueue.size();
+        _nbFilesProcessed = 1;
+
+        processNextFile();
+    }
+    else
+    {
+        delete dialog;
+    }
+
     //QString filename = QFileDialog::getOpenFileName(this, "Select a BUNDLE file", "", "*.bundle");
     //if (filename != "")
     //    _ui->lineEdit_dzipFile->setText(filename);
@@ -107,7 +119,7 @@ void GUI_Extractor_TW3_BUNDLE::getFiles(QString file)
     }
 }
 
-void GUI_Extractor_TW3_BUNDLE::extract(QString file)
+void GUI_Extractor_TW3_BUNDLE::extractBundleFile(QString file)
 {
     const QString folder = _ui->lineEdit_destFolder->text();
 
@@ -152,12 +164,12 @@ void GUI_Extractor_TW3_BUNDLE::killExtractThread()
     _extractor = nullptr;
 }
 
-bool GUI_Extractor_TW3_BUNDLE::nextFile()
+bool GUI_Extractor_TW3_BUNDLE::processNextFile()
 {
     if (!_filesQueue.empty())
     {
         QString currentFilename = _filesQueue.dequeue();
-        extract(currentFilename);
+        extractBundleFile(currentFilename);
         return true;
     }
     else
@@ -173,7 +185,7 @@ void GUI_Extractor_TW3_BUNDLE::extractEnd()
     killExtractThread();
     _nbFilesProcessed++;
 
-    if (!nextFile())
+    if (!processNextFile())
     {
         _ui->progressBar->setValue(_ui->progressBar->maximum());
         _ui->label_status->setText("State : End");
@@ -186,7 +198,7 @@ void GUI_Extractor_TW3_BUNDLE::extractFail()
     killExtractThread();
     _nbFilesProcessed++;
 
-    if (!nextFile())
+    if (!processNextFile())
     {
         _ui->progressBar->setValue(_ui->progressBar->maximum());
         _ui->label_status->setText("State : Fatal error during the extraction.");

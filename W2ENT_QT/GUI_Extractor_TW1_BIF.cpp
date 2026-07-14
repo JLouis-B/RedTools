@@ -2,8 +2,7 @@
 #include "ui_GUI_Extractor_TW1_BIF.h"
 
 #include <QFileDialog>
-
-#include <iostream>
+#include <QThread>
 
 GUI_Extractor_TW1_BIF::GUI_Extractor_TW1_BIF(QWidget *parent) :
     QDialog(parent),
@@ -19,7 +18,7 @@ GUI_Extractor_TW1_BIF::GUI_Extractor_TW1_BIF(QWidget *parent) :
     QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 
-    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GUI_Extractor_TW1_BIF::~GUI_Extractor_TW1_BIF()

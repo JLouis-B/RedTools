@@ -2,7 +2,6 @@
 #define GUI_EXTRACTOR_THECOUNCIL_H
 
 #include <QDialog>
-#include <QThread>
 
 #include "Extractor_TheCouncil.h"
 

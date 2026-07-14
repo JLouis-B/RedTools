@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QQueue>
-#include <QThread>
 
 #include "Extractor_TW3_CACHE.h"
 

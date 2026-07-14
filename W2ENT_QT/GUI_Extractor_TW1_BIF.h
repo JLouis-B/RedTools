@@ -2,7 +2,6 @@
 #define GUI_EXTRACTOR_TW1_BIF_H
 
 #include <QDialog>
-#include <QThread>
 
 #include "Extractor_TW1_BIF.h"
 

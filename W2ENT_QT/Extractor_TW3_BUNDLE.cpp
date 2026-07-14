@@ -29,6 +29,7 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
     if (!bundleFile.open(QIODevice::ReadOnly))
     {
         emit error();
+        return;
     }
 
     // parsing
@@ -163,14 +164,19 @@ bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, 
         {
             decompressedFile.write(decompressedFileContent, decompressedSize);
             decompressedFile.close();
+            return true;
         }
         else
+        {
             LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to create file %s", fullPath.toStdString().c_str()));
+        }
     }
     else
+    {
         LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to create path %s", dir.absolutePath().toStdString().c_str()));
+    }
 
-    return true;
+    return false;
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
@@ -206,7 +212,7 @@ bool Extractor_TW3_BUNDLE::decompressFileZLIB(char* fileContent, qint64 compress
     return success;
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // don't seem necessary
     // size_t decompressedSnappySize;
@@ -231,7 +237,7 @@ bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char *fileContent, qint64 compre
     }
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     doboz::Decompressor decompressor;
 
@@ -246,15 +252,20 @@ bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char *fileContent, qint64 compres
 
     char* decompressedFileContent = new char[decompressedSize];
     doboz::Result result = decompressor.decompress(fileContent, compressedSize, decompressedFileContent, decompressedSize);
-    if (result != doboz::RESULT_OK)
+    if (result == doboz::RESULT_OK)
+    {
+        bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
+        delete[] decompressedFileContent;
+        return success;
+    }
+    else
+    {
+        delete[] decompressedFileContent;
         return false;
-
-    bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
-    delete[] decompressedFileContent;
-    return success;
+    }
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileLZ4(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileLZ4(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     char* decompressedFileContent = new char[decompressedSize];
     if (LZ4_decompress_fast(fileContent, decompressedFileContent, decompressedSize) > 0)
@@ -264,7 +275,10 @@ bool Extractor_TW3_BUNDLE::decompressFileLZ4(char *fileContent, qint64 compresse
         return success;
     }
     else
+    {
+        delete[] decompressedFileContent;
         return false;
+    }
 }
 
 void Extractor_TW3_BUNDLE::quitThread()

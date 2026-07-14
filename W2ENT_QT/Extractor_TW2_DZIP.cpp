@@ -23,6 +23,7 @@ void Extractor_TW2_DZIP::extractDZIP(QString exportFolder, QString filename)
     if (!dzipFile.open(QIODevice::ReadOnly))
     {
         emit error();
+        return;
     }
 
     // parsing

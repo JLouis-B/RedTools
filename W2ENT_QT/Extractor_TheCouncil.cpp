@@ -28,6 +28,7 @@ void Extractor_TheCouncil::extract(QString exportFolder, QString filename)
     if (!cpkFile.open(QIODevice::ReadOnly))
     {
         emit error();
+        return;
     }
 
     // parsing

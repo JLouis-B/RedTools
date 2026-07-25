@@ -113,22 +113,25 @@ QByteArray stringToByteArray(QString input)
     return data;
 }
 
-void Settings::loadFromXML(QString filename)
+bool Settings::loadFromXML(QString filename)
 {
     // Load config from XML
-    QDomDocument* dom = new QDomDocument("config");
     QFile xmlDoc(filename);
-
-    if(!xmlDoc.open(QIODevice::ReadOnly))
+    if (!xmlDoc.open(QIODevice::ReadOnly))
     {
-         QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
+        QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
+        return false;
     }
 
+    QDomDocument* dom = new QDomDocument("config");
     if (!dom->setContent(&xmlDoc))
     {
         xmlDoc.close();
+        delete dom;
         QMessageBox::warning(nullptr, "Error", "Fail to load config.xml");
+        return false;
     }
+
     QDomElement dom_element = dom->documentElement();
     QDomNode node = dom_element.firstChildElement();
     while (!node.isNull())
@@ -247,9 +250,10 @@ void Settings::loadFromXML(QString filename)
 
     xmlDoc.close();
     delete dom;
+    return true;
 }
 
-void Settings::saveToXML(QString filename)
+bool Settings::saveToXML(QString filename)
 {
     QDomDocument dom("config");
     QDomElement configElem = dom.createElement("config");
@@ -349,16 +353,18 @@ void Settings::saveToXML(QString filename)
     QString writeDoc = dom.toString().toUtf8();
 
     QFile file(filename);
-    if(file.open(QIODevice::WriteOnly))
+    if (file.open(QIODevice::WriteOnly))
     {
         QTextStream stream(&file);
         stream.setCodec("UTF8");
         stream << writeDoc;
         file.close();
+        return true;
     }
     else
     {
         QMessageBox::critical(nullptr, "Error", "Fail to write config.xml");
+        return false;
     }
 }
 

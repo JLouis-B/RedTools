@@ -95,8 +95,8 @@ public:
     static QString getAppVersion();
     static QString getExportFolder();
 
-    static void loadFromXML(QString filename);
-    static void saveToXML(QString filename);
+    static bool loadFromXML(QString filename);
+    static bool saveToXML(QString filename);
 
     static QString getFilters();
 

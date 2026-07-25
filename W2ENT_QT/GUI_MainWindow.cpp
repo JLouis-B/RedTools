@@ -174,9 +174,8 @@ void GUI_MainWindow::destroyUILogger()
 
 void GUI_MainWindow::logToUser(core::stringc log)
 {
-    QString qLog = irrStringToQString(log);
-
-    _ui->textEdit_log->setText(_ui->textEdit_log->toPlainText() + qLog);
+    const QString qLog = irrStringToQString(log);
+    _ui->textEdit_log->insertPlainText(qLog);
 }
 
 

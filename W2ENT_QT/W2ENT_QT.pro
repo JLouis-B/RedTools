@@ -151,9 +151,9 @@ LIBS += "C:\Users\Jean-Louis\Desktop\Libs\irr-svn\lib\Win32-gcc\libIrrlicht.a"
 INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\irr-svn\include" \
 
 # If you use COMPILE_WITH_ASSIMP, set the path for Assimp
-LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-5.4.1\Builds\CB_Build\lib\libassimp.dll.a
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-5.4.1\include" \
-INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-5.4.1\Builds\CB_Build\include" \
+LIBS += C:\Users\Jean-Louis\Desktop\Libs\assimp-6.0.5\Builds\CB_Build\lib\libassimp.dll.a
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-6.0.5\include" \
+INCLUDEPATH += "C:\Users\Jean-Louis\Desktop\Libs\assimp-6.0.5\Builds\CB_Build\include" \
 
 # We use the zlib bundled with Qt
 LIBS += -lz

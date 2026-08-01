@@ -20,11 +20,11 @@ bool readBool(io::IReadFile* file)
     return readU8(file) > 0;
 }
 
-core::stringc readString(io::IReadFile* file, s32 stringSize)
+core::stringc readString(io::IReadFile* file, u32 stringSize)
 {
     checkOutOfBound(file, stringSize);
 
-    char returnedString[stringSize + 1];
+    c8 returnedString[stringSize + 1];
     file->read(returnedString, stringSize);
     returnedString[stringSize] = '\0';
     return returnedString;

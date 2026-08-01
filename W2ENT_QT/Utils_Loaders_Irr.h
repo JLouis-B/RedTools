@@ -42,7 +42,7 @@ core::array<T> readDataArray(io::IReadFile* file, s32 arraySize)
     return values;
 }
 
-core::stringc readString(io::IReadFile* file, int nbChars);
+core::stringc readString(io::IReadFile* file, u32 nbChars);
 core::stringc readStringUntilNull(io::IReadFile* file);
 
 void chechNaNErrors(core::vector3df& vector3);

@@ -16,7 +16,7 @@ void deleteInReleaseBuild(QAction* action)
 
 QString ensureTrailingSlash(QString path)
 {
-    if (!path.isEmpty() && path[path.size() - 1] != '/' && path[path.size() - 1] != '\\')
+    if (!path.isEmpty() && !path.endsWith('/') && !path.endsWith('\\'))
         path.push_back('/');
 
     return path;

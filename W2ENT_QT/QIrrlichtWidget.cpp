@@ -501,7 +501,7 @@ bool QIrrlichtWidget::loadRig(const io::path filename)
 bool QIrrlichtWidget::loadTheCouncilTemplate(const io::path filename)
 {
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", cleanPath(Settings::_baseDir).toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", ensureTrailingSlash(Settings::_baseDir).toStdString().c_str());
 
     bool success = _device->getSceneManager()->loadScene(filename);
     if (!success)
@@ -560,8 +560,8 @@ void QIrrlichtWidget::loadMeshPostProcess()
 scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename)
 {
     _device->getSceneManager()->getParameters()->setAttribute("TW_DEBUG_LOG", Settings::_debugLog);
-    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", cleanPath(Settings::_baseDir).toStdString().c_str());
-    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", cleanPath(Settings::_TW3TexPath).toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_GAME_PATH", ensureTrailingSlash(Settings::_baseDir).toStdString().c_str());
+    _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_TEX_PATH", ensureTrailingSlash(Settings::_TW3TexPath).toStdString().c_str());
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_SKEL", Settings::_TW3LoadSkeletonEnabled);
     _device->getSceneManager()->getParameters()->setAttribute("TW_TW3_LOAD_BEST_LOD_ONLY", Settings::_TW3LoadBestLODEnabled);
 

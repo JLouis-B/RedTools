@@ -8,6 +8,6 @@
 
 void deleteInReleaseBuild(QWidget* widget);
 void deleteInReleaseBuild(QAction* action);
-QString cleanPath(QString path);
+QString ensureTrailingSlash(QString path);
 
 #endif // UTILS_QT_H

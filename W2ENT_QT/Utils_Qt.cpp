@@ -14,9 +14,9 @@ void deleteInReleaseBuild(QAction* action)
 #endif
 }
 
-QString cleanPath(QString path)
+QString ensureTrailingSlash(QString path)
 {
-    if (path.size() > 0 && (path[path.size() - 1] != '/' || path[path.size() - 1] != '\\'))
+    if (!path.isEmpty() && path[path.size() - 1] != '/' && path[path.size() - 1] != '\\')
         path.push_back('/');
 
     return path;

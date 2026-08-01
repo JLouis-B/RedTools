@@ -91,13 +91,13 @@ scene::ISkinnedMesh::SJoint* JointHelper::GetJointByName(const scene::ISkinnedMe
 
 scene::ISkinnedMesh::SJoint* JointHelper::GetParent(const scene::ISkinnedMesh* mesh, const scene::ISkinnedMesh::SJoint* joint)
 {
-    core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
-    for (u32 j = 0; j < allJoints.size(); j++)
+    const core::array<scene::ISkinnedMesh::SJoint*>& allJoints = mesh->getAllJoints();
+    for (u32 i = 0; i < allJoints.size(); i++)
     {
-       scene::ISkinnedMesh::SJoint* testedJoint = allJoints[j];
-       for (u32 k = 0; k < testedJoint->Children.size(); k++)
+       scene::ISkinnedMesh::SJoint* testedJoint = allJoints[i];
+       for (u32 j = 0; j < testedJoint->Children.size(); j++)
        {
-           if (joint == testedJoint->Children[k])
+           if (joint == testedJoint->Children[j])
                 return testedJoint;
        }
     }
@@ -108,14 +108,14 @@ scene::ISkinnedMesh::SJoint* JointHelper::GetParent(const scene::ISkinnedMesh* m
 void JointHelper::SetParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint, scene::ISkinnedMesh::SJoint* parent)
 {
     // First, search if we already have a parent and remove it
-    core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
-    for (u32 j = 0; j < allJoints.size(); j++)
+    const core::array<scene::ISkinnedMesh::SJoint*>& allJoints = mesh->getAllJoints();
+    for (u32 i = 0; i < allJoints.size(); i++)
     {
-        scene::ISkinnedMesh::SJoint* parentJoint = allJoints[j];
-        for (u32 k = 0; k < parentJoint->Children.size(); k++)
+        scene::ISkinnedMesh::SJoint* parentJoint = allJoints[i];
+        for (u32 j = 0; j < parentJoint->Children.size(); j++)
         {
-            if (joint == parentJoint->Children[k])
-                parentJoint->Children.erase(k);
+            if (joint == parentJoint->Children[j])
+                parentJoint->Children.erase(j);
         }
     }
 
@@ -125,7 +125,7 @@ void JointHelper::SetParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh
 
 void JointHelper::ComputeGlobalMatrixRecursive(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
 {
-    scene::ISkinnedMesh::SJoint* parent = GetParent(mesh, joint);
+    const scene::ISkinnedMesh::SJoint* parent = GetParent(mesh, joint);
     if (parent)
         joint->GlobalMatrix = parent->GlobalMatrix * joint->LocalMatrix;
     else
@@ -141,7 +141,7 @@ core::array<scene::ISkinnedMesh::SJoint*> JointHelper::GetRoots(const scene::ISk
 {
     core::array<scene::ISkinnedMesh::SJoint*> roots;
 
-    core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
+    const core::array<scene::ISkinnedMesh::SJoint*>& allJoints = mesh->getAllJoints();
     for (u32 i = 0; i < allJoints.size(); i++)
     {
         bool isRoot = true;

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>225</height>
+    <height>313</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,6 @@
     <widget class="QLabel" name="label_version">
      <property name="font">
       <font>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -30,7 +29,7 @@
    <item>
     <widget class="QLabel" name="label_description">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Witcher Converter is a free and open source toolset for CD Projekt games (mainly), but not affiliated to CD Projekt RED.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Witcher Converter is a free and open source toolset for CD Projekt games (mainly), but not affiliated to CD Projekt RED.&lt;/p&gt;&lt;p&gt;Developped by Jean-Louis Boudrand, with contributions/feedbacks/reports, from many people, including Cedrik PL, Chris, Oaristys, Max Ivanov, Nemomallo, Goospo, Ákos Köte &amp;amp; Hambalkó Bence from the WolvenKit project...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -48,7 +47,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_website">
+    <widget class="QLabel" name="label_github">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -56,10 +55,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Website :&lt;br/&gt;&lt;a href=&quot;http://jlouisb.users.sourceforge.net/&quot;&gt;http://jlouisb.users.sourceforge.net/&lt;/a&gt;</string>
-     </property>
-     <property name="textFormat">
-      <enum>Qt::RichText</enum>
+      <string>Github :&lt;br/&gt;&lt;a href=&quot;https://github.com/JLouis-B/RedTools&quot;&gt;https://github.com/JLouis-B/RedTools&lt;a&gt;</string>
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
@@ -79,13 +75,6 @@
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_github">
-     <property name="text">
-      <string>Github :&lt;br/&gt;&lt;a href=&quot;https://github.com/JLouis-B/RedTools&quot;&gt;https://github.com/JLouis-B/RedTools&lt;a&gt;</string>
      </property>
     </widget>
    </item>

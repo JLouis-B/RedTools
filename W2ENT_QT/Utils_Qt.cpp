@@ -21,3 +21,13 @@ QString ensureTrailingSlash(QString path)
 
     return path;
 }
+
+bool isASCII(const QString &path)
+{
+    for (int i = 0; i < path.size(); ++i)
+    {
+        if (path[i].unicode() > 127)
+            return false;
+    }
+    return true;
+}

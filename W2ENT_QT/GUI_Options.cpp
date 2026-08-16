@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "Translator.h"
 #include "UIThemeManager.h"
+#include "Utils_Qt.h"
 
 
 GUI_Options::GUI_Options(QWidget *parent) :
@@ -56,8 +57,9 @@ GUI_Options::GUI_Options(QWidget *parent) :
     _ui->checkBox_debug_log->setChecked(Settings::_debugLog);
 
 
-    QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(ok()));
-    QObject::connect(_ui->buttonBox, SIGNAL(rejected()), this, SLOT(cancel()));
+    QObject::connect(_ui->buttonBox, SIGNAL(accepted()), this, SLOT(onAcceptedButtonClicked()));
+    QObject::connect(_ui->buttonBox, SIGNAL(rejected()), this, SLOT(onRejectedButtonClicked()));
+    QObject::connect(this, SIGNAL(rejected()), this, SLOT(onRejected()));
 
     QObject::connect(_ui->button_view_backgroundColorSelector, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
     QObject::connect(_ui->pushButton_view_reset, SIGNAL(clicked()), this, SLOT(resetViewPanel()));
@@ -92,7 +94,7 @@ GUI_Options::~GUI_Options()
     delete _ui;
 }
 
-void GUI_Options::ok()
+void GUI_Options::onAcceptedButtonClicked()
 {
     Settings::_theme = _ui->comboBox_theme->currentText();
 
@@ -128,17 +130,21 @@ void GUI_Options::ok()
     emit optionsValidation();
 }
 
-void GUI_Options::cancel()
+void GUI_Options::onRejectedButtonClicked()
+{
+    reject();
+}
+
+void GUI_Options::onRejected()
 {
     Settings::_backgroundColor = _originalBackgroundColor;
     UIThemeManager::SetTheme(_originalTheme);
-    reject();
 }
 
 void GUI_Options::resetViewPanel()
 {
-    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(Settings::_cameraRotationSpeed);
-    _ui->doubleSpinBox_view_cameraSpeed->setValue(Settings::_cameraSpeed);
+    _ui->doubleSpinBox_view_cameraRotSpeed->setValue(DEFAULT_CAM_ROT_SPEED);
+    _ui->doubleSpinBox_view_cameraSpeed->setValue(DEFAULT_CAM_SPEED);
 
     Settings::_backgroundColor = QColor(0, 0, 0);
     updateBackgroundColorButtonColor();
@@ -173,20 +179,10 @@ void GUI_Options::changeExportMode()
     _ui->button_export_selectExportDir->setEnabled(_ui->radioButton_export_exportCustomDir->isChecked());
 }
 
-bool isASCII(QString path)
-{
-    for (int i = 0; i < path.size(); ++i)
-    {
-        if (path[i].unicode() > 127)
-            return false;
-    }
-    return true;
-}
-
 void GUI_Options::selectExportDir()
 {
     QString file = QFileDialog::getExistingDirectory(this, Translator::get("options_export_target"), _ui->lineEdit_export_exportDir->text());
-    if (file != "")
+    if (!file.isEmpty())
     {
         if (isASCII(file))
         {
@@ -200,7 +196,7 @@ void GUI_Options::selectExportDir()
 void GUI_Options::selectTW3TexDir()
 {
     QString file = QFileDialog::getExistingDirectory(this, "Select you TW3 textures folder", _ui->lineEdit_TW3_texFolder->text());
-    if (file != "")
+    if (!file.isEmpty())
     {
         if (isASCII(file))
         {

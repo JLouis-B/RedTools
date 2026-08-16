@@ -17,8 +17,9 @@ public:
     ~GUI_Options();
 
 public slots:
-    void ok();
-    void cancel();
+    void onAcceptedButtonClicked();
+    void onRejectedButtonClicked();
+    void onRejected();
 
     void changeTheme(QString newThemeName);
 

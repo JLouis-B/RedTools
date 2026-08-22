@@ -184,7 +184,7 @@ void GUI_Search::searchEnd()
 
 void GUI_Search::load()
 {
-    emit loadPressed(_rootDir + _ui->listWidget_results->currentItem()->text().remove(0, 12));
+    emit loadPressed(_rootDir + _ui->listWidget_results->currentItem()->text());
 }
 
 void GUI_Search::enableButton()
@@ -261,7 +261,7 @@ void SearchEngine::checkIfIsASearchedFile(QFileInfo& fileInfo)
         }
     }
 
-    emit sendItem("{Search dir}" + fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
+    emit sendItem(fileInfo.absoluteFilePath().remove(0, _rootDir.size()));
 }
 
 void SearchEngine::fafSearch()

@@ -242,11 +242,15 @@ void SearchEngine::run()
 
 void SearchEngine::checkIfIsASearchedFile(QFileInfo& fileInfo)
 {
-    QString target = fileInfo.fileName();
+    QString target;
     if (_searchFolders)
     {
-        target = fileInfo.absolutePath() + fileInfo.fileName();
+        target = fileInfo.absoluteFilePath();
         target.remove(0, _rootDir.size());
+    }
+    else
+    {
+        target = fileInfo.fileName();
     }
 
     for (int i = 0; i < _keywords.size(); i++)

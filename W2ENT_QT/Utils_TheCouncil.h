@@ -3,13 +3,16 @@
 
 #include <QFileInfo>
 
-enum TheCouncilFormat
+namespace UtilsTheCouncil
 {
-    TheCouncil_CEF,
-    TheCouncil_JSON
-};
+    enum TheCouncilFormat
+    {
+        TheCouncil_CEF,
+        TheCouncil_JSON
+    };
 
-QFileInfo findFile(QString base, TheCouncilFormat format);
+    QFileInfo findFile(QString base, TheCouncilFormat format);
+}
 
 
 #endif // UTILS_THECOUNCIL_H

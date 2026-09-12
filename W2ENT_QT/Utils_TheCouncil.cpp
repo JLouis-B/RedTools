@@ -4,83 +4,92 @@
 
 #include <iostream>
 
-QFileInfo findFile(QString base, TheCouncilFormat format)
+namespace UtilsTheCouncil
 {
-    QFileInfo fInfo(base);
-    QString absolutePath = fInfo.absolutePath();
-    QString filename = fInfo.baseName().toLower();
-    QString extension = fInfo.suffix().toLower();
-
-    // the case where the extensions change
-    if (extension == "fbx")
-        extension = "cef";
-
-    //std::cout << "absolutePath = " << absolutePath.toStdString().c_str() << std::endl;
-    //std::cout << "filename = " << filename.toStdString().c_str() << std::endl;
-
-    // search the files
-    QDir dirFiles(absolutePath);
-    dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Files);
-
-    QFileInfo bestFile;
-    qint64 bestVersion = -1;
-    foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
+    QFileInfo findFile(QString base, TheCouncilFormat format)
     {
-        bool isTheGoodFile = true;
+        QFileInfo fInfo(base);
+        QString absolutePath = fInfo.absolutePath();
+        QString filename = fInfo.baseName().toLower();
+        QString extension = fInfo.suffix().toLower();
 
-        QString fileInfoFilename = fileInfo.baseName().toLower();
-        QString fileInfoExtension = fileInfo.suffix().toLower();
+        // the case where the extensions change
+        if (extension == "fbx")
+            extension = "cef";
 
-        int pos = fileInfoFilename.lastIndexOf(QChar('_'));
-        QString fileInfoVersion = fileInfoFilename.right(pos + 1);
-        qint64 fileInfoVersionInt = fileInfoVersion.toInt();
-        //std::cout << "version = " << fileInfoVersionInt << std::endl;
+        //std::cout << "absolutePath = " << absolutePath.toStdString().c_str() << std::endl;
+        //std::cout << "filename = " << filename.toStdString().c_str() << std::endl;
 
-        fileInfoFilename = fileInfoFilename.left(pos);
+        // search the files
+        QDir dirFiles(absolutePath);
+        dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Files);
 
-        if (fileInfoFilename != filename || fileInfoExtension != extension)
-            continue;
-
-
-        // check first bytes to know if the file is valid
-        switch(format)
+        QFileInfo bestFile;
+        qint64 bestVersion = -1;
+        foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
         {
-            case TheCouncil_CEF:
+            bool isTheGoodFile = true;
+
+            QString fileInfoFilename = fileInfo.baseName().toLower();
+            QString fileInfoExtension = fileInfo.suffix().toLower();
+
+            qint64 fileInfoVersionInt = 0;
+            const int pos = fileInfoFilename.lastIndexOf(QChar('_'));
+            if (pos != -1)
             {
-                QFile file;
-                file.setFileName(fileInfo.absoluteFilePath());
-                if (file.open(QIODevice::ReadOnly | QIODevice::Text))
-                {
-                    QByteArray firstBytes = file.read(3);
-                    if (firstBytes != "CEF")
-                        isTheGoodFile = false;
-                }
-                file.close();
+                fileInfoVersionInt = fileInfoFilename.mid(pos + 1).toLongLong();
             }
-            break;
+            //std::cout << "version = " << fileInfoVersionInt << std::endl;
 
-            case TheCouncil_JSON:
+            fileInfoFilename = fileInfoFilename.left(pos);
+
+            if (fileInfoFilename != filename || fileInfoExtension != extension)
+                continue;
+
+
+            // check first bytes to know if the file is valid
+            switch(format)
             {
-                QFile file;
-                file.setFileName(fileInfo.absoluteFilePath());
-                if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+                case TheCouncil_CEF:
                 {
-                    QByteArray firstBytes = file.read(2);
-                    if (firstBytes != "{\"")
-                        isTheGoodFile = false;
+                    QFile file;
+                    file.setFileName(fileInfo.absoluteFilePath());
+                    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+                    {
+                        QByteArray firstBytes = file.read(3);
+                        if (firstBytes != "CEF")
+                            isTheGoodFile = false;
+                    }
+                    file.close();
                 }
-                file.close();
+                break;
+
+                case TheCouncil_JSON:
+                {
+                    QFile file;
+                    file.setFileName(fileInfo.absoluteFilePath());
+                    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+                    {
+                        QByteArray firstBytes = file.read(2);
+                        if (firstBytes != "{\"")
+                            isTheGoodFile = false;
+                    }
+                    file.close();
+                }
+                break;
             }
-            break;
-        }
 
 
-        if (isTheGoodFile)
-        {
-            //std::cout << "Find a valid file : " << fileInfo.absoluteFilePath().toStdString().c_str() << std::endl;
-            bestFile = fileInfo;
-            bestVersion = fileInfoVersionInt;
+            if (isTheGoodFile)
+            {
+                //std::cout << "Find a valid file : " << fileInfo.absoluteFilePath().toStdString().c_str() << std::endl;
+                if (fileInfoVersionInt > bestVersion)
+                {
+                    bestFile = fileInfo;
+                    bestVersion = fileInfoVersionInt;
+                }
+            }
         }
+        return bestFile;
     }
-    return bestFile;
 }

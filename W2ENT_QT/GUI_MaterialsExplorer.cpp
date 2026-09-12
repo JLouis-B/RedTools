@@ -100,7 +100,7 @@ QString parseTW3Data(core::array<core::stringc>& strings, core::array<core::stri
     {
         u8 texId = 255 - readU8(file);
         if (texId < files.size())
-            return irrStringToQString(files[texId]);
+            return QtIrr::irrStringToQString(files[texId]);
         else
             return "Invalid file";
     }
@@ -469,7 +469,7 @@ void GUI_MaterialsExplorer::read(QString path)
 
     _ui->tableWidget_properties->setRowCount(0);
 
-    const io::path filePath = qStringToIrrPath(path);
+    const io::path filePath = QtIrr::qStringToIrrPath(path);
     io::IReadFile* file = _Fs->createAndOpenFile(filePath);
 
     RedEngineVersion fileType = getRedEngineFileType(file);

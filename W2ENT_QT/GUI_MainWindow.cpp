@@ -174,7 +174,7 @@ void GUI_MainWindow::destroyUILogger()
 
 void GUI_MainWindow::logToUser(core::stringc log)
 {
-    const QString qLog = irrStringToQString(log);
+    const QString qLog = QtIrr::irrStringToQString(log);
     _ui->textEdit_log->insertPlainText(qLog);
 }
 
@@ -198,7 +198,7 @@ void GUI_MainWindow::addMeshes(QStringList filePaths)
             continue;
         }
 
-        LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Read '") + filePath + "'... "), true);
+        LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString(QString("Read '") + filePath + "'... "), true);
 
         if (_irrWidget->isEmpty(_currentLOD))
             _irrWidget->loadAndReplaceMesh(filePath);
@@ -306,7 +306,7 @@ void GUI_MainWindow::initIrrlicht()
     QObject::connect(_ui->action_display_Rigging, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableRigging(bool)));
     QObject::connect(_ui->action_display_Normals, SIGNAL(triggered(bool)), _irrWidget, SLOT(enableNormals(bool)));
 
-    LoggerManager::Instance()->addLineAndFlush(qStringToIrrString(QString("The Witcher 3D models converter ") + Settings::getAppVersion()), true);
+    LoggerManager::Instance()->addLineAndFlush(QtIrr::qStringToIrrString(QString("The Witcher 3D models converter ") + Settings::getAppVersion()), true);
 }
 
 void GUI_MainWindow::registerExporters()
@@ -418,7 +418,7 @@ void GUI_MainWindow::convert()
     if (dir.exists())
     {
         const ExporterInfos infos = _exporters[currentIndex];
-        LoggerManager::Instance()->addAndFlush(qStringToIrrString("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... "), true);
+        LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString("Writing file '" + _ui->lineEdit_exportedFilename->text() + infos._extension + "'... "), true);
         QCoreApplication::processEvents();
         _irrWidget->exportMesh(Settings::getExportFolder(), _ui->lineEdit_exportedFilename->text(), infos);
     }
@@ -653,7 +653,7 @@ void GUI_MainWindow::dishonoredExtractor()
 
 void GUI_MainWindow::loadFileGeneric(QString path)
 {
-    const io::path filePath = qStringToIrrPath(path);
+    const io::path filePath = QtIrr::qStringToIrrPath(path);
     io::IReadFile* file = _irrWidget->getFileSystem()->createAndOpenFile(filePath);
 
     RedEngineVersion type = getRedEngineFileType(file);
@@ -683,7 +683,7 @@ void GUI_MainWindow::loadFileGeneric(QString path)
 
 void GUI_MainWindow::addFileGeneric(QString path)
 {
-    const io::path filePath = qStringToIrrPath(path);
+    const io::path filePath = QtIrr::qStringToIrrPath(path);
     io::IReadFile* file = _irrWidget->getFileSystem()->createAndOpenFile(filePath);
 
     RedEngineVersion type = getRedEngineFileType(file);
@@ -720,7 +720,7 @@ void GUI_MainWindow::replaceMesh(QString path)
         return;
     }
 
-    LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString(QString("Reading file '") + path + "'... "), true);
     _ui->lineEdit_ImportedFile->setText(path);
     QCoreApplication::processEvents();
 
@@ -762,10 +762,10 @@ void GUI_MainWindow::loadRig(QString path)
     {
         return;
     }
-    LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    bool success = _irrWidget->loadRig(qStringToIrrPath(path));
+    bool success = _irrWidget->loadRig(QtIrr::qStringToIrrPath(path));
     logLoadingResult(success);
 
     updateWindowTitle();
@@ -777,10 +777,10 @@ void GUI_MainWindow::loadAnimations(QString path)
     {
         return;
     }
-    LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    bool success = _irrWidget->loadAnims(qStringToIrrPath(path));
+    bool success = _irrWidget->loadAnims(QtIrr::qStringToIrrPath(path));
     logLoadingResult(success);
 
     updateWindowTitle();
@@ -792,10 +792,10 @@ void GUI_MainWindow::loadTW1Animations(QString path)
     {
         return;
     }
-    LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    bool success = _irrWidget->loadTW1Anims(qStringToIrrPath(path));
+    bool success = _irrWidget->loadTW1Anims(QtIrr::qStringToIrrPath(path));
     logLoadingResult(success);
 
     updateWindowTitle();
@@ -807,10 +807,10 @@ void GUI_MainWindow::loadTheCouncilTemplate(QString path)
     {
         return;
     }
-    LoggerManager::Instance()->addAndFlush(qStringToIrrString(QString("Reading file '") + path + "'... "), true);
+    LoggerManager::Instance()->addAndFlush(QtIrr::qStringToIrrString(QString("Reading file '") + path + "'... "), true);
     QCoreApplication::processEvents();
 
-    bool success = _irrWidget->loadTheCouncilTemplate(qStringToIrrPath(path));
+    bool success = _irrWidget->loadTheCouncilTemplate(QtIrr::qStringToIrrPath(path));
     logLoadingResult(success);
 }
 

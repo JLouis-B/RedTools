@@ -60,6 +60,9 @@ public:
     static core::array<scene::ISkinnedMesh::SJoint*> GetRoots(const scene::ISkinnedMesh* mesh);
     static void SetParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint, scene::ISkinnedMesh::SJoint* parent);
     static void DebugJointsHierarchy(const scene::ISkinnedMesh* mesh);
+
+private:
+    static void DebugJointRecursive(scene::ISkinnedMesh::SJoint* joint, int depth);
 };
 
 #endif // UTILS_LOADERS_H

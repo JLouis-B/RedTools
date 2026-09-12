@@ -109,19 +109,23 @@ void JointHelper::SetParent(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh
 {
     // First, search if we already have a parent and remove it
     const core::array<scene::ISkinnedMesh::SJoint*>& allJoints = mesh->getAllJoints();
-    for (u32 i = 0; i < allJoints.size(); i++)
+    for (u32 i = 0; i < allJoints.size(); ++i)
     {
         scene::ISkinnedMesh::SJoint* parentJoint = allJoints[i];
-        for (u32 j = 0; j < parentJoint->Children.size(); j++)
+        for (u32 j = 0; j < parentJoint->Children.size(); ++j)
         {
             if (joint == parentJoint->Children[j])
+            {
                 parentJoint->Children.erase(j);
+                --j;
+            }
         }
     }
 
     // And add to the parent
     parent->Children.push_back(joint);
 }
+
 
 void JointHelper::ComputeGlobalMatrixRecursive(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
 {
@@ -162,7 +166,7 @@ core::array<scene::ISkinnedMesh::SJoint*> JointHelper::GetRoots(const scene::ISk
     return roots;
 }
 
-void debugJointRecursive(scene::ISkinnedMesh::SJoint* joint, int depth)
+void JointHelper::DebugJointRecursive(scene::ISkinnedMesh::SJoint* joint, int depth)
 {
     for (int i = 0; i < depth; ++i)
         std::cout << "-";
@@ -170,7 +174,7 @@ void debugJointRecursive(scene::ISkinnedMesh::SJoint* joint, int depth)
 
     for (u32 i = 0; i < joint->Children.size(); ++i)
     {
-        debugJointRecursive(joint->Children[i], depth+1);
+        DebugJointRecursive(joint->Children[i], depth+1);
     }
 }
 
@@ -179,7 +183,7 @@ void JointHelper::DebugJointsHierarchy(const scene::ISkinnedMesh* mesh)
     core::array<scene::ISkinnedMesh::SJoint*> roots = GetRoots(mesh);
     for (u32 i = 0; i < roots.size(); ++i)
     {
-        debugJointRecursive(roots[i], 0);
+        JointHelper::DebugJointRecursive(roots[i], 0);
     }
 }
 

@@ -122,7 +122,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     QObject::connect(_ui->action_other_TheCouncil_unpacker, SIGNAL(triggered()), this, SLOT(thecouncilExtractor()));
     QObject::connect(_ui->action_other_TheCouncil_Load_template, SIGNAL(triggered()), this, SLOT(selectTheCouncilTemplate()));
     QObject::connect(_ui->action_other_Dishonored_2_unpacker, SIGNAL(triggered()), this, SLOT(dishonoredExtractor()));
-    deleteInReleaseBuild(_ui->action_other_Dishonored_2_unpacker);
+    UtilsQt::deleteInReleaseBuild(_ui->action_other_Dishonored_2_unpacker);
 
     QObject::connect(_ui->action_help_About, SIGNAL(triggered()), this, SLOT(openAbout()));
 

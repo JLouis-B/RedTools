@@ -184,7 +184,7 @@ void GUI_Options::selectExportDir()
     QString file = QFileDialog::getExistingDirectory(this, Translator::get("options_export_target"), _ui->lineEdit_export_exportDir->text());
     if (!file.isEmpty())
     {
-        if (isASCII(file))
+        if (UtilsQt::isASCII(file))
         {
             _ui->lineEdit_export_exportDir->setText(file);
         }
@@ -198,7 +198,7 @@ void GUI_Options::selectTW3TexDir()
     QString file = QFileDialog::getExistingDirectory(this, "Select you TW3 textures folder", _ui->lineEdit_TW3_texFolder->text());
     if (!file.isEmpty())
     {
-        if (isASCII(file))
+        if (UtilsQt::isASCII(file))
         {
             _ui->lineEdit_TW3_texFolder->setText(file);
         }

@@ -6,9 +6,12 @@
 #include <QWidget>
 #include <QAction>
 
-void deleteInReleaseBuild(QWidget* widget);
-void deleteInReleaseBuild(QAction* action);
-QString ensureTrailingSlash(QString path);
-bool isASCII(const QString& path);
+namespace UtilsQt
+{
+    void deleteInReleaseBuild(QWidget* widget);
+    void deleteInReleaseBuild(QAction* action);
+    QString ensureTrailingSlash(QString path);
+    bool isASCII(const QString& path);
+}
 
 #endif // UTILS_QT_H

@@ -1,19 +1,23 @@
 #ifndef UTILS_QT_IRR_H
 #define UTILS_QT_IRR_H
 
+// Irrlicht
 #include <IFileSystem.h>
-#include <QString>
-#include <QColor>
 #include <SColor.h>
 
-QString irrPathToQString(irr::io::path irrPath);
-irr::io::path qStringToIrrPath(QString qString);
+// Qt
+#include <QString>
+#include <QColor>
 
-QString irrStringToQString(irr::core::stringc irrString);
-irr::core::stringc qStringToIrrString(QString qString);
+
+QString irrPathToQString(const irr::io::path& irrPath);
+irr::io::path qStringToIrrPath(const QString &qString);
+
+QString irrStringToQString(const irr::core::stringc &irrString);
+irr::core::stringc qStringToIrrString(const QString& qString);
 
 int qKeyToIrrKey(int qKey);
-irr::video::SColor qColorToIrrColor(QColor qColor);
+irr::video::SColor qColorToIrrColor(const QColor& qColor);
 
 
 #endif // UTILS_QT_IRR_H

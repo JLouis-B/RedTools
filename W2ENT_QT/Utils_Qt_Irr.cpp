@@ -2,7 +2,7 @@
 
 #include <Keycodes.h>
 
-QString irrPathToQString(irr::io::path irrPath)
+QString irrPathToQString(const irr::io::path &irrPath)
 {
     #ifdef _IRR_WCHAR_FILESYSTEM
         return QString::fromWCharArray(irrPath.c_str());
@@ -11,7 +11,7 @@ QString irrPathToQString(irr::io::path irrPath)
     #endif
 }
 
-irr::io::path qStringToIrrPath(QString qString)
+irr::io::path qStringToIrrPath(const QString& qString)
 {
     #ifdef _IRR_WCHAR_FILESYSTEM
         return qString.toStdWString().c_str();
@@ -20,12 +20,12 @@ irr::io::path qStringToIrrPath(QString qString)
     #endif
 }
 
-QString irrStringToQString(irr::core::stringc irrString)
+QString irrStringToQString(const irr::core::stringc& irrString)
 {
     return QString(irrString.c_str());
 }
 
-irr::core::stringc qStringToIrrString(QString qString)
+irr::core::stringc qStringToIrrString(const QString& qString)
 {
     return qString.toStdString().c_str();
 }
@@ -44,7 +44,7 @@ int qKeyToIrrKey(int qKey)
     return qKey;
 }
 
-irr::video::SColor qColorToIrrColor(QColor qColor)
+irr::video::SColor qColorToIrrColor(const QColor &qColor)
 {
     return irr::video::SColor(qColor.alpha(), qColor.red(), qColor.green(), qColor.blue());
 }

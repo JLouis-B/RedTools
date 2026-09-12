@@ -32,16 +32,20 @@ irr::core::stringc qStringToIrrString(const QString& qString)
 
 int qKeyToIrrKey(int qKey)
 {
-    if (qKey == 16777234)
+    switch(qKey)
+    {
+    case Qt::Key_Left:
         return irr::KEY_LEFT;
-    if (qKey == 16777235)
-        return irr::KEY_UP;
-    if (qKey == 16777236)
+    case Qt::Key_Right:
         return irr::KEY_RIGHT;
-    if (qKey == 16777237)
+    case Qt::Key_Up:
+        return irr::KEY_UP;
+    case Qt::Key_Down:
         return irr::KEY_DOWN;
 
-    return qKey;
+    default:
+        return qKey;
+    }
 }
 
 irr::video::SColor qColorToIrrColor(const QColor &qColor)

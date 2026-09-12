@@ -9,7 +9,7 @@
 #include <QString>
 #include <QColor>
 
-namespace QtIrr
+namespace UtilsQtIrr
 {
     QString irrPathToQString(const irr::io::path& irrPath);
     irr::io::path qStringToIrrPath(const QString& qString);

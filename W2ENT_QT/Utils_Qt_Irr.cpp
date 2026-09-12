@@ -2,7 +2,7 @@
 
 #include <Keycodes.h>
 
-namespace QtIrr
+namespace UtilsQtIrr
 {
     QString irrPathToQString(const irr::io::path& irrPath)
     {

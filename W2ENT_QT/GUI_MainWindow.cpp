@@ -81,7 +81,7 @@ GUI_MainWindow::GUI_MainWindow(QWidget *parent) :
     // First use message
     if (Settings::_firstUse)
     {
-        QMessageBox msgBox(QMessageBox::Information, "First usage", "This is your first usage of the software. The first step to extract The Witcher assets is to configure the software by giving the path to the game folder, the textures, checking the export options...<br/> You can find all the informations about this on the <a href=\"http://jlouisb.users.sourceforge.net/\">website</a> of the software, and it's highly recommended to read them before to start to use the software.");
+        QMessageBox msgBox(QMessageBox::Information, "First usage", "This is your first usage of the software. The first step to extract The Witcher assets is to configure the software by giving the path to the game folder, the textures, checking the export options...<br/> You can find all the informations about this on the <a href=\"https://github.com/JLouis-B/RedTools/\">Github page</a> of the software, and it's highly recommended to read them before to start to use the software.");
         QCheckBox* dontShow = new QCheckBox("Don't show this message again", &msgBox);
 
         msgBox.setCheckBox(dontShow);

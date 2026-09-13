@@ -4,7 +4,12 @@
 #include <IVideoDriver.h>
 #include <IMeshManipulator.h>
 
+#include "IrrAssimpUtils.h"
+
 using namespace irr;
+
+namespace IrrAssimp
+{
 
 IrrAssimpImport::IrrAssimpImport(scene::ISceneManager* smgr) :
     m_sceneManager(smgr),
@@ -478,4 +483,6 @@ void IrrAssimpImport::applySkinnedVertexArray(scene::IMeshBuffer* buffer)
         }
     }
     m_skinnedVertex.clear();
+}
+
 }

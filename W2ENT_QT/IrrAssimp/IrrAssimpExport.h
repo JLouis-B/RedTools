@@ -9,6 +9,9 @@
 
 #include "IrrAssimpUtils.h"
 
+namespace IrrAssimp
+{
+
 class IrrAssimpExport
 {
     public:
@@ -29,5 +32,7 @@ class IrrAssimpExport
         std::map<std::pair<irr::u16, const irr::scene::ISkinnedMesh::SJoint*>, irr::u32> m_weightsCountPerMeshesAndBones;
         irr::core::array<irr::u32> m_attachedBuffers;
 };
+
+}
 
 #endif // IRRASSIMPEXPORT_H

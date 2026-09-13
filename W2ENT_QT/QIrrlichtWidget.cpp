@@ -584,7 +584,7 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename)
     scene::IAnimatedMesh* mesh = nullptr;
 
 #ifdef COMPILE_WITH_ASSIMP
-    IrrAssimp assimp(_device->getSceneManager());
+    IrrAssimp::IrrAssimp assimp(_device->getSceneManager());
 #endif
 
     if (isLoadableByIrrlicht(irrFilename))
@@ -792,7 +792,7 @@ void QIrrlichtWidget::exportMesh(QString exportFolderPath, QString filename, Exp
     else
     {
 #ifdef COMPILE_WITH_ASSIMP
-        IrrAssimp assimp(_device->getSceneManager());
+        IrrAssimp::IrrAssimp assimp(_device->getSceneManager());
         assimp.exportMesh(_currentLodData->_node->getMesh(), exporter._assimpExporterId.toStdString().c_str(), exportMeshPath);
 #else
         QMessageBox::critical(this, "Export error", "COMPILE_WITH_ASSIMP is not enabled, this export isn't available");

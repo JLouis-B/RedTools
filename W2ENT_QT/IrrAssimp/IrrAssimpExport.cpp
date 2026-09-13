@@ -5,6 +5,9 @@
 
 using namespace irr;
 
+namespace IrrAssimp
+{
+
 IrrAssimpExport::IrrAssimpExport() : m_assimpScene(0)
 {
     //ctor
@@ -461,5 +464,7 @@ void IrrAssimpExport::writeFile(scene::IMesh* mesh, core::stringc format, core::
 
 	// Delete the scene
     delete m_assimpScene;
+}
+
 }
 

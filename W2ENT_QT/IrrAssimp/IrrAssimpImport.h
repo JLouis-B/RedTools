@@ -1,6 +1,7 @@
 #ifndef IRRASSIMPIMPORT_H
 #define IRRASSIMPIMPORT_H
 
+#include <IFileSystem.h>
 #include <ISkinnedMesh.h>
 #include <IMeshLoader.h>
 
@@ -8,7 +9,8 @@
 #include <assimp/postprocess.h>    // Post processing flags
 #include <assimp/Importer.hpp>
 
-#include "IrrAssimpUtils.h"
+namespace IrrAssimp
+{
 
 class SkinnedVertex
 {
@@ -58,5 +60,7 @@ class IrrAssimpImport : public irr::scene::IMeshLoader
         void buildSkinnedVertexArray(irr::scene::IMeshBuffer* buffer);
         void applySkinnedVertexArray(irr::scene::IMeshBuffer* buffer);
 };
+
+}
 
 #endif // IRRASSIMPIMPORT_H

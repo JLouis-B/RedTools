@@ -42,7 +42,7 @@ class TW3_DataCache
     core::array<VertexSkinningEntry> _vertices;
 
 
-    std::vector<std::vector<SkinnedVertex> > _skinnedVertex;
+    std::vector<std::vector<IrrAssimp::SkinnedVertex> > _skinnedVertex;
     void skinJoint(irr::scene::ISkinnedMesh::SJoint *joint, BoneEntry bone);
     void buildSkinnedVertexArray();
     void applySkinnedVertexArray();

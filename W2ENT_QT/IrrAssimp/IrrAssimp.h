@@ -6,6 +6,9 @@
 
 #include <IMeshCache.h>
 
+namespace IrrAssimp
+{
+
 struct ExportFormat
 {
     irr::core::stringc fileExtension;
@@ -52,5 +55,7 @@ class IrrAssimp
         IrrAssimpImport m_importer;
         IrrAssimpExport m_exporter;
 };
+
+}
 
 #endif // IRRASSIMP_H

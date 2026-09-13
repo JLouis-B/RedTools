@@ -331,10 +331,10 @@ void GUI_MainWindow::registerExporters()
         noAssimpExportExtensions.push_back(extension);
     }
 
-    core::array<ExportFormat> formats = IrrAssimp::getExportFormats();
+    core::array<IrrAssimp::ExportFormat> formats = IrrAssimp::IrrAssimp::getExportFormats();
     for (u32 i = 0; i < formats.size(); ++i)
     {
-        const ExportFormat format = formats[i];
+        const IrrAssimp::ExportFormat format = formats[i];
         const QString extension = QString(".") + format.fileExtension.c_str();
         if (noAssimpExportExtensions.indexOf(extension) == -1)
         {

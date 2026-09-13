@@ -4,6 +4,9 @@
 
 using namespace irr;
 
+namespace IrrAssimp
+{
+
 IrrAssimp::IrrAssimp(irr::scene::ISceneManager* smgr)
     : m_sceneManager(smgr),
       m_meshCache(smgr->getMeshCache()),
@@ -84,4 +87,6 @@ core::array<ExportFormat> IrrAssimp::getExportFormats()
 bool IrrAssimp::isLoadable(irr::io::path path)
 {
     return m_importer.isALoadableFileExtension(path);
+}
+
 }

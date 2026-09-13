@@ -1,5 +1,8 @@
 #include "IrrAssimpUtils.h"
 
+namespace IrrAssimp
+{
+
 aiString irrToAssimpPath(const irr::io::path& path)
 {
 #ifdef _IRR_WCHAR_FILESYSTEM
@@ -8,4 +11,6 @@ aiString irrToAssimpPath(const irr::io::path& path)
 #else
     return aiString(path.c_str());
 #endif
+}
+
 }

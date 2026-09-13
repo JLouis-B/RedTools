@@ -48,9 +48,9 @@ class IrrAssimpImport : public irr::scene::IMeshLoader
         void createMeshes();
         void createAnimation();
         void createNode(const aiNode* node);
-        irr::scene::ISkinnedMesh::SJoint* findJoint(const irr::core::stringc jointName);
-        aiNode* findNode(aiString jointName);
-        irr::video::ITexture* getTexture(irr::core::stringc path, irr::core::stringc fileDir);
+        irr::scene::ISkinnedMesh::SJoint* findJoint(const irr::core::stringc& jointName) const;
+        aiNode* findNode(const aiString& jointName) const;
+        irr::video::ITexture* getTexture(const irr::core::stringc& path, const irr::core::stringc& fileDir) const;
 
         // skinning
         irr::core::array<SkinnedVertex> m_skinnedVertex;

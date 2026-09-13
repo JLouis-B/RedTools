@@ -73,18 +73,20 @@ video::SColor assimpToIrrColor4(const aiColor4D& color)
 }
 
 
-scene::ISkinnedMesh::SJoint* IrrAssimpImport::findJoint(const core::stringc jointName)
+scene::ISkinnedMesh::SJoint* IrrAssimpImport::findJoint(const core::stringc& jointName) const
 {
-    for (unsigned int i = 0; i < m_irrMesh->getJointCount(); ++i)
+    s32 number = m_irrMesh->getJointNumber(jointName.c_str());
+    if (number != -1)
     {
-        if (core::stringc(m_irrMesh->getJointName(i)) == jointName)
-            return m_irrMesh->getAllJoints()[i];
+        return m_irrMesh->getAllJoints()[number];
     }
-    //std::cout << "Error, no joint" << std::endl;
-    return 0;
+    else
+    {
+        return 0;
+    }
 }
 
-aiNode* IrrAssimpImport::findNode(const aiString jointName)
+aiNode* IrrAssimpImport::findNode(const aiString& jointName) const
 {
     if (m_assimpScene->mRootNode->mName == jointName)
         return m_assimpScene->mRootNode;
@@ -122,7 +124,7 @@ void IrrAssimpImport::createNode(const aiNode* node)
     }
 }
 
-video::ITexture* IrrAssimpImport::getTexture(core::stringc path, core::stringc fileDir)
+video::ITexture* IrrAssimpImport::getTexture(const core::stringc& path, const core::stringc& fileDir) const
 {
     video::ITexture* texture = 0;
 

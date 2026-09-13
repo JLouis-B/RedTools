@@ -76,7 +76,7 @@ core::array<scene::ISkinnedMesh::SJoint*> getRootJoints(const scene::ISkinnedMes
 {
     core::array<scene::ISkinnedMesh::SJoint*> roots;
 
-    core::array<scene::ISkinnedMesh::SJoint*> allJoints = mesh->getAllJoints();
+    const core::array<scene::ISkinnedMesh::SJoint*>& allJoints = mesh->getAllJoints();
     for (u32 i = 0; i < allJoints.size(); i++)
     {
         bool isRoot = true;
@@ -183,9 +183,10 @@ void IrrAssimpExport::createAnimations(const irr::scene::ISkinnedMesh* irrMesh)
     aiAnimation* animation = new aiAnimation();
 
     core::array<const scene::ISkinnedMesh::SJoint*> irrJoints;
-    for (u32 i = 0; i < irrMesh->getJointCount(); ++i)
+    const core::array<scene::ISkinnedMesh::SJoint*>& irrAllJoints = irrMesh->getAllJoints();
+    for (u32 i = 0; i < irrAllJoints.size(); ++i)
     {
-        const scene::ISkinnedMesh::SJoint* joint = irrMesh->getAllJoints()[i];
+        const scene::ISkinnedMesh::SJoint* joint = irrAllJoints[i];
         if (joint->PositionKeys.size() + joint->RotationKeys.size() + joint->ScaleKeys.size() > 0)
             irrJoints.push_back(joint);
     }
@@ -391,9 +392,10 @@ void IrrAssimpExport::writeFile(scene::IMesh* mesh, core::stringc format, core::
             m_bonesPerMesh.insert(std::make_pair(i, core::array<const scene::ISkinnedMesh::SJoint*>()));
         }
 
-        for (u32 i = 0; i < irrSkinnedMesh->getAllJoints().size(); ++i)
+        const core::array<scene::ISkinnedMesh::SJoint*>& irrAllJoints = irrSkinnedMesh->getAllJoints();
+        for (u32 i = 0; i < irrAllJoints.size(); ++i)
         {
-            const scene::ISkinnedMesh::SJoint* irrJoint = irrSkinnedMesh->getAllJoints()[i];
+            const scene::ISkinnedMesh::SJoint* irrJoint = irrAllJoints[i];
             for (u32 j = 0; j < irrJoint->Weights.size(); ++j)
             {
                 const scene::ISkinnedMesh::SWeight& w = irrJoint->Weights[j];

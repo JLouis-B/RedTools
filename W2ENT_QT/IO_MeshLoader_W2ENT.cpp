@@ -15,7 +15,6 @@
 
 #include <vector>
 #include <sstream>
-#include "IrrAssimp/IrrAssimpImport.h" // SkinnedVertex struct
 
 
 namespace irr
@@ -645,7 +644,7 @@ void IO_MeshLoader_W2ENT::createCSkeleton(TW2_CSkeleton skeleton)
 void IO_MeshLoader_W2ENT::SkinMesh()
 {
     // prepare the skinning array
-    std::vector<std::vector<IrrAssimp::SkinnedVertex> > skinnedVertex;
+    std::vector<std::vector<SkinnedVertex> > skinnedVertex;
     skinnedVertex.resize(AnimatedMesh->getMeshBufferCount());
     for (u32 i = 0; i < AnimatedMesh->getMeshBufferCount(); ++i)
     {

@@ -7,6 +7,21 @@
 
 using namespace irr;
 
+// Accumulates a vertex position/normal while applying skinning on the CPU.
+struct SkinnedVertex
+{
+    SkinnedVertex()
+        : moved(false),
+          position(0.f, 0.f, 0.f),
+          normal(0.f, 0.f, 0.f)
+    {
+    }
+
+    bool moved;
+    core::vector3df position;
+    core::vector3df normal;
+};
+
 // Check if what we read is still in the file size (to know if we will crash!), and log if it's the case
 void checkOutOfBound(io::IReadFile* file, size_t sizeToRead);
 

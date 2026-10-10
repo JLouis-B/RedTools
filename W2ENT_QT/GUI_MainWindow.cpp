@@ -324,6 +324,7 @@ void GUI_MainWindow::registerExporters()
     _exporters.push_back({ Exporter_Irrlicht, ".b3d (Blitz3D)"                      , ".b3d"     , ""    , IrrlichtExporterInfos(scene::EMWT_B3D       , scene::EMWF_NONE)});
     _exporters.push_back({ Exporter_Redkit  , ".re (Red Engine)"                    , ".re"      , ""    , IrrlichtExporterInfos(scene::EMWT_OBJ       , scene::EMWF_NONE)});
 
+#ifdef COMPILE_WITH_ASSIMP
     QVector<QString> noAssimpExportExtensions;
     for (int i = 0; i < _exporters.size(); ++i)
     {
@@ -342,6 +343,7 @@ void GUI_MainWindow::registerExporters()
             _exporters.push_back({ Exporter_Assimp, exportString, extension, format.id.c_str(), IrrlichtExporterInfos()});
         }
     }
+#endif
 
     for (int i = 0; i < _exporters.size(); ++i)
     {

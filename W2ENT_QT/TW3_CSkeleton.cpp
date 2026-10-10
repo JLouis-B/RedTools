@@ -9,12 +9,6 @@ TW3_CSkeleton::TW3_CSkeleton() : nbBones(0)
 
 }
 
-// Definition in IrrAssimpExport
-core::array<scene::ISkinnedMesh::SJoint*> getRootJoints(const scene::ISkinnedMesh* mesh);
-
-
-
-
 
 void computeLocal(const scene::ISkinnedMesh* mesh, scene::ISkinnedMesh::SJoint* joint)
 {

@@ -19,6 +19,8 @@ class IrrAssimpExport
         virtual ~IrrAssimpExport();
         void writeFile(irr::scene::IMesh* mesh, irr::core::stringc format, irr::core::stringc filename);
 
+        irr::core::stringc getLastError() const;
+
     private:
         aiScene* m_assimpScene;
 
@@ -31,6 +33,8 @@ class IrrAssimpExport
         std::map<irr::u16, irr::core::array<const irr::scene::ISkinnedMesh::SJoint*> > m_bonesPerMesh;
         std::map<std::pair<irr::u16, const irr::scene::ISkinnedMesh::SJoint*>, irr::u32> m_weightsCountPerMeshesAndBones;
         irr::core::array<irr::u32> m_attachedBuffers;
+
+        irr::core::stringc lastError;
 };
 
 }

@@ -63,9 +63,9 @@ irr::scene::IAnimatedMesh* IrrAssimp::getMesh(const io::path& path)
     return mesh;
 }
 
-irr::core::stringc IrrAssimp::getError()
+irr::core::stringc IrrAssimp::getLastImportError() const
 {
-    return m_importer.error;
+    return m_importer.getLastError();
 }
 
 
@@ -84,9 +84,14 @@ core::array<ExportFormat> IrrAssimp::getExportFormats()
 }
 
 
-bool IrrAssimp::isLoadable(irr::io::path path)
+bool IrrAssimp::isLoadable(irr::io::path path) const
 {
     return m_importer.isALoadableFileExtension(path);
+}
+
+irr::core::stringc IrrAssimp::getLastExportError() const
+{
+    return m_exporter.getLastError();
 }
 
 }

@@ -162,11 +162,11 @@ scene::IAnimatedMesh* IrrAssimpImport::createMesh(io::IReadFile* file)
     m_assimpScene = importer.ReadFile(irrToAssimpPath(file->getFileName()).C_Str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
     if (!m_assimpScene)
     {
-        error = importer.GetErrorString();
+        lastError = importer.GetErrorString();
         return 0;
     }
     else
-        error = "";
+        lastError.clear();
 
     // Create mesh
     m_irrMesh = m_sceneManager->createSkinnedMesh();
@@ -483,6 +483,11 @@ void IrrAssimpImport::applySkinnedVertexArray(scene::IMeshBuffer* buffer)
         }
     }
     m_skinnedVertex.clear();
+}
+
+irr::core::stringc IrrAssimpImport::getLastError() const
+{
+    return lastError;
 }
 
 }

@@ -460,10 +460,20 @@ void IrrAssimpExport::writeFile(scene::IMesh* mesh, core::stringc format, core::
         }
     }
 
-    exporter.Export(m_assimpScene, format.c_str(), filename.c_str(), aiProcess_FlipUVs);
+    if (exporter.Export(m_assimpScene, format.c_str(), filename.c_str(), aiProcess_FlipUVs) != aiReturn_SUCCESS)
+    {
+        lastError = exporter.GetErrorString();
+    }
+    else
+        lastError.clear();
 
 	// Delete the scene
     delete m_assimpScene;
+}
+
+irr::core::stringc IrrAssimpExport::getLastError() const
+{
+    return lastError;
 }
 
 }

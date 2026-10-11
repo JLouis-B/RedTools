@@ -603,7 +603,7 @@ scene::IAnimatedMesh* QIrrlichtWidget::loadMesh(QString filename)
 
         if (!mesh)
         {
-            LoggerManager::Instance()->addLineAndFlush(assimp.getError(), true);
+            LoggerManager::Instance()->addLineAndFlush(assimp.getLastImportError(), true);
         }
     }
 #endif

@@ -36,7 +36,7 @@ class IrrAssimpImport : public irr::scene::IMeshLoader
         virtual irr::scene::IAnimatedMesh* createMesh(irr::io::IReadFile* file);
         virtual bool isALoadableFileExtension(const irr::io::path& filename) const;
 
-        irr::core::stringc error;
+        irr::core::stringc getLastError() const;
 
     private:
         irr::scene::ISceneManager* m_sceneManager;
@@ -59,6 +59,8 @@ class IrrAssimpImport : public irr::scene::IMeshLoader
         void skinJoint(irr::scene::ISkinnedMesh::SJoint* joint, aiBone* bone);
         void buildSkinnedVertexArray(irr::scene::IMeshBuffer* buffer);
         void applySkinnedVertexArray(irr::scene::IMeshBuffer* buffer);
+
+        irr::core::stringc lastError;
 };
 
 }

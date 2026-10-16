@@ -570,7 +570,7 @@ void GUI_MainWindow::clearLOD()
             _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
         break;
         case Collision:
-            _ui->action_redkit_LOD2->setText("Convex collision mesh (" + Translator::get("re_lod_empty") + ")");
+            _ui->action_redkit_Collision_mesh->setText("Convex collision mesh (" + Translator::get("re_lod_empty") + ")");
         break;
     }
 
@@ -587,6 +587,7 @@ void GUI_MainWindow::clearAllLODs()
     _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
     _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
     _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
+    _ui->action_redkit_Collision_mesh->setText("Convex collision mesh (" + Translator::get("re_lod_empty") + ")");
 
     _irrWidget->clearAllLODs();
 

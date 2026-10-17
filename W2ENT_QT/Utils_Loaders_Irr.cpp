@@ -8,7 +8,7 @@ void checkOutOfBound(io::IReadFile* file, size_t sizeToRead)
 {
 #ifdef IS_A_DEVELOPMENT_BUILD
     // Log the issue
-    if (file->getPos() + sizeToRead >= file->getSize())
+    if (file->getPos() + sizeToRead > file->getSize())
     {
         std::cout << "Try to read too far into the file, we'll crash. File Pos = " << file->getPos() << ", try to read " << sizeToRead << " but file size is " << file->getSize() << std::endl;
     }

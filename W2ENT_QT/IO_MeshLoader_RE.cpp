@@ -493,6 +493,8 @@ void IO_MeshLoader_RE::readCollisionMeshChunk(io::IReadFile* f)
     // add the offset
     for (u32 i = 0; i < nbVertices; ++i)
         buffer->Vertices[i].Pos += meshCenter;
+
+    buffer->drop();
 }
 
 void IO_MeshLoader_RE::readHeaderChunk(io::IReadFile* f)

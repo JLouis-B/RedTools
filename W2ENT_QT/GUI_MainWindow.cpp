@@ -214,23 +214,28 @@ void GUI_MainWindow::addMeshes(QStringList filePaths)
         _ui->button_convert->setEnabled(true);
         _ui->action_redkit_Size->setEnabled(true);
 
-        switch(_currentLOD)
-        {
-            case LOD_0:
-                _ui->action_redkit_LOD0->setText("LOD0");
-            break;
-            case LOD_1:
-                _ui->action_redkit_LOD1->setText("LOD1");
-            break;
-            case LOD_2:
-                _ui->action_redkit_LOD2->setText("LOD2");
-            break;
-            case Collision:
-                _ui->action_redkit_Collision_mesh->setText("Convex collision mesh");
-            break;
-        }
+        updateLODActionText(_currentLOD, false);
     }
     updateWindowTitle();
+}
+
+void GUI_MainWindow::updateLODActionText(LOD lod, bool bIsLodEmpty)
+{
+    switch(lod)
+    {
+    case LOD_0:
+        _ui->action_redkit_LOD0->setText(bIsLodEmpty ? "LOD0 (Empty)" : "LOD0");
+        break;
+    case LOD_1:
+        _ui->action_redkit_LOD1->setText(bIsLodEmpty ? "LOD1 (Empty)" : "LOD1");
+        break;
+    case LOD_2:
+        _ui->action_redkit_LOD2->setText(bIsLodEmpty ? "LOD2 (Empty)" : "LOD2");
+        break;
+    case Collision:
+        _ui->action_redkit_Collision_mesh->setText(bIsLodEmpty ? "Convex collision mesh (Empty)" : "Convex collision mesh");
+        break;
+    }
 }
 
 void GUI_MainWindow::changeBaseDir(QString newPath)
@@ -465,14 +470,6 @@ void GUI_MainWindow::translate()
     _ui->action_display_Wireframe->setText(Translator::get("menu_display_wireframe"));
 
     _ui->menu_Help->setTitle(Translator::get("menu_help"));
-
-
-    if (_ui->action_redkit_LOD0->text() != "LOD0")
-        _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("menu_re_lod_empty") + ")");
-    if (_ui->action_redkit_LOD1->text() != "LOD1")
-        _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("menu_re_lod_empty") + ")");
-    if (_ui->action_redkit_LOD2->text() != "LOD2")
-        _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("menu_re_lod_empty") + ")");
 }
 
 void GUI_MainWindow::selectBaseDir()
@@ -558,21 +555,7 @@ void GUI_MainWindow::changeLOD()
 
 void GUI_MainWindow::clearLOD()
 {
-    switch(_currentLOD)
-    {
-        case LOD_0:
-            _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
-        break;
-        case LOD_1:
-            _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
-        break;
-        case LOD_2:
-            _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
-        break;
-        case Collision:
-            _ui->action_redkit_Collision_mesh->setText("Convex collision mesh (" + Translator::get("re_lod_empty") + ")");
-        break;
-    }
+    updateLODActionText(_currentLOD, true);
 
     _irrWidget->clearLOD();
 
@@ -584,10 +567,10 @@ void GUI_MainWindow::clearLOD()
 
 void GUI_MainWindow::clearAllLODs()
 {
-    _ui->action_redkit_LOD0->setText("LOD0 (" + Translator::get("re_lod_empty") + ")");
-    _ui->action_redkit_LOD1->setText("LOD1 (" + Translator::get("re_lod_empty") + ")");
-    _ui->action_redkit_LOD2->setText("LOD2 (" + Translator::get("re_lod_empty") + ")");
-    _ui->action_redkit_Collision_mesh->setText("Convex collision mesh (" + Translator::get("re_lod_empty") + ")");
+    updateLODActionText(LOD_0, true);
+    updateLODActionText(LOD_1, true);
+    updateLODActionText(LOD_2, true);
+    updateLODActionText(Collision, true);
 
     _irrWidget->clearAllLODs();
 
@@ -736,21 +719,7 @@ void GUI_MainWindow::replaceMesh(QString path)
         _ui->button_convert->setEnabled(true);
         _ui->action_redkit_Size->setEnabled(true);
 
-        switch(_currentLOD)
-        {
-            case LOD_0:
-                _ui->action_redkit_LOD0->setText("LOD0");
-            break;
-            case LOD_1:
-                _ui->action_redkit_LOD1->setText("LOD1");
-            break;
-            case LOD_2:
-                _ui->action_redkit_LOD2->setText("LOD2");
-            break;
-            case Collision:
-                _ui->action_redkit_Collision_mesh->setText("Convex collision mesh");
-            break;
-        }
+        updateLODActionText(_currentLOD, false);
         _firstSelection = false;
     }
 

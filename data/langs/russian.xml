@@ -14,7 +14,6 @@
 	
 	<element id="menu_re" text="Redkit утилиты"/>
 	<element id="menu_re_size" text="Размер"/>
-	<element id="menu_re_lod_empty" text="пусто"/>
 	<element id="menu_re_lod_clear" text="Очистить текущий LOD"/>
 	<element id="menu_re_lod_clear_all" text="Очистить все LODs"/>
 		

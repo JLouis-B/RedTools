@@ -78,6 +78,7 @@ private:
     void updateWindowTitle();
     void logToUser(core::stringc log);
     void registerExporters();
+    void updateLODActionText(LOD lod, bool bIsLodEmpty);
 
     Ui::GUI_MainWindow* _ui;
     QIrrlichtWidget* _irrWidget;

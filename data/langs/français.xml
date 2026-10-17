@@ -14,7 +14,6 @@
 	
 	<element id="menu_re" text="Outils Redkit"/>
 	<element id="menu_re_size" text="Dimensions"/>
-	<element id="menu_re_lod_empty" text="vide"/>
 	<element id="menu_re_lod_clear" text="Supprimer le LOD séléctionné"/>
 	<element id="menu_re_lod_clear_all" text="Supprimer tous les LODs"/>
 		

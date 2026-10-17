@@ -14,7 +14,6 @@
 	
 	<element id="menu_re" text="Redkit tools"/>
 	<element id="menu_re_size" text="Size"/>
-	<element id="menu_re_lod_empty" text="empty"/>
 	<element id="menu_re_lod_clear" text="Clear current LOD"/>
 	<element id="menu_re_lod_clear_all" text="Clear all LODs"/>
 		

@@ -180,7 +180,7 @@ bool TW1_MaterialParser::loadFromString(core::stringc content)
         {
             core::stringc stringId = contentData[++i];
             core::stringc string = contentData[++i];
-            _textures.insert(std::make_pair(stringId, string));
+            _strings.insert(std::make_pair(stringId, string));
         }
         else if (data == "float")
         {

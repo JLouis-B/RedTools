@@ -29,20 +29,22 @@ GUI_ExtFilesExplorer::~GUI_ExtFilesExplorer()
 
 void GUI_ExtFilesExplorer::read(QString filename)
 {
-    core::array<core::stringc> strings;
-    core::array<core::stringc> files;
-
     _ui->lineEdit->setText(filename);
     _ui->listWidget->clear();
 
     const io::path filenamePath = UtilsQtIrr::qStringToIrrPath(filename);
     io::IReadFile* file = _irrlicht->getFileSystem()->createAndOpenFile(filenamePath);
+    if (!file)
+    {
+        return;
+    }
 
-    RedEngineVersion fileType = getRedEngineFileType(file);
+    const RedEngineVersion fileType = getRedEngineFileType(file);
     switch (fileType)
     {
         case REV_UNKNOWN:
             _ui->label_fileType->setText("File type : Not a witcher file");
+            file->drop();
             return;
 
         case REV_WITCHER_2:
@@ -61,8 +63,7 @@ void GUI_ExtFilesExplorer::read(QString filename)
         _ui->listWidget->addItem(QString(header.Files[i].c_str()));
     }
 
-    if (file)
-        file->drop();
+    file->drop();
 }
 
 

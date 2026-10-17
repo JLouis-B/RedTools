@@ -76,7 +76,7 @@ void TW3_DataCache::skin()
     {
         BoneEntry bone = _bones[i];
 
-        scene::ISkinnedMesh::SJoint* joint = _owner->getAllJoints()[_owner->getJointNumber(bone._name.c_str())];
+        scene::ISkinnedMesh::SJoint* joint = JointHelper::GetJointByName(_owner, bone._name);
         if (joint == nullptr)
         {
             std::cout << "Error, no joint" << std::endl;

@@ -471,13 +471,18 @@ void GUI_MaterialsExplorer::read(QString path)
 
     const io::path filePath = UtilsQtIrr::qStringToIrrPath(path);
     io::IReadFile* file = _Fs->createAndOpenFile(filePath);
+    if (!file)
+    {
+        return;
+    }
 
     RedEngineVersion fileType = getRedEngineFileType(file);
     switch (fileType)
     {
         case REV_UNKNOWN:
             _ui->label_fileType->setText("File type : Not a witcher file");
-            break;
+            file->drop();
+            return;
 
         case REV_WITCHER_2:
             loadTW2Materials(file);
@@ -490,8 +495,7 @@ void GUI_MaterialsExplorer::read(QString path)
             break;
     }
 
-    if (file)
-        file->drop();
+    file->drop();
 }
 
 

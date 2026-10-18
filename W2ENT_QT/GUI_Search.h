@@ -52,7 +52,7 @@ public:
 public slots:
     void search();
     void load();
-    void enableButton();
+    void updateLoadButton();
     void translate();
     void destroyWindow();
     void setProgress(int progress);

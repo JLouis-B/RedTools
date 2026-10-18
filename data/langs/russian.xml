@@ -36,7 +36,6 @@
 	
 	<!-- Search tool -->
 	<element id="search_name" text="Имя"/>
-	<element id="search_load" text="Загрузить"/>
 	<element id="search_button" text="Поиск"/>
 	<element id="search_progress" text="Прогресс"/>
 	<element id="search_check_folder" text="Проверить также имена папок (больше результатов)"/>

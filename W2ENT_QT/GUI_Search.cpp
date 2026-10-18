@@ -33,7 +33,7 @@ GUI_Search::GUI_Search(QWidget *parent) :
 
     QObject::connect(_ui->pushButton_search, SIGNAL(clicked()), this, SLOT(search()));
     QObject::connect(_ui->pushButton_load, SIGNAL(clicked()), this, SLOT(load()));
-    QObject::connect(_ui->listWidget_results, SIGNAL(currentRowChanged(int)), this, SLOT(enableButton()));
+    QObject::connect(_ui->listWidget_results, SIGNAL(currentRowChanged(int)), this, SLOT(updateLoadButton()));
 
     QObject::connect(this, SIGNAL(finished(int)), this, SLOT(destroyWindow()));
 
@@ -72,7 +72,6 @@ void GUI_Search::translate()
     _ui->label_progression->setText(Translator::get("search_progress") + " :");
     _ui->checkBox_checkFolderNames->setText(Translator::get("search_check_folder"));
     _ui->pushButton_search->setText(Translator::get("search_button"));
-    _ui->pushButton_load->setText(Translator::get("search_load"));
 }
 
 void GUI_Search::search()
@@ -187,31 +186,38 @@ void GUI_Search::load()
     emit loadPressed(_rootDir + _ui->listWidget_results->currentItem()->text());
 }
 
-void GUI_Search::enableButton()
+void GUI_Search::updateLoadButton()
 {
-    _ui->pushButton_load->setText("Load");
-    _ui->pushButton_load->setEnabled(_ui->listWidget_results->currentRow() != -1);
-    if (_ui->listWidget_results->currentRow() == -1)
-        return;
-
-
-    QString selected = _ui->listWidget_results->currentItem()->text();
-    RedEngineContentType type = getRedEngineFileContentType(UtilsQtIrr::qStringToIrrPath(selected));
-    if (type == RECT_WITCHER_ENTITY)
+    bool bHasSelectedItem = _ui->listWidget_results->currentRow() != -1;
+    _ui->pushButton_load->setEnabled(bHasSelectedItem);
+    if (bHasSelectedItem)
     {
-        _ui->pushButton_load->setText("Load entity");
+        QString selected = _ui->listWidget_results->currentItem()->text();
+        RedEngineContentType type = getRedEngineFileContentType(UtilsQtIrr::qStringToIrrPath(selected));
+        if (type == RECT_WITCHER_ENTITY)
+        {
+            _ui->pushButton_load->setText("Load entity");
+        }
+        else if (type == RECT_WITCHER_MESH)
+        {
+            _ui->pushButton_load->setText("Load mesh");
+        }
+        else if (type == RECT_WITCHER_RIG)
+        {
+            _ui->pushButton_load->setText("Load rig");
+        }
+        else if (type == RECT_WITCHER_ANIMATIONS)
+        {
+            _ui->pushButton_load->setText("Load animations");
+        }
+        else
+        {
+            _ui->pushButton_load->setText("Load");
+        }
     }
-    else if (type == RECT_WITCHER_MESH)
+    else
     {
-        _ui->pushButton_load->setText("Load mesh");
-    }
-    else if (type == RECT_WITCHER_RIG)
-    {
-        _ui->pushButton_load->setText("Load rig");
-    }
-    else if (type == RECT_WITCHER_ANIMATIONS)
-    {
-        _ui->pushButton_load->setText("Load animations");
+        _ui->pushButton_load->setText("Load");
     }
 }
 

@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QThread>
 
+#include "Extractor_TW3_CACHE.h"
+
 GUI_Extractor_TW3_CACHE::GUI_Extractor_TW3_CACHE(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TW3_CACHE),
@@ -68,19 +70,19 @@ void GUI_Extractor_TW3_CACHE::selectFile()
 
     foreach (QString filename, filenames)
     {
-        getFiles(filename);
+        queueCacheFilesFromDir(filename);
     }
 
-    _nbFiles = _filesQueue.size();
-    _nbFilesProcessed = 1;
+    _allFilesToProcessCount = _filesQueue.size();
+    _processedFilesCount = 0;
 
-    nextFile();
+    processNextCacheFile();
     //QString filename = QFileDialog::getOpenFileName(this, "Select a BUNDLE file", "", "*.bundle");
     //if (filename != "")
     //    _ui->lineEdit_dzipFile->setText(filename);
 }
 
-void GUI_Extractor_TW3_CACHE::getFiles(QString file)
+void GUI_Extractor_TW3_CACHE::queueCacheFilesFromDir(QString file)
 {
     QFileInfo info(file);
     if (!info.isDir())
@@ -89,7 +91,7 @@ void GUI_Extractor_TW3_CACHE::getFiles(QString file)
     // search the files
     QDir dirFiles(file);
     dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    QStringList filter = QStringList("*.bundle");
+    QStringList filter = QStringList("*.cache");
     dirFiles.setNameFilters(filter);
 
     foreach(QFileInfo fileInfo, dirFiles.entryInfoList())
@@ -102,7 +104,7 @@ void GUI_Extractor_TW3_CACHE::getFiles(QString file)
     dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Dirs);
     foreach (QFileInfo fileInfo, dirFiles.entryInfoList())
     {
-        getFiles(fileInfo.absoluteFilePath());
+        queueCacheFilesFromDir(fileInfo.absoluteFilePath());
     }
 }
 
@@ -113,7 +115,8 @@ void GUI_Extractor_TW3_CACHE::extract(QString file)
     QFileInfo fileInfo(file);
     if (!fileInfo.exists())
     {
-        _ui->label_status->setText("State : Error, the specified BUNDLE file doesn't exists");
+        _ui->label_status->setText("State : Error, the specified CACHE file doesn't exists");
+        extractFail();
         return;
     }
 
@@ -128,7 +131,7 @@ void GUI_Extractor_TW3_CACHE::extract(QString file)
     QObject::connect(_extractor, SIGNAL(finished()), this, SLOT(extractEnd()));
 
     _ui->pushButton_extract->setEnabled(false);
-    _ui->label_status->setText("State : Working on " + file + "... (" + QString::number(_nbFilesProcessed) + "/" + QString::number(_nbFiles) + ")");
+    _ui->label_status->setText("State : Working on " + file + "... (" + QString::number(_processedFilesCount + 1) + "/" + QString::number(_allFilesToProcessCount) + ")");
     extractSetProgress(0);
     _thread->start();
 }
@@ -151,7 +154,7 @@ void GUI_Extractor_TW3_CACHE::killExtractThread()
     _extractor = nullptr;
 }
 
-bool GUI_Extractor_TW3_CACHE::nextFile()
+bool GUI_Extractor_TW3_CACHE::processNextCacheFile()
 {
     if (!_filesQueue.empty())
     {
@@ -161,8 +164,8 @@ bool GUI_Extractor_TW3_CACHE::nextFile()
     }
     else
     {
-        _nbFiles = 0;
-        _nbFilesProcessed = 0;
+        _allFilesToProcessCount = 0;
+        _processedFilesCount = 0;
         return false;
     }
 }
@@ -170,9 +173,9 @@ bool GUI_Extractor_TW3_CACHE::nextFile()
 void GUI_Extractor_TW3_CACHE::extractEnd()
 {
     killExtractThread();
-    _nbFilesProcessed++;
+    _processedFilesCount++;
 
-    if (!nextFile())
+    if (!processNextCacheFile())
     {
         _ui->progressBar->setValue(_ui->progressBar->maximum());
         _ui->label_status->setText("State : End");
@@ -183,9 +186,9 @@ void GUI_Extractor_TW3_CACHE::extractEnd()
 void GUI_Extractor_TW3_CACHE::extractFail()
 {
     killExtractThread();
-    _nbFilesProcessed++;
+    _processedFilesCount++;
 
-    if (!nextFile())
+    if (!processNextCacheFile())
     {
         _ui->progressBar->setValue(_ui->progressBar->maximum());
         _ui->label_status->setText("State : Fatal error during the extraction.");

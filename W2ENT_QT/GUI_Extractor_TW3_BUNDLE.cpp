@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QThread>
 
+#include "Extractor_TW3_BUNDLE.h"
+
 GUI_Extractor_TW3_BUNDLE::GUI_Extractor_TW3_BUNDLE(QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::GUI_Extractor_TW3_BUNDLE),
@@ -73,15 +75,20 @@ void GUI_Extractor_TW3_BUNDLE::selectFilesToUnpack()
         QStringList filenames = dialog->selectedFiles();
         delete dialog;
 
+        _filesQueue.clear();
         foreach (QString filename, filenames)
         {
-            getFiles(filename);
+            queueBundleFilesFromDir(filename);
         }
 
-        _nbFiles = _filesQueue.size();
-        _nbFilesProcessed = 1;
+        _allFilesToProcessCount = _filesQueue.size();
+        _processedFilesCount = 0;
 
-        processNextFile();
+        if (_allFilesToProcessCount > 0)
+        {
+            _ui->pushButton_extract->setEnabled(false);
+            processNextBundleFile();
+        }
     }
     else
     {
@@ -93,7 +100,7 @@ void GUI_Extractor_TW3_BUNDLE::selectFilesToUnpack()
     //    _ui->lineEdit_dzipFile->setText(filename);
 }
 
-void GUI_Extractor_TW3_BUNDLE::getFiles(QString file)
+void GUI_Extractor_TW3_BUNDLE::queueBundleFilesFromDir(QString file)
 {
     QFileInfo info(file);
     if (!info.isDir())
@@ -115,7 +122,7 @@ void GUI_Extractor_TW3_BUNDLE::getFiles(QString file)
     dirFiles.setFilter(QDir::NoDotAndDotDot | QDir::Dirs);
     foreach (QFileInfo fileInfo, dirFiles.entryInfoList())
     {
-        getFiles(fileInfo.absoluteFilePath());
+        queueBundleFilesFromDir(fileInfo.absoluteFilePath());
     }
 }
 
@@ -127,6 +134,7 @@ void GUI_Extractor_TW3_BUNDLE::extractBundleFile(QString file)
     if (!fileInfo.exists())
     {
         _ui->label_status->setText("State : Error, the specified BUNDLE file doesn't exists");
+        extractFail();
         return;
     }
 
@@ -140,8 +148,8 @@ void GUI_Extractor_TW3_BUNDLE::extractBundleFile(QString file)
     QObject::connect(_extractor, SIGNAL(error()), this, SLOT(extractFail()));
     QObject::connect(_extractor, SIGNAL(finished()), this, SLOT(extractEnd()));
 
-    _ui->pushButton_extract->setEnabled(false);
-    _ui->label_status->setText("State : Working on " + file + "... (" + QString::number(_nbFilesProcessed) + "/" + QString::number(_nbFiles) + ")");
+    //_ui->pushButton_extract->setEnabled(false);
+    _ui->label_status->setText("State : Working on " + file + "... (" + QString::number(_processedFilesCount + 1) + "/" + QString::number(_allFilesToProcessCount) + ")");
     extractSetProgress(0);
     _thread->start();
 }
@@ -164,7 +172,7 @@ void GUI_Extractor_TW3_BUNDLE::killExtractThread()
     _extractor = nullptr;
 }
 
-bool GUI_Extractor_TW3_BUNDLE::processNextFile()
+bool GUI_Extractor_TW3_BUNDLE::processNextBundleFile()
 {
     if (!_filesQueue.empty())
     {
@@ -174,8 +182,8 @@ bool GUI_Extractor_TW3_BUNDLE::processNextFile()
     }
     else
     {
-        _nbFiles = 0;
-        _nbFilesProcessed = 0;
+        _allFilesToProcessCount = 0;
+        _processedFilesCount = 0;
         return false;
     }
 }
@@ -183,9 +191,9 @@ bool GUI_Extractor_TW3_BUNDLE::processNextFile()
 void GUI_Extractor_TW3_BUNDLE::extractEnd()
 {
     killExtractThread();
-    _nbFilesProcessed++;
+    _processedFilesCount++;
 
-    if (!processNextFile())
+    if (!processNextBundleFile())
     {
         _ui->progressBar->setValue(_ui->progressBar->maximum());
         _ui->label_status->setText("State : End");
@@ -196,9 +204,9 @@ void GUI_Extractor_TW3_BUNDLE::extractEnd()
 void GUI_Extractor_TW3_BUNDLE::extractFail()
 {
     killExtractThread();
-    _nbFilesProcessed++;
+    _processedFilesCount++;
 
-    if (!processNextFile())
+    if (!processNextBundleFile())
     {
         _ui->progressBar->setValue(_ui->progressBar->maximum());
         _ui->label_status->setText("State : Fatal error during the extraction.");

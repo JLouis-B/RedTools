@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QQueue>
 
-#include "Extractor_TW3_BUNDLE.h"
+class Extractor_TW3_BUNDLE;
 
 namespace Ui {
 class GUI_Extractor_TW3_BUNDLE;
@@ -37,11 +37,11 @@ private:
     Extractor_TW3_BUNDLE* _extractor;
     QQueue<QString> _filesQueue;
 
-    int _nbFiles;
-    int _nbFilesProcessed;
+    int _allFilesToProcessCount;
+    int _processedFilesCount;
 
-    void getFiles(QString file);
-    bool processNextFile();
+    void queueBundleFilesFromDir(QString file);
+    bool processNextBundleFile();
 };
 
 #endif // GUI_EXTRACTOR_TW3_BUNDLE_H

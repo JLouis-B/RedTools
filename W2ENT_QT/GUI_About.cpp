@@ -9,8 +9,8 @@ GUI_About::GUI_About(QWidget *parent) :
 {
     _ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
+    setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     _ui->label_version->setText(QString("The Witcher Converter ") + Settings::getAppVersion());
-    this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GUI_About::~GUI_About()

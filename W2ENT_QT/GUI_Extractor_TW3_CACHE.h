@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QQueue>
 
-#include "Extractor_TW3_CACHE.h"
+class Extractor_TW3_CACHE;
 
 namespace Ui {
 class GUI_Extractor_TW3_CACHE;
@@ -37,11 +37,11 @@ private:
     Extractor_TW3_CACHE* _extractor;
     QQueue<QString> _filesQueue;
 
-    int _nbFiles;
-    int _nbFilesProcessed;
+    int _allFilesToProcessCount;
+    int _processedFilesCount;
 
-    void getFiles(QString file);
-    bool nextFile();
+    void queueCacheFilesFromDir(QString file);
+    bool processNextCacheFile();
 };
 
 #endif // GUI_EXTRACTOR_TW3_CACHE_H

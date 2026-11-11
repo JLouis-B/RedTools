@@ -70,126 +70,89 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         LoggerManager::Instance()->addLineAndFlush("BUNDLE: Something wrong with entries tables");
     }
 
+    std::vector<TW3_BundleEntry> entries;
+    entries.reserve(entryCount);
     for (quint32 i = 0; i < entryCount; ++i)
     {
+        TW3_BundleEntry entry;
         if (bUseNewBundleFileVersion)
         {
-            const QString filename = readString(file, 256);
+            entry.filename = readString(file, 256);
             //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
             const QString hash = readString(file, 16);
 
-            const quint64 offset = readUInt64(file);
-            const quint32 decompressedSize = readUInt32(file);
-            const quint32 compressedSize = readUInt32(file);
+            entry.offset = readUInt64(file);
+            entry.decompressedSize = readUInt32(file);
+            entry.compressedSize = readUInt32(file);
             const quint32 crc32 = readUInt32(file);
 
-            const qint32 compressionType = readInt32(file);
+            entry.compressionType = readInt32(file);
             relativeSeek(file, 8);
-
-            const qint64 back = file.pos();
-
-            file.seek(offset);
-            // read the content of the file
-            char* fileContent = new char[compressedSize];
-            file.read(fileContent, compressedSize);
-
-            switch (compressionType)
-            {
-            case 0:
-                decompressFileRAW(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 1:
-                // comtype zlib
-                decompressFileZLIB(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 2:
-                // comtype snappy
-                decompressFileSNAPPY(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 3:
-                // comtype doboz
-                decompressFileDOBOZ(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 4:
-            case 5:
-                // comtype lz4 (4 & 5)
-                decompressFileLZ4(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            default:
-                LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s (type : %d)", filename.toStdString().c_str(), compressionType));
-                break;
-            }
-
-            delete[] fileContent;
-            file.seek(back);
         }
         else
         {
             //std::cout << file.pos() << std::endl;
-            QString filename = readString(file, 256);
+            entry.filename = readString(file, 256);
             QString hash = readString(file, 16);
             //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
-            qint32 zero = readInt32(file);
-            qint32 decompressedSize = readInt32(file);
-            qint32 compressedSize = readInt32(file);
-            qint32 offset = readInt32(file);
-            qint64 timestamp = readInt64(file);
+            const qint32 zero = readInt32(file);
+            entry.decompressedSize = readUInt32(file);
+            entry.compressedSize = readUInt32(file);
+            entry.offset = readUInt32(file);
+            const qint64 timestamp = readInt64(file);
             /*
                 std::cout << "ZERO= " << zero
                   << ", decompressedSize= " << decompressedSize
                   << ", compressedSize= " << compressedSize
                   << ", OFFSET= " << offset
                   << ", TSAMP= " << timestamp << std::endl;
-                  */
-            /*
-
-
-            /*
-             *          get DUMMY long
-            get ZIP long
-            savepos INFO_OFF
             */
-            qint32 dummy = readInt32(file);
-            qint32 compressionType = readInt32(file);
 
-            qint64 back = file.pos();
-
-            file.seek(offset);
-            // read the content of the file
-            char* fileContent = new char[compressedSize];
-            file.read(fileContent, compressedSize);
-
-            switch (compressionType)
-            {
-            case 0:
-                decompressFileRAW(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 1:
-                // comtype zlib
-                decompressFileZLIB(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 2:
-                // comtype snappy
-                decompressFileSNAPPY(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 3:
-                // comtype doboz
-                decompressFileDOBOZ(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            case 4:
-            case 5:
-                // comtype lz4 (4 & 5)
-                decompressFileLZ4(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-                break;
-            default:
-                LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s (type : %d)", filename.toStdString().c_str(), compressionType));
-                break;
-            }
-            delete[] fileContent;
-            file.seek(back);
+            const qint32 dummy = readInt32(file);
+            entry.compressionType = readInt32(file);
         }
+        entries.push_back(entry);
+    }
+
+    for (size_t i = 0; i < entries.size(); ++i)
+    {
+        const TW3_BundleEntry& BundleEntry = entries[i];
+
+        file.seek(BundleEntry.offset);
+        // read the content of the file
+        char* fileContent = new char[BundleEntry.compressedSize];
+        file.read(fileContent, BundleEntry.compressedSize);
+
+        switch (BundleEntry.compressionType)
+        {
+        case 0:
+            decompressFileRAW(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            break;
+        case 1:
+            // comtype zlib
+            decompressFileZLIB(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            break;
+        case 2:
+            // comtype snappy
+            decompressFileSNAPPY(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            break;
+        case 3:
+            // comtype doboz
+            decompressFileDOBOZ(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            break;
+        case 4:
+        case 5:
+            // comtype lz4 (4 & 5)
+            decompressFileLZ4(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            break;
+        default:
+            LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s (type : %d)", BundleEntry.filename.toStdString().c_str(), BundleEntry.compressionType));
+            break;
+        }
+        delete[] fileContent;
+
 
         const int progression = static_cast<int>(static_cast<float>(i + 1) / entryCount * 100.f);
         if (progression > _lastProgression + 2)

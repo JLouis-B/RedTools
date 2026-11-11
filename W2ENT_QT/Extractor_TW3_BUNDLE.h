@@ -3,11 +3,20 @@
 
 #include <QFile>
 
+struct TW3_BundleEntry
+{
+    QString filename;
+    quint64 offset = 0;
+    quint32 decompressedSize = 0;
+    quint32 compressedSize = 0;
+    qint32  compressionType = 0;
+};
+
 class Extractor_TW3_BUNDLE : public QObject
 {
     Q_OBJECT
 public:
-    explicit Extractor_TW3_BUNDLE(QString file = "", QString folder = "");
+    explicit Extractor_TW3_BUNDLE(QString file, QString folder);
 
 private:
     void extractBUNDLE(QString exportFolder, QString filename);

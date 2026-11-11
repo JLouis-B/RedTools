@@ -4,6 +4,7 @@
 
 #include <QDir>
 
+#include <iostream>
 #include <zlib.h>
 #include <snappy-c.h>
 #include <lz4.h>
@@ -39,7 +40,6 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
     emit finished();
 }
 
-// ref code : http://jlouisb.users.sourceforge.net/witcher3_bundleOnly.bms
 void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFolder)
 {
     _lastProgression = 0;
@@ -48,106 +48,186 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
     file.read(magic, 8); // POTATO70
     LoggerManager::Instance()->addLineAndFlush(magic);
 
-    qint32 bundleSize = readInt32(file);
-    qint32 dummySize = readInt32(file);
-    qint32 dataOff = readInt32(file);
+    // Size of the file
+    const quint64 bundleFileSize = readUInt64(file);
 
-    // header size ?
-    int infoOff = 0x20;
+    // Size of the next part (the list and infos of all files contained)
+    const quint32 entriesTableSize = readUInt32(file);
 
-    int dataPosition = dataOff + infoOff;
+    relativeSeek(file, 12);
+    const quint32 dataPosition = file.pos() + entriesTableSize;
 
-    file.seek(infoOff);
-    while (file.pos() < dataPosition)
+
+    // TODO: Add an option in the UI to choose legacy, and refacto the 2 codes
+    const bool bUseNewBundleFileVersion = true;
+    if (bUseNewBundleFileVersion)
     {
-        //std::cout << file.pos() << std::endl;
-        QString filename = readString(file, 256);
-        QString hash = readString(file, 16);
-        //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
+        while (file.pos() < dataPosition)
+        {
+            //std::cout << file.pos() << std::endl;
+            QString filename = readString(file, 256);
+            //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
-        qint32 zero = readInt32(file);
-        qint32 decompressedSize = readInt32(file);
-        qint32 compressedSize = readInt32(file);
-        qint32 offset = readInt32(file);
-        qint64 timestamp = readInt64(file);
-        /*
-        std::cout << "ZERO= " << zero
+
+            QString hash = readString(file, 16);
+
+            quint64 offset = readUInt64(file);
+            qint32 decompressedSize = readInt32(file);
+            qint32 compressedSize = readInt32(file);
+            qint32 crc32 = readInt32(file);
+
+
+            //qint64 timestamp = readInt64(file);
+
+            /*
+            std::cout //<< "ZERO= " << zero
+                      << ", decompressedSize= " << decompressedSize
+                      << ", compressedSize= " << compressedSize
+                      << ", OFFSET= " << offset
+                      << ", TSAMP= " << timestamp << std::endl;
+            */
+
+            qint32 zip = readInt32(file);
+            relativeSeek(file, 8);
+
+            qint64 back = file.pos();
+
+            file.seek(offset);
+            // read the content of the file
+            char* fileContent = new char[compressedSize];
+            file.read(fileContent, compressedSize);
+
+            if (zip == 0)
+            {
+                // no compression here
+                decompressFileRAW(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 1)
+            {
+                // comtype zlib
+                decompressFileZLIB(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 2)
+            {
+                // comtype snappy
+                decompressFileSNAPPY(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 3)
+            {
+                // comtype doboz
+                decompressFileDOBOZ(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 4 || zip == 5)
+            {
+                // comtype lz4
+                decompressFileLZ4(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else
+            {
+                LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s (type : %d)", filename.toStdString().c_str(), zip));
+            }
+            delete[] fileContent;
+            file.seek(back);
+
+            int progression = static_cast<int>(static_cast<float>((file.pos()) * 100) / dataPosition);
+            if (progression > _lastProgression + 2)
+            {
+                emit onProgress(progression);
+                _lastProgression = progression;
+            }
+
+            if (_stopped)
+            {
+                LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression stopped");
+                break;
+            }
+        }
+    }
+    else
+    {
+        while (file.pos() < dataPosition)
+        {
+            //std::cout << file.pos() << std::endl;
+            QString filename = readString(file, 256);
+            QString hash = readString(file, 16);
+            //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
+
+            qint32 zero = readInt32(file);
+            qint32 decompressedSize = readInt32(file);
+            qint32 compressedSize = readInt32(file);
+            qint32 offset = readInt32(file);
+            qint64 timestamp = readInt64(file);
+            /*
+                std::cout << "ZERO= " << zero
                   << ", decompressedSize= " << decompressedSize
                   << ", compressedSize= " << compressedSize
                   << ", OFFSET= " << offset
                   << ", TSAMP= " << timestamp << std::endl;
                   */
-        /*
-        get ZERO long
-        get SIZE long
-        get ZSIZE long
-        get OFFSET long
-        get TSTAMP longlong
-        */
+            /*
 
-        QString z = readString(file, 16);
 
-        /*
+            /*
          *          get DUMMY long
         get ZIP long
         savepos INFO_OFF
         */
-        qint32 dummy = readInt32(file);
-        qint32 zip = readInt32(file);
+            qint32 dummy = readInt32(file);
+            qint32 zip = readInt32(file);
 
-        qint64 back = file.pos();
+            qint64 back = file.pos();
 
-        file.seek(offset);
-        // read the content of the file
-        char* fileContent = new char[compressedSize];
-        file.read(fileContent, compressedSize);
+            file.seek(offset);
+            // read the content of the file
+            char* fileContent = new char[compressedSize];
+            file.read(fileContent, compressedSize);
 
-        if (zip == 0)
-        {
-            // no compression here
-            decompressFileRAW(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-        }
-        else if (zip == 1)
-        {
-            // comtype zlib
-            decompressFileZLIB(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-        }
-        else if (zip == 2)
-        {
-            // comtype snappy
-            decompressFileSNAPPY(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-        }
-        else if (zip == 3)
-        {
-            // comtype doboz
-            decompressFileDOBOZ(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-        }
-        else if (zip == 4 || zip == 5)
-        {
-            // comtype lz4
-            decompressFileLZ4(fileContent, compressedSize, decompressedSize, exportFolder, filename);
-        }
-        else
-        {
-            LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s", filename.toStdString().c_str()));
-        }
-        delete[] fileContent;
-        file.seek(back);
+            if (zip == 0)
+            {
+                // no compression here
+                decompressFileRAW(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 1)
+            {
+                // comtype zlib
+                decompressFileZLIB(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 2)
+            {
+                // comtype snappy
+                decompressFileSNAPPY(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 3)
+            {
+                // comtype doboz
+                decompressFileDOBOZ(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else if (zip == 4 || zip == 5)
+            {
+                // comtype lz4
+                decompressFileLZ4(fileContent, compressedSize, decompressedSize, exportFolder, filename);
+            }
+            else
+            {
+                LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s", filename.toStdString().c_str()));
+            }
+            delete[] fileContent;
+            file.seek(back);
 
-        int progression = static_cast<int>(static_cast<float>((file.pos()) * 100) / dataPosition);
-        if (progression > _lastProgression + 2)
-        {
-            emit onProgress(progression);
-            _lastProgression = progression;
-        }
+            int progression = static_cast<int>(static_cast<float>((file.pos()) * 100) / dataPosition);
+            if (progression > _lastProgression + 2)
+            {
+                emit onProgress(progression);
+                _lastProgression = progression;
+            }
 
-        if (_stopped)
-        {
-            LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression stopped");
-            break;
+            if (_stopped)
+            {
+                LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression stopped");
+                break;
+            }
         }
     }
-
 }
 
 bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, qint64 decompressedSize, QString exportFolder, QString filename)

@@ -9,6 +9,7 @@
 #include <snappy-c.h>
 #include <lz4.h>
 #include "DOBOZ/Decompressor.h"
+#include "Utils_Qt.h"
 
 Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder)
     : _file(file),
@@ -34,6 +35,7 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
     }
 
     // parsing
+    exportFolder = UtilsQt::ensureTrailingSlash(exportFolder);
     extractDecompressedFile(bundleFile, exportFolder);
 
     LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression finished");
@@ -71,6 +73,8 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
     }
 
     quint64 allDataSize = 0;
+    quint64 largestCompressedDataSize = 0;
+    quint64 largestDecompressedDataSize = 0;
     std::vector<TW3_BundleEntry> entries;
     entries.reserve(entryCount);
     for (quint32 i = 0; i < entryCount; ++i)
@@ -108,8 +112,18 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         }
         entries.push_back(entry);
         allDataSize += entry.compressedSize;
+        if (entry.compressedSize > largestCompressedDataSize)
+        {
+            largestCompressedDataSize = entry.compressedSize;
+        }
+        if (entry.decompressedSize > largestDecompressedDataSize)
+        {
+            largestDecompressedDataSize = entry.decompressedSize;
+        }
     }
 
+    char* fileContent = new char[largestCompressedDataSize];
+    char* decompressedBuffer = new char[largestDecompressedDataSize];
     quint64 processedSize = 0;
     for (size_t i = 0; i < entries.size(); ++i)
     {
@@ -117,36 +131,35 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
 
         file.seek(BundleEntry.offset);
         // read the content of the file
-        char* fileContent = new char[BundleEntry.compressedSize];
+
         file.read(fileContent, BundleEntry.compressedSize);
 
         switch (BundleEntry.compressionType)
         {
         case 0:
-            decompressFileRAW(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            decompressFileRAW(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 1:
             // comtype zlib
-            decompressFileZLIB(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            decompressFileZLIB(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 2:
             // comtype snappy
-            decompressFileSNAPPY(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            decompressFileSNAPPY(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 3:
             // comtype doboz
-            decompressFileDOBOZ(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            decompressFileDOBOZ(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 4:
         case 5:
             // comtype lz4 (4 & 5)
-            decompressFileLZ4(fileContent, BundleEntry.compressedSize, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            decompressFileLZ4(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         default:
             LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s (type : %d)", BundleEntry.filename.toStdString().c_str(), BundleEntry.compressionType));
             break;
         }
-        delete[] fileContent;
 
         processedSize += BundleEntry.compressedSize;
         const int progression = static_cast<int>(static_cast<float>(processedSize) / allDataSize * 100.f);
@@ -162,12 +175,14 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
             break;
         }
     }
+    delete[] fileContent;
+    delete[] decompressedBuffer;
 }
 
 bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // create the file
-    QString fullPath = exportFolder + "/" + filename;
+    QString fullPath = exportFolder + filename;
     //std::cout << fullPath.toStdString().c_str() << std::endl;
     QFileInfo fileInfo(fullPath);
     QDir dir = fileInfo.absoluteDir();
@@ -193,16 +208,14 @@ bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, 
     return false;
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // Nothing to do, no compression
     return writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileZLIB(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileZLIB(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
-    char* decompressedFileContent = new char[decompressedSize];
-
     // STEP 2.
     // inflate b into c
     // zlib struct
@@ -214,19 +227,18 @@ bool Extractor_TW3_BUNDLE::decompressFileZLIB(char* fileContent, qint64 compress
     infstream.avail_in = (uInt)compressedSize; // size of input
     infstream.next_in = (Bytef *)fileContent; // input char array
     infstream.avail_out = (uInt)decompressedSize; // size of output
-    infstream.next_out = (Bytef *)decompressedFileContent; // output char array
+    infstream.next_out = (Bytef *)decompressedBuffer; // output char array
 
     // the actual DE-compression work.
     inflateInit(&infstream);
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
 
-    bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
-    delete[] decompressedFileContent;
+    bool success = writeDecompressedFile(decompressedBuffer, decompressedSize, exportFolder, filename);
     return success;
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // don't seem necessary
     // size_t decompressedSnappySize;
@@ -235,23 +247,20 @@ bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char* fileContent, qint64 compre
     //std::cout << "decompressedSize= " << decompressedSize << std::endl;
     //std::cout << "decompressedSnappySize= " << decompressedSnappySize << std::endl;
 
-    char* decompressedFileContent = new char[decompressedSize];
     size_t decompressedSnappySize = decompressedSize;
-    snappy_status status = snappy_uncompress(fileContent, compressedSize, decompressedFileContent, &decompressedSnappySize);
+    snappy_status status = snappy_uncompress(fileContent, compressedSize, decompressedBuffer, &decompressedSnappySize);
     if (status == SNAPPY_OK)
     {
-        bool success = writeDecompressedFile(decompressedFileContent, decompressedSnappySize, exportFolder, filename);
-        delete[] decompressedFileContent;
+        bool success = writeDecompressedFile(decompressedBuffer, decompressedSnappySize, exportFolder, filename);
         return success;
     }
     else
     {
-        delete[] decompressedFileContent;
         return false;
     }
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     doboz::Decompressor decompressor;
 
@@ -264,33 +273,27 @@ bool Extractor_TW3_BUNDLE::decompressFileDOBOZ(char* fileContent, qint64 compres
     size_t outputSize = static_cast<size_t>(compressionInfo.uncompressedSize);
     */
 
-    char* decompressedFileContent = new char[decompressedSize];
-    doboz::Result result = decompressor.decompress(fileContent, compressedSize, decompressedFileContent, decompressedSize);
+    doboz::Result result = decompressor.decompress(fileContent, compressedSize, decompressedBuffer, decompressedSize);
     if (result == doboz::RESULT_OK)
     {
-        bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
-        delete[] decompressedFileContent;
+        bool success = writeDecompressedFile(decompressedBuffer, decompressedSize, exportFolder, filename);
         return success;
     }
     else
     {
-        delete[] decompressedFileContent;
         return false;
     }
 }
 
-bool Extractor_TW3_BUNDLE::decompressFileLZ4(char* fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW3_BUNDLE::decompressFileLZ4(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
-    char* decompressedFileContent = new char[decompressedSize];
-    if (LZ4_decompress_fast(fileContent, decompressedFileContent, decompressedSize) > 0)
+    if (LZ4_decompress_safe(fileContent, decompressedBuffer, compressedSize, decompressedSize) > 0)
     {
-        bool success = writeDecompressedFile(decompressedFileContent, decompressedSize, exportFolder, filename);
-        delete[] decompressedFileContent;
+        bool success = writeDecompressedFile(decompressedBuffer, decompressedSize, exportFolder, filename);
         return success;
     }
     else
     {
-        delete[] decompressedFileContent;
         return false;
     }
 }

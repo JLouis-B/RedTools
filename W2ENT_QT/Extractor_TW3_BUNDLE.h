@@ -25,12 +25,12 @@ private:
     QString _folder;
     bool _stopped;
 
-    void extractDecompressedFile(QFile &file, QString exportFolder);
-    bool decompressFileRAW(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
-    bool decompressFileZLIB(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
-    bool decompressFileSNAPPY(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
-    bool decompressFileDOBOZ(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
-    bool decompressFileLZ4(char *fileContent, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
+    void extractDecompressedFile(QFile& file, QString exportFolder);
+    bool decompressFileRAW(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename);
+    bool decompressFileZLIB(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename);
+    bool decompressFileSNAPPY(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename);
+    bool decompressFileDOBOZ(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename);
+    bool decompressFileLZ4(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename);
 
     bool writeDecompressedFile(char* decompressedFileContent, qint64 decompressedSize, QString exportFolder, QString filename);
     int _lastProgression;

@@ -70,6 +70,7 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         LoggerManager::Instance()->addLineAndFlush("BUNDLE: Something wrong with entries tables");
     }
 
+    quint64 allDataSize = 0;
     std::vector<TW3_BundleEntry> entries;
     entries.reserve(entryCount);
     for (quint32 i = 0; i < entryCount; ++i)
@@ -92,30 +93,24 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         }
         else
         {
-            //std::cout << file.pos() << std::endl;
             entry.filename = readString(file, 256);
-            QString hash = readString(file, 16);
+            const QString hash = readString(file, 16);
             //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
-            const qint32 zero = readInt32(file);
+            relativeSeek(file, 4); // 0
             entry.decompressedSize = readUInt32(file);
             entry.compressedSize = readUInt32(file);
             entry.offset = readUInt32(file);
             const qint64 timestamp = readInt64(file);
-            /*
-                std::cout << "ZERO= " << zero
-                  << ", decompressedSize= " << decompressedSize
-                  << ", compressedSize= " << compressedSize
-                  << ", OFFSET= " << offset
-                  << ", TSAMP= " << timestamp << std::endl;
-            */
 
-            const qint32 dummy = readInt32(file);
+            relativeSeek(file, 4); // dummy
             entry.compressionType = readInt32(file);
         }
         entries.push_back(entry);
+        allDataSize += entry.compressedSize;
     }
 
+    quint64 processedSize = 0;
     for (size_t i = 0; i < entries.size(); ++i)
     {
         const TW3_BundleEntry& BundleEntry = entries[i];
@@ -153,9 +148,9 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         }
         delete[] fileContent;
 
-
-        const int progression = static_cast<int>(static_cast<float>(i + 1) / entryCount * 100.f);
-        if (progression > _lastProgression + 2)
+        processedSize += BundleEntry.compressedSize;
+        const int progression = static_cast<int>(static_cast<float>(processedSize) / allDataSize * 100.f);
+        if (progression > _lastProgression + 1)
         {
             emit onProgress(progression);
             _lastProgression = progression;

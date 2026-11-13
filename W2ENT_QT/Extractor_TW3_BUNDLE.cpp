@@ -60,8 +60,6 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
     // End of header
 
 
-    const quint32 dataPosition = file.pos() + fileTableSize;
-
     // TODO: Add an option in the UI to choose legacy, and refacto the 2 codes
     const bool bUseNewBundleFileVersion = true;
     const quint32 entrySize = bUseNewBundleFileVersion ? 304 : 320;
@@ -120,6 +118,11 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         {
             largestDecompressedDataSize = entry.decompressedSize;
         }
+    }
+
+    if (entries.empty())
+    {
+        return;
     }
 
     char* fileContent = new char[largestCompressedDataSize];
@@ -211,31 +214,35 @@ bool Extractor_TW3_BUNDLE::writeDecompressedFile(char* decompressedFileContent, 
 bool Extractor_TW3_BUNDLE::decompressFileRAW(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // Nothing to do, no compression
-    return writeDecompressedFile(fileContent, decompressedSize, exportFolder, filename);
+    return writeDecompressedFile(fileContent, compressedSize, exportFolder, filename);
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileZLIB(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
-    // STEP 2.
-    // inflate b into c
-    // zlib struct
     z_stream infstream;
     infstream.zalloc = Z_NULL;
-    infstream.zfree = Z_NULL;
+    infstream.zfree  = Z_NULL;
     infstream.opaque = Z_NULL;
-    // setup "b" as the input and "c" as the compressed output
-    infstream.avail_in = (uInt)compressedSize; // size of input
-    infstream.next_in = (Bytef *)fileContent; // input char array
-    infstream.avail_out = (uInt)decompressedSize; // size of output
-    infstream.next_out = (Bytef *)decompressedBuffer; // output char array
+    infstream.avail_in  = (uInt)compressedSize;
+    infstream.next_in   = (Bytef*)fileContent;
+    infstream.avail_out = (uInt)decompressedSize;
+    infstream.next_out  = (Bytef*)decompressedBuffer;
 
     // the actual DE-compression work.
-    inflateInit(&infstream);
-    inflate(&infstream, Z_NO_FLUSH);
+    if (inflateInit(&infstream) != Z_OK)
+    {
+        return false;
+    }
+
+    const int result = inflate(&infstream, Z_FINISH);
     inflateEnd(&infstream);
 
-    bool success = writeDecompressedFile(decompressedBuffer, decompressedSize, exportFolder, filename);
-    return success;
+    if (result != Z_STREAM_END)
+    {
+        return false;
+    }
+
+    return writeDecompressedFile(decompressedBuffer, infstream.total_out, exportFolder, filename);
 }
 
 bool Extractor_TW3_BUNDLE::decompressFileSNAPPY(char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)

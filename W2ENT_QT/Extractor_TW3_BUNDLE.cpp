@@ -11,6 +11,8 @@
 #include "DOBOZ/Decompressor.h"
 #include "Utils_Qt.h"
 
+using namespace UtilsLoadersQt;
+
 Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder)
     : _file(file),
       _folder(folder),
@@ -35,7 +37,7 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
     }
 
     // parsing
-    exportFolder = UtilsQt::ensureTrailingSlash(exportFolder);
+    exportFolder = UtilsQt::ensureTrailingSlash(QDir::cleanPath(exportFolder));
     extractDecompressedFile(bundleFile, exportFolder);
 
     LoggerManager::Instance()->addLineAndFlush("BUNDLE: Decompression finished");
@@ -81,9 +83,8 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         if (bUseNewBundleFileVersion)
         {
             entry.filename = readString(file, 256);
-            //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
-
             const QString hash = readString(file, 16);
+            //std::cout << "filename : " << filename.toStdString().c_str() << std::endl;
 
             entry.offset = readUInt64(file);
             entry.decompressedSize = readUInt32(file);
@@ -133,35 +134,46 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
         const TW3_BundleEntry& BundleEntry = entries[i];
 
         file.seek(BundleEntry.offset);
+
         // read the content of the file
+        if (file.read(fileContent, BundleEntry.compressedSize) != BundleEntry.compressedSize)
+        {
+            LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to read the compressed file -> %s)", BundleEntry.filename.toStdString().c_str()));
+            continue;
+        }
 
-        file.read(fileContent, BundleEntry.compressedSize);
-
+        bool bSuccess = true;
         switch (BundleEntry.compressionType)
         {
         case 0:
-            decompressFileRAW(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            bSuccess = decompressFileRAW(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 1:
             // comtype zlib
-            decompressFileZLIB(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            bSuccess = decompressFileZLIB(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 2:
             // comtype snappy
-            decompressFileSNAPPY(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            bSuccess = decompressFileSNAPPY(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 3:
             // comtype doboz
-            decompressFileDOBOZ(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            bSuccess = decompressFileDOBOZ(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         case 4:
         case 5:
             // comtype lz4 (4 & 5)
-            decompressFileLZ4(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
+            bSuccess = decompressFileLZ4(fileContent, BundleEntry.compressedSize, decompressedBuffer, BundleEntry.decompressedSize, exportFolder, BundleEntry.filename);
             break;
         default:
+            bSuccess = false;
             LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: NEW COMPRESSION TYPE -> %s (type : %d)", BundleEntry.filename.toStdString().c_str(), BundleEntry.compressionType));
             break;
+        }
+
+        if (!bSuccess)
+        {
+            LoggerManager::Instance()->addLineAndFlush(formatString("BUNDLE: Fail to extract file -> %s)", BundleEntry.filename.toStdString().c_str()));
         }
 
         processedSize += BundleEntry.compressedSize;

@@ -9,6 +9,8 @@
 #include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
 
+using namespace UtilsLoadersQt;
+
 Extractor_Dishonored2::Extractor_Dishonored2(QString indexFile, QString resourcesFile, QString folder)
     : _indexFile(indexFile),
       _resourcesFile(resourcesFile),

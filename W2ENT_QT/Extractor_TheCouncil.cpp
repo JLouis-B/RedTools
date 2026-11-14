@@ -5,6 +5,8 @@
 #include <QVector>
 #include <QDir>
 
+using namespace UtilsLoadersQt;
+
 Extractor_TheCouncil::Extractor_TheCouncil(QString file, QString folder)
     : _file(file),
       _folder(folder),

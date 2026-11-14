@@ -4,6 +4,8 @@
 
 #include <QDir>
 
+using namespace UtilsLoadersQt;
+
 bool operator< (const ResourceId& a, const ResourceId& b)
 {
     if (a._bifId != b._bifId)

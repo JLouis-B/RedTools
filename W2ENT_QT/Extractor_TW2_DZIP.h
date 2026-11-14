@@ -14,6 +14,13 @@
 // Reference code to unpack LZF :
 // http://svn.gib.me/public/red/trunk/Gibbed.RED.Unpack/Lzf.cs
 
+struct TW2_FileEntry
+{
+    QString filename;
+    quint64 offset = 0;
+    quint32 decompressedSize = 0;
+    quint32 compressedSize = 0;
+};
 
 class Extractor_TW2_DZIP : public QObject
 {
@@ -29,7 +36,7 @@ private:
     bool _stopped;
 
     void extractDecompressedFile(QFile &file, QString exportFolder);
-    bool decompressFile(QFile &compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename);
+    bool decompressFile(QFile& compressedFile, char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename);
 
 public slots :
     void run();

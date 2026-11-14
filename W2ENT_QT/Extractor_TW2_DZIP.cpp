@@ -51,42 +51,65 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
     qint32 unk2        = readInt32(file);
     qint64 tableAdress = readInt64(file);
 
-    qint64 tablePosition = tableAdress;
-
-    for (int i = 0; i < filesCount; ++i)
+    quint64 allDataSize = 0;
+    quint64 largestCompressedDataSize = 0;
+    quint64 largestDecompressedDataSize = 0;
+    std::vector<TW2_FileEntry> entries;
+    entries.reserve(filesCount);
+    file.seek(tableAdress);
+    for (qint32 i = 0; i < filesCount; ++i)
     {
-        file.seek(tablePosition);
+        TW2_FileEntry entry;
 
         quint16 nsize = readUInt16(file);
-        QString filename = readString(file, nsize);
+        entry.filename = readString(file, nsize);
         //std::cout << filename << std::endl;
 
         qint32 unk3        = readInt32(file);
         qint32 unk4        = readInt32(file);
 
-        qint64 decompressedSize = readInt64(file);
-        qint64 offset           = readInt64(file);
-        qint64 compressedSize   = readInt64(file);
+        entry.decompressedSize = readInt64(file);
+        entry.offset           = readInt64(file);
+        entry.compressedSize   = readInt64(file);
 
-        tablePosition = file.pos();
+        entries.push_back(entry);
+        allDataSize += entry.compressedSize;
+        if (entry.compressedSize > largestCompressedDataSize)
+        {
+            largestCompressedDataSize = entry.compressedSize;
+        }
+        if (entry.decompressedSize > largestDecompressedDataSize)
+        {
+            largestDecompressedDataSize = entry.decompressedSize;
+        }
+    }
 
+    if (entries.empty())
+    {
+        return;
+    }
 
-        //std::cout << "compressedSize = " << compressedSize << std::endl;
-        //std::cout << "offset = " << offset << std::endl;
-        //std::cout << "decompressedSize = " << decompressedSize << std::endl;
+    char* fileContent = new char[largestCompressedDataSize];
+    char* decompressedBuffer = new char[largestDecompressedDataSize];
+    quint64 processedSize = 0;
+    for (size_t i = 0; i < entries.size(); ++i)
+    {
+        const TW2_FileEntry& FileEntry = entries[i];
 
-        file.seek(offset);
-        qint32 offsetAdd = readInt32(file);
-        qint64 realOffset = file.pos() - 4 + offsetAdd;
-        compressedSize -= offsetAdd;
+        file.seek(FileEntry.offset);
+
+        const qint32 offsetAdd = readInt32(file);
+        const qint64 realOffset = file.pos() - 4 + offsetAdd;
+        quint32 compressedSize = FileEntry.compressedSize - offsetAdd;
 
         file.seek(realOffset);
         //std::cout << "seek to  = " << realOffset << std::endl;
 
-        if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, filename))
-            LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename.toStdString().c_str()));
+        if (!decompressFile(file, fileContent, compressedSize, decompressedBuffer, FileEntry.decompressedSize, exportFolder, FileEntry.filename))
+            LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", FileEntry.filename.toStdString().c_str()));
 
-        const int progression = static_cast<int>(static_cast<float>((i+1) * 100) / filesCount);
+        processedSize += FileEntry.compressedSize;
+        const int progression = static_cast<int>(static_cast<float>(processedSize * 100.f) / allDataSize);
         if (progression > lastProgression)
         {
             emit onProgress(progression);
@@ -99,17 +122,18 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
             break;
         }
     }
+
+    delete[] fileContent;
+    delete[] decompressedBuffer;
 }
 
-bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressedSize, qint64 decompressedSize, QString exportFolder, QString filename)
+bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, char* fileContent, qint64 compressedSize, char* decompressedBuffer, qint64 decompressedSize, QString exportFolder, QString filename)
 {
     // Check TW2_DZIP_Extractor to find some good ref about this
 
     // read the content of the file
-    char* fileContent = new char[compressedSize];
     compressedFile.read(fileContent, compressedSize);
 
-    char* decompressedFileContent = new char[decompressedSize];
     qint64 compressedPosition = 0, decompressedPosition = 0;
     while (compressedPosition < compressedSize)
     {
@@ -127,13 +151,11 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
             // 2 files in this case, don't know why
             if (decompressedPosition + length > decompressedSize)
             {
-                delete[] fileContent;
-                delete[] decompressedFileContent;
                 return false;
             }
 
             // copy 'length bytes'
-            memcpy(&decompressedFileContent[decompressedPosition], &fileContent[compressedPosition], length);
+            memcpy(&decompressedBuffer[decompressedPosition], &fileContent[compressedPosition], length);
             decompressedPosition += length;
             compressedPosition += length;
         }
@@ -154,8 +176,6 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
             // 2 files in this case, don't know why
             if (decompressedPosition + length > decompressedSize)
             {
-                delete[] fileContent;
-                delete[] decompressedFileContent;
                 return false;
             }
 
@@ -164,13 +184,13 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
             {
                 while (length > 0)
                 {
-                    decompressedFileContent[decompressedPosition++] = decompressedFileContent[positionBack++];
+                    decompressedBuffer[decompressedPosition++] = decompressedBuffer[positionBack++];
                     length--;
                 }
             }
             else
             {
-                memcpy(&decompressedFileContent[decompressedPosition], &decompressedFileContent[positionBack], length);
+                memcpy(&decompressedBuffer[decompressedPosition], &decompressedBuffer[positionBack], length);
                 decompressedPosition += length;
             }
         }
@@ -187,7 +207,7 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
         QFile decompressedFile(fullPath);
         if (decompressedFile.open(QIODevice::WriteOnly))
         {
-            decompressedFile.write(decompressedFileContent, decompressedSize);
+            decompressedFile.write(decompressedBuffer, decompressedSize);
             decompressedFile.close();
         }
         else
@@ -201,9 +221,6 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
     {
         LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: decompressedSize != decompressedPosition : %s", fullPath.toStdString().c_str()));
     }
-
-    delete[] fileContent;
-    delete[] decompressedFileContent;
 
     return true;
 }

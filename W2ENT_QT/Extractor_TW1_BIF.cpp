@@ -1,6 +1,7 @@
 #include "Extractor_TW1_BIF.h"
 #include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
+#include "Utils_Qt.h"
 
 #include <QDir>
 
@@ -21,8 +22,6 @@ Extractor_TW1_BIF::Extractor_TW1_BIF(QString file, QString folder)
       _lastProgression(0)
 {
     createResourceTypeMap();
-    _nbProgress = 0;
-    _lastProgression = 0;
     _stopped = false;
 }
 
@@ -55,6 +54,8 @@ void Extractor_TW1_BIF::extractKeyBIF(QString exportFolder, QString keyFilename)
         emit error();
         return;
     }
+
+    exportFolder = UtilsQt::ensureTrailingSlash(QDir::cleanPath(exportFolder));
 
     // magic word "BIFFV1.1"
     keyFile.seek(8);
@@ -123,7 +124,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString bifFilename, un
 
     QFileInfo fileInf(bifFile);
     const QString baseFilename = fileInf.baseName();
-    const QString newFileFolder = exportFolder + "/" + baseFilename + "/";
+    const QString newFileFolder = exportFolder + baseFilename + "/";
 
     if (!bifFile.open(QIODevice::ReadOnly))
     {
@@ -202,7 +203,7 @@ void Extractor_TW1_BIF::extractBIF(QString exportFolder, QString bifFilename, un
         bifFile.seek(back);
 
         _nbProgress++;
-        int progression = static_cast<int>(static_cast<float>(_nbProgress) / _resources.size() * 100.f);
+        const int progression = static_cast<int>(static_cast<float>(_nbProgress) / _resources.size() * 100.f);
         if (progression > _lastProgression)
         {
             _lastProgression = progression;

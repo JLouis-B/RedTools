@@ -16,8 +16,7 @@ using namespace UtilsLoadersQt;
 Extractor_TW3_BUNDLE::Extractor_TW3_BUNDLE(QString file, QString folder)
     : _file(file),
       _folder(folder),
-      _stopped(false),
-      _lastProgression(0)
+      _stopped(false)
 {
 }
 
@@ -46,7 +45,7 @@ void Extractor_TW3_BUNDLE::extractBUNDLE(QString exportFolder, QString filename)
 
 void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFolder)
 {
-    _lastProgression = 0;
+    int lastProgression = 0;
 
     char magic[9] = "\0";
     file.read(magic, 8); // POTATO70
@@ -178,10 +177,10 @@ void Extractor_TW3_BUNDLE::extractDecompressedFile(QFile& file, QString exportFo
 
         processedSize += BundleEntry.compressedSize;
         const int progression = static_cast<int>(static_cast<float>(processedSize) / allDataSize * 100.f);
-        if (progression > _lastProgression + 1)
+        if (progression > lastProgression + 1)
         {
             emit onProgress(progression);
-            _lastProgression = progression;
+            lastProgression = progression;
         }
 
         if (_stopped)

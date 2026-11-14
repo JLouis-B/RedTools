@@ -19,7 +19,7 @@ class Extractor_TW2_DZIP : public QObject
 {
     Q_OBJECT
 public:
-    explicit Extractor_TW2_DZIP(QString file = "", QString folder = "");
+    explicit Extractor_TW2_DZIP(QString file, QString folder);
 
 private:
     void extractDZIP(QString exportFolder, QString filename);

@@ -17,14 +17,13 @@ class Extractor_TheCouncil : public QObject
     QString _file;
     QString _folder;
     bool _stopped;
-    unsigned int _nbProgress;
     int _lastProgression;
 
     void extract(QString exportFolder, QString filename);
-    void extractCPKFile(QFile &file, QString exportFolder);
+    void extractCPKFile(QFile& file, QString exportFolder);
 
 public:
-    Extractor_TheCouncil(QString file = "", QString folder = "");
+    Extractor_TheCouncil(QString file, QString folder);
 
 public slots :
     void run();

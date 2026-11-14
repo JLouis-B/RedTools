@@ -1,6 +1,7 @@
 #include "Extractor_TW2_DZIP.h"
 #include "Log/LoggerManager.h"
 #include "Utils_Loaders_Qt.h"
+#include "Utils_Qt.h"
 
 #include <QDir>
 
@@ -28,6 +29,8 @@ void Extractor_TW2_DZIP::extractDZIP(QString exportFolder, QString filename)
         return;
     }
 
+    exportFolder = UtilsQt::ensureTrailingSlash(QDir::cleanPath(exportFolder));
+
     // parsing
     extractDecompressedFile(dzipFile, exportFolder);
 
@@ -37,6 +40,8 @@ void Extractor_TW2_DZIP::extractDZIP(QString exportFolder, QString filename)
 
 void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFolder)
 {
+    int lastProgression = 0;
+
     char magic[5] = "\0";
     file.read(magic, 4);
     //std::cout << magic << std::endl;
@@ -78,11 +83,15 @@ void Extractor_TW2_DZIP::extractDecompressedFile(QFile& file, QString exportFold
         file.seek(realOffset);
         //std::cout << "seek to  = " << realOffset << std::endl;
 
-        if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, QString(filename)))
+        if (!decompressFile(file, compressedSize, decompressedSize, exportFolder, filename))
             LoggerManager::Instance()->addLineAndFlush(formatString("DZIP: Fail to extract a file : %s", filename.toStdString().c_str()));
 
-        int progression = static_cast<int>(static_cast<float>((i+1) * 100) / filesCount);
-        emit onProgress(progression);
+        const int progression = static_cast<int>(static_cast<float>((i+1) * 100) / filesCount);
+        if (progression > lastProgression)
+        {
+            emit onProgress(progression);
+            lastProgression = progression;
+        }
 
         if (_stopped)
         {
@@ -169,7 +178,7 @@ bool Extractor_TW2_DZIP::decompressFile(QFile& compressedFile, qint64 compressed
 
 
     // create the file
-    QString fullPath = exportFolder + "/" + filename;
+    QString fullPath = exportFolder + filename;
     //std::cout << fullPath.toStdString().c_str() << std::endl;
     QFileInfo fileInfo(fullPath);
     QDir dir = fileInfo.absoluteDir();

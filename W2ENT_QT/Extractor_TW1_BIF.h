@@ -41,7 +41,7 @@ class Extractor_TW1_BIF : public QObject
 
 
 public:
-    Extractor_TW1_BIF(QString file = "", QString folder = "");
+    Extractor_TW1_BIF(QString file, QString folder);
     void extractBIF(QString exportFolder, QString bifFilename, unsigned int bifId = 0);
     void extractKeyBIF(QString exportFolder, QString keyFilename);
 

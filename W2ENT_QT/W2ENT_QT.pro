@@ -55,8 +55,6 @@ SOURCES += main.cpp\
     DOBOZ/Compressor.cpp \
     DOBOZ/Decompressor.cpp \
     DOBOZ/Dictionary.cpp \
-    GUI_Extractor_TW3_CACHE.cpp \
-    Extractor_TW3_CACHE.cpp \
     Utils_Qt_Irr.cpp \
     GUI_About.cpp \
     IO_SpeedTreeLoader.cpp \
@@ -116,8 +114,6 @@ HEADERS  += \
     DOBOZ/Compressor.h \
     DOBOZ/Decompressor.h \
     DOBOZ/Dictionary.h \
-    GUI_Extractor_TW3_CACHE.h \
-    Extractor_TW3_CACHE.h \
     GUI_About.h \
     IO_SpeedTreeLoader.h \
     GUI_Extractor_TheCouncil.h \
@@ -141,7 +137,6 @@ FORMS    += \
     GUI_Resize.ui \
     GUI_CleanTexturesPath.ui \
     GUI_Extractor_TW3_BUNDLE.ui \
-    GUI_Extractor_TW3_CACHE.ui \
     GUI_About.ui \
     GUI_Extractor_TheCouncil.ui \
     GUI_Extractor_Dishonored2.ui

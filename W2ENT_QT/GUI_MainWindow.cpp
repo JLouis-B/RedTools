@@ -14,7 +14,6 @@
 #include "GUI_CleanTexturesPath.h"
 #include "GUI_Extractor_TW1_BIF.h"
 #include "GUI_Extractor_TW2_DZIP.h"
-#include "GUI_Extractor_TW3_CACHE.h"
 #include "GUI_Extractor_TW3_BUNDLE.h"
 #include "GUI_Extractor_TheCouncil.h"
 #include "GUI_Extractor_Dishonored2.h"
